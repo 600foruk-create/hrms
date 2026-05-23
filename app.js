@@ -199,12 +199,31 @@ function applyCompanyProfile(db) {
     }
 }
 
-function handleLogin(email, password) {
+function populateLoginDropdown() {
     const db = getDb();
-    const user = db.users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+    const select = document.getElementById('login-username');
+    if (!select) return;
+    select.innerHTML = '';
+    const activeUsers = db.users.filter(u => u.status === 'Active');
+    activeUsers.forEach(u => {
+        const op = new Option(u.name, u.name);
+        select.add(op);
+    });
+}
+
+function handleLogin(usernameOrEmail, password) {
+    const db = getDb();
+    // Match by name (dropdown) OR email (legacy fallback)
+    const user = db.users.find(u =>
+        (u.name === usernameOrEmail || u.email.toLowerCase() === usernameOrEmail.toLowerCase())
+        && u.password === password
+    );
     
     if (!user) {
-        showToast("Login Failed", "Invalid email address or password.", "error");
+        showToast("Login Failed", "Invalid username or password.", "error");
+        // Shake the form
+        const card = document.querySelector('.auth-card');
+        if (card) { card.style.animation = 'none'; setTimeout(() => { card.style.animation = 'shake 0.4s ease'; }, 10); }
         return;
     }
     
@@ -2460,22 +2479,46 @@ function exportCSV() {
 document.addEventListener('DOMContentLoaded', async () => {
     await syncServer();
     
-    // Quick Demo Accounts login clicks
-    document.querySelectorAll('.demo-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const email = btn.getAttribute('data-email');
-            const password = btn.getAttribute('data-password');
-            handleLogin(email, password);
+    // Populate username dropdown after data loads
+    populateLoginDropdown();
+    
+    // Yeti eye tracking & arm animation
+    const armL   = document.querySelector('.armL');
+    const armR   = document.querySelector('.armR');
+    const pupilL = document.querySelector('.pupil-L');
+    const pupilR = document.querySelector('.pupil-R');
+    const passInput = document.getElementById('login-password');
+    
+    if (armL && armR) {
+        armL.style.transform = 'translate(-93px, 10px)';
+        armR.style.transform = 'translate(-93px, 10px)';
+    }
+    
+    if (passInput) {
+        passInput.addEventListener('focus', () => {
+            if (armL) armL.style.transform = 'translate(-10px, 2px)';
+            if (armR) armR.style.transform = 'translate(-178px, 2px)';
         });
+        passInput.addEventListener('blur', () => {
+            if (armL) armL.style.transform = 'translate(-93px, 10px)';
+            if (armR) armR.style.transform = 'translate(-93px, 10px)';
+        });
+    }
+    
+    document.addEventListener('mousemove', (e) => {
+        if (document.activeElement === passInput) return;
+        const x = (e.clientX / window.innerWidth - 0.5) * 10;
+        const y = (e.clientY / window.innerHeight - 0.5) * 10;
+        if (pupilL) pupilL.style.transform = `translate(${x}px, ${y}px)`;
+        if (pupilR) pupilR.style.transform = `translate(${x}px, ${y}px)`;
     });
     
     // Login form submit
     document.getElementById('login-form').addEventListener('submit', (e) => {
         e.preventDefault();
-        const email = document.getElementById('login-email').value.trim();
+        const username = document.getElementById('login-username').value.trim();
         const password = document.getElementById('login-password').value;
-        handleLogin(email, password);
+        handleLogin(username, password);
     });
     
     // Logout buttons

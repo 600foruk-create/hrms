@@ -315,79 +315,109 @@ body.light-mode .form-control {
     padding: 2rem;
 }
 .auth-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(255,255,255,0.3);
     backdrop-filter: blur(20px);
-    border-radius: var(--radius-lg);
-    padding: 2.5rem;
+    border-radius: 20px;
+    padding: 1.5rem 2rem 2rem;
     width: 100%;
-    max-width: 480px;
-    box-shadow: var(--shadow-main);
+    max-width: 420px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.25);
     animation: fadeIn 0.5s ease-out;
+    color: #333;
+}
+body.light-mode .auth-card {
+    background: rgba(255,255,255,0.98);
 }
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
 }
-.auth-logo {
-    text-align: center;
-    margin-bottom: 2rem;
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-8px); }
+    40%, 80% { transform: translateX(8px); }
 }
-.logo-icon {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-    color: #ffffff;
-    display: inline-flex;
+
+/* Yeti SVG Container */
+.svgContainer {
+    width: 140px;
+    height: 140px;
+    margin: 0 auto 1.4rem;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #eef5ff;
+    border: 2px solid #217093;
+}
+.svgContainer .mySVG { width: 100%; height: 100%; }
+.armL, .armR {
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.pupil-L, .pupil-R {
+    transition: transform 0.15s ease;
+}
+
+/* Yeti form field rows */
+.yeti-field-row {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    border-radius: 12px;
-    margin-bottom: 0.75rem;
-    box-shadow: 0 0 15px var(--border-glow);
+    margin-bottom: 10px;
 }
-.auth-logo h2 {
-    font-family: var(--font-heading);
-    font-size: 26px;
+.yeti-label {
+    width: 90px;
+    font-size: 0.85em;
     font-weight: 700;
+    color: #3A5E77;
+    flex-shrink: 0;
 }
-.auth-logo h2 span {
-    color: var(--primary);
+.yeti-input {
+    flex: 1;
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.85em;
+    color: #495057;
+    background-color: #f8f9fa;
+    outline: none;
+    min-width: 0;
+    transition: border-color 0.2s, background 0.2s;
 }
-.auth-logo p {
-    color: var(--text-secondary);
-    font-size: 13px;
-    margin-top: 4px;
+.yeti-input:focus {
+    border-color: #217093;
+    background: #fff;
+    box-shadow: 0 0 0 2px rgba(33,112,147,0.15);
 }
-.demo-accounts {
-    margin-top: 2rem;
-    border-top: 1px dashed var(--border-color);
-    padding-top: 1.5rem;
+.auth-card .btn-primary {
+    background: #217093;
+    border-color: #217093;
+    border-radius: 6px;
+    height: 38px;
+    font-size: 0.9em;
+    letter-spacing: 0.3px;
 }
-.demo-accounts h3 {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-bottom: 1rem;
+.auth-card .btn-primary:hover {
+    background: #1a5a7a;
+    box-shadow: 0 4px 12px rgba(33,112,147,0.35);
+    transform: translateY(-1px);
+}
+
+/* Yeti branding footer */
+.yeti-branding {
     text-align: center;
+    margin-top: 18px;
+    font-size: 0.75em;
+    color: #6c757d;
+    border-top: 1px solid #dee2e6;
+    padding-top: 10px;
 }
-.demo-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+.yeti-brand-title {
+    font-weight: 700;
+    color: #214d64;
+    margin-bottom: 2px;
 }
-.demo-btn {
-    padding: 8px 10px;
-    font-size: 12px;
-    justify-content: flex-start;
-}
-.demo-btn i {
-    font-size: 14px;
-    margin-right: 6px;
-}
-.text-admin { color: #f43f5e; }
-.text-manager { color: #f59e0b; }
-.text-employee { color: #3b82f6; }
+.yeti-branding a { color: #217093; text-decoration: none; }
+.yeti-branding a:hover { text-decoration: underline; }
 
 /* ==================== APP LAYOUT SHELL ==================== */
 .app-shell {
