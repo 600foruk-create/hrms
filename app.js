@@ -23,16 +23,51 @@ const API_URL = 'https://azure-quetzal-636989.hostingersite.com/backend/api.php'
 window.hrmsDatabase = { users: [], weights: {}, leaves: [], productivity: [], attendance: [], announcements: [], auditLogs: [], notifications: [] };
 
 async function syncServer() {
+    let success = false;
     try {
         const response = await fetch(API_URL + '?action=load_all');
         const result = await response.json();
-        if (result.status === 'success') {
+        if (result.status === 'success' && result.data.users && result.data.users.length > 0) {
             window.hrmsDatabase = result.data;
+            success = true;
         } else {
-            console.error("Failed to load DB state:", result.message);
+            console.error("Failed to load DB state or DB is empty:", result.message);
         }
     } catch (e) {
         console.error("Network error loading DB:", e);
+    }
+
+    // Fallback Mock Database if API fails or DB is empty (Allows local demo to work)
+    if (!success) {
+        console.warn("Using Fallback Mock Database...");
+        window.hrmsDatabase = {
+            users: [
+                { id: "U1", email: "admin@hrms.com", password: "admin123", name: "Syed Admin", role: "Admin", managerId: "", status: "Active" },
+                { id: "U2", email: "sarah.manager@hrms.com", password: "manager123", name: "Sarah Jenkins", role: "Manager", managerId: "", status: "Active" },
+                { id: "U3", email: "alex.manager@hrms.com", password: "manager123", name: "Alex Mercer", role: "Manager", managerId: "", status: "Active" },
+                { id: "U4", email: "john.emp@hrms.com", password: "employee123", name: "John Doe", role: "Employee", managerId: "U2", status: "Active" },
+                { id: "U5", email: "emma.emp@hrms.com", password: "employee123", name: "Emma Watson", role: "Employee", managerId: "U2", status: "Active" },
+                { id: "U6", email: "ryan.emp@hrms.com", password: "employee123", name: "Ryan Gosling", role: "Employee", managerId: "U3", status: "Active" }
+            ],
+            weights: {
+                "Billing": 2.0, "Follow-up": 1.0, "Payment Posting": 1.5, "Eligibility Check": 1.0, "Report Preparation": 2.0,
+                "company_name": "Demo Company LLC", "company_address": "123 Main St, New York, NY", "company_contact": "+1 (555) 123-4567"
+            },
+            leaves: [
+                { id: "L1", employeeId: "U4", employeeName: "John Doe", type: "Sick Leave", startDate: "2026-05-10", endDate: "2026-05-12", reason: "Severe fever and doctor recommended bed rest.", status: "Approved", comments: "Get well soon, John." }
+            ],
+            productivity: [
+                { id: "P1", employeeId: "U4", employeeName: "John Doe", date: "2026-05-20", tasks: ["Billing"], subcategories: ["Invoicing"], counts: { "Billing": 10 }, notes: "Billed 10 major client claims.", score: 20, status: "Approved", comments: "Good job." }
+            ],
+            attendance: [
+                { date: "2026-05-20", employeeId: "U4", employeeName: "John Doe", status: "Present", markedBy: "Auto Login" }
+            ],
+            announcements: [
+                { id: "A1", title: "Welcome to HRMS", content: "This is a demo announcement.", target: "All", date: "2026-05-20", author: "Syed Admin" }
+            ],
+            auditLogs: [],
+            notifications: []
+        };
     }
 }
 
@@ -140,6 +175,30 @@ if (!document.getElementById('toast-keyframes')) {
 }
 
 // ==================== AUTHENTICATION & SESSIONS ====================
+
+function applyCompanyProfile(db) {
+    if (!db || !db.weights) return;
+    const companyName = db.weights['company_name'] || 'HRMSFlow';
+    const companyLogo = db.weights['company_logo'] || '';
+    
+    document.getElementById('sidebar-company-name').innerHTML = `${companyName}`;
+    const logoIcon = document.getElementById('sidebar-company-icon');
+    if (companyLogo) {
+        logoIcon.innerHTML = `<img src="${companyLogo}" alt="Logo" style="max-width:100%; border-radius: 8px;">`;
+    } else {
+        logoIcon.innerHTML = `<i class="fa-solid fa-layer-group"></i>`;
+    }
+    
+    // Fill the form if it exists
+    if (document.getElementById('company-name')) {
+        document.getElementById('company-name').value = companyName !== 'HRMSFlow' ? companyName : '';
+        document.getElementById('company-address').value = db.weights['company_address'] || '';
+        document.getElementById('company-contact').value = db.weights['company_contact'] || '';
+        document.getElementById('company-fax').value = db.weights['company_fax'] || '';
+        document.getElementById('company-logo').value = companyLogo;
+    }
+}
+
 function handleLogin(email, password) {
     const db = getDb();
     const user = db.users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
@@ -175,6 +234,7 @@ function handleLogin(email, password) {
     // Reset Navigation
     activeTab = 'dashboard';
     renderSidebar();
+    applyCompanyProfile(db);
     switchTab('dashboard');
     setupSessionTimer();
     
@@ -1265,12 +1325,12 @@ window.viewUserProfile = function(userId) {
     openModal('modal-profile');
 };
 
-// 2. Add / Edit Employees Form (Admin only)
+// 2. Add / Edit Employees Form (Admin & Manager)
 window.openEditEmployeeModal = function(userId) {
     const db = getDb();
     const user = db.users.find(u => u.id === userId);
     
-    document.getElementById('modal-employee-title').textContent = user ? "Edit Employee Profile" : "Add Employee";
+    document.getElementById('modal-employee-title').textContent = user ? "Edit Profile" : "Add Team Member";
     document.getElementById('emp-form-id').value = user ? user.id : "";
     document.getElementById('emp-name').value = user ? user.name : "";
     document.getElementById('emp-email').value = user ? user.email : "";
@@ -1286,19 +1346,43 @@ window.openEditEmployeeModal = function(userId) {
         passInput.value = "";
     }
     
+    // Dynamically inject roles based on active user
+    const roleSelect = document.getElementById('emp-role');
+    roleSelect.innerHTML = '';
+    if (currentUser && currentUser.role === 'Admin') {
+        roleSelect.innerHTML += '<option value="Admin">Admin</option>';
+        roleSelect.innerHTML += '<option value="Manager">Manager</option>';
+    }
+    roleSelect.innerHTML += '<option value="Employee">Employee</option>';
+    
     document.getElementById('emp-role').value = user ? user.role : "Employee";
     document.getElementById('emp-status').value = user ? user.status : "Active";
     
     // Fill reporting managers dropdown
     const managerSelect = document.getElementById('emp-manager');
     managerSelect.innerHTML = '<option value="">None / Unassigned</option>';
-    db.users.filter(u => u.role === 'Manager').forEach(mgr => {
+    db.users.filter(u => u.role === 'Manager' || u.role === 'Admin').forEach(mgr => {
         managerSelect.innerHTML += `<option value="${mgr.id}">${mgr.name}</option>`;
     });
     
     document.getElementById('emp-manager').value = (user && user.managerId) ? user.managerId : "";
     
-    // Toggle manager selection based on role
+    // Role-based restrictions for Manager
+    if (currentUser && currentUser.role === 'Manager') {
+        document.getElementById('emp-role').value = "Employee";
+        document.getElementById('emp-role').style.pointerEvents = 'none';
+        document.getElementById('emp-role').style.opacity = '0.7';
+        
+        document.getElementById('emp-manager').value = currentUser.id;
+        document.getElementById('emp-manager').style.pointerEvents = 'none';
+        document.getElementById('emp-manager').style.opacity = '0.7';
+    } else {
+        document.getElementById('emp-role').style.pointerEvents = 'auto';
+        document.getElementById('emp-role').style.opacity = '1';
+        document.getElementById('emp-manager').style.pointerEvents = 'auto';
+        document.getElementById('emp-manager').style.opacity = '1';
+    }
+    
     toggleManagerGroup();
     
     openModal('modal-employee');
@@ -1311,6 +1395,7 @@ function toggleManagerGroup() {
         mgrGroup.style.display = 'block';
     } else {
         mgrGroup.style.display = 'none';
+        // Admin or Manager doesn't need a manager usually
         document.getElementById('emp-manager').value = "";
     }
 }
