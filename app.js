@@ -18,80 +18,45 @@ const TASK_SUBCATEGORIES = {
     "Report Preparation": ["Daily Performance Reports", "Monthly AR Reports", "Gap Analysis Reports", "Executive Summaries"]
 };
 
-// ==================== DATABASE ENGINE (localStorage) ====================
-const DB_VERSION = "1.0";
-const DB_KEY = "hrms_database";
+// ==================== DATABASE ENGINE (Hostinger PHP Backend) ====================
+const API_URL = 'https://azure-quetzal-636989.hostingersite.com/backend/api.php';
+window.hrmsDatabase = { users: [], weights: {}, leaves: [], productivity: [], attendance: [], announcements: [], auditLogs: [], notifications: [] };
 
-function initDb() {
-    if (localStorage.getItem(DB_KEY)) {
-        return; // Already initialized
+async function syncServer() {
+    try {
+        const response = await fetch(API_URL + '?action=load_all');
+        const result = await response.json();
+        if (result.status === 'success') {
+            window.hrmsDatabase = result.data;
+        } else {
+            console.error("Failed to load DB state:", result.message);
+        }
+    } catch (e) {
+        console.error("Network error loading DB:", e);
     }
-
-    const defaultDatabase = {
-        users: [
-            { id: "U1", email: "admin@hrms.com", password: "admin123", name: "Syed Admin", role: "Admin", managerId: "", status: "Active" },
-            { id: "U2", email: "sarah.manager@hrms.com", password: "manager123", name: "Sarah Jenkins", role: "Manager", managerId: "", status: "Active" },
-            { id: "U3", email: "alex.manager@hrms.com", password: "manager123", name: "Alex Mercer", role: "Manager", managerId: "", status: "Active" },
-            { id: "U4", email: "john.emp@hrms.com", password: "employee123", name: "John Doe", role: "Employee", managerId: "U2", status: "Active" },
-            { id: "U5", email: "emma.emp@hrms.com", password: "employee123", name: "Emma Watson", role: "Employee", managerId: "U2", status: "Active" },
-            { id: "U6", email: "ryan.emp@hrms.com", password: "employee123", name: "Ryan Gosling", role: "Employee", managerId: "U3", status: "Active" }
-        ],
-        weights: {
-            "Billing": 2.0,
-            "Follow-up": 1.0,
-            "Payment Posting": 1.5,
-            "Eligibility Check": 1.0,
-            "Report Preparation": 2.0
-        },
-        leaves: [
-            { id: "L1", employeeId: "U4", employeeName: "John Doe", type: "Sick Leave", startDate: "2026-05-10", endDate: "2026-05-12", reason: "Severe fever and doctor recommended bed rest.", status: "Approved", comments: "Get well soon, John." },
-            { id: "L2", employeeId: "U5", employeeName: "Emma Watson", type: "Casual Leave", startDate: "2026-05-24", endDate: "2026-05-25", reason: "Family event out of station.", status: "Pending", comments: "" },
-            { id: "L3", employeeId: "U6", employeeName: "Ryan Gosling", type: "Paid Leave", startDate: "2026-05-18", endDate: "2026-05-20", reason: "Personal work.", status: "Rejected", comments: "Urgent client delivery scheduled. Please re-apply for next week." }
-        ],
-        productivity: [
-            { id: "P1", employeeId: "U4", employeeName: "John Doe", date: "2026-05-20", tasks: ["Billing", "Follow-up"], subcategories: ["Invoicing", "Insurance Follow-up"], counts: { "Billing": 10, "Follow-up": 5 }, notes: "Billed 10 major client claims and finished insurance follow-ups.", score: 25, status: "Approved", comments: "Excellent count, keep it up!" },
-            { id: "P2", employeeId: "U5", employeeName: "Emma Watson", date: "2026-05-22", tasks: ["Payment Posting", "Eligibility Check"], subcategories: ["ERA Posting", "Prior Authorization"], counts: { "Payment Posting": 20, "Eligibility Check": 15 }, notes: "Posted ERAs for Batch #104 and checked authorization for 15 patients.", score: 45, status: "Pending", comments: "" },
-            { id: "P3", employeeId: "U6", employeeName: "Ryan Gosling", date: "2026-05-22", tasks: ["Report Preparation"], subcategories: ["Monthly AR Reports"], counts: { "Report Preparation": 3 }, notes: "Generated monthly Accounts Receivable sheets for Alex manager.", score: 6, status: "Approved", comments: "Reports were detailed." },
-            { id: "P4", employeeId: "U4", employeeName: "John Doe", date: "2026-05-23", tasks: ["Billing"], subcategories: ["Coding Review"], counts: { "Billing": 15 }, notes: "Reviewed coding entries for claim batches.", score: 30, status: "Pending", comments: "" }
-        ],
-        attendance: [
-            { date: "2026-05-20", employeeId: "U4", employeeName: "John Doe", status: "Present", markedBy: "Auto Login" },
-            { date: "2026-05-20", employeeId: "U5", employeeName: "Emma Watson", status: "Present", markedBy: "Auto Login" },
-            { date: "2026-05-20", employeeId: "U6", employeeName: "Ryan Gosling", status: "Present", markedBy: "Auto Login" },
-            { date: "2026-05-21", employeeId: "U4", employeeName: "John Doe", status: "Present", markedBy: "Auto Login" },
-            { date: "2026-05-21", employeeId: "U5", employeeName: "Emma Watson", status: "Present", markedBy: "Auto Login" },
-            { date: "2026-05-21", employeeId: "U6", employeeName: "Ryan Gosling", status: "Present", markedBy: "Auto Login" },
-            { date: "2026-05-22", employeeId: "U4", employeeName: "John Doe", status: "Present", markedBy: "Auto Login" },
-            { date: "2026-05-22", employeeId: "U5", employeeName: "Emma Watson", status: "Present", markedBy: "Auto Login" },
-            { date: "2026-05-22", employeeId: "U6", employeeName: "Ryan Gosling", status: "Present", markedBy: "Auto Login" },
-            { date: "2026-05-23", employeeId: "U4", employeeName: "John Doe", status: "Present", markedBy: "Auto Login" },
-            { date: "2026-05-23", employeeId: "U5", employeeName: "Emma Watson", status: "Present", markedBy: "Auto Login" },
-            { date: "2026-05-23", employeeId: "U6", employeeName: "Ryan Gosling", status: "Present", markedBy: "Auto Login" }
-        ],
-        announcements: [
-            { id: "A1", title: "System Maintenance Scheduled", content: "The HRMS and billing portal will undergo scheduled maintenance on Saturday, May 24th from 10:00 PM to 2:00 AM. Please save your work prior to this time.", target: "All", date: "2026-05-20", author: "Syed Admin" },
-            { id: "A2", title: "Q2 Performance Reviews", content: "Managers, please ensure all pending productivity logs and attendance entries for your team are reviewed and approved before the end of this month.", target: "Manager", date: "2026-05-22", author: "Syed Admin" }
-        ],
-        auditLogs: [
-            { timestamp: "2026-05-23 09:00:15", userId: "U1", userName: "Syed Admin", details: "System database initialized with default configurations." },
-            { timestamp: "2026-05-23 09:15:32", userId: "U4", userName: "John Doe", details: "Logged in successfully to Employee Portal." },
-            { timestamp: "2026-05-23 09:22:45", userId: "U4", userName: "John Doe", details: "Submitted productivity logs for 2026-05-23." }
-        ],
-        notifications: [
-            { id: "N1", userId: "U4", message: "Your leave request (L1) has been approved by Sarah Jenkins.", read: true, time: "2026-05-11 10:00:00" },
-            { id: "N2", userId: "U6", message: "Your leave request (L3) has been rejected by Alex Mercer.", read: true, time: "2026-05-18 14:30:00" }
-        ]
-    };
-
-    localStorage.setItem(DB_KEY, JSON.stringify(defaultDatabase));
 }
 
 function getDb() {
-    return JSON.parse(localStorage.getItem(DB_KEY));
+    return window.hrmsDatabase;
 }
 
-function saveDb(data) {
-    localStorage.setItem(DB_KEY, JSON.stringify(data));
+async function saveDb(data) {
+    window.hrmsDatabase = data; // Immediate local update for UI speed
+    try {
+        const response = await fetch(API_URL + '?action=save_all', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (result.status !== 'success') {
+            console.error("Sync Error:", result.message);
+            showToast("Server Sync Error", "Failed to backup data to server.", "error");
+        }
+    } catch (err) {
+        console.error("Network Error:", err);
+        showToast("Network Error", "Could not connect to database server.", "error");
+    }
 }
 
 // Log audit events
@@ -2407,8 +2372,8 @@ function exportCSV() {
 // ==================== GLOBAL EVENT LISTENERS & ROUTERS ====================
 
 // Initialization Flow
-document.addEventListener('DOMContentLoaded', () => {
-    initDb();
+document.addEventListener('DOMContentLoaded', async () => {
+    await syncServer();
     
     // Quick Demo Accounts login clicks
     document.querySelectorAll('.demo-btn').forEach(btn => {
