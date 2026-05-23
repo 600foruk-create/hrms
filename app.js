@@ -19,7 +19,7 @@ const TASK_SUBCATEGORIES = {
 };
 
 // ==================== DATABASE ENGINE (Hostinger PHP Backend) ====================
-const API_URL = 'https://azure-quetzal-636989.hostingersite.com/backend/api.php';
+const API_URL = 'backend/api.php';
 window.hrmsDatabase = { users: [], weights: {}, leaves: [], productivity: [], attendance: [], announcements: [], auditLogs: [], notifications: [] };
 
 async function syncServer() {

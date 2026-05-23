@@ -7,6 +7,36 @@ header("Content-Type: application/json");
 
 require_once 'config.php';
 
+// Auto-initialize database if tables are missing
+try {
+    $pdo->query("SELECT 1 FROM users LIMIT 1");
+} catch (PDOException $e) {
+    $setupFile = __DIR__ . '/setup.sql';
+    if (file_exists($setupFile)) {
+        try {
+            $sql = file_get_contents($setupFile);
+            
+            // Remove single line comments
+            $sql = preg_replace('/--.*/', '', $sql);
+            // Remove multi-line comments
+            $sql = preg_replace('/\/\*.*?\*\//s', '', $sql);
+            
+            // Split by semicolon
+            $queries = explode(';', $sql);
+            
+            foreach ($queries as $query) {
+                $query = trim($query);
+                if (!empty($query)) {
+                    $pdo->exec($query);
+                }
+            }
+        } catch (Exception $initEx) {
+            error_log("Database initialization failed: " . $initEx->getMessage());
+        }
+    }
+}
+
+
 // Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
