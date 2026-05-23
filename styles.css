@@ -331,9 +331,15 @@ body.light-mode .form-control {
     position: relative;
     background: #ffffff;
     border-radius: 20px;
+<<<<<<< HEAD
     padding: 2.5rem 2rem 2rem;
     width: 100%;
     max-width: 430px;
+=======
+    padding: 2.25rem 2rem 2rem;
+    width: 100%;
+    max-width: 400px;
+>>>>>>> fe9fd350b64907ee4af6f63d16ad93a2cc131477
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
     animation: fadeIn 0.5s ease-out;
     border: 1px solid #e2e8f0;
@@ -345,9 +351,9 @@ body.light-mode .form-control {
     to { opacity: 1; transform: translateY(0); }
 }
 .logo-circle-container {
-    width: 140px;
-    height: 140px;
-    margin: 0 auto 2rem;
+    width: 110px;
+    height: 110px;
+    margin: 0 auto 1.5rem;
     border-radius: 50%;
     overflow: hidden;
     background: #eef5ff;
@@ -365,7 +371,7 @@ body.light-mode .form-control {
     height: 100%;
 }
 .logo-circle i {
-    font-size: 55px;
+    font-size: 45px;
     color: #217093;
 }
 .logo-circle img {
