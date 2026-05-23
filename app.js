@@ -207,41 +207,54 @@ function applyCompanyProfile(db) {
 }
 
 function populateLoginDropdown() {
-    const db = getDb();
-    const select = document.getElementById('login-username');
-    if (!select) return;
-    select.innerHTML = '';
-    const activeUsers = db.users.filter(u => u.status === 'Active');
-    activeUsers.forEach(u => {
-        const op = new Option(u.name, u.name);
-        select.add(op);
-    });
+    try {
+        const db = getDb();
+        const select = document.getElementById('login-username');
+        if (!select) return;
+        select.innerHTML = '';
+        const usersList = (db && db.users && Array.isArray(db.users)) ? db.users : [];
+        const activeUsers = usersList.filter(u => u && u.status === 'Active');
+        activeUsers.forEach(u => {
+            if (u && u.name) {
+                const op = new Option(u.name, u.name);
+                select.add(op);
+            }
+        });
+    } catch (e) {
+        console.error("populateLoginDropdown error: ", e);
+    }
 }
 
 function handleLogin(usernameOrEmail, password) {
-    const db = getDb();
-    // Match by name (dropdown) OR email (legacy fallback)
-    const user = db.users.find(u =>
-        (u.name === usernameOrEmail || u.email.toLowerCase() === usernameOrEmail.toLowerCase())
-        && u.password === password
-    );
-    
-    if (!user) {
-        showToast("Login Failed", "Invalid username or password.", "error");
-        // Shake the form
-        const card = document.querySelector('.auth-card');
-        if (card) { card.style.animation = 'none'; setTimeout(() => { card.style.animation = 'shake 0.4s ease'; }, 10); }
-        return;
+    try {
+        const db = getDb();
+        const usersList = (db && db.users && Array.isArray(db.users)) ? db.users : [];
+        // Match by name (dropdown) OR email (legacy fallback)
+        const user = usersList.find(u =>
+            u && ((u.name && u.name === usernameOrEmail) || (u.email && u.email.toLowerCase() === usernameOrEmail.toLowerCase()))
+            && u.password === password
+        );
+        
+        if (!user) {
+            showToast("Login Failed", "Invalid username or password.", "error");
+            // Shake the form
+            const card = document.querySelector('.auth-card');
+            if (card) { card.style.animation = 'none'; setTimeout(() => { card.style.animation = 'shake 0.4s ease'; }, 10); }
+            return;
+        }
+        
+        if (user.status !== 'Active') {
+            showToast("Access Denied", "Your account is currently inactive. Please contact Admin.", "warning");
+            return;
+        }
+        
+        // Set Session
+        currentUser = user;
+        sessionStorage.setItem('current_user', JSON.stringify(user));
+    } catch (e) {
+        console.error("handleLogin error: ", e);
+        showToast("Error", "An unexpected login error occurred.", "error");
     }
-    
-    if (user.status !== 'Active') {
-        showToast("Access Denied", "Your account is currently inactive. Please contact Admin.", "warning");
-        return;
-    }
-    
-    // Set Session
-    currentUser = user;
-    sessionStorage.setItem('current_user', JSON.stringify(user));
     
     // Auto Mark Attendance for Employee on Login
     if (user.role === 'Employee') {
@@ -2489,43 +2502,74 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Populate username dropdown after data loads
     populateLoginDropdown();
     
-    // Yeti eye tracking & arm animation (GSAP calibration)
-    const armL   = document.querySelector('.armL');
-    const armR   = document.querySelector('.armR');
-    const pupilL = document.querySelector('.pupil-L');
-    const pupilR = document.querySelector('.pupil-R');
-    const passInput = document.getElementById('login-password');
-    
-    if (armL && armR) {
-        gsap.set(armL, { x: -93, y: 10 });
-        gsap.set(armR, { x: -93, y: 10 });
+    try {
+        // Yeti eye tracking & arm animation (GSAP calibration)
+        const armL   = document.querySelector('.armL');
+        const armR   = document.querySelector('.armR');
+        const pupilL = document.querySelector('.pupil-L');
+        const pupilR = document.querySelector('.pupil-R');
+        const passInput = document.getElementById('login-password');
+        
+        if (typeof gsap !== 'undefined') {
+            if (armL && armR) {
+                gsap.set(armL, { x: -93, y: 10 });
+                gsap.set(armR, { x: -93, y: 10 });
+            }
+            
+            if (passInput) {
+                passInput.addEventListener('focus', () => {
+                    gsap.to(armL, { x: -10, y: 2, ease: "power2.out", duration: 0.6 });
+                    gsap.to(armR, { x: -178, y: 2, ease: "power2.out", duration: 0.6 });
+                });
+                passInput.addEventListener('blur', () => {
+                    gsap.to(armL, { x: -93, y: 10, ease: "power2.in", duration: 0.5 });
+                    gsap.to(armR, { x: -93, y: 10, ease: "power2.in", duration: 0.5 });
+                });
+            }
+            
+            document.addEventListener('mousemove', (e) => {
+                if (document.activeElement === passInput) return;
+                const x = (e.clientX / window.innerWidth - 0.5) * 12;
+                const y = (e.clientY / window.innerHeight - 0.5) * 12;
+                gsap.to([pupilL, pupilR], { x: x, y: y, duration: 0.2 });
+            });
+        } else {
+            console.warn("GSAP is not loaded. Using CSS transforms fallback.");
+            if (armL && armR) {
+                armL.style.transform = 'translate(-93px, 10px)';
+                armR.style.transform = 'translate(-93px, 10px)';
+            }
+            if (passInput) {
+                passInput.addEventListener('focus', () => {
+                    if (armL) armL.style.transform = 'translate(-10px, 2px)';
+                    if (armR) armR.style.transform = 'translate(-178px, 2px)';
+                });
+                passInput.addEventListener('blur', () => {
+                    if (armL) armL.style.transform = 'translate(-93px, 10px)';
+                    if (armR) armR.style.transform = 'translate(-93px, 10px)';
+                });
+            }
+        }
+    } catch (e) {
+        console.error("Yeti initialization failed: ", e);
     }
-    
-    if (passInput) {
-        passInput.addEventListener('focus', () => {
-            gsap.to(armL, { x: -10, y: 2, ease: "power2.out", duration: 0.6 });
-            gsap.to(armR, { x: -178, y: 2, ease: "power2.out", duration: 0.6 });
-        });
-        passInput.addEventListener('blur', () => {
-            gsap.to(armL, { x: -93, y: 10, ease: "power2.in", duration: 0.5 });
-            gsap.to(armR, { x: -93, y: 10, ease: "power2.in", duration: 0.5 });
-        });
-    }
-    
-    document.addEventListener('mousemove', (e) => {
-        if (document.activeElement === passInput) return;
-        const x = (e.clientX / window.innerWidth - 0.5) * 12;
-        const y = (e.clientY / window.innerHeight - 0.5) * 12;
-        gsap.to([pupilL, pupilR], { x: x, y: y, duration: 0.2 });
-    });
     
     // Login form submit
-    document.getElementById('login-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const username = document.getElementById('login-username').value.trim();
-        const password = document.getElementById('login-password').value;
-        handleLogin(username, password);
-    });
+    try {
+        const loginForm = document.getElementById('login-form');
+        if (loginForm) {
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const usernameSelect = document.getElementById('login-username');
+                const passwordInput = document.getElementById('login-password');
+                if (usernameSelect && passwordInput) {
+                    handleLogin(usernameSelect.value.trim(), passwordInput.value);
+                }
+            });
+        }
+    } catch (e) {
+        console.error("Login form listener failed: ", e);
+    }
     
     // Logout buttons
     document.getElementById('btn-logout').addEventListener('click', handleLogout);
