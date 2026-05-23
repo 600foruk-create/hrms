@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Softifyx Financial Software | Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0f172a; /* Sleek dark fallback */
+            background-image: url('assets/images/login/login_bg.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            display: flex;
+            justify-content: flex-end; /* Right-aligned on desktop */
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px 10% 20px 20px;
+            position: relative;
+        }
+
+        /* Overlay for professional corporate look */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.3) 0%, rgba(15, 23, 42, 0.7) 100%);
+            z-index: 1;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                justify-content: center; /* Center on mobile */
+                padding: 20px;
+            }
+        }
+
+        .login-card {
+            position: relative;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 2.5rem 2rem 2rem;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            width: 100%;
+            max-width: 440px;
+            z-index: 10;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .login-card:hover {
+            box-shadow: 0 30px 60px -10px rgba(0, 0, 0, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .header-title {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header-title h2 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #1e293b;
+            letter-spacing: -0.025em;
+        }
+
+        .header-title p {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.25rem;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 14px;
+            color: #64748b;
+            font-size: 1rem;
+            transition: color 0.2s;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            height: 46px;
+            padding: 0 16px 0 42px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            color: #1e293b;
+            background-color: #f8fafc;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .input-wrapper input:focus {
+            border-color: #217093;
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(33, 112, 147, 0.15);
+        }
+
+        .input-wrapper input:focus + i {
+            color: #217093;
+        }
+
+        .btn-submit {
+            width: 100%;
+            height: 48px;
+            background: linear-gradient(135deg, #217093 0%, #154c66 100%);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 12px rgba(33, 112, 147, 0.25);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 1.75rem;
+        }
+
+        .btn-submit:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(33, 112, 147, 0.35);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .branding {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.72rem;
+            color: #475569;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 1.25rem;
+            line-height: 1.5;
+        }
+
+        .brand-title {
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+        }
+
+        .branding a {
+            color: #217093;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .branding a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="header-title">
+            <h2>Softifyx Financials</h2>
+            <p>Please enter your credentials to login</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="username">Username or Email</label>
+                <div class="input-wrapper">
+                    <i class="fa-regular fa-envelope"></i>
+                    <input type="text" id="username" required placeholder="Enter username or email" autocomplete="username">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="password">Password</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="password" required placeholder="••••••••" autocomplete="current-password">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <span>Log In</span>
+                <i class="fa-solid fa-arrow-right-to-bracket"></i>
+            </button>
+        </form>
+
+        <div class="branding">
+            <div class="brand-title">SOFTIFYX FINANCIALS</div>
+            <div>A Project of <span style="font-weight:700">SOFTIFYX TECHNOLOGIES</span> | <a href="http://www.softifyx.com" target="_blank">www.softifyx.com</a></div>
+            <div style="margin-top:4px;">Plot No: 192/8, Road No: L-11, Industrial Estate Gadoon Amazai Tehsil Topi District Swabi, KPK Pakistan</div>
+            <div style="margin-top:4px; font-weight: 600; color: #1e293b;">support@softifyx.com | +92 331 7240256</div>
+        </div>
+    </div>
+</body>
+</html>
