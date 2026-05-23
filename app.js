@@ -2490,18 +2490,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     const passInput = document.getElementById('login-password');
     
     if (armL && armR) {
-        armL.style.transform = 'translate(-93px, 10px)';
-        armR.style.transform = 'translate(-93px, 10px)';
+        // Arms start DOWN (hidden below face circle)
+        armL.style.transform = 'translate(-93px, 60px)';
+        armR.style.transform = 'translate(93px, 60px)';
     }
     
     if (passInput) {
         passInput.addEventListener('focus', () => {
-            if (armL) armL.style.transform = 'translate(-10px, 2px)';
-            if (armR) armR.style.transform = 'translate(-178px, 2px)';
+            // Arms come UP to cover eyes
+            if (armL) armL.style.transform = 'translate(-15px, -5px)';
+            if (armR) armR.style.transform = 'translate(-175px, -5px)';
         });
         passInput.addEventListener('blur', () => {
-            if (armL) armL.style.transform = 'translate(-93px, 10px)';
-            if (armR) armR.style.transform = 'translate(-93px, 10px)';
+            // Arms go back DOWN
+            if (armL) armL.style.transform = 'translate(-93px, 60px)';
+            if (armR) armR.style.transform = 'translate(93px, 60px)';
         });
     }
     

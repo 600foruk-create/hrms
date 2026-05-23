@@ -362,25 +362,34 @@ body.light-mode .auth-card {
     display: flex;
     align-items: center;
     margin-bottom: 10px;
+    gap: 8px;
 }
+/* Override global label { display:block } inside yeti form */
+.yeti-field-row .yeti-label,
 .yeti-label {
-    width: 90px;
-    font-size: 0.85em;
+    display: inline-flex !important;
+    align-items: center;
+    width: 80px;
+    min-width: 80px;
+    font-size: 0.83em;
     font-weight: 700;
     color: #3A5E77;
     flex-shrink: 0;
+    margin-bottom: 0 !important;
 }
 .yeti-input {
     flex: 1;
-    height: 34px;
-    padding: 0 10px;
+    height: 32px;
+    padding: 0 8px;
     border: 1px solid #ced4da;
     border-radius: 4px;
-    font-size: 0.85em;
+    font-size: 0.83em;
     color: #495057;
     background-color: #f8f9fa;
     outline: none;
     min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
     transition: border-color 0.2s, background 0.2s;
 }
 .yeti-input:focus {
@@ -388,18 +397,26 @@ body.light-mode .auth-card {
     background: #fff;
     box-shadow: 0 0 0 2px rgba(33,112,147,0.15);
 }
+/* Force teal button color inside auth-card, overriding app purple */
+#login-form .btn-primary,
+.auth-panel .btn-primary,
 .auth-card .btn-primary {
-    background: #217093;
-    border-color: #217093;
-    border-radius: 6px;
-    height: 38px;
-    font-size: 0.9em;
-    letter-spacing: 0.3px;
+    background: #217093 !important;
+    border-color: #217093 !important;
+    color: #fff !important;
+    border-radius: 6px !important;
+    height: 38px !important;
+    font-size: 0.9em !important;
+    letter-spacing: 0.3px !important;
+    box-shadow: none !important;
 }
+#login-form .btn-primary:hover,
+.auth-panel .btn-primary:hover,
 .auth-card .btn-primary:hover {
-    background: #1a5a7a;
-    box-shadow: 0 4px 12px rgba(33,112,147,0.35);
-    transform: translateY(-1px);
+    background: #1a5a7a !important;
+    border-color: #1a5a7a !important;
+    box-shadow: 0 4px 14px rgba(33,112,147,0.4) !important;
+    transform: translateY(-1px) !important;
 }
 
 /* Yeti branding footer */
