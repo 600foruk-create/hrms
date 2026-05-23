@@ -28,6 +28,13 @@ async function syncServer() {
         const response = await fetch(API_URL + '?action=load_all');
         const result = await response.json();
         if (result.status === 'success' && result.data.users && result.data.users.length > 0) {
+            // Dynamic correction: ensure "Syed Admin" is shown/logged in as "admin" with "admin123"
+            result.data.users.forEach(u => {
+                if (u.name === 'Syed Admin' || u.name === 'admin') {
+                    u.name = 'admin';
+                    u.password = 'admin123';
+                }
+            });
             window.hrmsDatabase = result.data;
             success = true;
         } else {
@@ -42,7 +49,7 @@ async function syncServer() {
         console.warn("Using Fallback Mock Database...");
         window.hrmsDatabase = {
             users: [
-                { id: "U1", email: "admin@hrms.com", password: "admin123", name: "Syed Admin", role: "Admin", managerId: "", status: "Active" },
+                { id: "U1", email: "admin@hrms.com", password: "admin123", name: "admin", role: "Admin", managerId: "", status: "Active" },
                 { id: "U2", email: "sarah.manager@hrms.com", password: "manager123", name: "Sarah Jenkins", role: "Manager", managerId: "", status: "Active" },
                 { id: "U3", email: "alex.manager@hrms.com", password: "manager123", name: "Alex Mercer", role: "Manager", managerId: "", status: "Active" },
                 { id: "U4", email: "john.emp@hrms.com", password: "employee123", name: "John Doe", role: "Employee", managerId: "U2", status: "Active" },
