@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Professional Employee Management and Productivity Tracking HRMS System">
+    <title>HRMS - Employee Management & Productivity Tracker</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Style -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-mode">
+    
+    <!-- Background Blur Decorative Gradients -->
+    <div class="bg-gradient-orb orb-1"></div>
+    <div class="bg-gradient-orb orb-2"></div>
+    <div class="bg-gradient-orb orb-3"></div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- ==================== AUTHENTICATION PANEL ==================== -->
+    <div id="auth-panel" class="auth-panel">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <div class="logo-icon"><i class="fa-solid fa-layer-group"></i></div>
+                <h2>HRMS<span>Flow</span></h2>
+                <p>Employee Productivity & Management Portal</p>
+            </div>
+            
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-email">Email Address</label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-regular fa-envelope input-icon"></i>
+                        <input type="email" id="login-email" required placeholder="name@company.com">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input type="password" id="login-password" required placeholder="••••••••">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" id="btn-login">
+                    <span>Sign In</span> <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                </button>
+            </form>
+
+            <div class="demo-accounts">
+                <h3>Quick Sign In (Demo Profiles)</h3>
+                <div class="demo-grid">
+                    <button class="btn btn-outline demo-btn" data-email="admin@hrms.com" data-password="admin123" title="Admin Account">
+                        <i class="fa-solid fa-user-shield text-admin"></i> Admin
+                    </button>
+                    <button class="btn btn-outline demo-btn" data-email="sarah.manager@hrms.com" data-password="manager123" title="Manager Account">
+                        <i class="fa-solid fa-user-tie text-manager"></i> Manager (Sarah)
+                    </button>
+                    <button class="btn btn-outline demo-btn" data-email="john.emp@hrms.com" data-password="employee123" title="Employee Account">
+                        <i class="fa-solid fa-user text-employee"></i> Employee (John)
+                    </button>
+                    <button class="btn btn-outline demo-btn" data-email="emma.emp@hrms.com" data-password="employee123" title="Employee Account">
+                        <i class="fa-solid fa-user text-employee"></i> Employee (Emma)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MAIN DASHBOARD SHELL ==================== -->
+    <div id="app-shell" class="app-shell hidden">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon"><i class="fa-solid fa-layer-group"></i></div>
+                    <h3>HRMS<span>Flow</span></h3>
+                </div>
+                <button class="sidebar-close-mobile" id="btn-sidebar-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="user-profile-badge">
+                <div class="avatar" id="sidebar-avatar">U</div>
+                <div class="info">
+                    <h4 id="sidebar-user-name">User Name</h4>
+                    <span id="sidebar-user-role" class="role-badge">Role</span>
+                </div>
+            </div>
+
+            <!-- Dynamic Sidebar Menu -->
+            <nav class="sidebar-menu" id="sidebar-menu">
+                <!-- Links will be populated dynamically based on active user role -->
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="btn btn-danger-text btn-block" id="btn-logout">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="main-layout">
+            <!-- Top Bar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="sidebar-toggle" id="btn-sidebar-toggle"><i class="fa-solid fa-bars"></i></button>
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" placeholder="Search employee, tasks or files..." id="global-search">
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <!-- Notifications -->
+                    <div class="notifications-dropdown-wrapper">
+                        <button class="topbar-btn" id="btn-notifications" tooltip="Notifications">
+                            <i class="fa-regular fa-bell"></i>
+                            <span class="badge badge-pulse hidden" id="notification-badge-count">0</span>
+                        </button>
+                        <div class="notifications-panel hidden" id="notifications-panel">
+                            <div class="panel-header">
+                                <h4>Notifications</h4>
+                                <button class="btn-text" id="btn-clear-notifications">Mark all read</button>
+                            </div>
+                            <div class="panel-body" id="notifications-list">
+                                <!-- Notifications generated by system -->
+                                <div class="empty-state">No new notifications</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Theme Toggle -->
+                    <button class="topbar-btn" id="btn-theme-toggle" tooltip="Toggle Theme">
+                        <i class="fa-regular fa-sun" id="theme-icon-light"></i>
+                        <i class="fa-regular fa-moon hidden" id="theme-icon-dark"></i>
+                    </button>
+
+                    <!-- Profile Dropdown -->
+                    <div class="profile-dropdown-wrapper">
+                        <button class="profile-btn" id="btn-profile-dropdown">
+                            <div class="avatar-small" id="topbar-avatar">U</div>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </button>
+                        <div class="dropdown-menu hidden" id="profile-dropdown">
+                            <div class="dropdown-header">
+                                <h5 id="dropdown-user-name">User Name</h5>
+                                <p id="dropdown-user-email">email@company.com</p>
+                            </div>
+                            <hr>
+                            <button class="dropdown-item" id="btn-view-profile"><i class="fa-regular fa-user"></i> My Profile</button>
+                            <button class="dropdown-item" id="btn-go-settings"><i class="fa-solid fa-sliders"></i> Settings</button>
+                            <hr>
+                            <button class="dropdown-item text-danger" id="btn-profile-logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dynamic View Containers -->
+            <main class="content-body" id="content-body">
+                
+                <!-- ==================== ADMIN VIEW ==================== -->
+                <div id="admin-view" class="role-view hidden">
+                    <!-- Admin Dashboard Tab -->
+                    <div id="admin-tab-dashboard" class="tab-view active">
+                        <div class="view-header">
+                            <div>
+                                <h1>Admin Dashboard</h1>
+                                <p class="text-secondary">Overview of company productivity and operations</p>
+                            </div>
+                            <div class="actions">
+                                <button class="btn btn-primary" id="btn-admin-add-emp"><i class="fa-solid fa-plus"></i> Add Employee</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Metric Cards -->
+                        <div class="metrics-grid">
+                            <div class="metric-card bg-glass">
+                                <div class="card-icon bg-info-light text-info"><i class="fa-solid fa-users"></i></div>
+                                <div class="card-info">
+                                    <span class="label">Total Employees</span>
+                                    <h2 class="value" id="admin-metric-total-emp">0</h2>
+                                </div>
+                            </div>
+                            <div class="metric-card bg-glass">
+                                <div class="card-icon bg-success-light text-success"><i class="fa-solid fa-user-tie"></i></div>
+                                <div class="card-info">
+                                    <span class="label">Total Managers</span>
+                                    <h2 class="value" id="admin-metric-total-managers">0</h2>
+                                </div>
+                            </div>
+                            <div class="metric-card bg-glass">
+                                <div class="card-icon bg-warning-light text-warning"><i class="fa-solid fa-calendar-day"></i></div>
+                                <div class="card-info">
+                                    <span class="label">Pending Leaves</span>
+                                    <h2 class="value" id="admin-metric-pending-leaves">0</h2>
+                                </div>
+                            </div>
+                            <div class="metric-card bg-glass">
+                                <div class="card-icon bg-accent-light text-accent"><i class="fa-solid fa-clipboard-user"></i></div>
+                                <div class="card-info">
+                                    <span class="label">Today's Attendance</span>
+                                    <h2 class="value" id="admin-metric-attendance">0%</h2>
+                                </div>
+                            </div>
+                            <div class="metric-card bg-glass">
+                                <div class="card-icon bg-danger-light text-danger"><i class="fa-solid fa-bolt"></i></div>
+                                <div class="card-info">
+                                    <span class="label">Avg Productivity</span>
+                                    <h2 class="value" id="admin-metric-productivity">0</h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dashboard Split Sections -->
+                        <div class="sections-grid">
+                            <!-- Employee Overview Table -->
+                            <div class="section-card bg-glass">
+                                <div class="section-card-header">
+                                    <h3>Employee Directory</h3>
+                                    <div class="header-filters">
+                                        <select id="admin-filter-manager" class="form-control form-control-sm">
+                                            <option value="">All Managers</option>
+                                        </select>
+                                        <select id="admin-filter-status" class="form-control form-control-sm">
+                                            <option value="">All Status</option>
+                                            <option value="Active">Active</option>
+                                            <option value="Inactive">Inactive</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Assigned Manager</th>
+                                                <th>Role</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-employee-table-body">
+                                            <!-- Dynamic Rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Right widgets -->
+                            <div class="sections-column">
+                                <!-- Pending Leaves Panel -->
+                                <div class="section-card bg-glass scrollable-section">
+                                    <div class="section-card-header">
+                                        <h3>Pending Leaves</h3>
+                                    </div>
+                                    <div class="leaves-mini-list" id="admin-pending-leaves-list">
+                                        <!-- Dynamic list -->
+                                    </div>
+                                </div>
+
+                                <!-- Announcements Panel -->
+                                <div class="section-card bg-glass">
+                                    <div class="section-card-header">
+                                        <h3>Recent Announcements</h3>
+                                        <button class="btn btn-sm btn-outline" id="btn-admin-create-announcement-dash"><i class="fa-solid fa-plus"></i> New</button>
+                                    </div>
+                                    <div class="announcements-mini-list" id="admin-announcements-list">
+                                        <!-- Dynamic list -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin Employees Tab -->
+                    <div id="admin-tab-employees" class="tab-view">
+                        <div class="view-header">
+                            <div>
+                                <h1>Employee Management</h1>
+                                <p class="text-secondary">Create, update, and manage employee profiles and relationships</p>
+                            </div>
+                            <div class="actions">
+                                <button class="btn btn-primary" id="btn-admin-add-emp-tab"><i class="fa-solid fa-user-plus"></i> Add New Employee</button>
+                            </div>
+                        </div>
+                        <div class="section-card bg-glass">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Employee Name</th>
+                                            <th>Email</th>
+                                            <th>Assigned Manager</th>
+                                            <th>Role</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-tab-employees-table-body">
+                                        <!-- Dynamic Rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin Attendance Tab -->
+                    <div id="admin-tab-attendance" class="tab-view">
+                        <div class="view-header">
+                            <div>
+                                <h1>Attendance Management</h1>
+                                <p class="text-secondary">View company-wide logs and adjust employee attendance</p>
+                            </div>
+                            <div class="actions">
+                                <button class="btn btn-outline" id="btn-admin-mark-attendance"><i class="fa-regular fa-calendar-check"></i> Manual Log</button>
+                            </div>
+                        </div>
+                        <div class="section-card bg-glass">
+                            <div class="section-card-header">
+                                <h3>Attendance Log</h3>
+                                <div class="header-filters">
+                                    <input type="date" id="admin-attendance-filter-date" class="form-control">
+                                    <select id="admin-attendance-filter-employee" class="form-control">
+                                        <option value="">All Employees</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Employee</th>
+                                            <th>Role</th>
+                                            <th>Assigned Manager</th>
+                                            <th>Status</th>
+                                            <th>Marked By</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-attendance-table-body">
+                                        <!-- Dynamic Rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin Productivity Tab -->
+                    <div id="admin-tab-productivity" class="tab-view">
+                        <div class="view-header">
+                            <div>
+                                <h1>Company Productivity</h1>
+                                <p class="text-secondary">Review all task metrics and score breakdowns</p>
+                            </div>
+                        </div>
+                        <div class="section-card bg-glass">
+                            <div class="section-card-header">
+                                <h3>Submissions History</h3>
+                                <div class="header-filters">
+                                    <input type="date" id="admin-prod-filter-date" class="form-control">
+                                    <select id="admin-prod-filter-task" class="form-control">
+                                        <option value="">All Tasks</option>
+                                        <option value="Billing">Billing</option>
+                                        <option value="Follow-up">Follow-up</option>
+                                        <option value="Payment Posting">Payment Posting</option>
+                                        <option value="Eligibility Check">Eligibility Check</option>
+                                        <option value="Report Preparation">Report Preparation</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Employee</th>
+                                            <th>Tasks</th>
+                                            <th>Sub-Categories</th>
+                                            <th>Count</th>
+                                            <th>Score</th>
+                                            <th>Status</th>
+                                            <th>Comments</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-prod-table-body">
+                                        <!-- Dynamic Rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin Leave Management Tab -->
+                    <div id="admin-tab-leave" class="tab-view">
+                        <div class="view-header">
+                            <div>
+                                <h1>Leave Management</h1>
+                                <p class="text-secondary">Approve leave applications and review company time-off stats</p>
+                            </div>
+                        </div>
+                        <div class="section-card bg-glass">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Employee</th>
+                                            <th>Leave Type</th>
+                                            <th>Start Date</th>
+                                            <th>End Date</th>
+                                            <th>Reason</th>
+                                            <th>Status</th>
+                                            <th>Comments</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-leave-table-body">
+                                        <!-- Dynamic Rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin Reports Tab -->
+                    <div id="admin-tab-reports" class="tab-view">
+                        <div class="view-header">
+                            <div>
+                                <h1>Company Analytics & Reports</h1>
+                                <p class="text-secondary">Export employee productivity, leave, and attendance data</p>
+                            </div>
+                        </div>
+                        
+                        <div class="report-generator-grid">
+                            <div class="section-card bg-glass filter-panel">
+                                <h3>Report Filters</h3>
+                                <div class="form-group mt-3">
+                                    <label>Report Type</label>
+                                    <select id="admin-report-type" class="form-control">
+                                        <option value="productivity">Productivity Analytics</option>
+                                        <option value="attendance">Attendance Log</option>
+                                        <option value="leaves">Leave Summary</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Date Range</label>
+                                    <div class="date-range-inputs">
+                                        <input type="date" id="admin-report-start-date" class="form-control" placeholder="Start Date">
+                                        <input type="date" id="admin-report-end-date" class="form-control" placeholder="End Date">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Specific Employee</label>
+                                    <select id="admin-report-employee" class="form-control">
+                                        <option value="">All Employees</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Specific Manager Group</label>
+                                    <select id="admin-report-manager" class="form-control">
+                                        <option value="">All Managers</option>
+                                    </select>
+                                </div>
+                                <div class="report-actions-btn-group mt-4">
+                                    <button class="btn btn-primary" id="btn-admin-report-generate"><i class="fa-solid fa-chart-line"></i> Generate View</button>
+                                    <button class="btn btn-outline" id="btn-admin-report-pdf"><i class="fa-regular fa-file-pdf"></i> Print / Save PDF</button>
+                                    <button class="btn btn-outline" id="btn-admin-report-excel"><i class="fa-regular fa-file-excel"></i> Export Excel (CSV)</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Generated Report Preview -->
+                            <div class="section-card bg-glass preview-panel">
+                                <h3>Report Preview</h3>
+                                <div id="admin-report-preview-container" class="report-preview-container">
+                                    <div class="empty-state">Select filters and click "Generate View" to preview report data.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin Announcements Tab -->
+                    <div id="admin-tab-announcements" class="tab-view">
+                        <div class="view-header">
+                            <div>
+                                <h1>Company Announcements</h1>
+                                <p class="text-secondary">Publish updates and broadcast notifications to all employee panels</p>
+                            </div>
+                            <div class="actions">
+                                <button class="btn btn-primary" id="btn-admin-add-announcement"><i class="fa-solid fa-bullhorn"></i> New Announcement</button>
+                            </div>
+                        </div>
+                        <div class="announcements-admin-list" id="admin-tab-announcements-list">
+                            <!-- Dynamic list -->
+                        </div>
+                    </div>
+
+                    <!-- Admin Settings Tab -->
+                    <div id="admin-tab-settings" class="tab-view">
+                        <div class="view-header">
+                            <div>
+                                <h1>System Configuration</h1>
+                                <p class="text-secondary">Customize evaluation rules, weights, and attendance parameters</p>
+                            </div>
+                        </div>
+                        <div class="settings-grid-layout">
+                            <!-- Task Weights Config -->
+                            <div class="section-card bg-glass">
+                                <h3>Productivity Task Weights</h3>
+                                <p class="text-secondary mb-3">Modify weights used for calculating employee productivity scores.</p>
+                                <form id="settings-weights-form">
+                                    <div class="form-group">
+                                        <label for="weight-billing">Billing (Base: 2)</label>
+                                        <input type="number" step="0.1" id="weight-billing" class="form-control" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="weight-followup">Follow-up (Base: 1)</label>
+                                        <input type="number" step="0.1" id="weight-followup" class="form-control" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="weight-posting">Payment Posting (Base: 1.5)</label>
+                                        <input type="number" step="0.1" id="weight-posting" class="form-control" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="weight-eligibility">Eligibility Check (Base: 1)</label>
+                                        <input type="number" step="0.1" id="weight-eligibility" class="form-control" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="weight-reporting">Report Preparation (Base: 2)</label>
+                                        <input type="number" step="0.1" id="weight-reporting" class="form-control" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Weights</button>
+                                </form>
+                            </div>
+                            
+                            <!-- Leave Rules and Logs Config -->
+                            <div class="sections-column">
+                                <div class="section-card bg-glass">
+                                    <h3>System Audit Trail</h3>
+                                    <p class="text-secondary mb-3">View recent actions performed across the entire system.</p>
+                                    <div class="audit-log-container scrollable-section" id="admin-audit-log-list">
+                                        <!-- Log elements dynamic -->
+                                    </div>
+                                    <button class="btn btn-sm btn-outline mt-3" id="btn-admin-clear-audit-logs"><i class="fa-solid fa-trash-can"></i> Clear Logs</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== MANAGER VIEW ==================== -->
+                <div id="manager-view" class="role-view hidden">
+                    <!-- Manager Dashboard Tab -->
+                    <div id="manager-tab-dashboard" class="tab-view active">
+                        <div class="view-header">
+                            <div>
+                                <h1>Manager Dashboard</h1>
+                                <p class="text-secondary" id="manager-team-name-sub">Team Summary Overview</p>
+                            </div>
+                        </div>
+
+                        <!-- Metric Cards -->
+                        <div class="metrics-grid">
+                            <div class="metric-card bg-glass">
+                                <div class="card-icon bg-info-light text-info"><i class="fa-solid fa-users-viewfinder"></i></div>
+                                <div class="card-info">
+                                    <span class="label">Assigned Team</span>
+                                    <h2 class="value" id="manager-metric-team-size">0</h2>
+                                </div>
+                            </div>
+                            <div class="metric-card bg-glass">
+                                <div class="card-icon bg-warning-light text-warning"><i class="fa-solid fa-person-walking-arrow-right"></i></div>
+                                <div class="card-info">
+                                    <span class="label">Team Pending Leaves</span>
+                                    <h2 class="value" id="manager-metric-pending-leaves">0</h2>
+                                </div>
+                            </div>
+                            <div class="metric-card bg-glass">
+                                <div class="card-icon bg-success-light text-success"><i class="fa-solid fa-user-check"></i></div>
+                                <div class="card-info">
+                                    <span class="label">Today Present</span>
+                                    <h2 class="value" id="manager-metric-today-attendance">0%</h2>
+                                </div>
+                            </div>
+                            <div class="metric-card bg-glass">
+                                <div class="card-icon bg-danger-light text-danger"><i class="fa-solid fa-chart-simple"></i></div>
+                                <div class="card-info">
+                                    <span class="label">Avg Team Productivity</span>
+                                    <h2 class="value" id="manager-metric-avg-score">0</h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sections-grid">
+                            <!-- Team List Table -->
+                            <div class="section-card bg-glass">
+                                <div class="section-card-header">
+                                    <h3>Team Members</h3>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Employee Name</th>
+                                                <th>Status</th>
+                                                <th>Today's Activity</th>
+                                                <th>Productivity Score</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="manager-team-table-body">
+                                            <!-- Dynamic Team rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="sections-column">
+                                <!-- Pending Leaves Panel -->
+                                <div class="section-card bg-glass scrollable-section">
+                                    <div class="section-card-header">
+                                        <h3>Leave Requests</h3>
+                                    </div>
+                                    <div class="leaves-mini-list" id="manager-pending-leaves-list">
+                                        <!-- Dynamic leave rows -->
+                                    </div>
+                                </div>
+
+                                <!-- Recent Team Submissions -->
+                                <div class="section-card bg-glass scrollable-section">
+                                    <div class="section-card-header">
+                                        <h3>Productivity Reviews</h3>
+                                    </div>
+                                    <div class="productivity-review-list" id="manager-pending-prod-list">
+                                        <!-- Dynamic submissions -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Manager Team Tab -->
+                    <div id="manager-tab-team" class="tab-view">
+                        <div class="view-header">
+                            <div>
+                                <h1>My Team Directory</h1>
+                                <p class="text-secondary">View detailed contact information and activity summaries of your direct reports</p>
+                            </div>
+                        </div>
+                        <div class="section-card bg-glass">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Employee Name</th>
+                                            <th>Email</th>
+                                            <th>Today Attendance</th>
+                                            <th>Overall Prod Score</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="manager-tab-team-table-body">
+                                        <!-- Dynamic rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Manager Attendance Tab -->
+                    <div id="manager-tab-attendance" class="tab-view">
+                        <div class="view-header">
+                            <div>
+                                <h1>Team Attendance Log</h1>
+                                <p class="text-secondary">Track who's present, absent, or on leave</p>
+                            </div>
+                            <div class="actions">
+                                <button class="btn btn-primary" id="btn-manager-log-attendance"><i class="fa-solid fa-user-check"></i> Manual Log Attendance</button>
+                            </div>
+                        </div>
+                        <div class="section-card bg-glass">
+                            <div class="section-card-header">
+                                <h3>Attendance Register</h3>
+                                <div class="header-filters">
+                                    <input type="date" id="manager-attendance-filter-date" class="form-control">
+                                </div>
+                            </div>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Employee</th>
+                                            <th>Status</th>
+                                            <th>Marked By</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="manager-attendance-table-body">
+                                        <!-- Dynamic Rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Manager Productivity Tab -->
+                    <div id="manager-tab-productivity" class="tab-view">
+                        <div class="view-header">
+                            <div>
+                                <h1>Productivity Review Center</h1>
+                                <p class="text-secondary">Approve and adjust productivity scores submitted by team members</p>
+                            </div>
+                        </div>
+                        <div class="section-card bg-glass">
+                            <div class="section-card-header">
+                                <h3>Team Submissions</h3>
+                                <div class="header-filters">
+                                    <select id="manager-prod-filter-emp" class="form-control">
+                                        <option value="">All Team Members</option>
+                                    </select>
+                                    <select id="manager-prod-filter-status" class="form-control">
+                                        <option value="">All Submissions</option>
+                                        <option value="Pending">Pending Review</option>
+                                        <option value="Approved">Approved</option>
+                                        <option value="Rejected">Rejected</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Employee</th>
+                                            <th>Tasks</th>
+                                            <th>Details</th>
+                                            <th>Count</th>
+                                            <th>Calculated Score</th>
+                                            <th>Final Score</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="manager-prod-table-body">
+                                        <!-- Dynamic Rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Manager Leave Requests Tab -->
+                    <div id="manager-tab-leave" class="tab-view">
+                        <div class="view-header">
+                            <div>
+                                <h1>Leave Management</h1>
+                                <p class="text-secondary">Review and approve team leave requests</p>
+                            </div>
+                        </div>
+                        <div class="section-card bg-glass">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Employee</th>
+                                            <th>Leave Type</th>
+                                            <th>Duration</th>
+                                            <th>Reason</th>
+                                            <th>Status</th>
+                                            <th>Comments</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="manager-leave-table-body">
+                                        <!-- Dynamic Rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Manager Reports Tab -->
+                    <div id="manager-tab-reports" class="tab-view">
+                        <div class="view-header">
+                            <div>
+                                <h1>Team Reports & Analytics</h1>
+                                <p class="text-secondary">Export team-wide data and productivity sheets</p>
+                            </div>
+                        </div>
+                        
+                        <div class="report-generator-grid">
+                            <div class="section-card bg-glass filter-panel">
+                                <h3>Team Report Filters</h3>
+                                <div class="form-group mt-3">
+                                    <label>Report Type</label>
+                                    <select id="manager-report-type" class="form-control">
+                                        <option value="productivity">Team Productivity</option>
+                                        <option value="attendance">Team Attendance</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Date Range</label>
+                                    <div class="date-range-inputs">
+                                        <input type="date" id="manager-report-start-date" class="form-control">
+                                        <input type="date" id="manager-report-end-date" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Employee Name</label>
+                                    <select id="manager-report-employee" class="form-control">
+                                        <option value="">All Team Members</option>
+                                    </select>
+                                </div>
+                                <div class="report-actions-btn-group mt-4">
+                                    <button class="btn btn-primary" id="btn-manager-report-generate"><i class="fa-solid fa-chart-bar"></i> Generate Report</button>
+                                    <button class="btn btn-outline" id="btn-manager-report-pdf"><i class="fa-regular fa-file-pdf"></i> Print / Save PDF</button>
+                                    <button class="btn btn-outline" id="btn-manager-report-excel"><i class="fa-regular fa-file-excel"></i> Export CSV</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Generated Report Preview -->
+                            <div class="section-card bg-glass preview-panel">
+                                <h3>Report Preview</h3>
+                                <div id="manager-report-preview-container" class="report-preview-container">
+                                    <div class="empty-state">Select parameters and click "Generate Report".</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== EMPLOYEE VIEW ==================== -->
+                <div id="employee-view" class="role-view hidden">
+                    <!-- Employee Dashboard Tab -->
+                    <div id="employee-tab-dashboard" class="tab-view active">
+                        <div class="view-header">
+                            <div>
+                                <h1 id="employee-welcome-title">Welcome Back, Employee!</h1>
+                                <p class="text-secondary">Here's your productivity score and updates today</p>
+                            </div>
+                            <div class="actions employee-actions">
+                                <button class="btn btn-primary" id="btn-employee-update-prod-dash"><i class="fa-solid fa-plus-circle"></i> Update Productivity</button>
+                                <button class="btn btn-outline" id="btn-employee-apply-leave-dash"><i class="fa-solid fa-calendar-plus"></i> Apply Leave</button>
+                            </div>
+                        </div>
+
+                        <!-- Metric Cards -->
+                        <div class="metrics-grid">
+                            <div class="metric-card bg-glass">
+                                <div class="card-icon bg-success-light text-success" id="employee-attendance-icon"><i class="fa-regular fa-calendar-check"></i></div>
+                                <div class="card-info">
+                                    <span class="label">Today Attendance</span>
+                                    <h2 class="value" id="employee-metric-attendance">Present</h2>
+                                </div>
+                            </div>
+                            <div class="metric-card bg-glass">
+                                <div class="card-icon bg-info-light text-info"><i class="fa-solid fa-umbrella-beach"></i></div>
+                                <div class="card-info">
+                                    <span class="label">Total Leaves Taken</span>
+                                    <h2 class="value" id="employee-metric-leaves">0</h2>
+                                </div>
+                            </div>
+                            <div class="metric-card bg-glass">
+                                <div class="card-icon bg-warning-light text-warning"><i class="fa-solid fa-circle-question"></i></div>
+                                <div class="card-info">
+                                    <span class="label">Pending Requests</span>
+                                    <h2 class="value" id="employee-metric-pending">0</h2>
+                                </div>
+                            </div>
+                            <div class="metric-card bg-glass">
+                                <div class="card-icon bg-danger-light text-danger"><i class="fa-solid fa-fire"></i></div>
+                                <div class="card-info">
+                                    <span class="label">Productivity Score (Today)</span>
+                                    <h2 class="value" id="employee-metric-score">0</h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sections-grid">
+                            <!-- Left: Personal Productivity Tracker -->
+                            <div class="section-card bg-glass">
+                                <div class="section-card-header">
+                                    <h3>My Recent Productivity Submissions</h3>
+                                    <button class="btn btn-sm btn-primary" id="btn-employee-update-prod-sub"><i class="fa-solid fa-plus"></i> Add</button>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Tasks</th>
+                                                <th>Detail Notes</th>
+                                                <th>Count</th>
+                                                <th>Score</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="employee-dashboard-prod-table">
+                                            <!-- Dynamic productivity records -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Right widgets -->
+                            <div class="sections-column">
+                                <!-- Announcements -->
+                                <div class="section-card bg-glass scrollable-section">
+                                    <div class="section-card-header">
+                                        <h3>Company Announcements</h3>
+                                    </div>
+                                    <div class="announcements-mini-list" id="employee-announcements-list">
+                                        <!-- Dynamic announcements -->
+                                    </div>
+                                </div>
+
+                                <!-- Leaves Status -->
+                                <div class="section-card bg-glass scrollable-section">
+                                    <div class="section-card-header">
+                                        <h3>My Leave Status</h3>
+                                        <button class="btn btn-sm btn-outline" id="btn-employee-apply-leave-sub"><i class="fa-solid fa-calendar-plus"></i> Apply</button>
+                                    </div>
+                                    <div class="leaves-mini-list" id="employee-dashboard-leaves-list">
+                                        <!-- Dynamic leaves -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Employee Attendance Tab -->
+                    <div id="employee-tab-attendance" class="tab-view">
+                        <div class="view-header">
+                            <div>
+                                <h1>My Attendance Log</h1>
+                                <p class="text-secondary">Calendar register of your marked attendance</p>
+                            </div>
+                        </div>
+                        <div class="section-card bg-glass">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Status</th>
+                                            <th>Marked By</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="employee-tab-attendance-table">
+                                        <!-- Dynamic rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Employee Productivity Tab -->
+                    <div id="employee-tab-productivity" class="tab-view">
+                        <div class="view-header">
+                            <div>
+                                <h1>My Productivity Log</h1>
+                                <p class="text-secondary">Historical log of all task submissions</p>
+                            </div>
+                            <div class="actions">
+                                <button class="btn btn-primary" id="btn-employee-add-prod-tab"><i class="fa-solid fa-circle-plus"></i> Submit Log</button>
+                            </div>
+                        </div>
+                        <div class="section-card bg-glass">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Tasks</th>
+                                            <th>Sub-Categories</th>
+                                            <th>Notes</th>
+                                            <th>Count</th>
+                                            <th>Score</th>
+                                            <th>Status</th>
+                                            <th>Approver Comments</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="employee-tab-productivity-table">
+                                        <!-- Dynamic Rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Employee Leaves Tab -->
+                    <div id="employee-tab-leave" class="tab-view">
+                        <div class="view-header">
+                            <div>
+                                <h1>My Leave Requests</h1>
+                                <p class="text-secondary">Submit leave applications and track pending evaluations</p>
+                            </div>
+                            <div class="actions">
+                                <button class="btn btn-primary" id="btn-employee-add-leave-tab"><i class="fa-solid fa-plus"></i> Apply Leave</button>
+                            </div>
+                        </div>
+                        <div class="section-card bg-glass">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Leave Type</th>
+                                            <th>Start Date</th>
+                                            <th>End Date</th>
+                                            <th>Reason</th>
+                                            <th>Status</th>
+                                            <th>Approver Comments</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="employee-tab-leave-table">
+                                        <!-- Dynamic Rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- Modal Backdrop -->
+    <div id="modal-backdrop" class="modal-backdrop hidden"></div>
+
+    <!-- 1. Add/Edit Employee Modal -->
+    <div id="modal-employee" class="modal hidden">
+        <div class="modal-header">
+            <h3 id="modal-employee-title">Add Employee</h3>
+            <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="employee-form">
+            <input type="hidden" id="emp-form-id">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="emp-name">Full Name</label>
+                    <input type="text" id="emp-name" class="form-control" required placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label for="emp-email">Email Address</label>
+                    <input type="email" id="emp-email" class="form-control" required placeholder="john.doe@company.com">
+                </div>
+                <div class="form-group" id="emp-pass-group">
+                    <label for="emp-password">Password</label>
+                    <input type="password" id="emp-password" class="form-control" required placeholder="Min 6 characters">
+                </div>
+                <div class="form-group">
+                    <label for="emp-role">Role</label>
+                    <select id="emp-role" class="form-control" required>
+                        <option value="Employee">Employee</option>
+                        <option value="Manager">Manager</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-group" id="emp-manager-group">
+                    <label for="emp-manager">Assigned Manager</label>
+                    <select id="emp-manager" class="form-control">
+                        <option value="">None</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="emp-status">Status</label>
+                    <select id="emp-status" class="form-control" required>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline modal-close">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="btn-save-employee">Save Employee</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 2. Update Productivity Modal (Employee Form) -->
+    <div id="modal-productivity-form" class="modal hidden">
+        <div class="modal-header">
+            <h3>Update Daily Productivity</h3>
+            <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="productivity-submission-form">
+            <div class="modal-body">
+                <!-- Date (Auto-filled but visible) -->
+                <div class="form-group">
+                    <label>Submission Date</label>
+                    <input type="text" id="prod-form-date" class="form-control" readonly>
+                </div>
+
+                <!-- Custom Multi-select for Tasks -->
+                <div class="form-group">
+                    <label>Task / Practice <span class="required">*</span></label>
+                    <div class="custom-multiselect" id="tasks-multiselect">
+                        <div class="multiselect-select-box">
+                            <span class="selected-text">Select Tasks</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="multiselect-options-container hidden">
+                            <label><input type="checkbox" value="Billing" data-text="Billing"> Billing</label>
+                            <label><input type="checkbox" value="Follow-up" data-text="Follow-up"> Follow-up</label>
+                            <label><input type="checkbox" value="Payment Posting" data-text="Payment Posting"> Payment Posting</label>
+                            <label><input type="checkbox" value="Eligibility Check" data-text="Eligibility Check"> Eligibility Check</label>
+                            <label><input type="checkbox" value="Report Preparation" data-text="Report Preparation"> Report Preparation</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Multi-select for Sub-categories -->
+                <div class="form-group">
+                    <label>Sub-Category <span class="required">*</span></label>
+                    <div class="custom-multiselect" id="subcats-multiselect">
+                        <div class="multiselect-select-box">
+                            <span class="selected-text">Select Subcategories</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="multiselect-options-container hidden" id="subcats-options-list">
+                            <div class="placeholder-msg">Select a task first</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Count (numeric only) -->
+                <div class="form-group">
+                    <label for="prod-count">Count / Quantity <span class="required">*</span></label>
+                    <input type="number" id="prod-count" min="1" class="form-control" required placeholder="Enter numeric count">
+                </div>
+
+                <!-- Detail Notes -->
+                <div class="form-group">
+                    <label for="prod-notes">Detail Notes <span class="required">*</span></label>
+                    <textarea id="prod-notes" rows="3" class="form-control" required placeholder="Describe task details, case IDs, or issues..."></textarea>
+                </div>
+
+                <!-- Live Score Preview -->
+                <div class="live-score-preview bg-glass">
+                    <span>Estimated Productivity Score:</span>
+                    <strong id="prod-score-live">0</strong>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline modal-close">Cancel</button>
+                <button type="submit" class="btn btn-primary">Submit Productivity</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 3. Leave Request Modal (Employee Form) -->
+    <div id="modal-leave-form" class="modal hidden">
+        <div class="modal-header">
+            <h3>Apply Leave</h3>
+            <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="leave-request-form">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="leave-type">Leave Type</label>
+                    <select id="leave-type" class="form-control" required>
+                        <option value="Sick Leave">Sick Leave</option>
+                        <option value="Casual Leave">Casual Leave</option>
+                        <option value="Paid Leave">Paid Leave</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col">
+                        <label for="leave-start-date">Start Date</label>
+                        <input type="date" id="leave-start-date" class="form-control" required>
+                    </div>
+                    <div class="form-group col">
+                        <label for="leave-end-date">End Date</label>
+                        <input type="date" id="leave-end-date" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="leave-reason">Reason</label>
+                    <textarea id="leave-reason" rows="3" class="form-control" required placeholder="State the reason for leave..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline modal-close">Cancel</button>
+                <button type="submit" class="btn btn-primary">Submit Request</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 4. Review Leave Request Modal (Manager / Admin View) -->
+    <div id="modal-leave-review" class="modal hidden">
+        <div class="modal-header">
+            <h3>Review Leave Application</h3>
+            <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="review-details">
+                <div class="detail-row"><span>Employee:</span> <strong id="leave-review-emp">John Doe</strong></div>
+                <div class="detail-row"><span>Type:</span> <strong id="leave-review-type">Sick Leave</strong></div>
+                <div class="detail-row"><span>Dates:</span> <strong id="leave-review-dates">2026-05-24 to 2026-05-26</strong></div>
+                <div class="detail-row"><span>Reason:</span> <p id="leave-review-reason" class="text-secondary italic">Fever & Doctor Consultation</p></div>
+            </div>
+            <div class="form-group mt-3">
+                <label for="leave-review-comment">Approver Comments</label>
+                <textarea id="leave-review-comment" class="form-control" placeholder="Add feedback or remarks (optional)..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <input type="hidden" id="leave-review-id">
+            <button type="button" class="btn btn-danger" id="btn-leave-reject">Reject Request</button>
+            <button type="button" class="btn btn-success" id="btn-leave-approve">Approve Request</button>
+        </div>
+    </div>
+
+    <!-- 5. Review Productivity Modal (Manager View) -->
+    <div id="modal-productivity-review" class="modal hidden">
+        <div class="modal-header">
+            <h3>Review Productivity Submission</h3>
+            <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="review-details">
+                <div class="detail-row"><span>Employee:</span> <strong id="prod-review-emp">Emma</strong></div>
+                <div class="detail-row"><span>Date:</span> <strong id="prod-review-date">2026-05-23</strong></div>
+                <div class="detail-row"><span>Tasks:</span> <strong id="prod-review-tasks">Billing, Follow-up</strong></div>
+                <div class="detail-row"><span>Sub-categories:</span> <strong id="prod-review-subcats">Accounts Receivable</strong></div>
+                <div class="detail-row"><span>Count / Quantity:</span> <strong id="prod-review-count">20</strong></div>
+                <div class="detail-row"><span>Calculated Score:</span> <strong id="prod-review-calc-score" class="text-info">40</strong></div>
+                <div class="detail-row"><span>Submitted Notes:</span> <p id="prod-review-notes" class="text-secondary italic">Completed 20 bills for client A</p></div>
+            </div>
+            <hr>
+            <div class="form-group mt-3">
+                <label for="prod-review-adjust-score">Adjust Score (Optional)</label>
+                <input type="number" step="0.5" id="prod-review-adjust-score" class="form-control" placeholder="Enter custom score to override">
+                <small class="text-secondary">Leave blank to use the calculated score of <span id="prod-review-calc-score-hint">40</span>.</small>
+            </div>
+            <div class="form-group">
+                <label for="prod-review-comment">Reviewer Comments</label>
+                <textarea id="prod-review-comment" class="form-control" placeholder="Add approval remarks or instructions..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <input type="hidden" id="prod-review-id">
+            <button type="button" class="btn btn-danger" id="btn-prod-reject">Reject Submission</button>
+            <button type="button" class="btn btn-success" id="btn-prod-approve">Approve & Save</button>
+        </div>
+    </div>
+
+    <!-- 6. Create Announcement Modal (Admin View) -->
+    <div id="modal-announcement" class="modal hidden">
+        <div class="modal-header">
+            <h3>Publish Announcement</h3>
+            <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="announcement-form">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="announce-title">Announcement Title</label>
+                    <input type="text" id="announce-title" class="form-control" required placeholder="System Maintenance, Holiday notice, etc.">
+                </div>
+                <div class="form-group">
+                    <label for="announce-target">Target Audience</label>
+                    <select id="announce-target" class="form-control" required>
+                        <option value="All">All Users</option>
+                        <option value="Manager">Managers Only</option>
+                        <option value="Employee">Employees Only</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="announce-content">Content / Body</label>
+                    <textarea id="announce-content" rows="4" class="form-control" required placeholder="Write the announcement text here..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline modal-close">Cancel</button>
+                <button type="submit" class="btn btn-primary">Broadcast Now</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 7. Profile Detail Modal -->
+    <div id="modal-profile" class="modal hidden">
+        <div class="modal-header">
+            <h3>User Profile Detail</h3>
+            <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="profile-card-details">
+                <div class="profile-main-badge">
+                    <div class="avatar-large" id="profile-avatar">U</div>
+                    <h3 id="profile-name">Full Name</h3>
+                    <span id="profile-role" class="role-badge">Role</span>
+                </div>
+                <hr class="mt-3 mb-3">
+                <div class="detail-row"><span>Email Address:</span> <strong id="profile-email">email@company.com</strong></div>
+                <div class="detail-row" id="profile-row-manager"><span>Reporting Manager:</span> <strong id="profile-manager">Sarah Manager</strong></div>
+                <div class="detail-row"><span>Status:</span> <strong id="profile-status">Active</strong></div>
+                <div class="detail-row"><span>Account Status:</span> <span class="badge badge-success">Operational</span></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary modal-close">Close Profile</button>
+        </div>
+    </div>
+
+    <!-- 8. Manual Attendance Logger Modal (Admin / Manager View) -->
+    <div id="modal-attendance-log" class="modal hidden">
+        <div class="modal-header">
+            <h3>Log Employee Attendance</h3>
+            <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="attendance-log-form">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="att-log-date">Date</label>
+                    <input type="date" id="att-log-date" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="att-log-emp">Select Employee</label>
+                    <select id="att-log-emp" class="form-control" required>
+                        <!-- Dynamic list based on role -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="att-log-status">Attendance Status</label>
+                    <select id="att-log-status" class="form-control" required>
+                        <option value="Present">Present</option>
+                        <option value="Absent">Absent</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline modal-close">Cancel</button>
+                <button type="submit" class="btn btn-primary">Mark Attendance</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Main JS Application script -->
+    <script src="app.js"></script>
+</body>
+</html>
