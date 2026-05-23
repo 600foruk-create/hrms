@@ -27,56 +27,48 @@
     <!-- ==================== AUTHENTICATION PANEL ==================== -->
     <div id="auth-panel" class="auth-panel">
         <div class="auth-card">
-            <!-- Overlapping company logo placeholder -->
-            <img src="assets/logos/logo.png" class="login-logo" onerror="this.src='https://via.placeholder.com/100x30?text=Softifyx'">
-            
-            <!-- Circular logo/avatar box -->
-            <div class="logo-circle-container">
-                <div class="logo-circle">
-                    <i class="fa-solid fa-building"></i>
-                </div>
+            <div class="auth-logo">
+                <div class="logo-icon"><i class="fa-solid fa-layer-group"></i></div>
+                <h2>HRMS<span>Flow</span></h2>
+                <p>Employee Productivity & Management Portal</p>
             </div>
             
             <form id="login-form">
-                <!-- Row 1: Login -->
-                <div class="field-row">
-                    <label for="login-email">Login</label>
-                    <input type="email" id="login-email" required placeholder="name@company.com">
-                </div>
-                
-                <!-- Row 2: Password and Log In button -->
-                <div class="field-row">
-                    <label for="login-password">Password</label>
-                    <div class="password-row-wrapper">
-                        <input type="password" id="login-password" required placeholder="••••••••">
-                        <button type="submit" class="btn btn-primary" id="btn-login">Log in</button>
+                <div class="form-group">
+                    <label for="login-email">Email Address</label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-regular fa-envelope input-icon"></i>
+                        <input type="email" id="login-email" required placeholder="name@company.com">
                     </div>
                 </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input type="password" id="login-password" required placeholder="••••••••">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" id="btn-login">
+                    <span>Sign In</span> <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                </button>
             </form>
 
             <div class="demo-accounts">
                 <h3>Quick Sign In (Demo Profiles)</h3>
                 <div class="demo-grid">
                     <button class="btn btn-outline demo-btn" data-email="admin@hrms.com" data-password="admin123" title="Admin Account">
-                        Admin
+                        <i class="fa-solid fa-user-shield text-admin"></i> Admin
                     </button>
                     <button class="btn btn-outline demo-btn" data-email="sarah.manager@hrms.com" data-password="manager123" title="Manager Account">
-                        Manager
+                        <i class="fa-solid fa-user-tie text-manager"></i> Manager (Sarah)
                     </button>
                     <button class="btn btn-outline demo-btn" data-email="john.emp@hrms.com" data-password="employee123" title="Employee Account">
-                        Employee
+                        <i class="fa-solid fa-user text-employee"></i> Employee (John)
                     </button>
                     <button class="btn btn-outline demo-btn" data-email="emma.emp@hrms.com" data-password="employee123" title="Employee Account">
-                        Employee
+                        <i class="fa-solid fa-user text-employee"></i> Employee (Emma)
                     </button>
                 </div>
-            </div>
-
-            <div class="branding">
-                <div class="brand-title">SOFTIFYX FINANCIALS</div>
-                <div>A Project of <span style="font-weight:700">SOFTIFYX TECHNOLOGIES</span> | <a href="http://www.softifyx.com" target="_blank">www.softifyx.com</a></div>
-                <div style="margin-top:2px;">Plot No: 192/8, Road No: L-11, Industrial Estate Gadoon Amazai Tehsil Topi District Swabi, KPK Pakistan</div>
-                <div style="margin-top:2px; font-weight: 600; color: #1e293b;">support@softifyx.com | +92 331 7240256</div>
             </div>
         </div>
     </div>
