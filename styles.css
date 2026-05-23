@@ -309,10 +309,19 @@ body.light-mode .form-control {
 /* ==================== LOGIN / AUTH VIEW ==================== */
 .auth-panel {
     display: flex;
+    justify-content: flex-end; /* Right-aligned for desktop */
     align-items: center;
-    justify-content: center;
     min-height: 100vh;
-    padding: 2rem;
+    padding: 20px 15% 20px 20px;
+    background-image: url('assets/images/login/login_bg.jpg');
+    background-size: cover;
+    background-position: center;
+}
+@media (max-width: 768px) {
+    .auth-panel {
+        justify-content: center;
+        padding: 20px;
+    }
 }
 .auth-card {
     background: rgba(255, 255, 255, 0.96);
@@ -350,11 +359,9 @@ body.light-mode .auth-card {
     border: 2px solid #217093;
 }
 .svgContainer .mySVG { width: 100%; height: 100%; }
-.armL, .armR {
-    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.pupil-L, .pupil-R {
-    transition: transform 0.15s ease;
+/* Let GSAP handle transforms instead of CSS transition */
+.armL, .armR, .pupil-L, .pupil-R {
+    transition: none !important;
 }
 
 /* Yeti form field rows */

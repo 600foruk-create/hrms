@@ -2482,7 +2482,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Populate username dropdown after data loads
     populateLoginDropdown();
     
-    // Yeti eye tracking & arm animation
+    // Yeti eye tracking & arm animation (GSAP calibration)
     const armL   = document.querySelector('.armL');
     const armR   = document.querySelector('.armR');
     const pupilL = document.querySelector('.pupil-L');
@@ -2490,30 +2490,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     const passInput = document.getElementById('login-password');
     
     if (armL && armR) {
-        // Arms start DOWN (hidden below face circle)
-        armL.style.transform = 'translate(-93px, 60px)';
-        armR.style.transform = 'translate(93px, 60px)';
+        gsap.set(armL, { x: -93, y: 10 });
+        gsap.set(armR, { x: -93, y: 10 });
     }
     
     if (passInput) {
         passInput.addEventListener('focus', () => {
-            // Arms come UP to cover eyes
-            if (armL) armL.style.transform = 'translate(-15px, -5px)';
-            if (armR) armR.style.transform = 'translate(-175px, -5px)';
+            gsap.to(armL, { x: -10, y: 2, ease: "power2.out", duration: 0.6 });
+            gsap.to(armR, { x: -178, y: 2, ease: "power2.out", duration: 0.6 });
         });
         passInput.addEventListener('blur', () => {
-            // Arms go back DOWN
-            if (armL) armL.style.transform = 'translate(-93px, 60px)';
-            if (armR) armR.style.transform = 'translate(93px, 60px)';
+            gsap.to(armL, { x: -93, y: 10, ease: "power2.in", duration: 0.5 });
+            gsap.to(armR, { x: -93, y: 10, ease: "power2.in", duration: 0.5 });
         });
     }
     
     document.addEventListener('mousemove', (e) => {
         if (document.activeElement === passInput) return;
-        const x = (e.clientX / window.innerWidth - 0.5) * 10;
-        const y = (e.clientY / window.innerHeight - 0.5) * 10;
-        if (pupilL) pupilL.style.transform = `translate(${x}px, ${y}px)`;
-        if (pupilR) pupilR.style.transform = `translate(${x}px, ${y}px)`;
+        const x = (e.clientX / window.innerWidth - 0.5) * 12;
+        const y = (e.clientY / window.innerHeight - 0.5) * 12;
+        gsap.to([pupilL, pupilR], { x: x, y: y, duration: 0.2 });
     });
     
     // Login form submit

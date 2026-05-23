@@ -29,8 +29,8 @@
         <form id="login-form" class="auth-card" style="background:#fff !important; color:#333 !important;">
 
             <!-- Yeti SVG Avatar -->
-            <div class="svgContainer">
-                <svg class="mySVG" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 200">
+            <div class="svgContainer" style="display: block !important; width: 140px !important; height: 140px !important; min-width: 140px !important; min-height: 140px !important; max-width: 140px !important; max-height: 140px !important; margin: 0 auto 1.5em !important; border-radius: 50% !important; overflow: hidden !important; background: #eef5ff !important; border: 2px solid #217093 !important; box-sizing: border-box !important;">
+                <svg class="mySVG" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 200" style="width: 100% !important; height: 100% !important; display: block !important;">
                     <defs><circle id="armMaskPath" cx="100" cy="100" r="100" /></defs>
                     <clipPath id="armMask"><use xlink:href="#armMaskPath" overflow="visible" /></clipPath>
                     <circle cx="100" cy="100" r="100" fill="#a9ddf3" />
@@ -1400,6 +1400,8 @@
         </form>
     </div>
 
+    <!-- GSAP for Yeti Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <!-- Main JS Application script -->
     <script src="app.js"></script>
 </body>
