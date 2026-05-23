@@ -27,45 +27,47 @@
     <!-- ==================== AUTHENTICATION PANEL ==================== -->
     <div id="auth-panel" class="auth-panel">
         <div class="auth-card">
-            <div class="auth-logo">
-                <h2>Softifyx Financials</h2>
-                <p>Please enter your credentials to login</p>
+            <!-- Overlapping company logo placeholder -->
+            <img src="assets/logos/logo.png" class="login-logo" onerror="this.src='https://via.placeholder.com/100x30?text=Softifyx'">
+            
+            <!-- Circular logo/avatar box -->
+            <div class="logo-circle-container">
+                <div class="logo-circle">
+                    <i class="fa-solid fa-building"></i>
+                </div>
             </div>
             
             <form id="login-form">
-                <div class="form-group">
-                    <label for="login-email">Email Address</label>
-                    <div class="input-icon-wrapper">
-                        <i class="fa-regular fa-envelope input-icon"></i>
-                        <input type="email" id="login-email" required placeholder="name@company.com">
-                    </div>
+                <!-- Row 1: Login -->
+                <div class="field-row">
+                    <label for="login-email">Login</label>
+                    <input type="email" id="login-email" required placeholder="name@company.com">
                 </div>
-                <div class="form-group">
+                
+                <!-- Row 2: Password and Log In button -->
+                <div class="field-row">
                     <label for="login-password">Password</label>
-                    <div class="input-icon-wrapper">
-                        <i class="fa-solid fa-lock input-icon"></i>
+                    <div class="password-row-wrapper">
                         <input type="password" id="login-password" required placeholder="••••••••">
+                        <button type="submit" class="btn btn-primary" id="btn-login">Log in</button>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block" id="btn-login">
-                    <span>Sign In</span> <i class="fa-solid fa-arrow-right-to-bracket"></i>
-                </button>
             </form>
 
             <div class="demo-accounts">
                 <h3>Quick Sign In (Demo Profiles)</h3>
                 <div class="demo-grid">
                     <button class="btn btn-outline demo-btn" data-email="admin@hrms.com" data-password="admin123" title="Admin Account">
-                        <i class="fa-solid fa-user-shield text-admin"></i> Admin
+                        Admin
                     </button>
                     <button class="btn btn-outline demo-btn" data-email="sarah.manager@hrms.com" data-password="manager123" title="Manager Account">
-                        <i class="fa-solid fa-user-tie text-manager"></i> Manager (Sarah)
+                        Manager
                     </button>
                     <button class="btn btn-outline demo-btn" data-email="john.emp@hrms.com" data-password="employee123" title="Employee Account">
-                        <i class="fa-solid fa-user text-employee"></i> Employee (John)
+                        Employee
                     </button>
                     <button class="btn btn-outline demo-btn" data-email="emma.emp@hrms.com" data-password="employee123" title="Employee Account">
-                        <i class="fa-solid fa-user text-employee"></i> Employee (Emma)
+                        Employee
                     </button>
                 </div>
             </div>
