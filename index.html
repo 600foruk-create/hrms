@@ -26,7 +26,7 @@
 
     <!-- ==================== AUTHENTICATION PANEL ==================== -->
     <div id="auth-panel" class="auth-panel">
-        <form id="login-form" class="auth-card">
+        <form id="login-form" class="auth-card" style="background:#fff !important; color:#333 !important;">
 
             <!-- Yeti SVG Avatar -->
             <div class="svgContainer">
@@ -75,24 +75,24 @@
             </div>
 
             <!-- Login Field -->
-            <div class="yeti-field-row">
-                <label class="yeti-label">Login</label>
-                <select id="login-username" class="yeti-input"></select>
+            <div style="display:flex; align-items:center; margin-bottom:10px; gap:8px;">
+                <span style="width:85px; min-width:85px; font-size:0.85em; font-weight:700; color:#3A5E77; flex-shrink:0;">Login</span>
+                <select id="login-username" style="flex:1; height:32px; padding:0 8px; border:1px solid #ced4da; border-radius:4px; font-size:0.85em; color:#495057; background:#f8f9fa; outline:none; min-width:0; box-sizing:border-box;"></select>
             </div>
 
             <!-- Password Field -->
-            <div class="yeti-field-row">
-                <label class="yeti-label">Password</label>
-                <input type="password" id="login-password" class="yeti-input" autocomplete="new-password" placeholder="••••••••">
+            <div style="display:flex; align-items:center; margin-bottom:10px; gap:8px;">
+                <span style="width:85px; min-width:85px; font-size:0.85em; font-weight:700; color:#3A5E77; flex-shrink:0;">Password</span>
+                <input type="password" id="login-password" autocomplete="new-password" placeholder="••••••••" style="flex:1; height:32px; padding:0 8px; border:1px solid #ced4da; border-radius:4px; font-size:0.85em; color:#495057; background:#f8f9fa; outline:none; min-width:0; box-sizing:border-box;">
             </div>
 
-            <button type="submit" class="btn btn-primary btn-block" id="btn-login" style="margin-top:14px;">
+            <button type="submit" id="btn-login" style="margin-top:14px; width:100%; height:38px; background:#217093; border:none; border-radius:6px; color:#fff; font-size:0.9em; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; letter-spacing:0.3px; transition:background 0.2s, transform 0.2s;" onmouseover="this.style.background='#1a5a7a';this.style.transform='translateY(-1px)'" onmouseout="this.style.background='#217093';this.style.transform='translateY(0)'">
                 <span>Log in</span> <i class="fa-solid fa-arrow-right-to-bracket"></i>
             </button>
 
-            <div class="yeti-branding">
-                <div class="yeti-brand-title">OCEAN STACK</div>
-                <div>A Project of <strong>SOFTIFYX TECHNOLOGIES</strong> | <a href="http://www.softifyx.com" target="_blank">www.softifyx.com</a></div>
+            <div style="text-align:center; margin-top:16px; font-size:0.75em; color:#6c757d; border-top:1px solid #dee2e6; padding-top:10px;">
+                <div style="font-weight:700; color:#214d64; margin-bottom:2px;">OCEAN STACK</div>
+                <div>A Project of <strong>SOFTIFYX TECHNOLOGIES</strong> | <a href="http://www.softifyx.com" target="_blank" style="color:#217093; text-decoration:none;">www.softifyx.com</a></div>
             </div>
         </form>
     </div>
