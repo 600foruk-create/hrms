@@ -973,6 +973,7 @@ function renderAdminEmployeesTab() {
                             <div class="btn-action-group">
                                 <button class="btn-action-circle" onclick="viewUserProfile('${user.id}')" tooltip="View Profile"><i class="fa-regular fa-eye"></i></button>
                                 <button class="btn-action-circle" onclick="openEditEmployeeModal('${user.id}')" tooltip="Edit"><i class="fa-regular fa-pen-to-square"></i></button>
+                                <button class="btn-action-circle text-danger" onclick="deleteEmployee('${user.id}')" tooltip="Delete"><i class="fa-regular fa-trash-can"></i></button>
                             </div>
                         </td>
                     </tr>
@@ -2912,7 +2913,26 @@ function initAdminReportsTab() {
 
     document.getElementById('admin-report-start-date').value = start.toISOString().split('T')[0];
     document.getElementById('admin-report-end-date').value = end.toISOString().split('T')[0];
+    document.getElementById('emp-pass-group').style.display = 'none';
 }
+
+window.deleteEmployee = function(id) {
+    if(confirm("Are you sure you want to permanently delete this employee? This action cannot be undone.")) {
+        const db = getDb();
+        db.users = db.users.filter(u => u.id !== id);
+        // Cascade delete records
+        db.attendance = db.attendance.filter(a => a.employeeId !== id);
+        db.productivity = db.productivity.filter(p => p.employeeId !== id);
+        db.leaves = db.leaves.filter(l => l.employeeId !== id);
+        saveDb(db).then(() => {
+            showToast("Success", "Employee and all associated records have been permanently removed.");
+            if (window.activeView === 'admin-employees') {
+                renderAdminEmployeesTab();
+            }
+            renderAdminDashboard();
+        });
+    }
+};
 
 document.getElementById('btn-admin-report-generate').addEventListener('click', () => {
     generateReport('Admin');
