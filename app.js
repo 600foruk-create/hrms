@@ -277,6 +277,7 @@ function handleLogin(usernameOrEmail, password) {
             appShell.classList.remove('hidden');
             appShell.style.setProperty('display', 'flex', 'important');
         }
+        document.body.classList.remove('login-view');
         
         // Clear search
         document.getElementById('global-search').value = "";
@@ -314,6 +315,7 @@ function handleLogout() {
     if (authPanel) {
         authPanel.classList.remove('hidden');
         authPanel.style.setProperty('display', 'flex', 'important');
+        document.body.classList.add('login-view');
         const db = getDb();
         if (db && db.login_bg) {
             authPanel.style.setProperty('background-image', `url('${db.login_bg}')`, 'important');
