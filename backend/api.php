@@ -168,11 +168,11 @@ if ($action === 'load_all') {
 
         // Fetch Company Profile
         $stmt = $pdo->query("SELECT * FROM company_profile LIMIT 1");
-        $cpRow = $stmt->fetch();
+        $cpRow = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($cpRow) {
             $dbState['companyProfile'] = $cpRow;
         } else {
-            $dbState['companyProfile'] = [];
+            $dbState['companyProfile'] = new stdClass();
         }
 
         echo json_encode(["status" => "success", "data" => $dbState]);

@@ -1,4 +1,4 @@
-ta/**
+/**
  * HRMS - Employee Management & Productivity Tracker
  * Core Application Script
  */
@@ -235,7 +235,7 @@ function applyCompanyProfile(db) {
     if (!db) return;
 
     // Check our new companyProfile object first, fallback to old weights
-    const cp = db.companyProfile || {};
+    const cp = (!db.companyProfile || Array.isArray(db.companyProfile)) ? {} : db.companyProfile;
     const companyName = cp.name || (db.weights && db.weights['company_name']) || 'OceanStack';
     const companyLogo = cp.logoBase64 || (db.weights && db.weights['company_logo']) || '';
 
@@ -1827,7 +1827,7 @@ window.viewUserProfile = function (userId) {
 // 1b. Company Profile Modal
 window.openCompanyProfileModal = function () {
     const db = getDb();
-    const cp = db.companyProfile || {};
+    const cp = (!db.companyProfile || Array.isArray(db.companyProfile)) ? {} : db.companyProfile;
 
     document.getElementById('comp-name').value = cp.name || '';
     document.getElementById('comp-email').value = cp.email || '';
@@ -3517,7 +3517,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         cpForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const db = getDb();
-            const cp = db.companyProfile || {};
+            const cp = (!db.companyProfile || Array.isArray(db.companyProfile)) ? {} : db.companyProfile;
 
             cp.name = document.getElementById('comp-name').value;
             cp.email = document.getElementById('comp-email').value;
