@@ -185,14 +185,17 @@ if (!document.getElementById('toast-keyframes')) {
 // ==================== AUTHENTICATION & SESSIONS ====================
 
 function applyCompanyProfile(db) {
-    if (!db || !db.weights) return;
-    const companyName = db.weights['company_name'] || 'HRMSFlow';
-    const companyLogo = db.weights['company_logo'] || '';
+    if (!db) return;
+    
+    // Check our new companyProfile object first, fallback to old weights
+    const cp = db.companyProfile || {};
+    const companyName = cp.name || (db.weights && db.weights['company_name']) || 'OceanStack';
+    const companyLogo = cp.logoBase64 || (db.weights && db.weights['company_logo']) || '';
     
     document.getElementById('sidebar-company-name').innerHTML = `${companyName}`;
     const logoIcon = document.getElementById('sidebar-company-icon');
     if (companyLogo) {
-        logoIcon.innerHTML = `<img src="${companyLogo}" alt="Logo" style="max-width:100%; border-radius: 8px;">`;
+        logoIcon.innerHTML = `<img src="${companyLogo}" alt="Logo" style="max-height:28px; max-width:100%; object-fit:contain;">`;
     } else {
         logoIcon.innerHTML = `
             <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -201,15 +204,6 @@ function applyCompanyProfile(db) {
                 <path d="M4 20C10 16 22 16 28 20C22 24 10 24 4 20Z" fill="#2979ff"/>
             </svg>
         `;
-    }
-    
-    // Fill the form if it exists
-    if (document.getElementById('company-name')) {
-        document.getElementById('company-name').value = companyName !== 'HRMSFlow' ? companyName : '';
-        document.getElementById('company-address').value = db.weights['company_address'] || '';
-        document.getElementById('company-contact').value = db.weights['company_contact'] || '';
-        document.getElementById('company-fax').value = db.weights['company_fax'] || '';
-        document.getElementById('company-logo').value = companyLogo;
     }
 }
 
@@ -1709,6 +1703,56 @@ window.viewUserProfile = function(userId) {
     openModal('modal-profile');
 };
 
+// 1b. Company Profile Modal
+window.openCompanyProfileModal = function() {
+    const db = getDb();
+    const cp = db.companyProfile || {};
+    
+    document.getElementById('comp-name').value = cp.name || '';
+    document.getElementById('comp-email').value = cp.email || '';
+    document.getElementById('comp-phone').value = cp.phone || '';
+    document.getElementById('comp-website').value = cp.website || '';
+    document.getElementById('comp-address').value = cp.address || '';
+    document.getElementById('comp-reg').value = cp.reg || '';
+    
+    // Clear logo input just in case
+    document.getElementById('comp-logo-input').value = '';
+    const dropzone = document.getElementById('dropzone-company-logo');
+    if (dropzone) {
+        if (cp.logoBase64) {
+            dropzone.innerHTML = `
+                <img src="${cp.logoBase64}" alt="Company Logo" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                <div style="font-size: 11px; color: var(--text-muted);">Click to change logo</div>
+                <input type="file" id="comp-logo-input" accept="image/*" style="display:none;">
+            `;
+            // Re-attach listener
+            const newInput = dropzone.querySelector('#comp-logo-input');
+            if (newInput) {
+                newInput.addEventListener('change', () => {
+                    if (newInput.files.length) window.onCompLogoSelected(dropzone, newInput.files);
+                });
+                dropzone.addEventListener('click', () => newInput.click(), { once: true });
+            }
+        } else {
+            dropzone.innerHTML = `
+                <i class="fa-solid fa-cloud-arrow-up" style="font-size: 24px; color: var(--primary);"></i>
+                <div style="font-weight: 600;">Upload Company Logo</div>
+                <div style="font-size: 11px; color: var(--text-muted);">Click or drag image here (Max 2MB)</div>
+                <input type="file" id="comp-logo-input" accept="image/*" style="display:none;">
+            `;
+            const newInput = dropzone.querySelector('#comp-logo-input');
+            if (newInput) {
+                newInput.addEventListener('change', () => {
+                    if (newInput.files.length) window.onCompLogoSelected(dropzone, newInput.files);
+                });
+                dropzone.addEventListener('click', () => newInput.click(), { once: true });
+            }
+        }
+    }
+    
+    openModal('modal-company-profile');
+};
+
 // 2. Add / Edit Employees Form (Admin & Manager)
 window.openEditEmployeeModal = function(userId) {
     const db = getDb();
@@ -3171,6 +3215,68 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Add manager select toggle to employee addition role change
     safeAddListener('emp-role', 'change', toggleManagerGroup);
     
+    // Company Profile click listener
+    safeAddListener('btn-company-profile', 'click', () => {
+        openCompanyProfileModal();
+    });
+    
+    // Company Profile logo selection handler
+    window.onCompLogoSelected = function(dropzone, files) {
+        if (!files.length) return;
+        const file = files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const dataURL = e.target.result;
+            dropzone.innerHTML = `
+                <img src="${dataURL}" alt="Company Logo" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                <div style="font-size: 11px; color: var(--text-muted);">Click to change logo</div>
+                <input type="file" id="comp-logo-input" accept="image/*" style="display:none;">
+            `;
+            // Attach logo data to the form dataset for saving
+            document.getElementById('company-profile-form').dataset.logoBase64 = dataURL;
+            
+            // Reattach listener
+            const newInput = dropzone.querySelector('#comp-logo-input');
+            if (newInput) {
+                newInput.addEventListener('change', () => {
+                    if (newInput.files.length) window.onCompLogoSelected(dropzone, newInput.files);
+                });
+                dropzone.addEventListener('click', () => newInput.click(), { once: true });
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
+    // Save Company Profile form
+    const cpForm = document.getElementById('company-profile-form');
+    if (cpForm) {
+        cpForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const db = getDb();
+            const cp = db.companyProfile || {};
+            
+            cp.name = document.getElementById('comp-name').value;
+            cp.email = document.getElementById('comp-email').value;
+            cp.phone = document.getElementById('comp-phone').value;
+            cp.website = document.getElementById('comp-website').value;
+            cp.address = document.getElementById('comp-address').value;
+            cp.reg = document.getElementById('comp-reg').value;
+            
+            if (cpForm.dataset.logoBase64) {
+                cp.logoBase64 = cpForm.dataset.logoBase64;
+            }
+            
+            db.companyProfile = cp;
+            await saveDb(db);
+            
+            // Update Dashboard Logo immediately
+            applyCompanyProfile(db);
+            
+            closeAllModals();
+            showToast("Company Profile", "Company profile updated successfully.");
+        });
+    }
+
     // Init productivity form multiselect dropdown logic
     initMultiSelect();
     
