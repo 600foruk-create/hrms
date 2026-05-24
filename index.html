@@ -102,19 +102,35 @@
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="logo">
-                    <div class="logo-icon" id="sidebar-company-icon"><i class="fa-solid fa-layer-group"></i></div>
-                    <h3 id="sidebar-company-name">HRMS<span>Flow</span></h3>
+                <div class="logo" style="gap: 8px;">
+                    <div class="logo-icon" id="sidebar-company-icon" style="background: transparent; box-shadow: none; padding: 0; width: auto; height: auto;">
+                        <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 8C10 4 22 4 28 8C22 12 10 12 4 8Z" fill="#00e5ff" opacity="0.8"/>
+                            <path d="M4 14C10 10 22 10 28 14C22 18 10 18 4 14Z" fill="#00b0ff" opacity="0.9"/>
+                            <path d="M4 20C10 16 22 16 28 20C22 24 10 24 4 20Z" fill="#2979ff"/>
+                        </svg>
+                    </div>
+                    <div style="display: flex; flex-direction: column; line-height: 1.1;">
+                        <h3 id="sidebar-company-name" style="font-family: var(--font-heading); font-size: 16px; font-weight: 800; color: #fff; margin: 0; letter-spacing: -0.3px;">OceanStack</h3>
+                        <span style="font-size: 9px; color: #00b0ff; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase;">HRM Operations</span>
+                    </div>
                 </div>
                 <button class="sidebar-close-mobile" id="btn-sidebar-close"><i class="fa-solid fa-xmark"></i></button>
             </div>
             
-            <div class="user-profile-badge">
-                <div class="avatar" id="sidebar-avatar">U</div>
-                <div class="info">
-                    <h4 id="sidebar-user-name">User Name</h4>
-                    <span id="sidebar-user-role" class="role-badge">Role</span>
+            <div class="user-profile-badge" style="justify-content: space-between; align-items: center; cursor: pointer; margin: 0 1.25rem 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="avatar" id="sidebar-avatar" style="box-shadow: none; background: #5f3bf6; font-size: 16px; font-weight: 700; color: white; width: 38px; height: 38px;">A</div>
+                    <div class="info" style="display: flex; flex-direction: column; gap: 2px;">
+                        <h4 id="sidebar-user-name" style="margin: 0; font-size: 13.5px; font-weight: 700; color: #fff;">Admin</h4>
+                        <span id="sidebar-user-role" class="role-badge" style="background: rgba(0, 184, 148, 0.15) !important; color: #00b894 !important; font-size: 9px; font-weight: 700; border-radius: 4px; padding: 1px 6px; width: fit-content; text-transform: none; letter-spacing: normal;">HR Admin</span>
+                        <div style="display: flex; align-items: center; gap: 4px; margin-top: 1px;">
+                            <span style="width: 5px; height: 5px; background-color: var(--success); border-radius: 50%;"></span>
+                            <span style="font-size: 10px; color: var(--text-secondary); font-weight: 500;">Online</span>
+                        </div>
+                    </div>
                 </div>
+                <i class="fa-solid fa-chevron-right" style="font-size: 10px; color: var(--text-muted);"></i>
             </div>
 
             <!-- Dynamic Sidebar Menu -->
@@ -122,9 +138,32 @@
                 <!-- Links will be populated dynamically based on active user role -->
             </nav>
 
-            <div class="sidebar-footer">
-                <button class="btn btn-danger-text btn-block" id="btn-logout">
-                    <i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Logout</span>
+            <!-- Quick Actions -->
+            <div class="quick-actions-section" id="sidebar-quick-actions">
+                <h5>Quick Actions</h5>
+                <div class="quick-actions-grid">
+                    <div class="quick-action-btn blue" id="quick-action-add-emp" onclick="window.openEditEmployeeModal ? window.openEditEmployeeModal('') : null">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span>Add Employee</span>
+                    </div>
+                    <div class="quick-action-btn green" id="quick-action-add-task" onclick="window.openManualAttendanceModal ? window.openManualAttendanceModal() : null">
+                        <i class="fa-solid fa-calendar-plus"></i>
+                        <span>Add Task</span>
+                    </div>
+                    <div class="quick-action-btn purple" id="quick-action-mark-att" onclick="window.openManualAttendanceModal ? window.openManualAttendanceModal() : null">
+                        <i class="fa-solid fa-clipboard-user"></i>
+                        <span>Mark Attendance</span>
+                    </div>
+                    <div class="quick-action-btn orange" id="quick-action-gen-rep" onclick="window.switchTab ? window.switchTab('reports') : null">
+                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                        <span>Generate Report</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer" style="border-top: none; padding: 1rem 1.25rem;">
+                <button class="btn-block" id="btn-logout" style="background: transparent; border: none; color: #ff7675; font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 12px; width: 100%; transition: var(--transition); border-radius: var(--radius-sm); text-align: left; justify-content: flex-start; align-content: center;">
+                    <i class="fa-solid fa-power-off"></i> <span>Logout</span>
                 </button>
             </div>
         </aside>
@@ -137,15 +176,15 @@
                     <button class="sidebar-toggle" id="btn-sidebar-toggle"><i class="fa-solid fa-bars"></i></button>
                     <div class="search-box">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" placeholder="Search employee, tasks or files..." id="global-search">
+                        <input type="text" placeholder="Search employees, tasks, reports..." id="global-search">
                     </div>
                 </div>
-                <div class="topbar-right">
+                <div class="topbar-right" style="gap: 12px; align-items: center; display: flex;">
                     <!-- Notifications -->
                     <div class="notifications-dropdown-wrapper">
-                        <button class="topbar-btn" id="btn-notifications" tooltip="Notifications">
+                        <button class="topbar-btn" id="btn-notifications" tooltip="Notifications" style="position: relative; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer;">
                             <i class="fa-regular fa-bell"></i>
-                            <span class="badge badge-pulse hidden" id="notification-badge-count">0</span>
+                            <span class="badge" id="notification-badge-count" style="position: absolute; top: -2px; right: -2px; padding: 2px 4.5px; font-size: 8.5px; border-radius: 50%; color: white; font-weight: 700; line-height: 1; background-color: var(--danger);">4</span>
                         </button>
                         <div class="notifications-panel hidden" id="notifications-panel">
                             <div class="panel-header">
@@ -159,17 +198,32 @@
                         </div>
                     </div>
 
+                    <!-- Chat/Messages Placeholder -->
+                    <button class="topbar-btn" id="btn-chat-placeholder" tooltip="Messages" style="position: relative; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; border-style: solid;">
+                        <i class="fa-regular fa-comment-dots"></i>
+                        <span class="badge" style="position: absolute; top: -2px; right: -2px; padding: 2px 4.5px; font-size: 8.5px; border-radius: 50%; color: white; font-weight: 700; line-height: 1; background-color: var(--info);">2</span>
+                    </button>
+
+                    <!-- Calendar Placeholder -->
+                    <button class="topbar-btn" id="btn-calendar-placeholder" tooltip="Calendar" style="width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer; border-style: solid;">
+                        <i class="fa-regular fa-calendar-check"></i>
+                    </button>
+
                     <!-- Theme Toggle -->
-                    <button class="topbar-btn" id="btn-theme-toggle" tooltip="Toggle Theme">
+                    <button class="topbar-btn" id="btn-theme-toggle" tooltip="Toggle Theme" style="width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer;">
                         <i class="fa-regular fa-sun" id="theme-icon-light"></i>
                         <i class="fa-regular fa-moon hidden" id="theme-icon-dark"></i>
                     </button>
 
                     <!-- Profile Dropdown -->
                     <div class="profile-dropdown-wrapper">
-                        <button class="profile-btn" id="btn-profile-dropdown">
-                            <div class="avatar-small" id="topbar-avatar">U</div>
-                            <i class="fa-solid fa-chevron-down"></i>
+                        <button class="profile-btn" id="btn-profile-dropdown" style="display: flex; align-items: center; gap: 10px; background: transparent; border: none; padding: 4px 8px; cursor: pointer;">
+                            <div class="avatar-small" id="topbar-avatar" style="width: 34px; height: 34px; border-radius: 50%; background: #5f3bf6; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13.5px; box-shadow: none;">A</div>
+                            <div style="display: flex; flex-direction: column; align-items: flex-start; text-align: left; line-height: 1.2;">
+                                <span id="topbar-user-name-label" style="font-size: 13px; font-weight: 700; color: #fff;">Admin</span>
+                                <span id="topbar-user-role-label" style="font-size: 10px; color: var(--text-secondary); font-weight: 500;">HR Admin</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-down" style="font-size: 10px; color: var(--text-muted); margin-left: 2px;"></i>
                         </button>
                         <div class="dropdown-menu hidden" id="profile-dropdown">
                             <div class="dropdown-header">
@@ -185,118 +239,292 @@
                     </div>
                 </div>
             </header>
-
-            <!-- Dynamic View Containers -->
-            <main class="content-body" id="content-body">
-                
-                <!-- ==================== ADMIN VIEW ==================== -->
-                <div id="admin-view" class="role-view hidden">
                     <!-- Admin Dashboard Tab -->
                     <div id="admin-tab-dashboard" class="tab-view active">
-                        <div class="view-header">
+                        <div class="view-header" style="margin-bottom: 1.5rem; justify-content: space-between; display: flex;">
                             <div>
-                                <h1>Admin Dashboard</h1>
-                                <p class="text-secondary">Overview of company productivity and operations</p>
+                                <h1 style="font-size: 24px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">Welcome back, Admin! 👋</h1>
+                                <p class="text-secondary" style="font-size: 13px;">Here's what's happening with your team today.</p>
                             </div>
-                            <div class="actions">
-                                <button class="btn btn-primary" id="btn-admin-add-emp"><i class="fa-solid fa-plus"></i> Add Employee</button>
+                            <div class="actions" style="display: flex; align-items: center; gap: 10px;">
+                                <div style="display: flex; align-items: center; gap: 8px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 6px 12px; font-size: 13px; color: #fff; font-weight: 600;">
+                                    <i class="fa-regular fa-calendar" style="color: var(--text-secondary);"></i>
+                                    <span id="dashboard-date-display">May 15, 2025</span>
+                                    <i class="fa-solid fa-chevron-down" style="font-size: 10px; color: var(--text-secondary); margin-left: 4px;"></i>
+                                </div>
                             </div>
                         </div>
                         
-                        <!-- Metric Cards -->
-                        <div class="metrics-grid">
+                        <!-- Metric Cards (5 Columns Grid) -->
+                        <div class="metrics-grid-5">
+                            <!-- Card 1: Total Employees -->
                             <div class="metric-card bg-glass">
-                                <div class="card-icon bg-info-light text-info"><i class="fa-solid fa-users"></i></div>
-                                <div class="card-info">
-                                    <span class="label">Total Employees</span>
-                                    <h2 class="value" id="admin-metric-total-emp">0</h2>
+                                <div class="card-icon" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-users"></i></div>
+                                <div class="card-info" style="display: flex; flex-direction: column;">
+                                    <span class="label" style="font-size: 11px; color: var(--text-secondary); font-weight: 600; text-transform: none;">Total Employees</span>
+                                    <h2 class="value" id="admin-metric-total-emp" style="font-size: 22px; font-weight: 700; margin: 2px 0 0 0; line-height: 1.1;">0</h2>
+                                    <div class="trend-text up"><i class="fa-solid fa-arrow-up"></i> 12 vs yesterday</div>
                                 </div>
                             </div>
+                            <!-- Card 2: Present Today -->
                             <div class="metric-card bg-glass">
-                                <div class="card-icon bg-success-light text-success"><i class="fa-solid fa-user-tie"></i></div>
-                                <div class="card-info">
-                                    <span class="label">Total Managers</span>
-                                    <h2 class="value" id="admin-metric-total-managers">0</h2>
+                                <div class="card-icon" style="background: rgba(192, 132, 252, 0.15); color: #c084fc; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-regular fa-calendar-check"></i></div>
+                                <div class="card-info" style="display: flex; flex-direction: column;">
+                                    <span class="label" style="font-size: 11px; color: var(--text-secondary); font-weight: 600; text-transform: none;">Present Today</span>
+                                    <h2 class="value" id="admin-metric-attendance" style="font-size: 22px; font-weight: 700; margin: 2px 0 0 0; line-height: 1.1;">0 (0%)</h2>
+                                    <div class="trend-text up"><i class="fa-solid fa-arrow-up"></i> 8.5% vs yesterday</div>
                                 </div>
                             </div>
+                            <!-- Card 3: Pending Approvals -->
                             <div class="metric-card bg-glass">
-                                <div class="card-icon bg-warning-light text-warning"><i class="fa-solid fa-calendar-day"></i></div>
-                                <div class="card-info">
-                                    <span class="label">Pending Leaves</span>
-                                    <h2 class="value" id="admin-metric-pending-leaves">0</h2>
+                                <div class="card-icon" style="background: rgba(45, 212, 191, 0.15); color: #2dd4bf; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-solid fa-square-check"></i></div>
+                                <div class="card-info" style="display: flex; flex-direction: column;">
+                                    <span class="label" style="font-size: 11px; color: var(--text-secondary); font-weight: 600; text-transform: none;">Pending Approvals</span>
+                                    <h2 class="value" id="admin-metric-pending-leaves" style="font-size: 22px; font-weight: 700; margin: 2px 0 0 0; line-height: 1.1;">0</h2>
+                                    <div style="font-size: 10px; color: var(--text-secondary); font-weight: 500; margin-top: 4px;">Tasks & Leaves</div>
                                 </div>
                             </div>
+                            <!-- Card 4: Tasks Submitted -->
                             <div class="metric-card bg-glass">
-                                <div class="card-icon bg-accent-light text-accent"><i class="fa-solid fa-clipboard-user"></i></div>
-                                <div class="card-info">
-                                    <span class="label">Today's Attendance</span>
-                                    <h2 class="value" id="admin-metric-attendance">0%</h2>
+                                <div class="card-icon" style="background: rgba(251, 146, 60, 0.15); color: #fb923c; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-regular fa-clipboard"></i></div>
+                                <div class="card-info" style="display: flex; flex-direction: column;">
+                                    <span class="label" style="font-size: 11px; color: var(--text-secondary); font-weight: 600; text-transform: none;">Tasks Submitted</span>
+                                    <h2 class="value" id="admin-metric-tasks-submitted" style="font-size: 22px; font-weight: 700; margin: 2px 0 0 0; line-height: 1.1;">0</h2>
+                                    <div class="trend-text up"><i class="fa-solid fa-arrow-up"></i> 18 vs yesterday</div>
                                 </div>
                             </div>
+                            <!-- Card 5: Tasks Completed -->
                             <div class="metric-card bg-glass">
-                                <div class="card-icon bg-danger-light text-danger"><i class="fa-solid fa-bolt"></i></div>
-                                <div class="card-info">
-                                    <span class="label">Avg Productivity</span>
-                                    <h2 class="value" id="admin-metric-productivity">0</h2>
+                                <div class="card-icon" style="background: rgba(74, 222, 128, 0.15); color: #4ade80; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fa-regular fa-circle-check"></i></div>
+                                <div class="card-info" style="display: flex; flex-direction: column;">
+                                    <span class="label" style="font-size: 11px; color: var(--text-secondary); font-weight: 600; text-transform: none;">Tasks Completed</span>
+                                    <h2 class="value" id="admin-metric-tasks-completed" style="font-size: 22px; font-weight: 700; margin: 2px 0 0 0; line-height: 1.1;">0</h2>
+                                    <div style="font-size: 10px; color: var(--text-secondary); font-weight: 500; margin-top: 4px;" id="admin-metric-completion-rate">0% completion rate</div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Dashboard Split Sections -->
-                        <div class="sections-grid">
-                            <!-- Employee Overview Table -->
-                            <div class="section-card bg-glass">
-                                <div class="section-card-header">
-                                    <h3>Employee Directory</h3>
-                                    <div class="header-filters">
-                                        <select id="admin-filter-manager" class="form-control form-control-sm">
-                                            <option value="">All Managers</option>
-                                        </select>
-                                        <select id="admin-filter-status" class="form-control form-control-sm">
-                                            <option value="">All Status</option>
-                                            <option value="Active">Active</option>
-                                            <option value="Inactive">Inactive</option>
-                                        </select>
-                                    </div>
+                        <!-- Dashboard Split Row 1 (Daily Attendance, Tasks Overview, Recent Task Approvals) -->
+                        <div style="display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+                            <!-- Widget 1: Daily Attendance Summary -->
+                            <div class="section-card bg-glass" style="display: flex; flex-direction: column; justify-content: space-between;">
+                                <div class="section-card-header" style="justify-content: space-between; display: flex;">
+                                    <h3 style="font-size: 14px; font-weight: 700; margin: 0;">Daily Attendance Summary</h3>
+                                    <a href="#" onclick="window.switchTab ? window.switchTab('attendance') : null" class="text-primary" style="font-size: 11.5px; font-weight: 600; text-decoration: none;">View Details <i class="fa-solid fa-chevron-right" style="font-size: 9px; margin-left: 2px;"></i></a>
                                 </div>
-                                <div class="table-container">
-                                    <table class="data-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Name</th>
-                                                <th>Assigned Manager</th>
-                                                <th>Role</th>
-                                                <th>Status</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="admin-employee-table-body">
-                                            <!-- Dynamic Rows -->
-                                        </tbody>
-                                    </table>
+                                <div class="attendance-summary-wrapper">
+                                    <div class="doughnut-chart-container">
+                                        <div class="doughnut-chart" id="attendance-doughnut-chart" style="background: conic-gradient(var(--success) 0% 80.8%, var(--danger) 80.8% 92.2%, var(--warning) 92.2% 98.3%, var(--primary) 98.3% 100%);">
+                                            <div class="doughnut-center">
+                                                <span class="label">Total</span>
+                                                <span class="value" id="attendance-doughnut-total">245</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="attendance-legend">
+                                        <div class="legend-item">
+                                            <div class="legend-label-group">
+                                                <span class="legend-dot present"></span>
+                                                <span>Present</span>
+                                            </div>
+                                            <span class="legend-value" id="legend-present-val">198 (80.8%)</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <div class="legend-label-group">
+                                                <span class="legend-dot absent"></span>
+                                                <span>Absent</span>
+                                            </div>
+                                            <span class="legend-value" id="legend-absent-val">28 (11.4%)</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <div class="legend-label-group">
+                                                <span class="legend-dot late"></span>
+                                                <span>Late</span>
+                                            </div>
+                                            <span class="legend-value" id="legend-late-val">15 (6.1%)</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <div class="legend-label-group">
+                                                <span class="legend-dot leave"></span>
+                                                <span>On Leave</span>
+                                            </div>
+                                            <span class="legend-value" id="legend-leave-val">4 (1.6%)</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Right widgets -->
-                            <div class="sections-column">
-                                <!-- Pending Leaves Panel -->
-                                <div class="section-card bg-glass scrollable-section">
-                                    <div class="section-card-header">
-                                        <h3>Pending Leaves</h3>
+                            <!-- Widget 2: Tasks Overview -->
+                            <div class="section-card bg-glass">
+                                <div class="section-card-header" style="justify-content: space-between; display: flex;">
+                                    <h3 style="font-size: 14px; font-weight: 700; margin: 0;">Tasks Overview</h3>
+                                    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-secondary); font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                                        <span>This Week</span> <i class="fa-solid fa-chevron-down" style="font-size: 9px;"></i>
                                     </div>
-                                    <div class="leaves-mini-list" id="admin-pending-leaves-list">
-                                        <!-- Dynamic list -->
+                                </div>
+                                <div class="chart-legend-top">
+                                    <div class="chart-legend-item">
+                                        <span class="chart-legend-dot submitted"></span>
+                                        <span>Submitted</span>
+                                    </div>
+                                    <div class="chart-legend-item">
+                                        <span class="chart-legend-dot completed"></span>
+                                        <span>Completed</span>
+                                    </div>
+                                </div>
+                                <div class="tasks-overview-wrapper">
+                                    <svg viewBox="0 0 300 110" style="width: 100%; height: 100%; display: block; overflow: visible;">
+                                        <!-- Y Axis grid lines -->
+                                        <line x1="0" y1="20" x2="300" y2="20" class="svg-chart-grid" />
+                                        <line x1="0" y1="50" x2="300" y2="50" class="svg-chart-grid" />
+                                        <line x1="0" y1="80" x2="300" y2="80" class="svg-chart-grid" />
+                                        <line x1="0" y1="100" x2="300" y2="100" class="svg-chart-grid" style="stroke: rgba(255,255,255,0.06);" />
+                                        
+                                        <!-- Submitted Area & Line -->
+                                        <path d="M 0 85 Q 50 65 100 58 T 200 40 T 300 15 L 300 100 L 0 100 Z" class="svg-chart-area submitted" />
+                                        <path d="M 0 85 Q 50 65 100 58 T 200 40 T 300 15" class="svg-chart-line submitted" />
+                                        
+                                        <!-- Completed Area & Line -->
+                                        <path d="M 0 95 Q 50 82 100 70 T 200 68 T 300 45 L 300 100 L 0 100 Z" class="svg-chart-area completed" />
+                                        <path d="M 0 95 Q 50 82 100 70 T 200 68 T 300 45" class="svg-chart-line completed" />
+                                        
+                                        <!-- Interactive Dots -->
+                                        <circle cx="0" cy="85" r="3.5" class="svg-chart-dot submitted" />
+                                        <circle cx="50" cy="65" r="3.5" class="svg-chart-dot submitted" />
+                                        <circle cx="100" cy="58" r="3.5" class="svg-chart-dot submitted" />
+                                        <circle cx="150" cy="48" r="3.5" class="svg-chart-dot submitted" />
+                                        <circle cx="200" cy="40" r="3.5" class="svg-chart-dot submitted" />
+                                        <circle cx="250" cy="28" r="3.5" class="svg-chart-dot submitted" />
+                                        <circle cx="300" cy="15" r="3.5" class="svg-chart-dot submitted" />
+                                        
+                                        <circle cx="0" cy="95" r="3.5" class="svg-chart-dot completed" />
+                                        <circle cx="50" cy="82" r="3.5" class="svg-chart-dot completed" />
+                                        <circle cx="100" cy="70" r="3.5" class="svg-chart-dot completed" />
+                                        <circle cx="150" cy="72" r="3.5" class="svg-chart-dot completed" />
+                                        <circle cx="200" cy="68" r="3.5" class="svg-chart-dot completed" />
+                                        <circle cx="250" cy="58" r="3.5" class="svg-chart-dot completed" />
+                                        <circle cx="300" cy="45" r="3.5" class="svg-chart-dot completed" />
+                                    </svg>
+                                    <div class="chart-xaxis-labels">
+                                        <span>Mon</span>
+                                        <span>Tue</span>
+                                        <span>Wed</span>
+                                        <span>Thu</span>
+                                        <span>Fri</span>
+                                        <span>Sat</span>
+                                        <span>Sun</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Widget 3: Recent Task Approvals -->
+                            <div class="section-card bg-glass">
+                                <div class="section-card-header" style="justify-content: space-between; display: flex;">
+                                    <h3 style="font-size: 14px; font-weight: 700; margin: 0;">Recent Task Approvals</h3>
+                                    <a href="#" onclick="window.switchTab ? window.switchTab('productivity') : null" class="text-primary" style="font-size: 11.5px; font-weight: 600; text-decoration: none;">View All <i class="fa-solid fa-chevron-right" style="font-size: 9px; margin-left: 2px;"></i></a>
+                                </div>
+                                <div class="task-approvals-list" id="admin-task-approvals-list">
+                                    <!-- Dynamic rows matching mockup list design -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dashboard Split Row 2 (Recent Tasks, Department wise, Upcoming) -->
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem;">
+                            <!-- Widget 4: Recent Tasks Table -->
+                            <div class="section-card bg-glass" style="display: flex; flex-direction: column; justify-content: space-between;">
+                                <div class="section-card-header" style="justify-content: space-between; display: flex;">
+                                    <h3 style="font-size: 14px; font-weight: 700; margin: 0;">Recent Tasks</h3>
+                                    <div class="pills-group" id="recent-tasks-filter-pills">
+                                        <button class="pill-btn active" data-filter="All">All</button>
+                                        <button class="pill-btn" data-filter="Pending">Pending</button>
+                                        <button class="pill-btn" data-filter="Approved">Approved</button>
+                                        <button class="pill-btn" data-filter="Rejected">Rejected</button>
+                                    </div>
+                                </div>
+                                <div class="table-container" style="flex: 1; margin-top: 10px;">
+                                    <table class="data-table" style="font-size: 13px;">
+                                        <thead>
+                                            <tr>
+                                                <th style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Task Title</th>
+                                                <th style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Employee</th>
+                                                <th style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Department</th>
+                                                <th style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Submitted</th>
+                                                <th style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">Status</th>
+                                                <th style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; text-align: center;">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-recent-tasks-table-body">
+                                            <!-- Dynamic rows populated by app.js -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div style="text-align: center; padding-top: 15px; border-top: 1px solid var(--border-color); margin-top: 10px;">
+                                    <a href="#" onclick="window.switchTab ? window.switchTab('productivity') : null" class="text-primary" style="font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">View All Tasks <i class="fa-solid fa-arrow-right"></i></a>
+                                </div>
+                            </div>
+
+                            <!-- Right Widgets column -->
+                            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                                <!-- Widget 5: Department Wise Task Status -->
+                                <div class="section-card bg-glass">
+                                    <div class="section-card-header" style="justify-content: space-between; display: flex;">
+                                        <h3 style="font-size: 14px; font-weight: 700; margin: 0;">Department Wise Task Status</h3>
+                                        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-secondary); font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                                            <span>This Week</span> <i class="fa-solid fa-chevron-down" style="font-size: 9px;"></i>
+                                        </div>
+                                    </div>
+                                    <div class="department-status-list" id="dept-status-list">
+                                        <!-- Dynamic status bars populated by app.js -->
+                                    </div>
+                                    <div class="dept-legend">
+                                        <div class="dept-legend-item">
+                                            <span class="dept-legend-dot completed"></span>
+                                            <span>Completed</span>
+                                        </div>
+                                        <div class="dept-legend-item">
+                                            <span class="dept-legend-dot pending"></span>
+                                            <span>Pending</span>
+                                        </div>
+                                        <div class="dept-legend-item">
+                                            <span class="dept-legend-dot rejected"></span>
+                                            <span>Rejected</span>
+                                        </div>
+                                        <div class="dept-legend-item">
+                                            <span class="dept-legend-dot remaining"></span>
+                                            <span>Remaining</span>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <!-- Announcements Panel -->
+                                <!-- Widget 6: Upcoming Approvals -->
                                 <div class="section-card bg-glass">
-                                    <div class="section-card-header">
-                                        <h3>Recent Announcements</h3>
-                                        <button class="btn btn-sm btn-outline" id="btn-admin-create-announcement-dash"><i class="fa-solid fa-plus"></i> New</button>
+                                    <div class="section-card-header" style="justify-content: space-between; display: flex;">
+                                        <h3 style="font-size: 14px; font-weight: 700; margin: 0;">Upcoming Approvals</h3>
+                                        <a href="#" onclick="window.switchTab ? window.switchTab('leave') : null" class="text-primary" style="font-size: 11.5px; font-weight: 600; text-decoration: none;">View All <i class="fa-solid fa-chevron-right" style="font-size: 9px; margin-left: 2px;"></i></a>
                                     </div>
-                                    <div class="announcements-mini-list" id="admin-announcements-list">
-                                        <!-- Dynamic list -->
+                                    <div class="upcoming-approvals-row">
+                                        <div class="upcoming-stat-card" style="cursor: pointer;" onclick="window.switchTab ? window.switchTab('productivity') : null">
+                                            <div class="upcoming-stat-icon tasks"><i class="fa-solid fa-clipboard-check"></i></div>
+                                            <div class="upcoming-stat-info">
+                                                <span class="count" id="upcoming-task-count">0</span>
+                                                <span class="label">Task Approvals</span>
+                                            </div>
+                                        </div>
+                                        <div class="upcoming-stat-card" style="cursor: pointer;" onclick="window.switchTab ? window.switchTab('leave') : null">
+                                            <div class="upcoming-stat-icon leaves"><i class="fa-solid fa-umbrella-beach"></i></div>
+                                            <div class="upcoming-stat-info">
+                                                <span class="count" id="upcoming-leave-count">0</span>
+                                                <span class="label">Leave Requests</span>
+                                            </div>
+                                        </div>
+                                        <div class="upcoming-stat-card" style="cursor: pointer;" onclick="window.switchTab ? window.switchTab('attendance') : null">
+                                            <div class="upcoming-stat-icon timesheets"><i class="fa-solid fa-clock"></i></div>
+                                            <div class="upcoming-stat-info">
+                                                <span class="count" id="upcoming-timesheet-count">0</span>
+                                                <span class="label">Timesheets</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
