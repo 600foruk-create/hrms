@@ -1888,7 +1888,7 @@ window.openEditEmployeeModal = function(userId) {
     const modalEl = document.getElementById('modal-employee');
     if (modalEl) modalEl.classList.remove('modal-maximized', 'modal-minimized');
     
-    document.getElementById('modal-employee-title').textContent = user ? "Edit Profile" : "Add Team Member";
+    document.getElementById('modal-employee-title').textContent = user ? "Edit Profile" : "Add Employee";
     
     let displayId = "";
     if (user && user.displayId) {
@@ -1961,9 +1961,9 @@ window.openEditEmployeeModal = function(userId) {
         roleSelect.innerHTML += '<option value="Admin">Admin</option>';
         roleSelect.innerHTML += '<option value="Manager">Manager</option>';
     }
-    roleSelect.innerHTML += '<option value="Employee">Employee</option>';
+    roleSelect.innerHTML += '<option value="User">User</option>';
     
-    document.getElementById('emp-role').value = user ? user.role : "Employee";
+    document.getElementById('emp-role').value = user ? user.role : "User";
     document.getElementById('emp-status').value = user ? user.status : "Active";
     
     // Fill reporting managers dropdown
@@ -1977,7 +1977,7 @@ window.openEditEmployeeModal = function(userId) {
     
     // Role-based restrictions for Manager
     if (currentUser && currentUser.role === 'Manager') {
-        document.getElementById('emp-role').value = "Employee";
+        document.getElementById('emp-role').value = "User";
         document.getElementById('emp-role').style.pointerEvents = 'none';
         document.getElementById('emp-role').style.opacity = '0.7';
         
