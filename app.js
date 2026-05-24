@@ -2959,72 +2959,82 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error("Login form listener failed: ", e);
     }
     
+    // Helper to safely add event listeners without crashing if element doesn't exist
+    const safeAddListener = (id, event, callback) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener(event, callback);
+    };
+
     // Logout buttons
-    document.getElementById('btn-logout').addEventListener('click', handleLogout);
-    document.getElementById('btn-profile-logout').addEventListener('click', handleLogout);
+    safeAddListener('btn-logout', 'click', handleLogout);
+    safeAddListener('btn-profile-logout', 'click', handleLogout);
     
     // Modals close triggers
     document.querySelectorAll('.modal-close').forEach(btn => {
         btn.addEventListener('click', closeAllModals);
     });
-    document.getElementById('modal-backdrop').addEventListener('click', closeAllModals);
+    safeAddListener('modal-backdrop', 'click', closeAllModals);
     
     // Admin dashboard specific buttons
-    document.getElementById('btn-admin-add-emp').addEventListener('click', () => openEditEmployeeModal(""));
-    document.getElementById('btn-admin-add-emp-tab').addEventListener('click', () => openEditEmployeeModal(""));
-    document.getElementById('btn-admin-mark-attendance').addEventListener('click', openManualAttendanceModal);
+    safeAddListener('btn-admin-add-emp', 'click', () => openEditEmployeeModal(""));
+    safeAddListener('btn-admin-add-emp-tab', 'click', () => openEditEmployeeModal(""));
+    safeAddListener('btn-admin-mark-attendance', 'click', openManualAttendanceModal);
     
-    document.getElementById('btn-admin-add-announcement').addEventListener('click', () => openModal('modal-announcement'));
-    document.getElementById('btn-admin-create-announcement-dash').addEventListener('click', () => openModal('modal-announcement'));
+    safeAddListener('btn-admin-add-announcement', 'click', () => openModal('modal-announcement'));
+    safeAddListener('btn-admin-create-announcement-dash', 'click', () => openModal('modal-announcement'));
     
     // Manager dashboard attendance log trigger
-    if (document.getElementById('btn-manager-log-attendance')) {
-        document.getElementById('btn-manager-log-attendance').addEventListener('click', openManualAttendanceModal);
-    }
+    safeAddListener('btn-manager-log-attendance', 'click', openManualAttendanceModal);
     
     // Employee actions
-    document.getElementById('btn-employee-update-prod-dash').addEventListener('click', () => {
+    safeAddListener('btn-employee-update-prod-dash', 'click', () => {
         resetProductivityForm();
         openModal('modal-productivity-form');
     });
-    document.getElementById('btn-employee-update-prod-sub').addEventListener('click', () => {
+    safeAddListener('btn-employee-update-prod-sub', 'click', () => {
         resetProductivityForm();
         openModal('modal-productivity-form');
     });
-    document.getElementById('btn-employee-add-prod-tab').addEventListener('click', () => {
+    safeAddListener('btn-employee-add-prod-tab', 'click', () => {
         resetProductivityForm();
         openModal('modal-productivity-form');
     });
     
-    document.getElementById('btn-employee-apply-leave-dash').addEventListener('click', () => {
-        document.getElementById('leave-request-form').reset();
+    safeAddListener('btn-employee-apply-leave-dash', 'click', () => {
+        const form = document.getElementById('leave-request-form');
+        if (form) form.reset();
         openModal('modal-leave-form');
     });
-    document.getElementById('btn-employee-apply-leave-sub').addEventListener('click', () => {
-        document.getElementById('leave-request-form').reset();
+    safeAddListener('btn-employee-apply-leave-sub', 'click', () => {
+        const form = document.getElementById('leave-request-form');
+        if (form) form.reset();
         openModal('modal-leave-form');
     });
-    document.getElementById('btn-employee-add-leave-tab').addEventListener('click', () => {
-        document.getElementById('leave-request-form').reset();
+    safeAddListener('btn-employee-add-leave-tab', 'click', () => {
+        const form = document.getElementById('leave-request-form');
+        if (form) form.reset();
         openModal('modal-leave-form');
     });
     
     // Profile drop down toggle
     const profileBtn = document.getElementById('btn-profile-dropdown');
     const profileMenu = document.getElementById('profile-dropdown');
-    profileBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        profileMenu.classList.toggle('hidden');
-        document.getElementById('notifications-panel').classList.add('hidden');
-    });
+    if (profileBtn && profileMenu) {
+        profileBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            profileMenu.classList.toggle('hidden');
+            const notifPanel = document.getElementById('notifications-panel');
+            if (notifPanel) notifPanel.classList.add('hidden');
+        });
+    }
     
     // Navigation / profile quick views
-    document.getElementById('btn-view-profile').addEventListener('click', () => {
-        profileMenu.classList.add('hidden');
+    safeAddListener('btn-view-profile', 'click', () => {
+        if (profileMenu) profileMenu.classList.add('hidden');
         viewUserProfile(currentUser.id);
     });
-    document.getElementById('btn-go-settings').addEventListener('click', () => {
-        profileMenu.classList.add('hidden');
+    safeAddListener('btn-go-settings', 'click', () => {
+        if (profileMenu) profileMenu.classList.add('hidden');
         if (currentUser.role === 'Admin') {
             switchTab('settings');
         } else {
@@ -3034,24 +3044,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Close dropdowns on global click
     document.addEventListener('click', () => {
-        profileMenu.classList.add('hidden');
-        document.getElementById('notifications-panel').classList.add('hidden');
+        if (profileMenu) profileMenu.classList.add('hidden');
+        const notifPanel = document.getElementById('notifications-panel');
+        if (notifPanel) notifPanel.classList.add('hidden');
     });
     
     // Notifications panel toggle
     const notifBtn = document.getElementById('btn-notifications');
     const notifPanel = document.getElementById('notifications-panel');
-    notifBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        notifPanel.classList.toggle('hidden');
-        profileMenu.classList.add('hidden');
-        
-        // Re-render to clear pulses
-        renderNotifications();
-    });
-    notifPanel.addEventListener('click', (e) => e.stopPropagation());
+    if (notifBtn && notifPanel) {
+        notifBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notifPanel.classList.toggle('hidden');
+            if (profileMenu) profileMenu.classList.add('hidden');
+            
+            // Re-render to clear pulses
+            renderNotifications();
+        });
+    }
+    if (notifPanel) {
+        notifPanel.addEventListener('click', (e) => e.stopPropagation());
+    }
     
-    document.getElementById('btn-clear-notifications').addEventListener('click', () => {
+    safeAddListener('btn-clear-notifications', 'click', () => {
         const db = getDb();
         db.notifications.forEach(n => {
             if (n.userId === currentUser.id) n.read = true;
@@ -3066,45 +3081,58 @@ document.addEventListener('DOMContentLoaded', async () => {
     const darkIcon = document.getElementById('theme-icon-dark');
     const lightIcon = document.getElementById('theme-icon-light');
     
-    themeBtn.addEventListener('click', () => {
-        document.body.classList.toggle('light-mode');
-        document.body.classList.toggle('dark-mode');
-        const isLight = document.body.classList.contains('light-mode');
-        
-        if (isLight) {
-            lightIcon.classList.add('hidden');
-            darkIcon.classList.remove('hidden');
-            showToast("Light Mode Activated", "Subtle color scheme settings updated.");
-        } else {
-            lightIcon.classList.remove('hidden');
-            darkIcon.classList.add('hidden');
-            showToast("Dark Mode Activated", "Deep visual glow settings updated.");
+    if (themeBtn) {
+        themeBtn.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            document.body.classList.toggle('dark-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            
+            if (isLight) {
+                if (lightIcon) lightIcon.classList.add('hidden');
+                if (darkIcon) darkIcon.classList.remove('hidden');
+                showToast("Light Mode Activated", "Subtle color scheme settings updated.");
+            } else {
+                if (lightIcon) lightIcon.classList.remove('hidden');
+                if (darkIcon) darkIcon.classList.add('hidden');
+                showToast("Dark Mode Activated", "Deep visual glow settings updated.");
+            }
+        });
+    }
+    
+    // Mobile Sidebar toggle menu
+    const btnSidebarToggle = document.getElementById('btn-sidebar-toggle');
+    if (btnSidebarToggle) {
+        btnSidebarToggle.addEventListener('click', () => {
+            const shell = document.getElementById('app-shell');
+            if (shell) {
+                const sidebar = shell.querySelector('.sidebar');
+                if (sidebar) sidebar.classList.add('active');
+            }
+        });
+    }
+    safeAddListener('btn-sidebar-close', 'click', () => {
+        const shell = document.getElementById('app-shell');
+        if (shell) {
+            const sidebar = shell.querySelector('.sidebar');
+            if (sidebar) sidebar.classList.remove('active');
         }
     });
     
-    // Mobile Sidebar toggle menu
-    document.getElementById('btn-sidebar-toggle').addEventListener('click', () => {
-        document.getElementById('app-shell').querySelector('.sidebar').classList.add('active');
-    });
-    document.getElementById('btn-sidebar-close').addEventListener('click', () => {
-        document.getElementById('app-shell').querySelector('.sidebar').classList.remove('active');
-    });
-    
     // Admin filter changes listener
-    document.getElementById('admin-filter-manager').addEventListener('change', renderAdminDashboard);
-    document.getElementById('admin-filter-status').addEventListener('change', renderAdminDashboard);
-    document.getElementById('admin-attendance-filter-date').addEventListener('change', renderAdminAttendanceTab);
-    document.getElementById('admin-attendance-filter-employee').addEventListener('change', renderAdminAttendanceTab);
-    document.getElementById('admin-prod-filter-date').addEventListener('change', renderAdminProductivityTab);
-    document.getElementById('admin-prod-filter-task').addEventListener('change', renderAdminProductivityTab);
+    safeAddListener('admin-filter-manager', 'change', renderAdminDashboard);
+    safeAddListener('admin-filter-status', 'change', renderAdminDashboard);
+    safeAddListener('admin-attendance-filter-date', 'change', renderAdminAttendanceTab);
+    safeAddListener('admin-attendance-filter-employee', 'change', renderAdminAttendanceTab);
+    safeAddListener('admin-prod-filter-date', 'change', renderAdminProductivityTab);
+    safeAddListener('admin-prod-filter-task', 'change', renderAdminProductivityTab);
     
     // Manager filter changes listener
-    document.getElementById('manager-prod-filter-emp').addEventListener('change', renderManagerProductivityTab);
-    document.getElementById('manager-prod-filter-status').addEventListener('change', renderManagerProductivityTab);
-    document.getElementById('manager-attendance-filter-date').addEventListener('change', renderManagerAttendanceTab);
+    safeAddListener('manager-prod-filter-emp', 'change', renderManagerProductivityTab);
+    safeAddListener('manager-prod-filter-status', 'change', renderManagerProductivityTab);
+    safeAddListener('manager-attendance-filter-date', 'change', renderManagerAttendanceTab);
     
     // Add manager select toggle to employee addition role change
-    document.getElementById('emp-role').addEventListener('change', toggleManagerGroup);
+    safeAddListener('emp-role', 'change', toggleManagerGroup);
     
     // Init productivity form multiselect dropdown logic
     initMultiSelect();
