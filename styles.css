@@ -6,6 +6,7 @@
     --bg-card: #12182b;
     --bg-sidebar: #080c16;
     --border-color: rgba(255, 255, 255, 0.05);
+    --border-color-bold: rgba(255, 255, 255, 0.15);
     --border-glow: rgba(95, 59, 246, 0.25);
     --text-primary: #ffffff;
     --text-secondary: #9aa1b1;
@@ -52,6 +53,7 @@ body.light-mode {
     --bg-card: rgba(255, 255, 255, 0.95);
     --bg-sidebar: #ffffff;
     --border-color: rgba(0, 0, 0, 0.08);
+    --border-color-bold: rgba(0, 0, 0, 0.25);
     --border-glow: rgba(99, 102, 241, 0.15);
     --text-primary: #0f172a;
     --text-secondary: #475569;
@@ -477,7 +479,7 @@ body.light-mode .auth-card {
 .sidebar {
     width: 260px;
     background: var(--bg-sidebar);
-    border-right: 3px solid rgba(255, 255, 255, 0.15);
+    border-right: 1px solid var(--border-color);
     backdrop-filter: blur(20px);
     display: flex;
     flex-direction: column;
@@ -495,7 +497,9 @@ body.light-mode .auth-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 3px solid rgba(255, 255, 255, 0.15);
+    border-bottom: 3px solid var(--border-color-bold);
+    border-right: 3px solid var(--border-color-bold);
+    margin-right: -1px;
 }
 .sidebar-header .logo {
     display: flex;
