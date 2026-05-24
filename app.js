@@ -1036,29 +1036,6 @@ function renderAdminEmployeesTab() {
         // They appear in the Employees tab with no manager label
     }
 
-    // 4. Populate Salaries Sub-tab Table
-    if (salariesTableBody) {
-        salariesTableBody.innerHTML = '';
-        let activeUsers = db.users.filter(user => user.status === 'Active');
-
-        if (activeUsers.length === 0) {
-            salariesTableBody.innerHTML = `<tr><td colspan="4" class="empty-state">No active staff found.</td></tr>`;
-        } else {
-            activeUsers.forEach(user => {
-                const roleClass = user.role.toLowerCase();
-                const salary = user.salary ? '$' + parseFloat(user.salary).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '$0.00';
-                salariesTableBody.innerHTML += `
-                    <tr>
-                        <td class="text-muted">${user.id}</td>
-                        <td class="bold">${user.name}</td>
-                        <td><span class="badge-role ${roleClass}">${user.role}</span></td>
-                        <td class="bold" style="color: var(--success);">${salary}</td>
-                    </tr>
-                `;
-            });
-        }
-    }
-
     // 5. Populate Employee Cards Sub-tab
     if (cardsContainer) {
         cardsContainer.innerHTML = '';

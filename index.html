@@ -528,9 +528,6 @@
                             <button class="btn-sub-tab" data-subtab="teams">
                                 <i class="fa-solid fa-users-gear"></i> Teams
                             </button>
-                            <button class="btn-sub-tab" data-subtab="salaries">
-                                <i class="fa-solid fa-money-bill-wave"></i> Salaries
-                            </button>
                             <button class="btn-sub-tab" data-subtab="cards">
                                 <i class="fa-regular fa-id-card"></i> Employee Cards
                             </button>
@@ -566,34 +563,6 @@
                         <div id="subtab-content-teams" class="sub-tab-content hidden">
                             <div class="teams-grid" id="admin-tab-teams-container">
                                 <!-- Dynamic Team Cards populated by renderAdminEmployeesTab() -->
-                            </div>
-                        </div>
-
-                        <!-- Sub-tab Content: Salaries -->
-                        <div id="subtab-content-salaries" class="sub-tab-content hidden">
-                            <div class="section-card bg-glass">
-                                <div class="section-card-header">
-                                    <h3>Staff Salaries</h3>
-                                    <div class="header-filters" style="display: flex; gap: 10px; align-items: center;">
-                                        <input type="number" id="salary-increment-percent" class="form-control" placeholder="e.g. 10%" style="width: 120px;" min="1" max="100">
-                                        <button class="btn btn-primary" id="btn-apply-salary-increment">Apply Increment</button>
-                                    </div>
-                                </div>
-                                <div class="table-container">
-                                    <table class="data-table">
-                                        <thead>
-                                            <tr>
-                                                <th>ID</th>
-                                                <th>Name</th>
-                                                <th>Role</th>
-                                                <th>Current Salary</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="admin-tab-salaries-table-body">
-                                            <!-- Dynamic Rows -->
-                                        </tbody>
-                                    </table>
-                                </div>
                             </div>
                         </div>
 
@@ -1915,6 +1884,6 @@
     <!-- GSAP for Yeti Animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <!-- Main JS Application script -->
-    <script src="app.js?v=4.12"></script>
+    <script src="app.js?v=4.13"></script>
 </body>
 </html>
