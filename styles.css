@@ -313,7 +313,7 @@ body.light-mode .form-control {
     align-items: center;
     min-height: 100vh;
     padding: 20px 15% 20px 20px;
-    background-image: url('assets/images/login/login_bg.jpg');
+    background-image: url('assets/images/login/login_bg.png');
     background-size: cover;
     background-position: center;
 }
