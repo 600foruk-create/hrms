@@ -44,6 +44,12 @@ try {
     $pdo->exec("ALTER TABLE users ADD COLUMN `designation` varchar(100) DEFAULT NULL");
 } catch (Exception $e) {}
 
+// Auto-migrate role enum and update existing 'Employee' roles to 'User'
+try {
+    $pdo->exec("ALTER TABLE users MODIFY COLUMN `role` enum('Admin','Manager','Employee','User') NOT NULL DEFAULT 'User'");
+    $pdo->exec("UPDATE users SET role = 'User' WHERE role = 'Employee'");
+} catch (Exception $e) {}
+
 // Ensure company_profile table exists (in case of an update)
 try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS `company_profile` (

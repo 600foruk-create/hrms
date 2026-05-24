@@ -932,11 +932,15 @@ function renderAdminEmployeesTab() {
     // 3. Populate Teams Sub-tab Cards Grid
     if (teamsContainer) {
         teamsContainer.innerHTML = '';
-        const managers = db.users.filter(user => user.role === 'Manager' && user.status === 'Active');
+        const managers = db.users.filter(user => (user.role === 'Manager' || user.role === 'Admin') && user.status === 'Active');
+
+        if (managers.length === 0) {
+            teamsContainer.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-muted); background: var(--bg-card); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">No team managers or admins found. Create a Manager to build a team.</div>`;
+        }
 
         managers.forEach(manager => {
             const mgrInitials = getInitials(manager.name);
-            const teamEmployees = db.users.filter(u => u.role === 'User' && u.managerId === manager.id && u.status === 'Active');
+            const teamEmployees = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && u.managerId === manager.id && u.status === 'Active');
 
             let membersHTML = '';
             if (teamEmployees.length === 0) {
