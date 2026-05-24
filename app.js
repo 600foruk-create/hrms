@@ -48,6 +48,7 @@ async function syncServer() {
     if (!success) {
         console.warn("Using Fallback Mock Database...");
         window.hrmsDatabase = {
+            login_bg: 'assets/images/login/login_bg.png',
             users: [
                 { id: "U1", email: "admin@hrms.com", password: "admin123", name: "admin", role: "Admin", managerId: "", status: "Active" },
                 { id: "U2", email: "sarah.manager@hrms.com", password: "manager123", name: "Sarah Jenkins", role: "Manager", managerId: "", status: "Active" },
@@ -307,6 +308,10 @@ function handleLogout() {
     if (authPanel) {
         authPanel.classList.remove('hidden');
         authPanel.style.setProperty('display', 'flex', 'important');
+        const db = getDb();
+        if (db && db.login_bg) {
+            authPanel.style.setProperty('background-image', `url('${db.login_bg}')`, 'important');
+        }
     }
     document.getElementById('login-form').reset();
     
@@ -2514,6 +2519,15 @@ function exportCSV() {
 // Initialization Flow
 document.addEventListener('DOMContentLoaded', async () => {
     await syncServer();
+    
+    // Set background image from DB state if available
+    const db = getDb();
+    if (db && db.login_bg) {
+        const authPanel = document.getElementById('auth-panel');
+        if (authPanel) {
+            authPanel.style.setProperty('background-image', `url('${db.login_bg}')`, 'important');
+        }
+    }
     
     // Populate username dropdown after data loads
     populateLoginDropdown();

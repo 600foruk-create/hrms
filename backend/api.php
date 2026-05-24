@@ -48,6 +48,14 @@ if ($action === 'load_all') {
     try {
         $dbState = [];
 
+        // Auto-detect login background image with any extension
+        $bgFiles = glob(__DIR__ . '/../assets/images/login/login_bg.*');
+        $bgUrl = 'assets/images/login/login_bg.png';
+        if (!empty($bgFiles)) {
+            $bgUrl = 'assets/images/login/' . basename($bgFiles[0]);
+        }
+        $dbState['login_bg'] = $bgUrl;
+
         // Fetch Users
         $stmt = $pdo->query("SELECT * FROM users");
         $dbState['users'] = $stmt->fetchAll();
