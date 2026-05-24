@@ -1420,6 +1420,10 @@ body.light-mode .report-preview-container {
 .modal-window {
     max-width: 900px;
     width: 95%;
+    max-height: 92vh;
+    height: auto;
+    display: flex;
+    flex-direction: column;
     transition: all 0.3s ease;
 }
 .modal-maximized {
@@ -1483,7 +1487,22 @@ body.light-mode .report-preview-container {
 .modal-body {
     padding: 1.5rem;
     overflow-y: auto;
+    overflow-x: hidden;
     flex: 1;
+    min-height: 0;
+}
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+.modal-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+.modal-body::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 10px;
+}
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
 }
 .modal-footer {
     padding: 1.25rem 1.5rem;
