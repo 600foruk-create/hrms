@@ -1768,6 +1768,8 @@ window.viewUserProfile = function(userId) {
     }
     
     document.getElementById('profile-status').textContent = user.status;
+    document.getElementById('profile-designation').textContent = user.designation || 'N/A';
+    document.getElementById('profile-blood-group').textContent = user.bloodGroup || 'N/A';
     
     const docSection = document.getElementById('profile-documents-section');
     const docList = document.getElementById('profile-documents-list');
@@ -1874,6 +1876,24 @@ window.openEditEmployeeModal = function(userId) {
     document.getElementById('emp-email').value = user ? user.email : "";
     document.getElementById('emp-start-date').value = (user && user.startDate) ? user.startDate : new Date().toISOString().split('T')[0];
     document.getElementById('emp-salary').value = (user && user.salary) ? user.salary : "";
+    
+    // Additional Optional Fields
+    document.getElementById('emp-father-name').value = user && user.fatherName ? user.fatherName : "";
+    document.getElementById('emp-gender').value = user && user.gender ? user.gender : "Male";
+    document.getElementById('emp-dob').value = user && user.dob ? user.dob : "";
+    document.getElementById('emp-cnic').value = user && user.cnic ? user.cnic : "";
+    document.getElementById('emp-marital-status').value = user && user.maritalStatus ? user.maritalStatus : "Single";
+    document.getElementById('emp-blood-group').value = user && user.bloodGroup ? user.bloodGroup : "";
+    
+    document.getElementById('emp-phone').value = user && user.phone ? user.phone : "";
+    document.getElementById('emp-emergency-contact').value = user && user.emergencyContact ? user.emergencyContact : "";
+    document.getElementById('emp-designation').value = user && user.designation ? user.designation : "";
+    
+    if (user && user.endDate) {
+        document.getElementById('emp-end-date').value = user.endDate;
+    } else {
+        document.getElementById('emp-end-date').value = "";
+    }
     
     // Read-only logic for Inactive users
     const isInactive = user && user.status === 'Inactive';
@@ -2046,8 +2066,10 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
     const dob = document.getElementById('emp-dob').value;
     const cnic = document.getElementById('emp-cnic').value.trim();
     const maritalStatus = document.getElementById('emp-marital-status').value;
+    const bloodGroup = document.getElementById('emp-blood-group').value;
     const phone = document.getElementById('emp-phone').value.trim();
     const emergencyContact = document.getElementById('emp-emergency-contact').value.trim();
+    const designation = document.getElementById('emp-designation').value.trim();
     
     // Validation
     if (!name || !email || !cnic || !phone) {
@@ -2081,6 +2103,8 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
             user.emergencyContact = emergencyContact;
             user.startDate = startDate;
             user.salary = salary;
+            user.bloodGroup = bloodGroup;
+            user.designation = designation;
             
             // Keep existing endDate if typed manually, else calculate if Inactive
             if (endDate) {
@@ -2124,6 +2148,8 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
             emergencyContact,
             startDate,
             salary,
+            bloodGroup,
+            designation,
             endDate: endDate ? endDate : (status === 'Inactive' ? new Date().toISOString().split('T')[0] : null),
             profilePic: window.tempProfilePic,
             documents: window.tempDocuments

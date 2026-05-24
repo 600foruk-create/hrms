@@ -1427,6 +1427,20 @@
                             <option value="Married">Married</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="emp-blood-group">Blood Group</label>
+                        <select id="emp-blood-group" class="form-control">
+                            <option value="">Unknown</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                    </div>
                 </div>
 
                 <h4 class="section-title">Contact Information</h4>
@@ -1472,6 +1486,10 @@
                     <div class="form-group">
                         <label for="emp-end-date">Ending Date</label>
                         <input type="date" id="emp-end-date" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="emp-designation">Designation</label>
+                        <input type="text" id="emp-designation" class="form-control" placeholder="e.g. Software Engineer">
                     </div>
                     <div class="form-group">
                         <label for="emp-salary">Current Salary</label>
@@ -1823,6 +1841,8 @@
                 <div class="detail-row"><span>Email Address:</span> <strong id="profile-email">email@company.com</strong></div>
                 <div class="detail-row" id="profile-row-manager"><span>Reporting Manager:</span> <strong id="profile-manager">Sarah Manager</strong></div>
                 <div class="detail-row"><span>Status:</span> <strong id="profile-status">Active</strong></div>
+                <div class="detail-row"><span>Designation:</span> <strong id="profile-designation">N/A</strong></div>
+                <div class="detail-row"><span>Blood Group:</span> <strong id="profile-blood-group">N/A</strong></div>
                 <div class="detail-row"><span>Account Status:</span> <span class="badge badge-success">Operational</span></div>
                 
                 <div id="profile-documents-section" style="display:none; margin-top: 15px;">
@@ -1873,6 +1893,6 @@
     <!-- GSAP for Yeti Animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <!-- Main JS Application script -->
-    <script src="app.js?v=4.1"></script>
+    <script src="app.js?v=4.2"></script>
 </body>
 </html>

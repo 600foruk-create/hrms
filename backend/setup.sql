@@ -20,7 +20,9 @@ CREATE TABLE `users` (
   `startDate` date DEFAULT NULL,
   `endDate` date DEFAULT NULL,
   `profilePic` longtext DEFAULT NULL,
-  `documents` longtext DEFAULT NULL
+  `documents` longtext DEFAULT NULL,
+  `bloodGroup` varchar(10) DEFAULT NULL,
+  `designation` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Dumping data for table `users`
