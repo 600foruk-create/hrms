@@ -47,6 +47,16 @@ async function syncServer() {
     // Fallback Mock Database if API fails or DB is empty (Allows local demo to work)
     if (!success) {
         console.warn("Using Fallback Mock Database...");
+        let localData = localStorage.getItem('hrms_fallback_db');
+        if (localData) {
+            try {
+                window.hrmsDatabase = JSON.parse(localData);
+                return;
+            } catch (e) {
+                console.error("Local DB parse error:", e);
+            }
+        }
+        
         window.hrmsDatabase = {
             login_bg: 'assets/images/login/login_bg.png',
             users: [
@@ -58,14 +68,18 @@ async function syncServer() {
                 { id: "U6", email: "ryan.emp@hrms.com", password: "employee123", name: "Ryan Gosling", role: "Employee", managerId: "U3", status: "Active" }
             ],
             weights: {
-                "Billing": 2.0, "Follow-up": 1.0, "Payment Posting": 1.5, "Eligibility Check": 1.0, "Report Preparation": 2.0,
-                "company_name": "Demo Company LLC", "company_address": "123 Main St, New York, NY", "company_contact": "+1 (555) 123-4567"
+                "Billing": 2.0,
+                "Follow-up": 1.0,
+                "Payment Posting": 1.5,
+                "Eligibility Check": 1.0,
+                "Report Preparation": 2.0
             },
             leaves: [
-                { id: "L1", employeeId: "U4", employeeName: "John Doe", type: "Sick Leave", startDate: "2026-05-10", endDate: "2026-05-12", reason: "Severe fever and doctor recommended bed rest.", status: "Approved", comments: "Get well soon, John." }
+                { id: "L1", employeeId: "U4", employeeName: "John Doe", type: "Annual", startDate: "2026-06-01", endDate: "2026-06-05", reason: "Family Vacation", status: "Approved" },
+                { id: "L2", employeeId: "U5", employeeName: "Emma Watson", type: "Sick", startDate: "2026-05-25", endDate: "2026-05-26", reason: "Fever", status: "Pending" }
             ],
             productivity: [
-                { id: "P1", employeeId: "U4", employeeName: "John Doe", date: "2026-05-20", tasks: ["Billing"], subcategories: ["Invoicing"], counts: { "Billing": 10 }, notes: "Billed 10 major client claims.", score: 20, status: "Approved", comments: "Good job." }
+                { id: "P1", employeeId: "U4", employeeName: "John Doe", date: "2026-05-20", tasks: ["Billing", "Follow-up"], subcategories: ["Demographics Entry", "Patient Follow-up"], counts: ["45", "12"], notes: "Completed daily quota.", score: 102.00, status: "Approved" }
             ],
             attendance: [
                 { date: "2026-05-20", employeeId: "U4", employeeName: "John Doe", status: "Present", markedBy: "Auto Login" }
@@ -86,6 +100,12 @@ function getDb() {
 async function saveDb(data) {
     window.hrmsDatabase = data; // Immediate local update for UI speed
     try {
+        localStorage.setItem('hrms_fallback_db', JSON.stringify(data));
+    } catch (e) {
+        console.warn("Could not save to localStorage. Quota exceeded?", e);
+    }
+    
+    try {
         const response = await fetch(API_URL + '?action=save_all', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -94,11 +114,11 @@ async function saveDb(data) {
         const result = await response.json();
         if (result.status !== 'success') {
             console.error("Sync Error:", result.message);
-            showToast("Server Sync Error", "Failed to backup data to server.", "error");
+            // showToast("Server Sync Error", "Failed to backup data to server.", "error");
         }
     } catch (err) {
         console.error("Network Error:", err);
-        showToast("Network Error", "Could not connect to database server.", "error");
+        // showToast("Network Error", "Could not connect to database server.", "error");
     }
 }
 

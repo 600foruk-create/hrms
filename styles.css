@@ -477,7 +477,7 @@ body.light-mode .auth-card {
 .sidebar {
     width: 260px;
     background: var(--bg-sidebar);
-    border-right: 2px solid var(--border-color);
+    border-right: 3px solid rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(20px);
     display: flex;
     flex-direction: column;
@@ -489,11 +489,13 @@ body.light-mode .auth-card {
     transition: var(--transition);
 }
 .sidebar-header {
-    padding: 1.5rem;
+    height: 70px;
+    box-sizing: border-box;
+    padding: 0 1.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 2px solid var(--border-color);
+    border-bottom: 3px solid rgba(255, 255, 255, 0.15);
 }
 .sidebar-header .logo {
     display: flex;
