@@ -194,7 +194,13 @@ function applyCompanyProfile(db) {
     if (companyLogo) {
         logoIcon.innerHTML = `<img src="${companyLogo}" alt="Logo" style="max-width:100%; border-radius: 8px;">`;
     } else {
-        logoIcon.innerHTML = `<i class="fa-solid fa-layer-group"></i>`;
+        logoIcon.innerHTML = `
+            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 8C10 4 22 4 28 8C22 12 10 12 4 8Z" fill="#00e5ff" opacity="0.8"/>
+                <path d="M4 14C10 10 22 10 28 14C22 18 10 18 4 14Z" fill="#00b0ff" opacity="0.9"/>
+                <path d="M4 20C10 16 22 16 28 20C22 24 10 24 4 20Z" fill="#2979ff"/>
+            </svg>
+        `;
     }
     
     // Fill the form if it exists
@@ -374,11 +380,13 @@ function renderSidebar() {
     
     if (!currentUser) return;
     
-    // Profile information
-    nameEl.textContent = currentUser.name;
-    roleEl.textContent = currentUser.role;
-    roleEl.className = `role-badge badge-role ${currentUser.role.toLowerCase()}`;
-    avatarEl.textContent = currentUser.name.charAt(0).toUpperCase();
+    // Profile information (with null checks since they are removed from sidebar header)
+    if (nameEl) nameEl.textContent = currentUser.name;
+    if (roleEl) {
+        roleEl.textContent = currentUser.role;
+        roleEl.className = `role-badge badge-role ${currentUser.role.toLowerCase()}`;
+    }
+    if (avatarEl) avatarEl.textContent = currentUser.name.charAt(0).toUpperCase();
     
     dropdownNameEl.textContent = currentUser.name;
     dropdownEmailEl.textContent = currentUser.email;

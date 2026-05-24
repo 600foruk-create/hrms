@@ -12,7 +12,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="styles.css?v=2.2">
+    <link rel="stylesheet" href="styles.css?v=2.3">
 </head>
 <body class="dark-mode">
     
@@ -118,47 +118,15 @@
                 <button class="sidebar-close-mobile" id="btn-sidebar-close"><i class="fa-solid fa-xmark"></i></button>
             </div>
             
-            <div class="user-profile-badge" style="justify-content: space-between; align-items: center; cursor: pointer; margin: 0 1.25rem 1.25rem;">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <div class="avatar" id="sidebar-avatar" style="box-shadow: none; background: #5f3bf6; font-size: 16px; font-weight: 700; color: white; width: 38px; height: 38px;">A</div>
-                    <div class="info" style="display: flex; flex-direction: column; gap: 2px;">
-                        <h4 id="sidebar-user-name" style="margin: 0; font-size: 13.5px; font-weight: 700; color: #fff;">Admin</h4>
-                        <span id="sidebar-user-role" class="role-badge" style="background: rgba(0, 184, 148, 0.15) !important; color: #00b894 !important; font-size: 9px; font-weight: 700; border-radius: 4px; padding: 1px 6px; width: fit-content; text-transform: none; letter-spacing: normal;">HR Admin</span>
-                        <div style="display: flex; align-items: center; gap: 4px; margin-top: 1px;">
-                            <span style="width: 5px; height: 5px; background-color: var(--success); border-radius: 50%;"></span>
-                            <span style="font-size: 10px; color: var(--text-secondary); font-weight: 500;">Online</span>
-                        </div>
-                    </div>
-                </div>
-                <i class="fa-solid fa-chevron-right" style="font-size: 10px; color: var(--text-muted);"></i>
-            </div>
-
             <!-- Dynamic Sidebar Menu -->
             <nav class="sidebar-menu" id="sidebar-menu">
                 <!-- Links will be populated dynamically based on active user role -->
             </nav>
 
-            <!-- Quick Actions -->
-            <div class="quick-actions-section" id="sidebar-quick-actions">
-                <h5>Quick Actions</h5>
-                <div class="quick-actions-grid">
-                    <div class="quick-action-btn blue" id="quick-action-add-emp" onclick="window.openEditEmployeeModal ? window.openEditEmployeeModal('') : null">
-                        <i class="fa-solid fa-user-plus"></i>
-                        <span>Add Employee</span>
-                    </div>
-                    <div class="quick-action-btn green" id="quick-action-add-task" onclick="window.openManualAttendanceModal ? window.openManualAttendanceModal() : null">
-                        <i class="fa-solid fa-calendar-plus"></i>
-                        <span>Add Task</span>
-                    </div>
-                    <div class="quick-action-btn purple" id="quick-action-mark-att" onclick="window.openManualAttendanceModal ? window.openManualAttendanceModal() : null">
-                        <i class="fa-solid fa-clipboard-user"></i>
-                        <span>Mark Attendance</span>
-                    </div>
-                    <div class="quick-action-btn orange" id="quick-action-gen-rep" onclick="window.switchTab ? window.switchTab('reports') : null">
-                        <i class="fa-solid fa-file-invoice-dollar"></i>
-                        <span>Generate Report</span>
-                    </div>
-                </div>
+            <!-- Sidebar Branding (matching login screen theme) -->
+            <div class="sidebar-branding" style="margin-top: auto; padding: 1.25rem 1.25rem 0.5rem; text-align: center; border-top: 1px solid rgba(255,255,255,0.06); font-family: var(--font-heading);">
+                <div style="font-weight: 800; color: #00b0ff; font-size: 13.5px; letter-spacing: 0.5px; margin-bottom: 2px;">OCEAN STACK</div>
+                <div style="font-size: 9.5px; color: var(--text-muted); opacity: 0.7; font-weight: 500;">A Project of <strong>SOFTIFYX TECHNOLOGIES</strong></div>
             </div>
 
             <div class="sidebar-footer" style="border-top: none; padding: 1rem 1.25rem;">
@@ -1631,6 +1599,6 @@
     <!-- GSAP for Yeti Animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <!-- Main JS Application script -->
-    <script src="app.js?v=2.4"></script>
+    <script src="app.js?v=2.5"></script>
 </body>
 </html>
