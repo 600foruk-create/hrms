@@ -1145,7 +1145,7 @@ body.light-mode .btn-action-circle {
 }
 .badge-role.admin { background: rgba(244, 63, 94, 0.15); color: #f43f5e; }
 .badge-role.manager { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
-.badge-role.employee { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.badge-role.employee, .badge-role.user { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
 
 .badge-active { background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; }
 .badge-inactive { background: rgba(107, 114, 128, 0.15); color: #9ca3af; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; }

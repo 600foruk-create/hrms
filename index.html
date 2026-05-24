@@ -12,7 +12,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="styles.css?v=4.0">
+    <link rel="stylesheet" href="styles.css?v=4.1">
 </head>
 <body class="dark-mode login-view">
     
@@ -1394,7 +1394,7 @@
                 <div class="form-grid-3">
                     <div class="form-group">
                         <label for="emp-display-id">Employee ID</label>
-                        <input type="text" id="emp-display-id" class="form-control" readonly placeholder="Auto-generated">
+                        <input type="text" id="emp-display-id" class="form-control" placeholder="e.g. EMP-0100">
                     </div>
                     <div class="form-group">
                         <label for="emp-name">Full Name <span class="text-danger">*</span></label>
@@ -1454,7 +1454,7 @@
                     <div class="form-group">
                         <label for="emp-role">Role <span class="text-danger">*</span></label>
                         <select id="emp-role" class="form-control" required>
-                            <option value="Employee">Employee</option>
+                            <option value="User">User</option>
                             <option value="Manager">Manager</option>
                             <option value="Admin">Admin</option>
                         </select>
@@ -1468,6 +1468,10 @@
                     <div class="form-group">
                         <label for="emp-start-date">Starting Date</label>
                         <input type="date" id="emp-start-date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="emp-end-date">Ending Date</label>
+                        <input type="date" id="emp-end-date" class="form-control">
                     </div>
                     <div class="form-group">
                         <label for="emp-salary">Current Salary</label>
@@ -1811,7 +1815,7 @@
         <div class="modal-body">
             <div class="profile-card-details">
                 <div class="profile-main-badge">
-                    <div class="avatar-large" id="profile-avatar">U</div>
+                    <div class="avatar-large" id="profile-avatar" style="overflow: hidden;">U</div>
                     <h3 id="profile-name">Full Name</h3>
                     <span id="profile-role" class="role-badge">Role</span>
                 </div>
@@ -1820,6 +1824,12 @@
                 <div class="detail-row" id="profile-row-manager"><span>Reporting Manager:</span> <strong id="profile-manager">Sarah Manager</strong></div>
                 <div class="detail-row"><span>Status:</span> <strong id="profile-status">Active</strong></div>
                 <div class="detail-row"><span>Account Status:</span> <span class="badge badge-success">Operational</span></div>
+                
+                <div id="profile-documents-section" style="display:none; margin-top: 15px;">
+                    <hr class="mt-3 mb-3">
+                    <div style="font-weight: 600; margin-bottom: 5px;">Uploaded Documents:</div>
+                    <div id="profile-documents-list" style="display: flex; flex-direction: column; gap: 5px; font-size: 13px;"></div>
+                </div>
             </div>
         </div>
         <div class="modal-footer">
@@ -1863,6 +1873,6 @@
     <!-- GSAP for Yeti Animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <!-- Main JS Application script -->
-    <script src="app.js?v=4.0"></script>
+    <script src="app.js?v=4.1"></script>
 </body>
 </html>

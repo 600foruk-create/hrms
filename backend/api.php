@@ -98,7 +98,15 @@ if ($action === 'load_all') {
 
         // Fetch Users
         $stmt = $pdo->query("SELECT * FROM users");
-        $dbState['users'] = $stmt->fetchAll();
+        $usersRecords = $stmt->fetchAll();
+        foreach ($usersRecords as &$u) {
+            if (!empty($u['documents'])) {
+                $u['documents'] = json_decode($u['documents'], true) ?: [];
+            } else {
+                $u['documents'] = [];
+            }
+        }
+        $dbState['users'] = $usersRecords;
 
         // Fetch Settings (Weights)
         $stmt = $pdo->query("SELECT * FROM settings");
@@ -175,14 +183,16 @@ elseif ($action === 'save_all') {
         // 1. Sync Users
         $pdo->exec("DELETE FROM users");
         if (!empty($data['users'])) {
-            $stmt = $pdo->prepare("INSERT INTO users (id, email, password, name, role, managerId, status, salary, startDate, endDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO users (id, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, documents) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             foreach ($data['users'] as $u) {
                 $stmt->execute([
                     $u['id'], $u['email'], $u['password'], $u['name'], $u['role'], 
                     $u['managerId'] ?? '', $u['status'], 
                     $u['salary'] ?? 0, 
                     $u['startDate'] ?? null, 
-                    $u['endDate'] ?? null
+                    $u['endDate'] ?? null,
+                    $u['profilePic'] ?? null,
+                    $u['documents'] ? json_encode($u['documents']) : null
                 ]);
             }
         }

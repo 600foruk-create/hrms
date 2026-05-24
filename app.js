@@ -274,7 +274,7 @@ function handleLogin(usernameOrEmail, password) {
         sessionStorage.setItem('current_user', JSON.stringify(user));
         
         // Auto Mark Attendance for Employee on Login
-        if (user.role === 'Employee') {
+        if (user.role === 'User') {
             markAutoAttendance(user);
         }
         
@@ -416,7 +416,7 @@ function renderSidebar() {
     
     const quickActionsEl = document.getElementById('sidebar-quick-actions');
     if (quickActionsEl) {
-        if (currentUser.role === 'Employee') {
+        if (currentUser.role === 'User') {
             quickActionsEl.style.display = 'none';
         } else {
             quickActionsEl.style.display = 'grid';
@@ -559,7 +559,7 @@ function renderAdminDashboard() {
     }
     
     // Aggregate calculations
-    const employees = db.users.filter(u => u.role === 'Employee');
+    const employees = db.users.filter(u => u.role === 'User');
     const managers = db.users.filter(u => u.role === 'Manager');
     const pendingLeaves = db.leaves.filter(l => l.status === 'Pending').length;
     const pendingProductivity = db.productivity.filter(p => p.status === 'Pending').length;
@@ -805,7 +805,7 @@ function renderAdminDashboard() {
         ];
         
         depts.forEach(d => {
-            const deptUsers = db.users.filter(u => u.role === 'Employee' && (d.managerId ? u.managerId === d.managerId : (!u.managerId || u.managerId === 'U1')));
+            const deptUsers = db.users.filter(u => u.role === 'User' && (d.managerId ? u.managerId === d.managerId : (!u.managerId || u.managerId === 'U1')));
             const deptUserIds = deptUsers.map(u => u.id);
             const deptTasks = db.productivity.filter(p => deptUserIds.includes(p.employeeId));
             
@@ -908,7 +908,7 @@ function renderAdminEmployeesTab() {
         
         managers.forEach(manager => {
             const mgrInitials = getInitials(manager.name);
-            const teamEmployees = db.users.filter(u => u.role === 'Employee' && u.managerId === manager.id && u.status === 'Active');
+            const teamEmployees = db.users.filter(u => u.role === 'User' && u.managerId === manager.id && u.status === 'Active');
             
             let membersHTML = '';
             if (teamEmployees.length === 0) {
@@ -1046,7 +1046,7 @@ function renderAdminAttendanceTab() {
     const empSelect = document.getElementById('admin-attendance-filter-employee');
     const prevEmpVal = empSelect.value;
     empSelect.innerHTML = '<option value="">All Employees</option>';
-    db.users.filter(u => u.role === 'Employee').forEach(e => {
+    db.users.filter(u => u.role === 'User').forEach(e => {
         empSelect.innerHTML += `<option value="${e.id}" ${prevEmpVal === e.id ? 'selected' : ''}>${e.name}</option>`;
     });
 
@@ -1234,7 +1234,7 @@ function renderAuditLogs() {
 // ==================== RENDERING: MANAGER VIEWS ====================
 function renderManagerDashboard() {
     const db = getDb();
-    const teamMembers = db.users.filter(u => u.role === 'Employee' && u.managerId === currentUser.id);
+    const teamMembers = db.users.filter(u => u.role === 'User' && u.managerId === currentUser.id);
     const teamSize = teamMembers.length;
     
     document.getElementById('manager-team-name-sub').textContent = `${currentUser.name}'s Reporting Team`;
@@ -1342,7 +1342,7 @@ function renderManagerDashboard() {
 
 function renderManagerTeamTab() {
     const db = getDb();
-    const teamMembers = db.users.filter(u => u.role === 'Employee' && u.managerId === currentUser.id);
+    const teamMembers = db.users.filter(u => u.role === 'User' && u.managerId === currentUser.id);
     const tableBody = document.getElementById('manager-tab-team-table-body');
     tableBody.innerHTML = '';
     
@@ -1379,7 +1379,7 @@ function renderManagerTeamTab() {
 
 function renderManagerAttendanceTab() {
     const db = getDb();
-    const team = db.users.filter(u => u.role === 'Employee' && u.managerId === currentUser.id);
+    const team = db.users.filter(u => u.role === 'User' && u.managerId === currentUser.id);
     const teamEmails = team.map(t => t.id);
     const filterDate = document.getElementById('manager-attendance-filter-date').value;
     
@@ -1409,7 +1409,7 @@ function renderManagerAttendanceTab() {
 
 function renderManagerProductivityTab() {
     const db = getDb();
-    const team = db.users.filter(u => u.role === 'Employee' && u.managerId === currentUser.id);
+    const team = db.users.filter(u => u.role === 'User' && u.managerId === currentUser.id);
     const teamEmails = team.map(t => t.id);
     
     // Fill employee filter select options
@@ -1462,7 +1462,7 @@ function renderManagerProductivityTab() {
 
 function renderManagerLeaveTab() {
     const db = getDb();
-    const team = db.users.filter(u => u.role === 'Employee' && u.managerId === currentUser.id);
+    const team = db.users.filter(u => u.role === 'User' && u.managerId === currentUser.id);
     const teamEmails = team.map(t => t.id);
     
     const tableBody = document.getElementById('manager-leave-table-body');
@@ -1593,7 +1593,7 @@ function renderEmployeeDashboard() {
     // Dashboard announcements
     const announceList = document.getElementById('employee-announcements-list');
     announceList.innerHTML = '';
-    const filteredAnnouncements = db.announcements.filter(a => a.target === 'All' || a.target === 'Employee');
+    const filteredAnnouncements = db.announcements.filter(a => a.target === 'All' || a.target === 'User');
     
     if (filteredAnnouncements.length === 0) {
         announceList.innerHTML = `<div class="empty-state">No announcements.</div>`;
@@ -1760,11 +1760,30 @@ window.viewUserProfile = function(userId) {
     document.getElementById('profile-role').textContent = user.role;
     document.getElementById('profile-role').className = `role-badge badge-role ${user.role.toLowerCase()}`;
     document.getElementById('profile-email').textContent = user.email;
-    document.getElementById('profile-avatar').textContent = user.name.charAt(0).toUpperCase();
+    const avatarEl = document.getElementById('profile-avatar');
+    if (user.profilePic) {
+        avatarEl.innerHTML = `<a href="${user.profilePic}" target="_blank" title="Click to view full image"><img src="${user.profilePic}" style="width:100%;height:100%;object-fit:cover;" alt="Profile Picture"></a>`;
+    } else {
+        avatarEl.textContent = user.name.charAt(0).toUpperCase();
+    }
+    
     document.getElementById('profile-status').textContent = user.status;
     
+    const docSection = document.getElementById('profile-documents-section');
+    const docList = document.getElementById('profile-documents-list');
+    if (user.documents && user.documents.length > 0) {
+        docSection.style.display = 'block';
+        docList.innerHTML = user.documents.map(d => `
+            <div><i class="fa-regular fa-file-lines" style="color:var(--primary); margin-right:5px;"></i>
+            <a href="${d.data}" target="_blank" style="color:var(--primary); text-decoration:none; font-weight:600;">${d.name}</a></div>
+        `).join('');
+    } else {
+        docSection.style.display = 'none';
+        docList.innerHTML = '';
+    }
+    
     const mgrRow = document.getElementById('profile-row-manager');
-    if (user.role === 'Employee') {
+    if (user.role === 'User') {
         const mgr = db.users.find(u => u.id === user.managerId);
         document.getElementById('profile-manager').textContent = mgr ? mgr.name : 'Unassigned';
         mgrRow.style.display = 'flex';
@@ -1830,6 +1849,9 @@ window.openCompanyProfileModal = function() {
 };
 
 // 2. Add / Edit Employees Form (Admin & Manager)
+window.tempProfilePic = null;
+window.tempDocuments = [];
+
 window.openEditEmployeeModal = function(userId) {
     const db = getDb();
     const user = db.users.find(u => u.id === userId);
@@ -1839,12 +1861,11 @@ window.openEditEmployeeModal = function(userId) {
     
     document.getElementById('modal-employee-title').textContent = user ? "Edit Profile" : "Add Team Member";
     
-    let displayId = "Auto-generated";
-    if (user) {
-        displayId = user.displayId || user.id;
-    } else {
-        const num = db.users.length > 0 ? db.users.length + 100 : 100;
-        displayId = "EMP-" + String(num).padStart(4, '0');
+    let displayId = "";
+    if (user && user.displayId) {
+        displayId = user.displayId;
+    } else if (user && user.id) {
+        displayId = user.id;
     }
     
     document.getElementById('emp-display-id').value = displayId;
@@ -1923,6 +1944,69 @@ window.openEditEmployeeModal = function(userId) {
         document.getElementById('emp-manager').style.opacity = '1';
     }
     
+    // Reset or populate temp files
+    window.tempProfilePic = user && user.profilePic ? user.profilePic : null;
+    window.tempDocuments = user && user.documents ? user.documents : [];
+    
+    // Refresh dropzone visuals
+    const picDropzone = document.getElementById('dropzone-profile-pic');
+    if (picDropzone) {
+        if (window.tempProfilePic) {
+            picDropzone.innerHTML = `
+                <img src="${window.tempProfilePic}" alt="Profile Preview" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--primary);">
+                <div style="font-weight:600;font-size:12px;">Existing Photo</div>
+                <div style="font-size:11px;color:var(--text-muted);">Click to change</div>
+                <input type="file" id="emp-profile-pic-input" accept="image/*" style="display:none;">
+            `;
+            const picInput = picDropzone.querySelector('#emp-profile-pic-input');
+            if(picInput) {
+                picDropzone.addEventListener('click', () => picInput.click(), { once: true });
+                picInput.addEventListener('change', () => { if (picInput.files.length) onProfilePicSelected(picDropzone, picInput.files); });
+            }
+        } else {
+            picDropzone.innerHTML = `
+                <i class="fa-regular fa-image"></i>
+                <div style="font-weight: 600;">Upload Profile Picture</div>
+                <div style="font-size: 11px;">Drag & Drop or Click to browse (JPG, PNG)</div>
+                <input type="file" id="emp-profile-pic-input" accept="image/*" style="display: none;">
+            `;
+            const picInput = picDropzone.querySelector('#emp-profile-pic-input');
+            if(picInput) {
+                picDropzone.addEventListener('click', () => picInput.click(), { once: true });
+                picInput.addEventListener('change', () => { if (picInput.files.length) onProfilePicSelected(picDropzone, picInput.files); });
+            }
+        }
+    }
+    
+    const docDropzone = document.getElementById('dropzone-documents');
+    if (docDropzone) {
+        if (window.tempDocuments.length > 0) {
+            const fileList = window.tempDocuments.map(d => `
+                <div style="display:flex;align-items:center;gap:6px;font-size:12px;padding:3px 0;">
+                    <i class="fa-regular fa-file-lines" style="color:var(--primary);"></i><a href="${d.data}" target="_blank" style="color:inherit;text-decoration:none;">${d.name}</a>
+                </div>`).join('');
+            docDropzone.innerHTML = `
+                <i class="fa-regular fa-folder-open"></i>
+                <div style="font-weight:600;">${window.tempDocuments.length} File(s) Saved</div>
+                <div style="text-align:left;width:100%;">${fileList}</div>
+                <div style="font-size:11px;color:var(--text-muted);">Click to change/overwrite</div>
+                <input type="file" id="emp-documents-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display:none;">
+            `;
+        } else {
+            docDropzone.innerHTML = `
+                <i class="fa-regular fa-folder-open"></i>
+                <div style="font-weight: 600;">Upload Documents</div>
+                <div style="font-size: 11px;">CNIC, CV, Certificates (PDF, DOCX)</div>
+                <input type="file" id="emp-documents-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display: none;">
+            `;
+        }
+        const docInput = docDropzone.querySelector('#emp-documents-input');
+        if (docInput) {
+            docDropzone.addEventListener('click', () => docInput.click(), { once: true });
+            docInput.addEventListener('change', () => { if (docInput.files.length) window.onDocumentsSelected(docDropzone, docInput.files); });
+        }
+    }
+
     toggleManagerGroup();
     
     openModal('modal-employee');
@@ -1931,7 +2015,7 @@ window.openEditEmployeeModal = function(userId) {
 function toggleManagerGroup() {
     const role = document.getElementById('emp-role').value;
     const mgrGroup = document.getElementById('emp-manager-group');
-    if (role === 'Employee') {
+    if (role === 'User') {
         mgrGroup.style.display = 'block';
     } else {
         mgrGroup.style.display = 'none';
@@ -1954,6 +2038,7 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
     const managerId = document.getElementById('emp-manager').value;
     const status = document.getElementById('emp-status').value;
     const startDate = document.getElementById('emp-start-date').value;
+    const endDate = document.getElementById('emp-end-date').value;
     const salary = document.getElementById('emp-salary').value;
     
     const fatherName = document.getElementById('emp-father-name').value.trim();
@@ -1997,12 +2082,17 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
             user.startDate = startDate;
             user.salary = salary;
             
-            // Auto-assign endDate if status changed to Inactive
-            if (status === 'Inactive' && (!user.endDate || user.endDate === '')) {
+            // Keep existing endDate if typed manually, else calculate if Inactive
+            if (endDate) {
+                user.endDate = endDate;
+            } else if (status === 'Inactive' && (!user.endDate || user.endDate === '')) {
                 user.endDate = new Date().toISOString().split('T')[0];
             } else if (status === 'Active') {
                 user.endDate = null;
             }
+            
+            user.profilePic = window.tempProfilePic;
+            user.documents = window.tempDocuments;
             
             saveDb(db);
             showToast("Success", `Profile updated successfully for ${name}.`);
@@ -2034,7 +2124,9 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
             emergencyContact,
             startDate,
             salary,
-            endDate: status === 'Inactive' ? new Date().toISOString().split('T')[0] : null
+            endDate: endDate ? endDate : (status === 'Inactive' ? new Date().toISOString().split('T')[0] : null),
+            profilePic: window.tempProfilePic,
+            documents: window.tempDocuments
         });
         
         saveDb(db);
@@ -2262,9 +2354,9 @@ window.openManualAttendanceModal = function() {
     
     let targetUsers = [];
     if (currentUser.role === 'Admin') {
-        targetUsers = db.users.filter(u => u.role === 'Employee');
+        targetUsers = db.users.filter(u => u.role === 'User');
     } else if (currentUser.role === 'Manager') {
-        targetUsers = db.users.filter(u => u.role === 'Employee' && u.managerId === currentUser.id);
+        targetUsers = db.users.filter(u => u.role === 'User' && u.managerId === currentUser.id);
     }
     
     targetUsers.forEach(emp => {
@@ -2685,7 +2777,7 @@ function initAdminReportsTab() {
     // Fill Employee Filter Options
     const empSelect = document.getElementById('admin-report-employee');
     empSelect.innerHTML = '<option value="">All Employees</option>';
-    db.users.filter(u => u.role === 'Employee').forEach(e => {
+    db.users.filter(u => u.role === 'User').forEach(e => {
         empSelect.innerHTML += `<option value="${e.id}">${e.name}</option>`;
     });
     
@@ -2712,7 +2804,7 @@ document.getElementById('btn-admin-report-generate').addEventListener('click', (
 // 2. MANAGER REPORTS
 function initManagerReportsTab() {
     const db = getDb();
-    const team = db.users.filter(u => u.role === 'Employee' && u.managerId === currentUser.id);
+    const team = db.users.filter(u => u.role === 'User' && u.managerId === currentUser.id);
     
     const empSelect = document.getElementById('manager-report-employee');
     empSelect.innerHTML = '<option value="">All Team Members</option>';
@@ -2762,7 +2854,7 @@ function generateReport(roleContext) {
     }
     
     // Filter employees set based on parameters
-    let filteredEmployees = db.users.filter(u => u.role === 'Employee');
+    let filteredEmployees = db.users.filter(u => u.role === 'User');
     if (roleContext === 'Manager') {
         filteredEmployees = filteredEmployees.filter(e => e.managerId === currentUser.id);
     } else { // Admin
@@ -3494,33 +3586,49 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
                 zone.addEventListener('click', () => newInput.click(), { once: true });
             }
+            window.tempProfilePic = ev.target.result;
         };
         reader.readAsDataURL(file);
     };
+    window.onProfilePicSelected = onProfilePicSelected;
     setupDropzone('dropzone-profile-pic', 'emp-profile-pic-input', onProfilePicSelected);
 
     // Document dropzone – show file list
-    const onDocumentsSelected = (zone, files) => {
-        const fileList = Array.from(files).map(f => `
-            <div style="display:flex;align-items:center;gap:6px;font-size:12px;padding:3px 0;">
-                <i class="fa-regular fa-file-lines" style="color:var(--primary);"></i>${f.name}
-            </div>`).join('');
+    window.onDocumentsSelected = async (zone, files) => {
+        window.tempDocuments = [];
+        const fileListHTML = [];
+        
+        for (let i = 0; i < files.length; i++) {
+            const f = files[i];
+            const dataUrl = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.readAsDataURL(f);
+            });
+            window.tempDocuments.push({ name: f.name, data: dataUrl });
+            fileListHTML.push(`
+                <div style="display:flex;align-items:center;gap:6px;font-size:12px;padding:3px 0;">
+                    <i class="fa-regular fa-file-lines" style="color:var(--primary);"></i><a href="${dataUrl}" target="_blank" style="color:inherit;text-decoration:none;">${f.name}</a>
+                </div>
+            `);
+        }
+        
         zone.innerHTML = `
             <i class="fa-regular fa-folder-open"></i>
             <div style="font-weight:600;">${files.length} File(s) Selected</div>
-            <div style="text-align:left;width:100%;">${fileList}</div>
-            <div style="font-size:11px;color:var(--text-muted);">Click to change</div>
+            <div style="text-align:left;width:100%;max-height:80px;overflow-y:auto;">${fileListHTML.join('')}</div>
+            <div style="font-size:11px;color:var(--text-muted);">Click to change/overwrite</div>
             <input type="file" id="emp-documents-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display:none;">
         `;
         const newInput = zone.querySelector('#emp-documents-input');
         if (newInput) {
             zone.addEventListener('click', () => newInput.click(), { once: true });
             newInput.addEventListener('change', () => {
-                if (newInput.files.length) onDocumentsSelected(zone, newInput.files);
+                if (newInput.files.length) window.onDocumentsSelected(zone, newInput.files);
             });
         }
     };
-    setupDropzone('dropzone-documents', 'emp-documents-input', onDocumentsSelected);
+    setupDropzone('dropzone-documents', 'emp-documents-input', window.onDocumentsSelected);
 
 
 
