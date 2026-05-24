@@ -1964,7 +1964,6 @@ window.openEditEmployeeModal = function(userId) {
             `;
             const picInput = picDropzone.querySelector('#emp-profile-pic-input');
             if(picInput) {
-                picDropzone.addEventListener('click', () => picInput.click(), { once: true });
                 picInput.addEventListener('change', () => { if (picInput.files.length) onProfilePicSelected(picDropzone, picInput.files); });
             }
         } else {
@@ -1976,7 +1975,6 @@ window.openEditEmployeeModal = function(userId) {
             `;
             const picInput = picDropzone.querySelector('#emp-profile-pic-input');
             if(picInput) {
-                picDropzone.addEventListener('click', () => picInput.click(), { once: true });
                 picInput.addEventListener('change', () => { if (picInput.files.length) onProfilePicSelected(picDropzone, picInput.files); });
             }
         }
@@ -2006,7 +2004,6 @@ window.openEditEmployeeModal = function(userId) {
         }
         const docInput = docDropzone.querySelector('#emp-documents-input');
         if (docInput) {
-            docDropzone.addEventListener('click', () => docInput.click(), { once: true });
             docInput.addEventListener('change', () => { if (docInput.files.length) window.onDocumentsSelected(docDropzone, docInput.files); });
         }
     }
@@ -3550,8 +3547,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const input = document.getElementById(inputId);
         if (!zone || !input) return;
 
-        // Click to open file browser
-        zone.addEventListener('click', () => input.click());
+        // Click to open file browser (delegate to current input)
+        zone.addEventListener('click', (e) => {
+            // Do not trigger file browser if clicking a link or an image link
+            if (e.target.closest('a')) return;
+            const currentInput = zone.querySelector('input[type="file"]');
+            if (currentInput) currentInput.click();
+        });
 
         // Show file name(s) after selection via browser
         input.addEventListener('change', () => {
@@ -3594,7 +3596,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 newInput.addEventListener('change', () => {
                     if (newInput.files.length) onProfilePicSelected(zone, newInput.files);
                 });
-                zone.addEventListener('click', () => newInput.click(), { once: true });
             }
             window.tempProfilePic = ev.target.result;
         };
@@ -3631,8 +3632,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             <input type="file" id="emp-documents-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display:none;">
         `;
         const newInput = zone.querySelector('#emp-documents-input');
-        if (newInput) {
-            zone.addEventListener('click', () => newInput.click(), { once: true });
             newInput.addEventListener('change', () => {
                 if (newInput.files.length) window.onDocumentsSelected(zone, newInput.files);
             });
