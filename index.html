@@ -12,7 +12,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="styles.css?v=2.3">
+    <link rel="stylesheet" href="styles.css?v=2.4">
 </head>
 <body class="dark-mode">
     
@@ -510,23 +510,69 @@
                                 <button class="btn btn-primary" id="btn-admin-add-emp-tab"><i class="fa-solid fa-user-plus"></i> Add New Employee</button>
                             </div>
                         </div>
-                        <div class="section-card bg-glass">
-                            <div class="table-container">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Employee Name</th>
-                                            <th>Email</th>
-                                            <th>Assigned Manager</th>
-                                            <th>Role</th>
-                                            <th>Status</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="admin-tab-employees-table-body">
-                                        <!-- Dynamic Rows -->
-                                    </tbody>
-                                </table>
+
+                        <!-- Sub-tab Navigation -->
+                        <div class="sub-tab-nav">
+                            <button class="btn-sub-tab active" data-subtab="employees">
+                                <i class="fa-solid fa-user-tie"></i> Employees
+                            </button>
+                            <button class="btn-sub-tab" data-subtab="managers">
+                                <i class="fa-solid fa-user-shield"></i> Managers
+                            </button>
+                            <button class="btn-sub-tab" data-subtab="teams">
+                                <i class="fa-solid fa-users-gear"></i> Teams
+                            </button>
+                        </div>
+
+                        <!-- Sub-tab Content: Employees -->
+                        <div id="subtab-content-employees" class="sub-tab-content">
+                            <div class="section-card bg-glass">
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Employee Name</th>
+                                                <th>Email</th>
+                                                <th>Assigned Manager</th>
+                                                <th>Role</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-tab-employees-table-body">
+                                            <!-- Dynamic Rows populated by renderAdminEmployeesTab() -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sub-tab Content: Managers -->
+                        <div id="subtab-content-managers" class="sub-tab-content hidden">
+                            <div class="section-card bg-glass">
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Manager Name</th>
+                                                <th>Email</th>
+                                                <th>Role</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-tab-managers-table-body">
+                                            <!-- Dynamic Rows populated by renderAdminEmployeesTab() -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sub-tab Content: Teams -->
+                        <div id="subtab-content-teams" class="sub-tab-content hidden">
+                            <div class="teams-grid" id="admin-tab-teams-container">
+                                <!-- Dynamic Team Cards populated by renderAdminEmployeesTab() -->
                             </div>
                         </div>
                     </div>
@@ -1599,6 +1645,6 @@
     <!-- GSAP for Yeti Animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <!-- Main JS Application script -->
-    <script src="app.js?v=2.5"></script>
+    <script src="app.js?v=2.6"></script>
 </body>
 </html>

@@ -2123,5 +2123,168 @@ body.light-mode .report-preview-container {
     gap: 4px;
 }
 .metrics-grid-5 .metric-card .trend-text.up { color: var(--success); }
-.metrics-grid-5 .metric-card .trend-text.down { color: color: var(--danger); }
+.metrics-grid-5 .metric-card .trend-text.down { color: var(--danger); }
+
+/* ==================== SUB-TAB NAVIGATION STYLES ==================== */
+.sub-tab-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 8px;
+}
+.btn-sub-tab {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 13.5px;
+    font-weight: 700;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.btn-sub-tab:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.03);
+}
+.btn-sub-tab.active {
+    color: #ffffff;
+    background: linear-gradient(90deg, var(--primary) 0%, #70a1ff 100%);
+    box-shadow: 0 4px 12px rgba(95, 59, 246, 0.25);
+}
+
+/* ==================== TEAMS GRID & TEAM CARDS ==================== */
+.teams-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin-top: 0.5rem;
+}
+.team-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+.team-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(95, 59, 246, 0.15);
+    border-color: rgba(95, 59, 246, 0.3);
+}
+.team-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%);
+}
+.team-leader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding-bottom: 12px;
+}
+.team-leader .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #70a1ff 0%, var(--primary) 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 15px;
+    font-family: var(--font-heading);
+}
+.team-leader-info h4 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+}
+.team-leader-info span {
+    font-size: 10px;
+    color: #00b0ff;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+.team-members-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.team-member-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+.team-member-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+.team-member-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.team-member-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 11px;
+}
+.team-member-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+.team-member-name {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #fff;
+}
+.team-member-email {
+    font-size: 10.5px;
+    color: var(--text-secondary);
+}
+.team-member-status {
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+.team-member-status.active {
+    background: rgba(0, 184, 148, 0.12);
+    color: #00b894;
+}
+.team-member-status.inactive {
+    background: rgba(225, 112, 85, 0.12);
+    color: #e17055;
+}
+
 

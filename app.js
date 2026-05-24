@@ -842,35 +842,167 @@ function renderAdminDashboard() {
 
 function renderAdminEmployeesTab() {
     const db = getDb();
-    const tableBody = document.getElementById('admin-tab-employees-table-body');
-    tableBody.innerHTML = '';
+    const empTableBody = document.getElementById('admin-tab-employees-table-body');
+    const mgrTableBody = document.getElementById('admin-tab-managers-table-body');
+    const teamsContainer = document.getElementById('admin-tab-teams-container');
     
-    db.users.forEach(user => {
-        // Skip current user (the admin themselves) to avoid deleting self
-        if (user.id === currentUser.id) return;
+    // Helper to get name initials for avatars
+    const getInitials = (name) => {
+        if (!name) return 'E';
+        return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    };
+
+    // 1. Populate Employees Sub-tab Table
+    if (empTableBody) {
+        empTableBody.innerHTML = '';
+        const employeesList = db.users.filter(user => user.role === 'Employee' && user.id !== currentUser.id);
         
-        const mgr = db.users.find(u => u.id === user.managerId);
-        const mgrName = mgr ? mgr.name : '<span class="text-muted">None</span>';
-        const roleClass = user.role.toLowerCase();
-        const statusClass = user.status === 'Active' ? 'badge-active' : 'badge-inactive';
+        if (employeesList.length === 0) {
+            empTableBody.innerHTML = `<tr><td colspan="6" class="empty-state">No employees found.</td></tr>`;
+        } else {
+            employeesList.forEach(user => {
+                const mgr = db.users.find(u => u.id === user.managerId);
+                const mgrName = mgr ? mgr.name : '<span class="text-muted">None</span>';
+                const roleClass = user.role.toLowerCase();
+                const statusClass = user.status === 'Active' ? 'badge-active' : 'badge-inactive';
+                
+                empTableBody.innerHTML += `
+                    <tr>
+                        <td class="bold">${user.name}</td>
+                        <td>${user.email}</td>
+                        <td>${mgrName}</td>
+                        <td><span class="badge-role ${roleClass}">${user.role}</span></td>
+                        <td><span class="${statusClass}">${user.status}</span></td>
+                        <td>
+                            <div class="btn-action-group">
+                                <button class="btn-action-circle" onclick="viewUserProfile('${user.id}')" tooltip="View Profile"><i class="fa-regular fa-eye"></i></button>
+                                <button class="btn-action-circle" onclick="openEditEmployeeModal('${user.id}')" tooltip="Edit"><i class="fa-regular fa-pen-to-square"></i></button>
+                                <button class="btn-action-circle text-danger" onclick="deleteEmployee('${user.id}')" tooltip="Delete"><i class="fa-regular fa-trash-can"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+    }
+
+    // 2. Populate Managers Sub-tab Table
+    if (mgrTableBody) {
+        mgrTableBody.innerHTML = '';
+        const managersList = db.users.filter(user => user.role === 'Manager' && user.id !== currentUser.id);
         
-        tableBody.innerHTML += `
-            <tr>
-                <td class="bold">${user.name}</td>
-                <td>${user.email}</td>
-                <td>${mgrName}</td>
-                <td><span class="badge-role ${roleClass}">${user.role}</span></td>
-                <td><span class="${statusClass}">${user.status}</span></td>
-                <td>
-                    <div class="btn-action-group">
-                        <button class="btn-action-circle" onclick="viewUserProfile('${user.id}')" tooltip="View Profile"><i class="fa-regular fa-eye"></i></button>
-                        <button class="btn-action-circle" onclick="openEditEmployeeModal('${user.id}')" tooltip="Edit"><i class="fa-regular fa-pen-to-square"></i></button>
-                        <button class="btn-action-circle text-danger" onclick="deleteEmployee('${user.id}')" tooltip="Delete"><i class="fa-regular fa-trash-can"></i></button>
+        if (managersList.length === 0) {
+            mgrTableBody.innerHTML = `<tr><td colspan="5" class="empty-state">No managers found.</td></tr>`;
+        } else {
+            managersList.forEach(user => {
+                const roleClass = user.role.toLowerCase();
+                const statusClass = user.status === 'Active' ? 'badge-active' : 'badge-inactive';
+                
+                mgrTableBody.innerHTML += `
+                    <tr>
+                        <td class="bold">${user.name}</td>
+                        <td>${user.email}</td>
+                        <td><span class="badge-role ${roleClass}">${user.role}</span></td>
+                        <td><span class="${statusClass}">${user.status}</span></td>
+                        <td>
+                            <div class="btn-action-group">
+                                <button class="btn-action-circle" onclick="viewUserProfile('${user.id}')" tooltip="View Profile"><i class="fa-regular fa-eye"></i></button>
+                                <button class="btn-action-circle" onclick="openEditEmployeeModal('${user.id}')" tooltip="Edit"><i class="fa-regular fa-pen-to-square"></i></button>
+                                <button class="btn-action-circle text-danger" onclick="deleteEmployee('${user.id}')" tooltip="Delete"><i class="fa-regular fa-trash-can"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+    }
+
+    // 3. Populate Teams Sub-tab Cards Grid
+    if (teamsContainer) {
+        teamsContainer.innerHTML = '';
+        const managers = db.users.filter(user => user.role === 'Manager');
+        
+        managers.forEach(manager => {
+            const mgrInitials = getInitials(manager.name);
+            const teamEmployees = db.users.filter(u => u.role === 'Employee' && u.managerId === manager.id);
+            
+            let membersHTML = '';
+            if (teamEmployees.length === 0) {
+                membersHTML = `<div style="color: var(--text-muted); font-size: 12px; font-style: italic; text-align: center; padding: 15px 0;">No team members assigned</div>`;
+            } else {
+                teamEmployees.forEach(emp => {
+                    const empInitials = getInitials(emp.name);
+                    const statusClass = emp.status === 'Active' ? 'active' : 'inactive';
+                    membersHTML += `
+                        <div class="team-member-item">
+                            <div class="team-member-left">
+                                <div class="team-member-avatar" style="background: rgba(95, 59, 246, 0.1); color: #5f3bf6;">${empInitials}</div>
+                                <div class="team-member-info">
+                                    <span class="team-member-name">${emp.name}</span>
+                                    <span class="team-member-email">${emp.email}</span>
+                                </div>
+                            </div>
+                            <span class="team-member-status ${statusClass}">${emp.status}</span>
+                        </div>
+                    `;
+                });
+            }
+
+            teamsContainer.innerHTML += `
+                <div class="team-card bg-glass">
+                    <div class="team-leader">
+                        <div class="avatar">${mgrInitials}</div>
+                        <div class="team-leader-info">
+                            <h4>${manager.name}</h4>
+                            <span>Team Lead / Manager</span>
+                        </div>
                     </div>
-                </td>
-            </tr>
-        `;
-    });
+                    <div class="team-members-list">
+                        ${membersHTML}
+                    </div>
+                </div>
+            `;
+        });
+
+        // Group unassigned or support employees
+        const activeMgrIds = managers.map(m => m.id);
+        const unassignedEmployees = db.users.filter(u => u.role === 'Employee' && (!u.managerId || !activeMgrIds.includes(u.managerId)));
+        
+        if (unassignedEmployees.length > 0) {
+            let membersHTML = '';
+            unassignedEmployees.forEach(emp => {
+                const empInitials = getInitials(emp.name);
+                const statusClass = emp.status === 'Active' ? 'active' : 'inactive';
+                membersHTML += `
+                    <div class="team-member-item">
+                        <div class="team-member-left">
+                            <div class="team-member-avatar" style="background: rgba(225, 112, 85, 0.1); color: #e17055;">${empInitials}</div>
+                            <div class="team-member-info">
+                                <span class="team-member-name">${emp.name}</span>
+                                <span class="team-member-email">${emp.email}</span>
+                            </div>
+                        </div>
+                        <span class="team-member-status ${statusClass}">${emp.status}</span>
+                    </div>
+                `;
+            });
+
+            teamsContainer.innerHTML += `
+                <div class="team-card bg-glass" style="border-color: rgba(225, 112, 85, 0.2);">
+                    <div class="team-leader">
+                        <div class="avatar" style="background: linear-gradient(135deg, #ff7675 0%, #d63031 100%);"><i class="fa-solid fa-users-slash" style="font-size: 15px;"></i></div>
+                        <div class="team-leader-info">
+                            <h4>General Support</h4>
+                            <span>Unassigned Employees</span>
+                        </div>
+                    </div>
+                    <div class="team-members-list">
+                        ${membersHTML}
+                    </div>
+                </div>
+            `;
+        }
+    }
 }
 
 function renderAdminAttendanceTab() {
@@ -2977,7 +3109,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Init productivity form multiselect dropdown logic
     initMultiSelect();
     
-    // Check if session exists (page refresh recovery)
+    // Sub-tab switching handler for employee management view
+    document.querySelectorAll('.btn-sub-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const subtab = btn.dataset.subtab;
+            const parent = btn.closest('.tab-view');
+            
+            // Toggle active classes on buttons
+            parent.querySelectorAll('.btn-sub-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Toggle visibility of subtab content panels
+            parent.querySelectorAll('.sub-tab-content').forEach(c => c.classList.add('hidden'));
+            const targetContent = document.getElementById(`subtab-content-${subtab}`);
+            if (targetContent) targetContent.classList.remove('hidden');
+        });
+    });
+
     const prevSession = sessionStorage.getItem('current_user');
     if (prevSession) {
         currentUser = JSON.parse(prevSession);
