@@ -12,7 +12,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="styles.css?v=3.9">
+    <link rel="stylesheet" href="styles.css?v=4.0">
 </head>
 <body class="dark-mode login-view">
     
@@ -511,11 +511,17 @@
                             <button class="btn-sub-tab active" data-subtab="employees">
                                 <i class="fa-solid fa-user-tie"></i> Employees
                             </button>
-                            <button class="btn-sub-tab" data-subtab="managers">
-                                <i class="fa-solid fa-user-shield"></i> Managers
-                            </button>
                             <button class="btn-sub-tab" data-subtab="teams">
                                 <i class="fa-solid fa-users-gear"></i> Teams
+                            </button>
+                            <button class="btn-sub-tab" data-subtab="salaries">
+                                <i class="fa-solid fa-money-bill-wave"></i> Salaries
+                            </button>
+                            <button class="btn-sub-tab" data-subtab="cards">
+                                <i class="fa-regular fa-id-card"></i> Employee Cards
+                            </button>
+                            <button class="btn-sub-tab" data-subtab="inactive">
+                                <i class="fa-solid fa-user-slash"></i> Inactive
                             </button>
                         </div>
 
@@ -542,22 +548,63 @@
                             </div>
                         </div>
 
-                        <!-- Sub-tab Content: Managers -->
-                        <div id="subtab-content-managers" class="sub-tab-content hidden">
+                        <!-- Sub-tab Content: Teams -->
+                        <div id="subtab-content-teams" class="sub-tab-content hidden">
+                            <div class="teams-grid" id="admin-tab-teams-container">
+                                <!-- Dynamic Team Cards populated by renderAdminEmployeesTab() -->
+                            </div>
+                        </div>
+
+                        <!-- Sub-tab Content: Salaries -->
+                        <div id="subtab-content-salaries" class="sub-tab-content hidden">
+                            <div class="section-card bg-glass">
+                                <div class="section-card-header">
+                                    <h3>Staff Salaries</h3>
+                                    <div class="header-filters" style="display: flex; gap: 10px; align-items: center;">
+                                        <input type="number" id="salary-increment-percent" class="form-control" placeholder="e.g. 10%" style="width: 120px;" min="1" max="100">
+                                        <button class="btn btn-primary" id="btn-apply-salary-increment">Apply Increment</button>
+                                    </div>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Name</th>
+                                                <th>Role</th>
+                                                <th>Current Salary</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-tab-salaries-table-body">
+                                            <!-- Dynamic Rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sub-tab Content: Employee Cards -->
+                        <div id="subtab-content-cards" class="sub-tab-content hidden">
+                            <div class="teams-grid" id="admin-tab-cards-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+                                <!-- Dynamic Cards -->
+                            </div>
+                        </div>
+
+                        <!-- Sub-tab Content: Inactive -->
+                        <div id="subtab-content-inactive" class="sub-tab-content hidden">
                             <div class="section-card bg-glass">
                                 <div class="table-container">
                                     <table class="data-table">
                                         <thead>
                                             <tr>
-                                                <th>Manager Name</th>
-                                                <th>Email</th>
+                                                <th>Employee Name</th>
                                                 <th>Role</th>
-                                                <th>Status</th>
-                                                <th>Actions</th>
+                                                <th>Start Date</th>
+                                                <th>End Date</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="admin-tab-managers-table-body">
-                                            <!-- Dynamic Rows populated by renderAdminEmployeesTab() -->
+                                        <tbody id="admin-tab-inactive-table-body">
+                                            <!-- Dynamic Rows -->
                                         </tbody>
                                     </table>
                                 </div>
@@ -1419,6 +1466,14 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label for="emp-start-date">Starting Date</label>
+                        <input type="date" id="emp-start-date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="emp-salary">Current Salary</label>
+                        <input type="number" id="emp-salary" class="form-control" placeholder="e.g. 50000" min="0" required>
+                    </div>
+                    <div class="form-group">
                         <label for="emp-status">Status</label>
                         <select id="emp-status" class="form-control" required>
                             <option value="Active">Active</option>
@@ -1808,6 +1863,6 @@
     <!-- GSAP for Yeti Animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <!-- Main JS Application script -->
-    <script src="app.js?v=3.8"></script>
+    <script src="app.js?v=4.0"></script>
 </body>
 </html>

@@ -15,17 +15,20 @@ CREATE TABLE `users` (
   `name` varchar(100) NOT NULL,
   `role` enum('Admin','Manager','Employee') NOT NULL DEFAULT 'Employee',
   `managerId` varchar(50) DEFAULT NULL,
-  `status` enum('Active','Inactive') NOT NULL DEFAULT 'Active'
+  `status` enum('Active','Inactive') NOT NULL DEFAULT 'Active',
+  `salary` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `startDate` date DEFAULT NULL,
+  `endDate` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Dumping data for table `users`
-INSERT INTO `users` (`id`, `email`, `password`, `name`, `role`, `managerId`, `status`) VALUES
-('U1', 'admin@hrms.com', 'admin123', 'Syed Admin', 'Admin', '', 'Active'),
-('U2', 'sarah.manager@hrms.com', 'manager123', 'Sarah Jenkins', 'Manager', '', 'Active'),
-('U3', 'alex.manager@hrms.com', 'manager123', 'Alex Mercer', 'Manager', '', 'Active'),
-('U4', 'john.emp@hrms.com', 'employee123', 'John Doe', 'Employee', 'U2', 'Active'),
-('U5', 'emma.emp@hrms.com', 'employee123', 'Emma Watson', 'Employee', 'U2', 'Active'),
-('U6', 'ryan.emp@hrms.com', 'employee123', 'Ryan Gosling', 'Employee', 'U3', 'Active');
+INSERT INTO `users` (`id`, `email`, `password`, `name`, `role`, `managerId`, `status`, `salary`, `startDate`) VALUES
+('U1', 'admin@hrms.com', 'admin123', 'Syed Admin', 'Admin', '', 'Active', 100000.00, '2020-01-01'),
+('U2', 'sarah.manager@hrms.com', 'manager123', 'Sarah Jenkins', 'Manager', '', 'Active', 75000.00, '2021-03-15'),
+('U3', 'alex.manager@hrms.com', 'manager123', 'Alex Mercer', 'Manager', '', 'Active', 72000.00, '2021-06-20'),
+('U4', 'john.emp@hrms.com', 'employee123', 'John Doe', 'Employee', 'U2', 'Active', 50000.00, '2022-01-10'),
+('U5', 'emma.emp@hrms.com', 'employee123', 'Emma Watson', 'Employee', 'U2', 'Active', 48000.00, '2022-02-15'),
+('U6', 'ryan.emp@hrms.com', 'employee123', 'Ryan Gosling', 'Employee', 'U3', 'Active', 49000.00, '2022-04-01');
 
 -- --------------------------------------------------------
 

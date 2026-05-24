@@ -860,28 +860,27 @@ function renderAdminDashboard() {
 function renderAdminEmployeesTab() {
     const db = getDb();
     const empTableBody = document.getElementById('admin-tab-employees-table-body');
-    const mgrTableBody = document.getElementById('admin-tab-managers-table-body');
-    const teamsContainer = document.getElementById('admin-tab-teams-container');
-    
-    // Helper to get name initials for avatars
-    const getInitials = (name) => {
-        if (!name) return 'E';
-        return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-    };
+    const salariesTableBody = document.getElementById('admin-tab-salaries-table-body');
+    const cardsContainer = document.getElementById('admin-tab-cards-container');
+    const inactiveTableBody = document.getElementById('admin-tab-inactive-table-body');
 
-    // 1. Populate Employees Sub-tab Table
+    // 1. Populate Employees Sub-tab Table (All Active Users, Sorted)
     if (empTableBody) {
         empTableBody.innerHTML = '';
-        const employeesList = db.users.filter(user => user.role === 'Employee' && user.id !== currentUser.id);
         
-        if (employeesList.length === 0) {
-            empTableBody.innerHTML = `<tr><td colspan="6" class="empty-state">No employees found.</td></tr>`;
+        // Filter out inactive users and sort: Admin > Manager > Employee
+        let activeUsers = db.users.filter(user => user.status === 'Active');
+        const roleOrder = { 'Admin': 1, 'Manager': 2, 'Employee': 3 };
+        activeUsers.sort((a, b) => roleOrder[a.role] - roleOrder[b.role]);
+        
+        if (activeUsers.length === 0) {
+            empTableBody.innerHTML = `<tr><td colspan="6" class="empty-state">No active employees found.</td></tr>`;
         } else {
-            employeesList.forEach(user => {
+            activeUsers.forEach(user => {
                 const mgr = db.users.find(u => u.id === user.managerId);
                 const mgrName = mgr ? mgr.name : '<span class="text-muted">None</span>';
                 const roleClass = user.role.toLowerCase();
-                const statusClass = user.status === 'Active' ? 'badge-active' : 'badge-inactive';
+                const statusClass = 'badge-active';
                 
                 empTableBody.innerHTML += `
                     <tr>
@@ -894,38 +893,6 @@ function renderAdminEmployeesTab() {
                             <div class="btn-action-group">
                                 <button class="btn-action-circle" onclick="viewUserProfile('${user.id}')" tooltip="View Profile"><i class="fa-regular fa-eye"></i></button>
                                 <button class="btn-action-circle" onclick="openEditEmployeeModal('${user.id}')" tooltip="Edit"><i class="fa-regular fa-pen-to-square"></i></button>
-                                <button class="btn-action-circle text-danger" onclick="deleteEmployee('${user.id}')" tooltip="Delete"><i class="fa-regular fa-trash-can"></i></button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-    }
-
-    // 2. Populate Managers Sub-tab Table
-    if (mgrTableBody) {
-        mgrTableBody.innerHTML = '';
-        const managersList = db.users.filter(user => user.role === 'Manager' && user.id !== currentUser.id);
-        
-        if (managersList.length === 0) {
-            mgrTableBody.innerHTML = `<tr><td colspan="5" class="empty-state">No managers found.</td></tr>`;
-        } else {
-            managersList.forEach(user => {
-                const roleClass = user.role.toLowerCase();
-                const statusClass = user.status === 'Active' ? 'badge-active' : 'badge-inactive';
-                
-                mgrTableBody.innerHTML += `
-                    <tr>
-                        <td class="bold">${user.name}</td>
-                        <td>${user.email}</td>
-                        <td><span class="badge-role ${roleClass}">${user.role}</span></td>
-                        <td><span class="${statusClass}">${user.status}</span></td>
-                        <td>
-                            <div class="btn-action-group">
-                                <button class="btn-action-circle" onclick="viewUserProfile('${user.id}')" tooltip="View Profile"><i class="fa-regular fa-eye"></i></button>
-                                <button class="btn-action-circle" onclick="openEditEmployeeModal('${user.id}')" tooltip="Edit"><i class="fa-regular fa-pen-to-square"></i></button>
-                                <button class="btn-action-circle text-danger" onclick="deleteEmployee('${user.id}')" tooltip="Delete"><i class="fa-regular fa-trash-can"></i></button>
                             </div>
                         </td>
                     </tr>
@@ -937,11 +904,11 @@ function renderAdminEmployeesTab() {
     // 3. Populate Teams Sub-tab Cards Grid
     if (teamsContainer) {
         teamsContainer.innerHTML = '';
-        const managers = db.users.filter(user => user.role === 'Manager');
+        const managers = db.users.filter(user => user.role === 'Manager' && user.status === 'Active');
         
         managers.forEach(manager => {
             const mgrInitials = getInitials(manager.name);
-            const teamEmployees = db.users.filter(u => u.role === 'Employee' && u.managerId === manager.id);
+            const teamEmployees = db.users.filter(u => u.role === 'Employee' && u.managerId === manager.id && u.status === 'Active');
             
             let membersHTML = '';
             if (teamEmployees.length === 0) {
@@ -983,6 +950,90 @@ function renderAdminEmployeesTab() {
 
         // Unassigned employees are intentionally hidden from Teams view
         // They appear in the Employees tab with no manager label
+    }
+
+    // 4. Populate Salaries Sub-tab Table
+    if (salariesTableBody) {
+        salariesTableBody.innerHTML = '';
+        let activeUsers = db.users.filter(user => user.status === 'Active');
+        
+        if (activeUsers.length === 0) {
+            salariesTableBody.innerHTML = `<tr><td colspan="4" class="empty-state">No active staff found.</td></tr>`;
+        } else {
+            activeUsers.forEach(user => {
+                const roleClass = user.role.toLowerCase();
+                const salary = user.salary ? '$' + parseFloat(user.salary).toLocaleString(undefined, {minimumFractionDigits: 2}) : '$0.00';
+                salariesTableBody.innerHTML += `
+                    <tr>
+                        <td class="text-muted">${user.id}</td>
+                        <td class="bold">${user.name}</td>
+                        <td><span class="badge-role ${roleClass}">${user.role}</span></td>
+                        <td class="bold" style="color: var(--success);">${salary}</td>
+                    </tr>
+                `;
+            });
+        }
+    }
+
+    // 5. Populate Employee Cards Sub-tab
+    if (cardsContainer) {
+        cardsContainer.innerHTML = '';
+        let activeUsers = db.users.filter(user => user.status === 'Active');
+        
+        if (activeUsers.length === 0) {
+            cardsContainer.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1;">No active staff found.</div>`;
+        } else {
+            activeUsers.forEach(user => {
+                const initials = getInitials(user.name);
+                const roleClass = user.role.toLowerCase();
+                const dateJoined = user.startDate ? new Date(user.startDate).toLocaleDateString() : 'N/A';
+                
+                cardsContainer.innerHTML += `
+                    <div class="team-card bg-glass" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+                        <div class="avatar" style="width: 80px; height: 80px; font-size: 30px; margin-bottom: 10px;">${initials}</div>
+                        <h3 style="font-size: 18px; margin-bottom: 5px;">${user.name}</h3>
+                        <span class="badge-role ${roleClass}" style="margin-bottom: 15px;">${user.role}</span>
+                        <div style="font-size: 13px; color: var(--text-muted); width: 100%; text-align: left; background: rgba(0,0,0,0.1); padding: 10px; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span>Employee ID:</span>
+                                <span class="bold text-primary">${user.id}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span>Email:</span>
+                                <span>${user.email}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Joined:</span>
+                                <span>${dateJoined}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    }
+
+    // 6. Populate Inactive Sub-tab Table
+    if (inactiveTableBody) {
+        inactiveTableBody.innerHTML = '';
+        let inactiveUsers = db.users.filter(user => user.status === 'Inactive');
+        
+        if (inactiveUsers.length === 0) {
+            inactiveTableBody.innerHTML = `<tr><td colspan="4" class="empty-state">No inactive staff.</td></tr>`;
+        } else {
+            inactiveUsers.forEach(user => {
+                const roleClass = user.role.toLowerCase();
+                
+                inactiveTableBody.innerHTML += `
+                    <tr style="opacity: 0.7;">
+                        <td class="bold">${user.name}</td>
+                        <td><span class="badge-role ${roleClass}">${user.role}</span></td>
+                        <td>${user.startDate || '-'}</td>
+                        <td class="text-danger bold">${user.endDate || '-'}</td>
+                    </tr>
+                `;
+            });
+        }
     }
 }
 
@@ -1800,6 +1851,21 @@ window.openEditEmployeeModal = function(userId) {
     document.getElementById('emp-form-id').value = user ? user.id : "";
     document.getElementById('emp-name').value = user ? user.name : "";
     document.getElementById('emp-email').value = user ? user.email : "";
+    document.getElementById('emp-start-date').value = (user && user.startDate) ? user.startDate : new Date().toISOString().split('T')[0];
+    document.getElementById('emp-salary').value = (user && user.salary) ? user.salary : "";
+    
+    // Read-only logic for Inactive users
+    const isInactive = user && user.status === 'Inactive';
+    const formElements = document.getElementById('employee-form').querySelectorAll('input, select');
+    formElements.forEach(el => {
+        if (el.id !== 'emp-form-id' && el.id !== 'emp-display-id') {
+            el.disabled = isInactive;
+        }
+    });
+    const submitBtn = document.querySelector('#employee-form button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.style.display = isInactive ? 'none' : 'block';
+    }
     
     document.getElementById('emp-father-name').value = (user && user.fatherName) ? user.fatherName : "";
     document.getElementById('emp-gender').value = (user && user.gender) ? user.gender : "Male";
@@ -1887,6 +1953,8 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
     const role = document.getElementById('emp-role').value;
     const managerId = document.getElementById('emp-manager').value;
     const status = document.getElementById('emp-status').value;
+    const startDate = document.getElementById('emp-start-date').value;
+    const salary = document.getElementById('emp-salary').value;
     
     const fatherName = document.getElementById('emp-father-name').value.trim();
     const gender = document.getElementById('emp-gender').value;
@@ -1926,6 +1994,15 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
             user.maritalStatus = maritalStatus;
             user.phone = phone;
             user.emergencyContact = emergencyContact;
+            user.startDate = startDate;
+            user.salary = salary;
+            
+            // Auto-assign endDate if status changed to Inactive
+            if (status === 'Inactive' && (!user.endDate || user.endDate === '')) {
+                user.endDate = new Date().toISOString().split('T')[0];
+            } else if (status === 'Active') {
+                user.endDate = null;
+            }
             
             saveDb(db);
             showToast("Success", `Profile updated successfully for ${name}.`);
@@ -1954,7 +2031,10 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
             cnic,
             maritalStatus,
             phone,
-            emergencyContact
+            emergencyContact,
+            startDate,
+            salary,
+            endDate: status === 'Inactive' ? new Date().toISOString().split('T')[0] : null
         });
         
         saveDb(db);
@@ -3084,6 +3164,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Admin dashboard specific buttons
     safeAddListener('btn-admin-add-emp', 'click', () => openEditEmployeeModal(""));
     safeAddListener('btn-admin-add-emp-tab', 'click', () => openEditEmployeeModal(""));
+    
+    // Salary Increment Logic
+    safeAddListener('btn-apply-salary-increment', 'click', () => {
+        const percentInput = document.getElementById('salary-increment-percent').value;
+        const percent = parseFloat(percentInput);
+        
+        if (!percent || isNaN(percent) || percent <= 0) {
+            showToast("Invalid Input", "Please enter a valid positive percentage.", "error");
+            return;
+        }
+        
+        if (confirm(`Are you sure you want to increase the salary of all active staff by ${percent}%?`)) {
+            const db = getDb();
+            let count = 0;
+            db.users.forEach(user => {
+                if (user.status === 'Active' && user.salary) {
+                    const currentSalary = parseFloat(user.salary) || 0;
+                    if (currentSalary > 0) {
+                        const newSalary = currentSalary + (currentSalary * (percent / 100));
+                        user.salary = newSalary.toFixed(2);
+                        count++;
+                    }
+                }
+            });
+            
+            if (count > 0) {
+                saveDb(db);
+                showToast("Success", `Salaries increased by ${percent}% for ${count} employees.`);
+                logAudit(`Applied a ${percent}% salary increment to ${count} active staff members.`);
+                renderAdminEmployeesTab();
+            } else {
+                showToast("Info", "No active employees with valid salaries found to update.", "info");
+            }
+            document.getElementById('salary-increment-percent').value = '';
+        }
+    });
     safeAddListener('btn-admin-mark-attendance', 'click', openManualAttendanceModal);
     
     safeAddListener('btn-admin-add-announcement', 'click', () => openModal('modal-announcement'));

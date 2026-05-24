@@ -175,9 +175,15 @@ elseif ($action === 'save_all') {
         // 1. Sync Users
         $pdo->exec("DELETE FROM users");
         if (!empty($data['users'])) {
-            $stmt = $pdo->prepare("INSERT INTO users (id, email, password, name, role, managerId, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO users (id, email, password, name, role, managerId, status, salary, startDate, endDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             foreach ($data['users'] as $u) {
-                $stmt->execute([$u['id'], $u['email'], $u['password'], $u['name'], $u['role'], $u['managerId'] ?? '', $u['status']]);
+                $stmt->execute([
+                    $u['id'], $u['email'], $u['password'], $u['name'], $u['role'], 
+                    $u['managerId'] ?? '', $u['status'], 
+                    $u['salary'] ?? 0, 
+                    $u['startDate'] ?? null, 
+                    $u['endDate'] ?? null
+                ]);
             }
         }
 
