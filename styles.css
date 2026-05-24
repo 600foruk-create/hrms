@@ -1451,6 +1451,17 @@ body.light-mode .report-preview-container {
     overflow: hidden;
     transition: all 0.3s ease;
 }
+/* Company Modal - Auto Height Rectangle */
+.modal-company {
+    width: 1000px !important;
+    max-width: 98vw !important;
+    height: auto !important;
+    max-height: 98vh !important;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
 .modal-maximized {
     width: 100vw !important;
     height: 100vh !important;
