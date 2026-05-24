@@ -949,8 +949,8 @@ function renderAdminEmployeesTab() {
 
         // Filter out inactive users and sort: Admin > Manager > User
         let activeUsers = db.users.filter(user => user.status === 'Active');
-        const roleOrder = { 'Admin': 1, 'Manager': 2, 'User': 3 };
-        activeUsers.sort((a, b) => roleOrder[a.role] - roleOrder[b.role]);
+        const roleOrder = { 'Admin': 1, 'Manager': 2, 'User': 3, 'Employee': 4 };
+        activeUsers.sort((a, b) => (roleOrder[a.role] || 99) - (roleOrder[b.role] || 99));
 
         if (activeUsers.length === 0) {
             empTableBody.innerHTML = `<tr><td colspan="6" class="empty-state">No active employees found.</td></tr>`;
@@ -958,7 +958,8 @@ function renderAdminEmployeesTab() {
             activeUsers.forEach(user => {
                 const mgr = db.users.find(u => u.id === user.managerId);
                 const mgrName = mgr ? mgr.name : '<span class="text-muted">None</span>';
-                const roleClass = user.role.toLowerCase();
+                const role = user.role || 'User';
+                const roleClass = role.toLowerCase();
                 const statusClass = 'badge-active';
 
                 empTableBody.innerHTML += `
@@ -966,7 +967,7 @@ function renderAdminEmployeesTab() {
                         <td class="bold">${user.name}</td>
                         <td>${user.email}</td>
                         <td>${mgrName}</td>
-                        <td><span class="badge-role ${roleClass}">${user.role}</span></td>
+                        <td><span class="badge-role ${roleClass}">${role}</span></td>
                         <td><span class="${statusClass}">${user.status}</span></td>
                         <td>
                             <div class="btn-action-group">
