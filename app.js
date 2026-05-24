@@ -210,7 +210,7 @@ function populateLoginDropdown() {
     try {
         const db = getDb();
         const select = document.getElementById('login-username');
-        if (!select) return;
+        if (!select || select.tagName !== 'SELECT') return;
         select.innerHTML = '';
         const usersList = (db && db.users && Array.isArray(db.users)) ? db.users : [];
         const activeUsers = usersList.filter(u => u && u.status === 'Active');
@@ -229,9 +229,9 @@ function handleLogin(usernameOrEmail, password) {
     try {
         const db = getDb();
         const usersList = (db && db.users && Array.isArray(db.users)) ? db.users : [];
-        // Match by name (dropdown) OR email (legacy fallback)
+        // Match by name (dropdown) OR email (legacy fallback) - case-insensitive
         const user = usersList.find(u =>
-            u && ((u.name && u.name === usernameOrEmail) || (u.email && u.email.toLowerCase() === usernameOrEmail.toLowerCase()))
+            u && ((u.name && u.name.toLowerCase() === usernameOrEmail.toLowerCase()) || (u.email && u.email.toLowerCase() === usernameOrEmail.toLowerCase()))
             && u.password === password
         );
         

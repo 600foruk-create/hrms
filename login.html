@@ -212,7 +212,7 @@
         <!-- Only Username and Password -->
         <div class="field-row">
             <label>Login</label>
-            <select id="userDropdown"></select>
+            <input type="text" id="userDropdown" placeholder="Username or Email">
         </div>
         <div class="field-row">
             <label>Password</label>
@@ -236,6 +236,7 @@
 
         // Load users from API
         async function loadUsers() {
+            if (!userSelect || userSelect.tagName !== 'SELECT') return;
             try {
                 const res = await fetch('api/admin.php?action=get_users');
                 if (res.ok) {
