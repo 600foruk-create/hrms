@@ -208,8 +208,21 @@ function applyCompanyProfile(db) {
         document.getElementById('company-name').value = companyName !== 'HRMSFlow' ? companyName : '';
         document.getElementById('company-address').value = db.weights['company_address'] || '';
         document.getElementById('company-contact').value = db.weights['company_contact'] || '';
-        document.getElementById('company-fax').value = db.weights['company_fax'] || '';
-        document.getElementById('company-logo').value = companyLogo;
+        if (document.getElementById('company-email')) {
+            document.getElementById('company-email').value = db.weights['company_email'] || '';
+        }
+        if (document.getElementById('company-website')) {
+            document.getElementById('company-website').value = db.weights['company_website'] || '';
+        }
+        
+        // Show existing logo if available in dropzone
+        if (companyLogo) {
+            const dropzone = document.getElementById('dropzone-company-logo');
+            if (dropzone) {
+                dropzone.innerHTML = `<img src="${companyLogo}" style="max-height: 50px; border-radius: 4px; object-fit: contain;">`;
+                window.tempCompanyLogoBase64 = companyLogo; // Keep existing logo unless changed
+            }
+        }
     }
 }
 
@@ -2252,6 +2265,29 @@ document.getElementById('settings-weights-form').addEventListener('submit', (e) 
     refreshTabContent(activeTab);
 });
 
+// Company Settings Form
+const companySettingsForm = document.getElementById('settings-company-form');
+if (companySettingsForm) {
+    companySettingsForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const db = getDb();
+        db.weights['company_name'] = document.getElementById('company-name').value;
+        db.weights['company_email'] = document.getElementById('company-email').value;
+        db.weights['company_contact'] = document.getElementById('company-contact').value;
+        db.weights['company_website'] = document.getElementById('company-website').value;
+        db.weights['company_address'] = document.getElementById('company-address').value;
+        
+        if (window.tempCompanyLogoBase64) {
+            db.weights['company_logo'] = window.tempCompanyLogoBase64;
+        }
+        
+        saveDb(db);
+        applyCompanyProfile(db);
+        showToast("Company Profile Saved", "Company information has been updated successfully.");
+        logAudit(`Updated company profile information.`);
+    });
+}
+
 document.getElementById('btn-admin-clear-audit-logs').addEventListener('click', () => {
     if (confirm("Reset system audit logs? All past events data will be cleared.")) {
         const db = getDb();
@@ -3270,6 +3306,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
     setupDropzone('dropzone-documents', 'emp-documents-input', onDocumentsSelected);
+
+    // Company Logo Dropzone
+    const onCompanyLogoSelected = (zone, files) => {
+        const file = files[0];
+        if (!file.type.startsWith('image/')) {
+            showToast("Invalid File", "Please select a valid image file.", "error");
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            window.tempCompanyLogoBase64 = e.target.result;
+            zone.innerHTML = `<img src="${e.target.result}" style="max-height: 50px; border-radius: 4px; object-fit: contain;">`;
+        };
+        reader.readAsDataURL(file);
+    };
+    setupDropzone('dropzone-company-logo', 'company-logo-input', onCompanyLogoSelected);
 
 
 
