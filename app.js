@@ -36,12 +36,26 @@ async function syncServer() {
                 }
             });
             window.hrmsDatabase = result.data;
+            localStorage.setItem('hrmsDatabase', JSON.stringify(result.data));
             success = true;
         } else {
             console.error("Failed to load DB state or DB is empty:", result.message);
         }
     } catch (e) {
         console.error("Network error loading DB:", e);
+    }
+
+    if (!success) {
+        const localData = localStorage.getItem('hrmsDatabase');
+        if (localData) {
+            try {
+                window.hrmsDatabase = JSON.parse(localData);
+                success = true;
+                console.log("Loaded database from localStorage.");
+            } catch (err) {
+                console.error("Error parsing localStorage DB:", err);
+            }
+        }
     }
 
     // Fallback Mock Database if API fails or DB is empty (Allows local demo to work)
@@ -85,6 +99,7 @@ function getDb() {
 
 async function saveDb(data) {
     window.hrmsDatabase = data; // Immediate local update for UI speed
+    localStorage.setItem('hrmsDatabase', JSON.stringify(data));
     try {
         const response = await fetch(API_URL + '?action=save_all', {
             method: 'POST',
@@ -868,7 +883,17 @@ function renderAdminEmployeesTab() {
                 
                 empTableBody.innerHTML += `
                     <tr>
-                        <td class="bold">${user.name}</td>
+                        <td class="bold">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; overflow: hidden; flex-shrink: 0;">
+                                    ${user.profilePic ? `<img src="${user.profilePic}" style="width: 100%; height: 100%; object-fit: cover;">` : getInitials(user.name)}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700;">${user.name}</div>
+                                    <div style="font-size: 11px; color: var(--text-muted); font-weight: 500;">${user.empId || user.id}</div>
+                                </div>
+                            </div>
+                        </td>
                         <td>${user.email}</td>
                         <td>${mgrName}</td>
                         <td><span class="badge-role ${roleClass}">${user.role}</span></td>
@@ -900,7 +925,17 @@ function renderAdminEmployeesTab() {
                 
                 mgrTableBody.innerHTML += `
                     <tr>
-                        <td class="bold">${user.name}</td>
+                        <td class="bold">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--accent-light); color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; overflow: hidden; flex-shrink: 0;">
+                                    ${user.profilePic ? `<img src="${user.profilePic}" style="width: 100%; height: 100%; object-fit: cover;">` : getInitials(user.name)}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700;">${user.name}</div>
+                                    <div style="font-size: 11px; color: var(--text-muted); font-weight: 500;">${user.empId || user.id}</div>
+                                </div>
+                            </div>
+                        </td>
                         <td>${user.email}</td>
                         <td><span class="badge-role ${roleClass}">${user.role}</span></td>
                         <td><span class="${statusClass}">${user.status}</span></td>
@@ -936,7 +971,9 @@ function renderAdminEmployeesTab() {
                     membersHTML += `
                         <div class="team-member-item">
                             <div class="team-member-left">
-                                <div class="team-member-avatar" style="background: rgba(95, 59, 246, 0.1); color: #5f3bf6;">${empInitials}</div>
+                                <div class="team-member-avatar" style="background: rgba(95, 59, 246, 0.1); color: #5f3bf6; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                                    ${emp.profilePic ? `<img src="${emp.profilePic}" style="width: 100%; height: 100%; object-fit: cover;">` : empInitials}
+                                </div>
                                 <div class="team-member-info">
                                     <span class="team-member-name">${emp.name}</span>
                                     <span class="team-member-email">${emp.email}</span>
@@ -951,7 +988,9 @@ function renderAdminEmployeesTab() {
             teamsContainer.innerHTML += `
                 <div class="team-card bg-glass">
                     <div class="team-leader">
-                        <div class="avatar">${mgrInitials}</div>
+                        <div class="avatar" style="overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                            ${manager.profilePic ? `<img src="${manager.profilePic}" style="width: 100%; height: 100%; object-fit: cover;">` : mgrInitials}
+                        </div>
                         <div class="team-leader-info">
                             <h4>${manager.name}</h4>
                             <span>Team Lead / Manager</span>
@@ -976,7 +1015,9 @@ function renderAdminEmployeesTab() {
                 membersHTML += `
                     <div class="team-member-item">
                         <div class="team-member-left">
-                            <div class="team-member-avatar" style="background: rgba(225, 112, 85, 0.1); color: #e17055;">${empInitials}</div>
+                            <div class="team-member-avatar" style="background: rgba(225, 112, 85, 0.1); color: #e17055; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                                ${emp.profilePic ? `<img src="${emp.profilePic}" style="width: 100%; height: 100%; object-fit: cover;">` : empInitials}
+                            </div>
                             <div class="team-member-info">
                                 <span class="team-member-name">${emp.name}</span>
                                 <span class="team-member-email">${emp.email}</span>
@@ -1728,8 +1769,25 @@ window.viewUserProfile = function(userId) {
     document.getElementById('profile-role').textContent = user.role;
     document.getElementById('profile-role').className = `role-badge badge-role ${user.role.toLowerCase()}`;
     document.getElementById('profile-email').textContent = user.email;
-    document.getElementById('profile-avatar').textContent = user.name.charAt(0).toUpperCase();
     document.getElementById('profile-status').textContent = user.status;
+    
+    // Profile photo preview
+    const avatarEl = document.getElementById('profile-avatar');
+    if (user.profilePic) {
+        avatarEl.innerHTML = `<img src="${user.profilePic}" style="width: 100%; height: 100%; object-fit: cover;">`;
+    } else {
+        avatarEl.innerHTML = user.name.charAt(0).toUpperCase();
+    }
+    
+    // New fields display
+    document.getElementById('profile-emp-id').textContent = user.empId || user.id;
+    document.getElementById('profile-father-name').textContent = user.fatherName || '-';
+    document.getElementById('profile-gender').textContent = user.gender || '-';
+    document.getElementById('profile-dob').textContent = user.dob || '-';
+    document.getElementById('profile-cnic').textContent = user.cnic || '-';
+    document.getElementById('profile-marital-status').textContent = user.maritalStatus || '-';
+    document.getElementById('profile-phone').textContent = user.phone || '-';
+    document.getElementById('profile-emergency').textContent = user.emergencyContact || '-';
     
     const mgrRow = document.getElementById('profile-row-manager');
     if (user.role === 'Employee') {
@@ -1740,6 +1798,41 @@ window.viewUserProfile = function(userId) {
         mgrRow.style.display = 'none';
     }
     
+    // Documents section display
+    const docContainer = document.getElementById('profile-documents-list');
+    docContainer.innerHTML = '';
+    if (user.documents && (user.documents.cnic || user.documents.cv || user.documents.cert)) {
+        const setupDocButton = (docObj, label, iconClass) => {
+            if (docObj && docObj.data) {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-sm btn-outline';
+                btn.style.display = 'inline-flex';
+                btn.style.alignItems = 'center';
+                btn.style.gap = '6px';
+                btn.style.margin = '4px';
+                btn.innerHTML = `<i class="${iconClass}"></i> <span>View ${label}</span>`;
+                btn.addEventListener('click', () => {
+                    const newWin = window.open();
+                    if (newWin) {
+                        newWin.document.write(`<iframe src="${docObj.data}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
+                    } else {
+                        const link = document.createElement('a');
+                        link.href = docObj.data;
+                        link.download = docObj.name || `${label}_document`;
+                        link.click();
+                    }
+                });
+                docContainer.appendChild(btn);
+            }
+        };
+        
+        setupDocButton(user.documents.cnic, 'CNIC Scan', 'fa-regular fa-id-card');
+        setupDocButton(user.documents.cv, 'CV / Resume', 'fa-regular fa-file-pdf');
+        setupDocButton(user.documents.cert, 'Certificates', 'fa-solid fa-graduation-cap');
+    } else {
+        docContainer.innerHTML = '<span style="font-size: 12px; color: var(--text-muted); font-style: italic;">No documents uploaded.</span>';
+    }
+    
     openModal('modal-profile');
 };
 
@@ -1748,10 +1841,42 @@ window.openEditEmployeeModal = function(userId) {
     const db = getDb();
     const user = db.users.find(u => u.id === userId);
     
+    // Reset minimized/maximized modal states
+    const modalEl = document.getElementById('modal-employee');
+    if (modalEl) {
+        modalEl.classList.remove('modal-minimized', 'modal-maximized');
+        const backdrop = document.getElementById('modal-backdrop');
+        if (backdrop) backdrop.classList.remove('hidden');
+    }
+    
     document.getElementById('modal-employee-title').textContent = user ? "Edit Profile" : "Add Team Member";
     document.getElementById('emp-form-id').value = user ? user.id : "";
     document.getElementById('emp-name').value = user ? user.name : "";
     document.getElementById('emp-email').value = user ? user.email : "";
+    
+    // Auto generated Employee ID
+    let nextId = "";
+    if (user) {
+        nextId = user.empId || user.id;
+    } else {
+        const empIds = db.users
+            .map(u => u.empId || "")
+            .filter(id => id.startsWith("EMP-"))
+            .map(id => parseInt(id.replace("EMP-", ""), 10))
+            .filter(num => !isNaN(num));
+        const maxNum = empIds.length > 0 ? Math.max(...empIds) : 1000;
+        nextId = `EMP-${maxNum + 1}`;
+    }
+    document.getElementById('emp-id').value = nextId;
+    
+    // New fields prefill
+    document.getElementById('emp-father-name').value = user ? (user.fatherName || "") : "";
+    document.getElementById('emp-gender').value = user ? (user.gender || "") : "";
+    document.getElementById('emp-dob').value = user ? (user.dob || "") : "";
+    document.getElementById('emp-cnic').value = user ? (user.cnic || "") : "";
+    document.getElementById('emp-marital-status').value = user ? (user.maritalStatus || "") : "";
+    document.getElementById('emp-phone').value = user ? (user.phone || "") : "";
+    document.getElementById('emp-emergency-contact').value = user ? (user.emergencyContact || "") : "";
     
     // Password mandatory for new users only
     const passInput = document.getElementById('emp-password');
@@ -1762,6 +1887,56 @@ window.openEditEmployeeModal = function(userId) {
         passInput.setAttribute('required', 'true');
         document.getElementById('emp-pass-group').style.display = 'block';
         passInput.value = "";
+    }
+    
+    // Profile pic preview
+    const picWrapper = document.getElementById('emp-pic-preview-wrapper');
+    if (user && user.profilePic) {
+        picWrapper.innerHTML = `<img src="${user.profilePic}" alt="Profile Picture">`;
+    } else {
+        picWrapper.innerHTML = `<i class="fa-regular fa-user"></i>`;
+    }
+    
+    // Reset file uploads
+    document.querySelectorAll('.upload-zone').forEach(zone => {
+        zone.classList.remove('has-file');
+    });
+    document.getElementById('label-cnic-file').textContent = "Select or drop file";
+    document.getElementById('label-cv-file').textContent = "Select or drop file";
+    document.getElementById('label-cert-file').textContent = "Select or drop file";
+    
+    const picInput = document.getElementById('emp-profile-pic');
+    const cnicInput = document.getElementById('emp-doc-cnic');
+    const cvInput = document.getElementById('emp-doc-cv');
+    const certInput = document.getElementById('emp-doc-cert');
+    
+    picInput.value = "";
+    cnicInput.value = "";
+    cvInput.value = "";
+    certInput.value = "";
+    
+    delete picInput.dataset.base64;
+    delete cnicInput.dataset.base64;
+    delete cnicInput.dataset.filename;
+    delete cvInput.dataset.base64;
+    delete cvInput.dataset.filename;
+    delete certInput.dataset.base64;
+    delete certInput.dataset.filename;
+
+    // Prefill documents if existing
+    if (user && user.documents) {
+        if (user.documents.cnic) {
+            document.getElementById('upload-zone-cnic').classList.add('has-file');
+            document.getElementById('label-cnic-file').textContent = user.documents.cnic.name || "CNIC Uploaded";
+        }
+        if (user.documents.cv) {
+            document.getElementById('upload-zone-cv').classList.add('has-file');
+            document.getElementById('label-cv-file').textContent = user.documents.cv.name || "CV Uploaded";
+        }
+        if (user.documents.cert) {
+            document.getElementById('upload-zone-cert').classList.add('has-file');
+            document.getElementById('label-cert-file').textContent = user.documents.cert.name || "Certificate Uploaded";
+        }
     }
     
     // Dynamically inject roles based on active user
@@ -1813,7 +1988,6 @@ function toggleManagerGroup() {
         mgrGroup.style.display = 'block';
     } else {
         mgrGroup.style.display = 'none';
-        // Admin or Manager doesn't need a manager usually
         document.getElementById('emp-manager').value = "";
     }
 }
@@ -1830,6 +2004,27 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
     const role = document.getElementById('emp-role').value;
     const managerId = document.getElementById('emp-manager').value;
     const status = document.getElementById('emp-status').value;
+    
+    const empId = document.getElementById('emp-id').value;
+    const fatherName = document.getElementById('emp-father-name').value.trim();
+    const gender = document.getElementById('emp-gender').value;
+    const dob = document.getElementById('emp-dob').value;
+    const cnic = document.getElementById('emp-cnic').value.trim();
+    const maritalStatus = document.getElementById('emp-marital-status').value;
+    const phone = document.getElementById('emp-phone').value.trim();
+    const emergencyContact = document.getElementById('emp-emergency-contact').value.trim();
+    
+    // Read base64 file datasets
+    const picInput = document.getElementById('emp-profile-pic');
+    const cnicInput = document.getElementById('emp-doc-cnic');
+    const cvInput = document.getElementById('emp-doc-cv');
+    const certInput = document.getElementById('emp-doc-cert');
+    
+    const profilePic = picInput.dataset.base64 || "";
+    
+    const docCnic = cnicInput.dataset.base64 ? { data: cnicInput.dataset.base64, name: cnicInput.dataset.filename } : null;
+    const docCv = cvInput.dataset.base64 ? { data: cvInput.dataset.base64, name: cvInput.dataset.filename } : null;
+    const docCert = certInput.dataset.base64 ? { data: certInput.dataset.base64, name: certInput.dataset.filename } : null;
     
     // Validation
     if (!name || !email) {
@@ -1853,6 +2048,21 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
             user.role = role;
             user.managerId = managerId;
             user.status = status;
+            user.empId = empId;
+            user.fatherName = fatherName;
+            user.gender = gender;
+            user.dob = dob;
+            user.cnic = cnic;
+            user.maritalStatus = maritalStatus;
+            user.phone = phone;
+            user.emergencyContact = emergencyContact;
+            
+            if (profilePic) user.profilePic = profilePic;
+            
+            if (!user.documents) user.documents = {};
+            if (docCnic) user.documents.cnic = docCnic;
+            if (docCv) user.documents.cv = docCv;
+            if (docCert) user.documents.cert = docCert;
             
             saveDb(db);
             showToast("Success", `Profile updated successfully for ${name}.`);
@@ -1866,20 +2076,44 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
         }
         
         const newId = "U_" + Date.now();
-        db.users.push({
+        const newUser = {
             id: newId,
+            empId,
             name,
             email,
             password,
             role,
             managerId,
-            status
-        });
+            status,
+            fatherName,
+            gender,
+            dob,
+            cnic,
+            maritalStatus,
+            phone,
+            emergencyContact,
+            profilePic,
+            documents: {
+                cnic: docCnic,
+                cv: docCv,
+                cert: docCert
+            }
+        };
+        db.users.push(newUser);
         
         saveDb(db);
         showToast("Created", `New user profile created for ${name}.`);
         logAudit(`Created new employee profile: ${name} (${role}).`);
     }
+    
+    // Clear datasets
+    delete picInput.dataset.base64;
+    delete cnicInput.dataset.base64;
+    delete cnicInput.dataset.filename;
+    delete cvInput.dataset.base64;
+    delete cvInput.dataset.filename;
+    delete certInput.dataset.base64;
+    delete certInput.dataset.filename;
     
     closeAllModals();
     refreshTabContent(activeTab);
@@ -3137,6 +3371,135 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Init productivity form multiselect dropdown logic
     initMultiSelect();
     
+    // ----------------------------------------------------
+    // Enhanced Employee Modal File Uploads and Window Controls Init
+    // ----------------------------------------------------
+    // File inputs change listener for profile picture
+    const empProfilePic = document.getElementById('emp-profile-pic');
+    if (empProfilePic) {
+        empProfilePic.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 1024 * 1024) {
+                    showToast("File Too Large", "Profile picture must be under 1MB.", "warning");
+                    e.target.value = "";
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    document.getElementById('emp-pic-preview-wrapper').innerHTML = `<img src="${evt.target.result}" alt="Profile Picture">`;
+                    e.target.dataset.base64 = evt.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    // Helper for document upload zones
+    const setupDocUploadZone = (inputId, zoneId, labelId) => {
+        const input = document.getElementById(inputId);
+        const zone = document.getElementById(zoneId);
+        const label = document.getElementById(labelId);
+        
+        if (input && zone && label) {
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.style.borderColor = 'var(--primary)';
+                zone.style.background = 'rgba(95, 59, 246, 0.05)';
+            });
+            zone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                zone.style.borderColor = '';
+                zone.style.background = '';
+            });
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.style.borderColor = '';
+                zone.style.background = '';
+                const file = e.dataTransfer.files[0];
+                if (file) {
+                    input.files = e.dataTransfer.files;
+                    const event = new Event('change');
+                    input.dispatchEvent(event);
+                }
+            });
+            zone.addEventListener('click', (e) => {
+                if (e.target !== input) {
+                    input.click();
+                }
+            });
+            
+            input.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.size > 2 * 1024 * 1024) {
+                        showToast("File Too Large", "Documents must be under 2MB.", "warning");
+                        e.target.value = "";
+                        return;
+                    }
+                    zone.classList.add('has-file');
+                    label.textContent = file.name;
+                    
+                    const reader = new FileReader();
+                    reader.onload = (evt) => {
+                        input.dataset.base64 = evt.target.result;
+                        input.dataset.filename = file.name;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    };
+    
+    setupDocUploadZone('emp-doc-cnic', 'upload-zone-cnic', 'label-cnic-file');
+    setupDocUploadZone('emp-doc-cv', 'upload-zone-cv', 'label-cv-file');
+    setupDocUploadZone('emp-doc-cert', 'upload-zone-cert', 'label-cert-file');
+
+    // Modal minimize / maximize handlers
+    const modalEmp = document.getElementById('modal-employee');
+    if (modalEmp) {
+        const btnMinimize = modalEmp.querySelector('.modal-minimize');
+        const btnMaximize = modalEmp.querySelector('.modal-maximize');
+        const header = modalEmp.querySelector('.modal-header');
+        
+        if (btnMinimize) {
+            btnMinimize.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isMinimized = modalEmp.classList.toggle('modal-minimized');
+                const backdrop = document.getElementById('modal-backdrop');
+                
+                if (isMinimized) {
+                    modalEmp.classList.remove('modal-maximized');
+                    if (backdrop) backdrop.classList.add('hidden');
+                    showToast("Modal Minimized", "Form minimized at bottom right corner.");
+                } else {
+                    if (backdrop) backdrop.classList.remove('hidden');
+                }
+            });
+        }
+        
+        if (btnMaximize) {
+            btnMaximize.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isMaximized = modalEmp.classList.toggle('modal-maximized');
+                if (isMaximized) {
+                    modalEmp.classList.remove('modal-minimized');
+                    const backdrop = document.getElementById('modal-backdrop');
+                    if (backdrop) backdrop.classList.remove('hidden');
+                }
+            });
+        }
+        
+        if (header) {
+            header.addEventListener('click', () => {
+                if (modalEmp.classList.contains('modal-minimized')) {
+                    modalEmp.classList.remove('modal-minimized');
+                    const backdrop = document.getElementById('modal-backdrop');
+                    if (backdrop) backdrop.classList.remove('hidden');
+                }
+            });
+    }
+
     // Sub-tab switching handler for employee management view
     document.querySelectorAll('.btn-sub-tab').forEach(btn => {
         btn.addEventListener('click', () => {

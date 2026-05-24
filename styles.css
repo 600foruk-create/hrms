@@ -1450,6 +1450,198 @@ body.light-mode .report-preview-container {
     justify-content: flex-end;
     gap: 10px;
 }
+
+/* Wide Modal Support */
+.modal.modal-lg {
+    max-width: 850px;
+}
+
+/* Modal Window Controls */
+.modal-window-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.modal-window-actions button {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 4px;
+}
+.modal-window-actions button:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+body.light-mode .modal-window-actions button:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+.modal-window-actions .modal-close:hover {
+    color: var(--danger);
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* Maximized Modal State */
+.modal.modal-maximized {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    top: 0 !important;
+    left: 0 !important;
+    transform: translate(0, 0) !important;
+    border-radius: 0 !important;
+    animation: none !important;
+}
+
+/* Minimized Modal State */
+.modal.modal-minimized {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    width: 320px !important;
+    max-height: 52px !important;
+    overflow: hidden !important;
+    z-index: 2000 !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+    animation: none !important;
+}
+body.light-mode .modal.modal-minimized {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+}
+.modal.modal-minimized .modal-body,
+.modal.modal-minimized .modal-footer {
+    display: none !important;
+}
+.modal.modal-minimized .modal-header {
+    cursor: pointer;
+    border-bottom: none !important;
+}
+
+/* Form Two Column Layout Grid */
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+}
+@media (max-width: 768px) {
+    .form-grid-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Custom Upload Drop Zone */
+.upload-zone-wrapper {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+@media (max-width: 600px) {
+    .upload-zone-wrapper {
+        grid-template-columns: 1fr;
+    }
+}
+.upload-zone {
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1rem;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.01);
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+}
+.upload-zone:hover {
+    border-color: var(--primary);
+    background: rgba(95, 59, 246, 0.03);
+}
+body.light-mode .upload-zone:hover {
+    background: rgba(95, 59, 246, 0.01);
+}
+.upload-zone i {
+    font-size: 24px;
+    color: var(--text-muted);
+    transition: var(--transition);
+}
+.upload-zone:hover i {
+    color: var(--primary);
+}
+.upload-zone span {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+.upload-zone p {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+.upload-zone input[type="file"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+.upload-zone.has-file {
+    border-color: var(--success);
+    border-style: solid;
+    background: rgba(0, 184, 148, 0.03);
+}
+.upload-zone.has-file i {
+    color: var(--success);
+}
+
+/* Profile Pic Round Upload styling */
+.profile-pic-upload-container {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.25rem;
+}
+.profile-pic-preview-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    overflow: hidden;
+    background: var(--bg-surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+.profile-pic-preview-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.profile-pic-preview-wrapper i {
+    font-size: 32px;
+    color: var(--text-muted);
+}
+.profile-pic-upload-btn-zone {
+    flex: 1;
+}
+
 .review-details {
     display: flex;
     flex-direction: column;
