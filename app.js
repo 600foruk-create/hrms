@@ -3674,7 +3674,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             zone.innerHTML = `
                 <i class="fa-regular fa-folder-open"></i>
                 <div style="font-weight:600;">${window.tempDocuments.length} File(s) Saved</div>
-                <div style="text-align:left;width:100%;max-height:80px;overflow-y:auto;margin:5px 0;">${fileListHTML}</div>
+                <div style="text-align:left;width:100%;flex:1;overflow-y:auto;margin:5px 0;">${fileListHTML}</div>
                 <div style="font-size:11px;color:var(--text-muted);">Click or drag to add more</div>
                 <input type="file" id="emp-documents-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display:none;">
             `;
