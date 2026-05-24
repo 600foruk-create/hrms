@@ -1440,14 +1440,15 @@ body.light-mode .report-preview-container {
     to { transform: translate(-50%, -50%) scale(1); }
 }
 
-/* Expanded Modal Sizes */
+/* Employee Modal - Fixed 1000x600 Rectangle */
 .modal-window {
-    max-width: 900px;
-    width: 95%;
-    max-height: 92vh;
-    height: auto;
+    width: 1000px !important;
+    max-width: 98vw !important;
+    height: 600px !important;
+    max-height: 98vh !important;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
     transition: all 0.3s ease;
 }
 .modal-maximized {
@@ -1521,11 +1522,13 @@ body.light-mode .report-preview-container {
     overflow: hidden;
 }
 .modal-body {
-    padding: 0.85rem 1.2rem;
+    padding: 10px 14px;
     overflow-y: auto;
     overflow-x: hidden;
     flex: 1;
     min-height: 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) transparent;
 }
 .modal-body::-webkit-scrollbar {
     width: 6px;
@@ -1541,24 +1544,27 @@ body.light-mode .report-preview-container {
     background: var(--primary);
 }
 .modal-footer {
-    padding: 1.25rem 1.5rem;
+    padding: 8px 14px;
     border-top: 1px solid var(--border-color);
     display: flex;
     justify-content: flex-end;
     gap: 10px;
+    flex-shrink: 0;
 }
 
 /* Form Grid Layouts */
 .form-grid-3 {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    gap: 6px 10px;
 }
 .form-grid-2 {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    gap: 6px 10px;
 }
+
+
 .section-title {
     font-size: 12px;
     font-weight: 700;
