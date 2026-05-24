@@ -1608,7 +1608,9 @@ body.light-mode .report-preview-container {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 10px;
+    min-height: 180px;
 }
 .dropzone:hover, .dropzone.dragover {
     border-color: var(--primary);

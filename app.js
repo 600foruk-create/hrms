@@ -204,6 +204,33 @@ if (!document.getElementById('toast-keyframes')) {
 
 // ==================== AUTHENTICATION & SESSIONS ====================
 
+// Open base64/dataURL file in a new tab
+window.openDocument = function(dataUrl, name) {
+    if (!dataUrl) return;
+    try {
+        const arr = dataUrl.split(',');
+        if (arr.length < 2) return;
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        const blob = new Blob([u8arr], { type: mime });
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, '_blank');
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 10000); // Cleanup after 10s
+    } catch(e) {
+        console.error("Failed to open document", e);
+        // Fallback for image types
+        const win = window.open();
+        if (win) {
+            win.document.write('<iframe src="' + dataUrl + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>');
+        }
+    }
+};
+
 function applyCompanyProfile(db) {
     if (!db) return;
     
@@ -1777,7 +1804,7 @@ window.viewUserProfile = function(userId) {
         docSection.style.display = 'block';
         docList.innerHTML = user.documents.map(d => `
             <div><i class="fa-regular fa-file-lines" style="color:var(--primary); margin-right:5px;"></i>
-            <a href="${d.data}" target="_blank" style="color:var(--primary); text-decoration:none; font-weight:600;">${d.name}</a></div>
+            <a href="javascript:void(0)" onclick="window.openDocument('${d.data}', '${d.name}')" style="color:var(--primary); text-decoration:none; font-weight:600;">${d.name}</a></div>
         `).join('');
     } else {
         docSection.style.display = 'none';
@@ -1973,7 +2000,10 @@ window.openEditEmployeeModal = function(userId) {
     if (picDropzone) {
         if (window.tempProfilePic) {
             picDropzone.innerHTML = `
-                <img src="${window.tempProfilePic}" alt="Profile Preview" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--primary);">
+                <div style="position:relative; display:inline-block;">
+                    <img src="${window.tempProfilePic}" alt="Profile Preview" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--primary);">
+                    <button type="button" class="delete-doc-btn" onclick="window.deleteTempProfilePic('${picDropzone.id}')" style="position:absolute;top:-5px;right:-10px;background:var(--danger);color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-xmark"></i></button>
+                </div>
                 <div style="font-weight:600;font-size:12px;">Existing Photo</div>
                 <div style="font-size:11px;color:var(--text-muted);">Click to change</div>
                 <input type="file" id="emp-profile-pic-input" accept="image/*" style="display:none;">
@@ -3576,14 +3606,35 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Profile picture dropzone – show thumbnail preview
+    window.deleteTempProfilePic = function(zoneId) {
+        window.tempProfilePic = null;
+        const zone = document.getElementById(zoneId);
+        if (zone) {
+            zone.innerHTML = `
+                <i class="fa-regular fa-image"></i>
+                <div style="font-weight: 600;">Upload Profile Picture</div>
+                <div style="font-size: 11px;">Drag & Drop or Click to browse (JPG, PNG)</div>
+                <input type="file" id="emp-profile-pic-input" accept="image/*" style="display: none;">
+            `;
+            const newInput = zone.querySelector('#emp-profile-pic-input');
+            if (newInput) {
+                newInput.addEventListener('change', () => {
+                    if (newInput.files.length) onProfilePicSelected(zone, newInput.files);
+                });
+            }
+        }
+    };
+
     const onProfilePicSelected = (zone, files) => {
         const file = files[0];
         const reader = new FileReader();
         reader.onload = (ev) => {
             zone.innerHTML = `
-                <img src="${ev.target.result}" alt="Profile Preview"
-                     style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--primary);">
+                <div style="position:relative; display:inline-block;">
+                    <img src="${ev.target.result}" alt="Profile Preview"
+                         style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--primary);">
+                    <button type="button" class="delete-doc-btn" onclick="window.deleteTempProfilePic('${zone.id}')" style="position:absolute;top:-5px;right:-10px;background:var(--danger);color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-xmark"></i></button>
+                </div>
                 <div style="font-weight:600;font-size:12px;">${file.name}</div>
                 <div style="font-size:11px;color:var(--text-muted);">Click to change</div>
                 <input type="file" id="emp-profile-pic-input" accept="image/*" style="display:none;">
@@ -3614,7 +3665,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.1);">
                     <div style="display:flex;align-items:center;gap:6px;overflow:hidden;">
                         <i class="fa-regular fa-file-lines" style="color:var(--primary);flex-shrink:0;"></i>
-                        <a href="${d.data}" target="_blank" style="color:inherit;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${d.name}">${d.name}</a>
+                        <a href="javascript:void(0)" onclick="window.openDocument('${d.data}', '${d.name}')" style="color:inherit;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${d.name}">${d.name}</a>
                     </div>
                     <button type="button" class="delete-doc-btn" onclick="window.deleteTempDocument(${idx}, '${zone.id}')" style="background:none;border:none;color:#ef4444;cursor:pointer;padding:2px 5px;"><i class="fa-solid fa-trash"></i></button>
                 </div>
