@@ -1748,10 +1748,31 @@ window.openEditEmployeeModal = function(userId) {
     const db = getDb();
     const user = db.users.find(u => u.id === userId);
     
+    const modalEl = document.getElementById('modal-employee');
+    if (modalEl) modalEl.classList.remove('modal-maximized', 'modal-minimized');
+    
     document.getElementById('modal-employee-title').textContent = user ? "Edit Profile" : "Add Team Member";
+    
+    let displayId = "Auto-generated";
+    if (user) {
+        displayId = user.displayId || user.id;
+    } else {
+        const num = db.users.length > 0 ? db.users.length + 100 : 100;
+        displayId = "EMP-" + String(num).padStart(4, '0');
+    }
+    
+    document.getElementById('emp-display-id').value = displayId;
     document.getElementById('emp-form-id').value = user ? user.id : "";
     document.getElementById('emp-name').value = user ? user.name : "";
     document.getElementById('emp-email').value = user ? user.email : "";
+    
+    document.getElementById('emp-father-name').value = (user && user.fatherName) ? user.fatherName : "";
+    document.getElementById('emp-gender').value = (user && user.gender) ? user.gender : "Male";
+    document.getElementById('emp-dob').value = (user && user.dob) ? user.dob : "";
+    document.getElementById('emp-cnic').value = (user && user.cnic) ? user.cnic : "";
+    document.getElementById('emp-marital-status').value = (user && user.maritalStatus) ? user.maritalStatus : "Single";
+    document.getElementById('emp-phone').value = (user && user.phone) ? user.phone : "";
+    document.getElementById('emp-emergency-contact').value = (user && user.emergencyContact) ? user.emergencyContact : "";
     
     // Password mandatory for new users only
     const passInput = document.getElementById('emp-password');
@@ -1824,6 +1845,7 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
     const db = getDb();
     
     const id = document.getElementById('emp-form-id').value;
+    const displayId = document.getElementById('emp-display-id').value;
     const name = document.getElementById('emp-name').value.trim();
     const email = document.getElementById('emp-email').value.trim();
     const password = document.getElementById('emp-password').value;
@@ -1831,9 +1853,17 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
     const managerId = document.getElementById('emp-manager').value;
     const status = document.getElementById('emp-status').value;
     
+    const fatherName = document.getElementById('emp-father-name').value.trim();
+    const gender = document.getElementById('emp-gender').value;
+    const dob = document.getElementById('emp-dob').value;
+    const cnic = document.getElementById('emp-cnic').value.trim();
+    const maritalStatus = document.getElementById('emp-marital-status').value;
+    const phone = document.getElementById('emp-phone').value.trim();
+    const emergencyContact = document.getElementById('emp-emergency-contact').value.trim();
+    
     // Validation
-    if (!name || !email) {
-        showToast("Validation Error", "All fields are required.", "error");
+    if (!name || !email || !cnic || !phone) {
+        showToast("Validation Error", "Name, Email, CNIC and Phone are required.", "error");
         return;
     }
     
@@ -1853,6 +1883,14 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
             user.role = role;
             user.managerId = managerId;
             user.status = status;
+            user.displayId = displayId;
+            user.fatherName = fatherName;
+            user.gender = gender;
+            user.dob = dob;
+            user.cnic = cnic;
+            user.maritalStatus = maritalStatus;
+            user.phone = phone;
+            user.emergencyContact = emergencyContact;
             
             saveDb(db);
             showToast("Success", `Profile updated successfully for ${name}.`);
@@ -1868,12 +1906,20 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
         const newId = "U_" + Date.now();
         db.users.push({
             id: newId,
+            displayId,
             name,
             email,
             password,
             role,
             managerId,
-            status
+            status,
+            fatherName,
+            gender,
+            dob,
+            cnic,
+            maritalStatus,
+            phone,
+            emergencyContact
         });
         
         saveDb(db);
@@ -2975,6 +3021,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     safeAddListener('modal-backdrop', 'click', closeAllModals);
     
+    // Modal Window Controls (Maximize / Minimize)
+    safeAddListener('btn-modal-maximize', 'click', () => {
+        const modal = document.getElementById('modal-employee');
+        if (modal) {
+            modal.classList.toggle('modal-maximized');
+            modal.classList.remove('modal-minimized');
+            const icon = document.querySelector('#btn-modal-maximize i');
+            if (modal.classList.contains('modal-maximized')) {
+                icon.className = 'fa-regular fa-window-restore';
+            } else {
+                icon.className = 'fa-regular fa-window-maximize';
+            }
+        }
+    });
+
+    safeAddListener('btn-modal-minimize', 'click', () => {
+        const modal = document.getElementById('modal-employee');
+        if (modal) {
+            modal.classList.toggle('modal-minimized');
+            modal.classList.remove('modal-maximized');
+            const maxIcon = document.querySelector('#btn-modal-maximize i');
+            if (maxIcon) maxIcon.className = 'fa-regular fa-window-maximize';
+        }
+    });
+    
     // Admin dashboard specific buttons
     safeAddListener('btn-admin-add-emp', 'click', () => openEditEmployeeModal(""));
     safeAddListener('btn-admin-add-emp-tab', 'click', () => openEditEmployeeModal(""));
@@ -3154,8 +3225,91 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
+    // ===== DROPZONE LOGIC (Profile Picture & Documents) =====
+    function setupDropzone(dropzoneId, inputId, onFilesSelected) {
+        const zone = document.getElementById(dropzoneId);
+        const input = document.getElementById(inputId);
+        if (!zone || !input) return;
+
+        // Click to open file browser
+        zone.addEventListener('click', () => input.click());
+
+        // Show file name(s) after selection via browser
+        input.addEventListener('change', () => {
+            if (input.files.length > 0) {
+                onFilesSelected(zone, input.files);
+            }
+        });
+
+        // Drag and drop events
+        zone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            zone.classList.add('dragover');
+        });
+        zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+        zone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            zone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                input.files = files;
+                onFilesSelected(zone, files);
+            }
+        });
+    }
+
+    // Profile picture dropzone – show thumbnail preview
+    const onProfilePicSelected = (zone, files) => {
+        const file = files[0];
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            zone.innerHTML = `
+                <img src="${ev.target.result}" alt="Profile Preview"
+                     style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--primary);">
+                <div style="font-weight:600;font-size:12px;">${file.name}</div>
+                <div style="font-size:11px;color:var(--text-muted);">Click to change</div>
+                <input type="file" id="emp-profile-pic-input" accept="image/*" style="display:none;">
+            `;
+            const newInput = zone.querySelector('#emp-profile-pic-input');
+            if (newInput) {
+                newInput.addEventListener('change', () => {
+                    if (newInput.files.length) onProfilePicSelected(zone, newInput.files);
+                });
+                zone.addEventListener('click', () => newInput.click(), { once: true });
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+    setupDropzone('dropzone-profile-pic', 'emp-profile-pic-input', onProfilePicSelected);
+
+    // Document dropzone – show file list
+    const onDocumentsSelected = (zone, files) => {
+        const fileList = Array.from(files).map(f => `
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;padding:3px 0;">
+                <i class="fa-regular fa-file-lines" style="color:var(--primary);"></i>${f.name}
+            </div>`).join('');
+        zone.innerHTML = `
+            <i class="fa-regular fa-folder-open"></i>
+            <div style="font-weight:600;">${files.length} File(s) Selected</div>
+            <div style="text-align:left;width:100%;">${fileList}</div>
+            <div style="font-size:11px;color:var(--text-muted);">Click to change</div>
+            <input type="file" id="emp-documents-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display:none;">
+        `;
+        const newInput = zone.querySelector('#emp-documents-input');
+        if (newInput) {
+            zone.addEventListener('click', () => newInput.click(), { once: true });
+            newInput.addEventListener('change', () => {
+                if (newInput.files.length) onDocumentsSelected(zone, newInput.files);
+            });
+        }
+    };
+    setupDropzone('dropzone-documents', 'emp-documents-input', onDocumentsSelected);
+
+
+
     const prevSession = sessionStorage.getItem('current_user');
     if (prevSession) {
+
         currentUser = JSON.parse(prevSession);
         const authPanel = document.getElementById('auth-panel');
         const appShell = document.getElementById('app-shell');

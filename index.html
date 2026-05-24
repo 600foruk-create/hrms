@@ -12,7 +12,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="styles.css?v=2.6">
+    <link rel="stylesheet" href="styles.css?v=2.7">
 </head>
 <body class="dark-mode">
     
@@ -1339,51 +1339,123 @@
     <div id="modal-backdrop" class="modal-backdrop hidden"></div>
 
     <!-- 1. Add/Edit Employee Modal -->
-    <div id="modal-employee" class="modal hidden">
+    <div id="modal-employee" class="modal modal-window hidden">
         <div class="modal-header">
             <h3 id="modal-employee-title">Add Employee</h3>
-            <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-header-controls">
+                <button type="button" class="modal-control" id="btn-modal-minimize" tooltip="Minimize"><i class="fa-solid fa-window-minimize"></i></button>
+                <button type="button" class="modal-control" id="btn-modal-maximize" tooltip="Maximize"><i class="fa-regular fa-window-maximize"></i></button>
+                <button type="button" class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
         </div>
         <form id="employee-form">
             <input type="hidden" id="emp-form-id">
             <div class="modal-body">
-                <div class="form-group">
-                    <label for="emp-name">Full Name</label>
-                    <input type="text" id="emp-name" class="form-control" required placeholder="John Doe">
+                
+                <h4 class="section-title">Personal Information</h4>
+                <div class="form-grid-3">
+                    <div class="form-group">
+                        <label for="emp-display-id">Employee ID</label>
+                        <input type="text" id="emp-display-id" class="form-control" readonly placeholder="Auto-generated">
+                    </div>
+                    <div class="form-group">
+                        <label for="emp-name">Full Name <span class="text-danger">*</span></label>
+                        <input type="text" id="emp-name" class="form-control" required placeholder="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="emp-father-name">Father Name</label>
+                        <input type="text" id="emp-father-name" class="form-control" placeholder="Optional">
+                    </div>
+                    <div class="form-group">
+                        <label for="emp-gender">Gender</label>
+                        <select id="emp-gender" class="form-control">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="emp-dob">Date of Birth</label>
+                        <input type="date" id="emp-dob" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="emp-cnic">CNIC / National ID <span class="text-danger">*</span></label>
+                        <input type="text" id="emp-cnic" class="form-control" required placeholder="00000-0000000-0">
+                    </div>
+                    <div class="form-group">
+                        <label for="emp-marital-status">Marital Status</label>
+                        <select id="emp-marital-status" class="form-control">
+                            <option value="Single">Single</option>
+                            <option value="Married">Married</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="emp-email">Email Address</label>
-                    <input type="email" id="emp-email" class="form-control" required placeholder="john.doe@company.com">
+
+                <h4 class="section-title">Contact Information</h4>
+                <div class="form-grid-3">
+                    <div class="form-group">
+                        <label for="emp-email">Email (Username) <span class="text-danger">*</span></label>
+                        <input type="email" id="emp-email" class="form-control" required placeholder="john.doe@company.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="emp-phone">Phone Number <span class="text-danger">*</span></label>
+                        <input type="tel" id="emp-phone" class="form-control" required placeholder="+1 234 567 8900">
+                    </div>
+                    <div class="form-group">
+                        <label for="emp-emergency-contact">Emergency Contact</label>
+                        <input type="tel" id="emp-emergency-contact" class="form-control" placeholder="Name & Number">
+                    </div>
                 </div>
-                <div class="form-group" id="emp-pass-group">
-                    <label for="emp-password">Password</label>
-                    <input type="password" id="emp-password" class="form-control" required placeholder="Min 6 characters">
+
+                <h4 class="section-title">System & Access</h4>
+                <div class="form-grid-3">
+                    <div class="form-group" id="emp-pass-group">
+                        <label for="emp-password">Password <span class="text-danger">*</span></label>
+                        <input type="password" id="emp-password" class="form-control" required placeholder="Min 6 characters">
+                    </div>
+                    <div class="form-group">
+                        <label for="emp-role">Role <span class="text-danger">*</span></label>
+                        <select id="emp-role" class="form-control" required>
+                            <option value="Employee">Employee</option>
+                            <option value="Manager">Manager</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="emp-manager-group">
+                        <label for="emp-manager">Assigned Manager</label>
+                        <select id="emp-manager" class="form-control">
+                            <option value="">None</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="emp-status">Status</label>
+                        <select id="emp-status" class="form-control" required>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="emp-role">Role</label>
-                    <select id="emp-role" class="form-control" required>
-                        <option value="Employee">Employee</option>
-                        <option value="Manager">Manager</option>
-                        <option value="Admin">Admin</option>
-                    </select>
+
+                <h4 class="section-title">Documents & Media</h4>
+                <div class="form-grid-2">
+                    <div class="dropzone" id="dropzone-profile-pic">
+                        <i class="fa-regular fa-image"></i>
+                        <div style="font-weight: 600;">Upload Profile Picture</div>
+                        <div style="font-size: 11px;">Drag & Drop or Click to browse (JPG, PNG)</div>
+                        <input type="file" id="emp-profile-pic-input" accept="image/*" style="display: none;">
+                    </div>
+                    <div class="dropzone" id="dropzone-documents">
+                        <i class="fa-regular fa-folder-open"></i>
+                        <div style="font-weight: 600;">Upload Documents</div>
+                        <div style="font-size: 11px;">CNIC, CV, Certificates (PDF, DOCX)</div>
+                        <input type="file" id="emp-documents-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display: none;">
+                    </div>
                 </div>
-                <div class="form-group" id="emp-manager-group">
-                    <label for="emp-manager">Assigned Manager</label>
-                    <select id="emp-manager" class="form-control">
-                        <option value="">None</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="emp-status">Status</label>
-                    <select id="emp-status" class="form-control" required>
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                    </select>
-                </div>
+
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline modal-close">Cancel</button>
-                <button type="submit" class="btn btn-primary" id="btn-save-employee">Save Employee</button>
+                <button type="submit" class="btn btn-primary" id="btn-save-employee"><i class="fa-solid fa-floppy-disk"></i> Save Employee</button>
             </div>
         </form>
     </div>
@@ -1649,6 +1721,6 @@
     <!-- GSAP for Yeti Animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <!-- Main JS Application script -->
-    <script src="app.js?v=2.8"></script>
+    <script src="app.js?v=2.9"></script>
 </body>
 </html>

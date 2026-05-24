@@ -1415,6 +1415,35 @@ body.light-mode .report-preview-container {
 @keyframes modalPop {
     to { transform: translate(-50%, -50%) scale(1); }
 }
+
+/* Expanded Modal Sizes */
+.modal-window {
+    max-width: 900px;
+    width: 95%;
+    transition: all 0.3s ease;
+}
+.modal-maximized {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) scale(1) !important;
+    border-radius: 0 !important;
+}
+.modal-minimized {
+    transform: translate(-50%, 0) scale(1) !important;
+    top: auto !important;
+    bottom: 0 !important;
+    height: 50px !important;
+    overflow: hidden;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+}
+.modal-minimized .modal-body,
+.modal-minimized .modal-footer {
+    display: none !important;
+}
 .modal-header {
     padding: 1.25rem 1.5rem;
     border-bottom: 1px solid var(--border-color);
@@ -1435,8 +1464,21 @@ body.light-mode .report-preview-container {
     cursor: pointer;
     transition: var(--transition);
 }
-.modal-close:hover {
+.modal-close:hover, .modal-control:hover {
     color: var(--text-primary);
+}
+.modal-header-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.modal-control {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 16px;
+    cursor: pointer;
+    transition: var(--transition);
 }
 .modal-body {
     padding: 1.5rem;
@@ -1449,6 +1491,57 @@ body.light-mode .report-preview-container {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
+}
+
+/* Form Grid Layouts */
+.form-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+.section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-top: 20px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+}
+
+/* Document Upload Dropzone */
+.dropzone {
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 30px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--text-secondary);
+    transition: var(--transition);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+.dropzone:hover, .dropzone.dragover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    color: var(--primary);
+}
+.dropzone i {
+    font-size: 30px;
+    color: var(--text-muted);
+}
+.dropzone:hover i, .dropzone.dragover i {
+    color: var(--primary);
 }
 .review-details {
     display: flex;
