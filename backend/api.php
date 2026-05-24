@@ -183,7 +183,7 @@ elseif ($action === 'save_all') {
         // 1. Sync Users
         $pdo->exec("DELETE FROM users");
         if (!empty($data['users'])) {
-            $stmt = $pdo->prepare("INSERT INTO users (id, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, documents, bloodGroup, designation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO users (id, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, documents) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             foreach ($data['users'] as $u) {
                 $stmt->execute([
                     $u['id'], $u['email'], $u['password'], $u['name'], $u['role'], 
@@ -192,9 +192,7 @@ elseif ($action === 'save_all') {
                     $u['startDate'] ?? null, 
                     $u['endDate'] ?? null,
                     $u['profilePic'] ?? null,
-                    $u['documents'] ? json_encode($u['documents']) : null,
-                    $u['bloodGroup'] ?? null,
-                    $u['designation'] ?? null
+                    $u['documents'] ? json_encode($u['documents']) : null
                 ]);
             }
         }
