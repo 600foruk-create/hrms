@@ -273,8 +273,9 @@ function handleLogin(usernameOrEmail, password) {
         }
         document.body.classList.remove('login-view');
         
-        // Clear search
-        document.getElementById('global-search').value = "";
+        // Clear search if exists
+        const searchBox = document.getElementById('global-search');
+        if (searchBox) searchBox.value = "";
         
         // Reset Navigation
         activeTab = 'dashboard';
