@@ -12,7 +12,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="styles.css?v=3.2">
+    <link rel="stylesheet" href="styles.css?v=3.1">
 </head>
 <body class="dark-mode login-view">
     
@@ -101,7 +101,7 @@
     <div id="app-shell" class="app-shell hidden">
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
-            <div class="sidebar-header" style="cursor: pointer;" onclick="switchTab('settings')">
+            <div class="sidebar-header">
                 <div class="logo" style="gap: 8px;">
                     <div class="logo-icon" id="sidebar-company-icon" style="background: transparent; box-shadow: none; padding: 0; width: auto; height: auto;">
                         <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -142,6 +142,10 @@
             <header class="topbar">
                 <div class="topbar-left">
                     <button class="sidebar-toggle" id="btn-sidebar-toggle"><i class="fa-solid fa-bars"></i></button>
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" placeholder="Search employees, tasks, reports..." id="global-search">
+                    </div>
                 </div>
                 <div class="topbar-right" style="gap: 12px; align-items: center; display: flex;">
                     <!-- Notifications -->
@@ -809,42 +813,27 @@
                                 <h3>Company Profile</h3>
                                 <p class="text-secondary mb-3">Update your company details and logo for the dashboard.</p>
                                 <form id="settings-company-form">
-                                    <h4 class="section-title">General Information</h4>
-                                    <div class="form-grid-2">
-                                        <div class="form-group">
-                                            <label for="company-name">Company Name <span class="text-danger">*</span></label>
-                                            <input type="text" id="company-name" class="form-control" required placeholder="OceanStack">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="company-email">Company Email</label>
-                                            <input type="email" id="company-email" class="form-control" placeholder="info@company.com">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="company-contact">Contact Number <span class="text-danger">*</span></label>
-                                            <input type="text" id="company-contact" class="form-control" required placeholder="+1 234 567 8900">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="company-website">Website</label>
-                                            <input type="url" id="company-website" class="form-control" placeholder="https://www.company.com">
-                                        </div>
-                                        <div class="form-group" style="grid-column: span 2;">
-                                            <label for="company-address">Complete Address <span class="text-danger">*</span></label>
-                                            <input type="text" id="company-address" class="form-control" required placeholder="123 Business Street, City, Country">
-                                        </div>
-                                    </div>
-                                    
-                                    <h4 class="section-title">Company Logo</h4>
                                     <div class="form-group">
-                                        <div class="dropzone" id="dropzone-company-logo">
-                                            <i class="fa-solid fa-cloud-arrow-up" style="font-size: 24px; margin-bottom: 5px;"></i>
-                                            <div style="font-weight: 600;">Upload Company Logo</div>
-                                            <div style="font-size: 12px; color: var(--text-muted);">Recommended size: 200x50px (PNG/JPG)</div>
-                                            <input type="file" id="company-logo-input" accept="image/*" style="display: none;">
-                                        </div>
+                                        <label for="company-name">Company Name</label>
+                                        <input type="text" id="company-name" class="form-control" required>
                                     </div>
-                                    <div style="margin-top: 15px; display: flex; justify-content: flex-end;">
-                                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-building"></i> Save Company Profile</button>
+                                    <div class="form-group">
+                                        <label for="company-address">Address</label>
+                                        <input type="text" id="company-address" class="form-control" required>
                                     </div>
+                                    <div class="form-group">
+                                        <label for="company-contact">Contact Number</label>
+                                        <input type="text" id="company-contact" class="form-control" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="company-fax">Fax</label>
+                                        <input type="text" id="company-fax" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="company-logo">Logo URL (Optional)</label>
+                                        <input type="text" id="company-logo" class="form-control" placeholder="https://example.com/logo.png">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-building"></i> Save Profile</button>
                                 </form>
                             </div>
                             
@@ -1732,6 +1721,6 @@
     <!-- GSAP for Yeti Animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <!-- Main JS Application script -->
-    <script src="app.js?v=3.4"></script>
+    <script src="app.js?v=3.3"></script>
 </body>
 </html>
