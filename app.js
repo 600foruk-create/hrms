@@ -1980,7 +1980,6 @@ window.openEditEmployeeModal = function(userId) {
             `;
             const picInput = picDropzone.querySelector('#emp-profile-pic-input');
             if(picInput) {
-                picDropzone.addEventListener('click', () => picInput.click(), { once: true });
                 picInput.addEventListener('change', () => { if (picInput.files.length) onProfilePicSelected(picDropzone, picInput.files); });
             }
         } else {
@@ -1992,7 +1991,6 @@ window.openEditEmployeeModal = function(userId) {
             `;
             const picInput = picDropzone.querySelector('#emp-profile-pic-input');
             if(picInput) {
-                picDropzone.addEventListener('click', () => picInput.click(), { once: true });
                 picInput.addEventListener('change', () => { if (picInput.files.length) onProfilePicSelected(picDropzone, picInput.files); });
             }
         }
@@ -2000,31 +1998,7 @@ window.openEditEmployeeModal = function(userId) {
     
     const docDropzone = document.getElementById('dropzone-documents');
     if (docDropzone) {
-        if (window.tempDocuments.length > 0) {
-            const fileList = window.tempDocuments.map(d => `
-                <div style="display:flex;align-items:center;gap:6px;font-size:12px;padding:3px 0;">
-                    <i class="fa-regular fa-file-lines" style="color:var(--primary);"></i><a href="${d.data}" target="_blank" style="color:inherit;text-decoration:none;">${d.name}</a>
-                </div>`).join('');
-            docDropzone.innerHTML = `
-                <i class="fa-regular fa-folder-open"></i>
-                <div style="font-weight:600;">${window.tempDocuments.length} File(s) Saved</div>
-                <div style="text-align:left;width:100%;">${fileList}</div>
-                <div style="font-size:11px;color:var(--text-muted);">Click to change/overwrite</div>
-                <input type="file" id="emp-documents-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display:none;">
-            `;
-        } else {
-            docDropzone.innerHTML = `
-                <i class="fa-regular fa-folder-open"></i>
-                <div style="font-weight: 600;">Upload Documents</div>
-                <div style="font-size: 11px;">CNIC, CV, Certificates (PDF, DOCX)</div>
-                <input type="file" id="emp-documents-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display: none;">
-            `;
-        }
-        const docInput = docDropzone.querySelector('#emp-documents-input');
-        if (docInput) {
-            docDropzone.addEventListener('click', () => docInput.click(), { once: true });
-            docInput.addEventListener('change', () => { if (docInput.files.length) window.onDocumentsSelected(docDropzone, docInput.files); });
-        }
+        window.renderDocumentsDropzone(docDropzone);
     }
 
     toggleManagerGroup();
@@ -3566,8 +3540,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         const input = document.getElementById(inputId);
         if (!zone || !input) return;
 
-        // Click to open file browser
-        zone.addEventListener('click', () => input.click());
+        // Click to open file browser (ignore clicks on links or buttons)
+        zone.addEventListener('click', (e) => {
+            if (e.target.tagName.toLowerCase() === 'a' || e.target.closest('.delete-doc-btn')) {
+                return; // Let the link or button handle it
+            }
+            const currentInput = zone.querySelector('input[type="file"]');
+            if (currentInput) currentInput.click();
+        });
 
         // Show file name(s) after selection via browser
         input.addEventListener('change', () => {
@@ -3587,7 +3567,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             zone.classList.remove('dragover');
             const files = e.dataTransfer.files;
             if (files.length > 0) {
-                input.files = files;
+                const currentInput = zone.querySelector('input[type="file"]');
+                if (currentInput) {
+                    try { currentInput.files = files; } catch (err) { }
+                }
                 onFilesSelected(zone, files);
             }
         });
@@ -3610,7 +3593,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 newInput.addEventListener('change', () => {
                     if (newInput.files.length) onProfilePicSelected(zone, newInput.files);
                 });
-                zone.addEventListener('click', () => newInput.click(), { once: true });
             }
             window.tempProfilePic = ev.target.result;
         };
@@ -3619,10 +3601,52 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.onProfilePicSelected = onProfilePicSelected;
     setupDropzone('dropzone-profile-pic', 'emp-profile-pic-input', onProfilePicSelected);
 
-    // Document dropzone – show file list
+    window.deleteTempDocument = function(index, zoneId) {
+        window.tempDocuments.splice(index, 1);
+        const zone = document.getElementById(zoneId);
+        if (zone) window.renderDocumentsDropzone(zone);
+    };
+
+    window.renderDocumentsDropzone = function(zone) {
+        if (!window.tempDocuments) window.tempDocuments = [];
+        if (window.tempDocuments.length > 0) {
+            const fileListHTML = window.tempDocuments.map((d, idx) => `
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <div style="display:flex;align-items:center;gap:6px;overflow:hidden;">
+                        <i class="fa-regular fa-file-lines" style="color:var(--primary);flex-shrink:0;"></i>
+                        <a href="${d.data}" target="_blank" style="color:inherit;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${d.name}">${d.name}</a>
+                    </div>
+                    <button type="button" class="delete-doc-btn" onclick="window.deleteTempDocument(${idx}, '${zone.id}')" style="background:none;border:none;color:#ef4444;cursor:pointer;padding:2px 5px;"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `).join('');
+            
+            zone.innerHTML = `
+                <i class="fa-regular fa-folder-open"></i>
+                <div style="font-weight:600;">${window.tempDocuments.length} File(s) Saved</div>
+                <div style="text-align:left;width:100%;max-height:80px;overflow-y:auto;margin:5px 0;">${fileListHTML}</div>
+                <div style="font-size:11px;color:var(--text-muted);">Click or drag to add more</div>
+                <input type="file" id="emp-documents-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display:none;">
+            `;
+        } else {
+            zone.innerHTML = `
+                <i class="fa-regular fa-folder-open"></i>
+                <div style="font-weight: 600;">Upload Documents</div>
+                <div style="font-size: 11px;">CNIC, CV, Certificates (PDF, DOCX)</div>
+                <input type="file" id="emp-documents-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display: none;">
+            `;
+        }
+        
+        const newInput = zone.querySelector('#emp-documents-input');
+        if (newInput) {
+            newInput.addEventListener('change', () => {
+                if (newInput.files.length) window.onDocumentsSelected(zone, newInput.files);
+            });
+        }
+    };
+
+    // Document dropzone – handle new files and append
     window.onDocumentsSelected = async (zone, files) => {
-        window.tempDocuments = [];
-        const fileListHTML = [];
+        if (!window.tempDocuments) window.tempDocuments = [];
         
         for (let i = 0; i < files.length; i++) {
             const f = files[i];
@@ -3632,27 +3656,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 reader.readAsDataURL(f);
             });
             window.tempDocuments.push({ name: f.name, data: dataUrl });
-            fileListHTML.push(`
-                <div style="display:flex;align-items:center;gap:6px;font-size:12px;padding:3px 0;">
-                    <i class="fa-regular fa-file-lines" style="color:var(--primary);"></i><a href="${dataUrl}" target="_blank" style="color:inherit;text-decoration:none;">${f.name}</a>
-                </div>
-            `);
         }
         
-        zone.innerHTML = `
-            <i class="fa-regular fa-folder-open"></i>
-            <div style="font-weight:600;">${files.length} File(s) Selected</div>
-            <div style="text-align:left;width:100%;max-height:80px;overflow-y:auto;">${fileListHTML.join('')}</div>
-            <div style="font-size:11px;color:var(--text-muted);">Click to change/overwrite</div>
-            <input type="file" id="emp-documents-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display:none;">
-        `;
-        const newInput = zone.querySelector('#emp-documents-input');
-        if (newInput) {
-            zone.addEventListener('click', () => newInput.click(), { once: true });
-            newInput.addEventListener('change', () => {
-                if (newInput.files.length) window.onDocumentsSelected(zone, newInput.files);
-            });
-        }
+        window.renderDocumentsDropzone(zone);
     };
     setupDropzone('dropzone-documents', 'emp-documents-input', window.onDocumentsSelected);
 
