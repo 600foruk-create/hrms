@@ -251,41 +251,41 @@ function handleLogin(usernameOrEmail, password) {
         // Set Session
         currentUser = user;
         sessionStorage.setItem('current_user', JSON.stringify(user));
+        
+        // Auto Mark Attendance for Employee on Login
+        if (user.role === 'Employee') {
+            markAutoAttendance(user);
+        }
+        
+        logAudit(`Logged in successfully to ${user.role} Portal.`);
+        
+        // Transition UI
+        const authPanel = document.getElementById('auth-panel');
+        const appShell = document.getElementById('app-shell');
+        if (authPanel) {
+            authPanel.classList.add('hidden');
+            authPanel.style.setProperty('display', 'none', 'important');
+        }
+        if (appShell) {
+            appShell.classList.remove('hidden');
+            appShell.style.setProperty('display', 'flex', 'important');
+        }
+        
+        // Clear search
+        document.getElementById('global-search').value = "";
+        
+        // Reset Navigation
+        activeTab = 'dashboard';
+        renderSidebar();
+        applyCompanyProfile(db);
+        switchTab('dashboard');
+        setupSessionTimer();
+        
+        showToast("Welcome Back", `Successfully signed in as ${user.name}.`);
     } catch (e) {
         console.error("handleLogin error: ", e);
         showToast("Error", "An unexpected login error occurred.", "error");
     }
-    
-    // Auto Mark Attendance for Employee on Login
-    if (user.role === 'Employee') {
-        markAutoAttendance(user);
-    }
-    
-    logAudit(`Logged in successfully to ${user.role} Portal.`);
-    
-    // Transition UI
-    const authPanel = document.getElementById('auth-panel');
-    const appShell = document.getElementById('app-shell');
-    if (authPanel) {
-        authPanel.classList.add('hidden');
-        authPanel.style.setProperty('display', 'none', 'important');
-    }
-    if (appShell) {
-        appShell.classList.remove('hidden');
-        appShell.style.setProperty('display', 'flex', 'important');
-    }
-    
-    // Clear search
-    document.getElementById('global-search').value = "";
-    
-    // Reset Navigation
-    activeTab = 'dashboard';
-    renderSidebar();
-    applyCompanyProfile(db);
-    switchTab('dashboard');
-    setupSessionTimer();
-    
-    showToast("Welcome Back", `Successfully signed in as ${user.name}.`);
 }
 
 function handleLogout() {
