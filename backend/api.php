@@ -35,8 +35,14 @@ try {
         }
     }
 }
+// Auto-add new columns if they are missing
+try {
+    $pdo->exec("ALTER TABLE users ADD COLUMN `bloodGroup` varchar(10) DEFAULT NULL");
+} catch (Exception $e) {}
 
-}
+try {
+    $pdo->exec("ALTER TABLE users ADD COLUMN `designation` varchar(100) DEFAULT NULL");
+} catch (Exception $e) {}
 
 // Ensure company_profile table exists (in case of an update)
 try {
@@ -105,6 +111,13 @@ if ($action === 'load_all') {
             } else {
                 $u['documents'] = [];
             }
+        }
+        if (empty($usersRecords)) {
+            // Re-inject default admin if table is empty to prevent lockout
+            $pdo->exec("INSERT INTO users (id, email, password, name, role, status) VALUES ('U1', 'admin@company.com', 'admin123', 'admin', 'Admin', 'Active')");
+            $stmt = $pdo->query("SELECT * FROM users");
+            $usersRecords = $stmt->fetchAll();
+            foreach ($usersRecords as &$u) { $u['documents'] = []; }
         }
         $dbState['users'] = $usersRecords;
 
