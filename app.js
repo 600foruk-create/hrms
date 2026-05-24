@@ -91,17 +91,6 @@ async function syncServer() {
             notifications: []
         };
     }
-    a
-    // Guarantee Admin credentials exist and are normalized in the runtime DB
-    if (window.hrmsDatabase && Array.isArray(window.hrmsDatabase.users)) {
-        window.hrmsDatabase.users.forEach(u => {
-            if (u.role === 'Admin' || u.name === 'Syed Admin' || u.name === 'admin' || u.id === 'U1') {
-                u.name = 'admin';
-                u.email = 'admin@hrms.com';
-                u.password = 'admin123';
-            }
-        });
-    }
 }
 
 function getDb() {
@@ -153,7 +142,7 @@ function addNotification(userId, message) {
         time: timestamp
     });
     saveDb(db);
-
+    
     // If the active user matches, refresh notifications
     if (currentUser && currentUser.id === userId) {
         renderNotifications();
@@ -165,11 +154,11 @@ function showToast(title, message, type = 'success') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-
+    
     let iconClass = 'fa-circle-check';
     if (type === 'error') iconClass = 'fa-circle-exclamation';
     if (type === 'warning') iconClass = 'fa-triangle-exclamation';
-
+    
     toast.innerHTML = `
         <i class="fa-solid ${iconClass}"></i>
         <div class="toast-content">
@@ -178,15 +167,15 @@ function showToast(title, message, type = 'success') {
         </div>
         <button class="toast-close"><i class="fa-solid fa-xmark"></i></button>
     `;
-
+    
     container.appendChild(toast);
-
+    
     // Close button event
     toast.querySelector('.toast-close').addEventListener('click', () => {
         toast.style.animation = 'slideOut 0.3s forwards';
         setTimeout(() => toast.remove(), 300);
     });
-
+    
     // Auto remove
     setTimeout(() => {
         if (toast.parentNode) {
@@ -214,7 +203,7 @@ function applyCompanyProfile(db) {
     if (!db || !db.weights) return;
     const companyName = db.weights['company_name'] || 'HRMSFlow';
     const companyLogo = db.weights['company_logo'] || '';
-
+    
     document.getElementById('sidebar-company-name').innerHTML = `${companyName}`;
     const logoIcon = document.getElementById('sidebar-company-icon');
     if (companyLogo) {
@@ -228,7 +217,7 @@ function applyCompanyProfile(db) {
             </svg>
         `;
     }
-
+    
     // Fill the form if it exists
     if (document.getElementById('company-name')) {
         document.getElementById('company-name').value = companyName !== 'HRMSFlow' ? companyName : '';
@@ -267,7 +256,7 @@ function handleLogin(usernameOrEmail, password) {
             u && ((u.name && u.name.toLowerCase() === usernameOrEmail.toLowerCase()) || (u.email && u.email.toLowerCase() === usernameOrEmail.toLowerCase()))
             && u.password === password
         );
-
+        
         if (!user) {
             showToast("Login Failed", "Invalid username or password.", "error");
             // Shake the form
@@ -275,23 +264,23 @@ function handleLogin(usernameOrEmail, password) {
             if (card) { card.style.animation = 'none'; setTimeout(() => { card.style.animation = 'shake 0.4s ease'; }, 10); }
             return;
         }
-
+        
         if (user.status !== 'Active') {
             showToast("Access Denied", "Your account is currently inactive. Please contact Admin.", "warning");
             return;
         }
-
+        
         // Set Session
         currentUser = user;
         sessionStorage.setItem('current_user', JSON.stringify(user));
-
+        
         // Auto Mark Attendance for Employee on Login
         if (user.role === 'Employee') {
             markAutoAttendance(user);
         }
-
+        
         logAudit(`Logged in successfully to ${user.role} Portal.`);
-
+        
         // Transition UI
         const authPanel = document.getElementById('auth-panel');
         const appShell = document.getElementById('app-shell');
@@ -303,17 +292,17 @@ function handleLogin(usernameOrEmail, password) {
             appShell.classList.remove('hidden');
             appShell.style.setProperty('display', 'flex', 'important');
         }
-
+        
         // Clear search
         document.getElementById('global-search').value = "";
-
+        
         // Reset Navigation
         activeTab = 'dashboard';
         renderSidebar();
         applyCompanyProfile(db);
         switchTab('dashboard');
         setupSessionTimer();
-
+        
         showToast("Welcome Back", `Successfully signed in as ${user.name}.`);
     } catch (e) {
         console.error("handleLogin error: ", e);
@@ -323,13 +312,13 @@ function handleLogin(usernameOrEmail, password) {
 
 function handleLogout() {
     if (!currentUser) return;
-
+    
     logAudit(`Logged out of the system.`);
-
+    
     currentUser = null;
     sessionStorage.removeItem('current_user');
     clearTimeout(inactivityTimeout);
-
+    
     // Reset views
     const authPanel = document.getElementById('auth-panel');
     const appShell = document.getElementById('app-shell');
@@ -346,14 +335,14 @@ function handleLogout() {
         }
     }
     document.getElementById('login-form').reset();
-
+    
     showToast("Signed Out", "You have been securely logged out.");
 }
 
 // Auto Logout Inactivity Engine
 function setupSessionTimer() {
     clearTimeout(inactivityTimeout);
-
+    
     const resetTimer = () => {
         if (!currentUser) return;
         clearTimeout(inactivityTimeout);
@@ -369,7 +358,7 @@ function setupSessionTimer() {
     document.onkeypress = resetTimer;
     document.onclick = resetTimer;
     document.onscroll = resetTimer;
-
+    
     resetTimer();
 }
 
@@ -377,7 +366,7 @@ function setupSessionTimer() {
 function markAutoAttendance(employee) {
     const db = getDb();
     const today = new Date().toISOString().split('T')[0];
-
+    
     const alreadyMarked = db.attendance.find(a => a.employeeId === employee.id && a.date === today);
     if (!alreadyMarked) {
         db.attendance.push({
@@ -399,13 +388,13 @@ function renderSidebar() {
     const nameEl = document.getElementById('sidebar-user-name');
     const roleEl = document.getElementById('sidebar-user-role');
     const avatarEl = document.getElementById('sidebar-avatar');
-
+    
     const dropdownNameEl = document.getElementById('dropdown-user-name');
     const dropdownEmailEl = document.getElementById('dropdown-user-email');
     const topbarAvatarEl = document.getElementById('topbar-avatar');
-
+    
     if (!currentUser) return;
-
+    
     // Profile information (with null checks since they are removed from sidebar header)
     if (nameEl) nameEl.textContent = currentUser.name;
     if (roleEl) {
@@ -413,16 +402,16 @@ function renderSidebar() {
         roleEl.className = `role-badge badge-role ${currentUser.role.toLowerCase()}`;
     }
     if (avatarEl) avatarEl.textContent = currentUser.name.charAt(0).toUpperCase();
-
+    
     dropdownNameEl.textContent = currentUser.name;
     dropdownEmailEl.textContent = currentUser.email;
     topbarAvatarEl.textContent = currentUser.name.charAt(0).toUpperCase();
-
+    
     const topbarNameLabel = document.getElementById('topbar-user-name-label');
     const topbarRoleLabel = document.getElementById('topbar-user-role-label');
     if (topbarNameLabel) topbarNameLabel.textContent = currentUser.name;
     if (topbarRoleLabel) topbarRoleLabel.textContent = currentUser.role === 'Admin' ? 'HR Admin' : currentUser.role;
-
+    
     const quickActionsEl = document.getElementById('sidebar-quick-actions');
     if (quickActionsEl) {
         if (currentUser.role === 'Employee') {
@@ -431,9 +420,9 @@ function renderSidebar() {
             quickActionsEl.style.display = 'grid';
         }
     }
-
+    
     let menuHTML = '';
-
+    
     if (currentUser.role === 'Admin') {
         menuHTML = `
             <a class="sidebar-link active" data-tab="dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
@@ -462,16 +451,16 @@ function renderSidebar() {
             <a class="sidebar-link" data-tab="leave"><i class="fa-solid fa-umbrella-beach"></i> Leave Request</a>
         `;
     }
-
+    
     sidebarMenu.innerHTML = menuHTML;
-
+    
     // Add Click Listeners to Sidebar Items
     document.querySelectorAll('.sidebar-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const tabId = link.getAttribute('data-tab');
             switchTab(tabId);
-
+            
             // Close mobile sidebar if active
             document.getElementById('app-shell').querySelector('.sidebar').classList.remove('active');
         });
@@ -480,7 +469,7 @@ function renderSidebar() {
 
 function switchTab(tabId) {
     activeTab = tabId;
-
+    
     // Update Sidebar Selection active state
     document.querySelectorAll('.sidebar-link').forEach(link => {
         if (link.getAttribute('data-tab') === tabId) {
@@ -489,7 +478,7 @@ function switchTab(tabId) {
             link.classList.remove('active');
         }
     });
-
+    
     // Toggle role outer views
     const views = ['admin-view', 'manager-view', 'employee-view'];
     views.forEach(v => {
@@ -500,11 +489,11 @@ function switchTab(tabId) {
             document.getElementById(v).classList.add('hidden');
         }
     });
-
+    
     // Toggle tab sub-views
     const rolePrefix = currentUser.role.toLowerCase();
     const tabSelector = `${rolePrefix}-tab-${tabId}`;
-
+    
     document.querySelectorAll(`#${rolePrefix}-view .tab-view`).forEach(tab => {
         if (tab.id === tabSelector) {
             tab.classList.add('active');
@@ -512,14 +501,14 @@ function switchTab(tabId) {
             tab.classList.remove('active');
         }
     });
-
+    
     // Render dynamic updates on tab select
     refreshTabContent(tabId);
 }
 
 function refreshTabContent(tabId) {
     const role = currentUser.role;
-
+    
     if (role === 'Admin') {
         if (tabId === 'dashboard') renderAdminDashboard();
         else if (tabId === 'employees') renderAdminEmployeesTab();
@@ -545,7 +534,7 @@ function refreshTabContent(tabId) {
 }
 
 // ==================== RENDERING: ADMIN VIEWS ====================
-window.quickApproveTask = function (id, status) {
+window.quickApproveTask = function(id, status) {
     const db = getDb();
     const sub = db.productivity.find(p => p.id === id);
     if (sub) {
@@ -560,20 +549,20 @@ window.quickApproveTask = function (id, status) {
 
 function renderAdminDashboard() {
     const db = getDb();
-
+    
     // Set current date
     const dateDisplay = document.getElementById('dashboard-date-display');
     if (dateDisplay) {
         dateDisplay.textContent = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     }
-
+    
     // Aggregate calculations
     const employees = db.users.filter(u => u.role === 'Employee');
     const managers = db.users.filter(u => u.role === 'Manager');
     const pendingLeaves = db.leaves.filter(l => l.status === 'Pending').length;
     const pendingProductivity = db.productivity.filter(p => p.status === 'Pending').length;
     const totalPendingApprovals = pendingLeaves + pendingProductivity;
-
+    
     // Attendance % Today
     const today = new Date().toISOString().split('T')[0];
     const totalEmpCount = employees.length;
@@ -582,22 +571,22 @@ function renderAdminDashboard() {
     const lateTodayCount = db.attendance.filter(a => a.date === today && a.status === 'Late').length;
     const leaveTodayCount = db.attendance.filter(a => a.date === today && a.status === 'On Leave').length;
     const attendancePct = totalEmpCount > 0 ? Math.round((presentTodayCount / totalEmpCount) * 100) : 0;
-
+    
     // Tasks Submitted / Completed
     const tasksSubmitted = db.productivity.length;
     const tasksCompleted = db.productivity.filter(p => p.status === 'Approved').length;
     const completionRate = tasksSubmitted > 0 ? Math.round((tasksCompleted / tasksSubmitted) * 100) : 0;
-
+        
     // Apply Metrics to Cards
     document.getElementById('admin-metric-total-emp').textContent = totalEmpCount;
     document.getElementById('admin-metric-attendance').textContent = `${presentTodayCount} (${attendancePct}%)`;
     document.getElementById('admin-metric-pending-leaves').textContent = totalPendingApprovals;
     document.getElementById('admin-metric-tasks-submitted').textContent = tasksSubmitted;
     document.getElementById('admin-metric-tasks-completed').textContent = tasksCompleted;
-
+    
     const rateEl = document.getElementById('admin-metric-completion-rate');
     if (rateEl) rateEl.textContent = `${completionRate}% completion rate`;
-
+    
     // 1. Daily Attendance Doughnut Chart
     let present = presentTodayCount;
     let absent = absentTodayCount;
@@ -617,19 +606,19 @@ function renderAdminDashboard() {
     const absentPct = Math.round((absent / total) * 100);
     const latePct = Math.round((late / total) * 100);
     const leavePct = Math.round((leave / total) * 100);
-
+    
     const absStart = presentPct;
     const lateStart = absStart + absentPct;
     const leaveStart = lateStart + latePct;
-
+    
     const doughnutEl = document.getElementById('attendance-doughnut-chart');
     if (doughnutEl) {
         doughnutEl.style.background = `conic-gradient(var(--success) 0% ${absStart}%, var(--danger) ${absStart}% ${lateStart}%, var(--warning) ${lateStart}% ${leaveStart}%, var(--primary) ${leaveStart}% 100%)`;
     }
-
+    
     const doughnutTotalEl = document.getElementById('attendance-doughnut-total');
     if (doughnutTotalEl) doughnutTotalEl.textContent = total;
-
+    
     const lPres = document.getElementById('legend-present-val');
     const lAbs = document.getElementById('legend-absent-val');
     const lLate = document.getElementById('legend-late-val');
@@ -648,60 +637,60 @@ function renderAdminDashboard() {
     }
     const dailySubmitted = last7Days.map(day => db.productivity.filter(p => p.date === day).length);
     const dailyCompleted = last7Days.map(day => db.productivity.filter(p => p.date === day && p.status === 'Approved').length);
-
+    
     const maxVal = Math.max(5, ...dailySubmitted, ...dailyCompleted);
     const getSvgY = (val) => 95 - (val / maxVal) * 80;
-
+    
     const subCoords = dailySubmitted.map((val, idx) => ({ x: idx * 50, y: getSvgY(val) }));
     const compCoords = dailyCompleted.map((val, idx) => ({ x: idx * 50, y: getSvgY(val) }));
-
+    
     const buildPath = (coords) => {
         if (coords.length === 0) return '';
         let path = `M ${coords[0].x} ${coords[0].y}`;
         for (let i = 1; i < coords.length; i++) {
-            const cpX = coords[i - 1].x + 25;
-            const cpY1 = coords[i - 1].y;
+            const cpX = coords[i-1].x + 25;
+            const cpY1 = coords[i-1].y;
             const cpY2 = coords[i].y;
             path += ` C ${cpX} ${cpY1}, ${cpX} ${cpY2}, ${coords[i].x} ${coords[i].y}`;
         }
         return path;
     };
-
+    
     const buildAreaPath = (coords, linePath) => {
         if (!linePath) return '';
         return `${linePath} L 300 100 L 0 100 Z`;
-    };
-
-    const subLine = buildPath(subCoords);
-    const subArea = buildAreaPath(subCoords, subLine);
-    const compLine = buildPath(compCoords);
-    const compArea = buildAreaPath(compCoords, compLine);
-
-    const subLineEl = document.querySelector('.svg-chart-line.submitted');
-    const subAreaEl = document.querySelector('.svg-chart-area.submitted');
-    const compLineEl = document.querySelector('.svg-chart-line.completed');
-    const compAreaEl = document.querySelector('.svg-chart-area.completed');
-
-    if (subLineEl) subLineEl.setAttribute('d', subLine);
-    if (subAreaEl) subAreaEl.setAttribute('d', subArea);
-    if (compLineEl) compLineEl.setAttribute('d', compLine);
-    if (compAreaEl) compAreaEl.setAttribute('d', compArea);
-
-    const subDots = document.querySelectorAll('.svg-chart-dot.submitted');
-    const compDots = document.querySelectorAll('.svg-chart-dot.completed');
-
-    subCoords.forEach((coord, idx) => {
-        if (subDots[idx]) {
-            subDots[idx].setAttribute('cx', coord.x);
-            subDots[idx].setAttribute('cy', coord.y);
-        }
-    });
-    compCoords.forEach((coord, idx) => {
-        if (compDots[idx]) {
-            compDots[idx].setAttribute('cx', coord.x);
-            compDots[idx].setAttribute('cy', coord.y);
-        }
-    });
+     };
+     
+     const subLine = buildPath(subCoords);
+     const subArea = buildAreaPath(subCoords, subLine);
+     const compLine = buildPath(compCoords);
+     const compArea = buildAreaPath(compCoords, compLine);
+     
+     const subLineEl = document.querySelector('.svg-chart-line.submitted');
+     const subAreaEl = document.querySelector('.svg-chart-area.submitted');
+     const compLineEl = document.querySelector('.svg-chart-line.completed');
+     const compAreaEl = document.querySelector('.svg-chart-area.completed');
+     
+     if (subLineEl) subLineEl.setAttribute('d', subLine);
+     if (subAreaEl) subAreaEl.setAttribute('d', subArea);
+     if (compLineEl) compLineEl.setAttribute('d', compLine);
+     if (compAreaEl) compAreaEl.setAttribute('d', compArea);
+     
+     const subDots = document.querySelectorAll('.svg-chart-dot.submitted');
+     const compDots = document.querySelectorAll('.svg-chart-dot.completed');
+     
+     subCoords.forEach((coord, idx) => {
+         if (subDots[idx]) {
+             subDots[idx].setAttribute('cx', coord.x);
+             subDots[idx].setAttribute('cy', coord.y);
+         }
+     });
+     compCoords.forEach((coord, idx) => {
+         if (compDots[idx]) {
+             compDots[idx].setAttribute('cx', coord.x);
+             compDots[idx].setAttribute('cy', coord.y);
+         }
+     });
 
     // 3. Recent Task Approvals Cards
     const approvalsListEl = document.getElementById('admin-task-approvals-list');
@@ -710,14 +699,14 @@ function renderAdminDashboard() {
         const pendingTasks = db.productivity.filter(p => p.status === 'Pending');
         const approvedTasks = db.productivity.filter(p => p.status === 'Approved');
         const displayTasks = [...pendingTasks, ...approvedTasks].slice(0, 3);
-
+        
         if (displayTasks.length === 0) {
             approvalsListEl.innerHTML = '<div class="empty-state">No tasks to display</div>';
         } else {
             displayTasks.forEach(task => {
                 const initials = task.employeeName ? task.employeeName.charAt(0).toUpperCase() : 'E';
                 const statusClass = task.status === 'Approved' ? 'approved' : (task.status === 'Rejected' ? 'rejected' : 'pending');
-
+                
                 let actionButtons = '';
                 if (task.status === 'Pending') {
                     actionButtons = `
@@ -729,7 +718,7 @@ function renderAdminDashboard() {
                 } else {
                     actionButtons = `<span class="badge-status ${statusClass}">${task.status}</span>`;
                 }
-
+                
                 approvalsListEl.innerHTML += `
                     <div class="approval-card bg-glass-card" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: rgba(255,255,255,0.01);">
                         <div style="display: flex; align-items: center; gap: 10px;">
@@ -758,7 +747,7 @@ function renderAdminDashboard() {
             });
         });
     }
-
+    
     const recentTasksTableBody = document.getElementById('admin-recent-tasks-table-body');
     if (recentTasksTableBody) {
         recentTasksTableBody.innerHTML = '';
@@ -767,8 +756,8 @@ function renderAdminDashboard() {
         if (activeFilter !== 'All') {
             list = list.filter(item => item.status === activeFilter);
         }
-        list.sort((a, b) => new Date(b.date) - new Date(a.date));
-
+        list.sort((a,b) => new Date(b.date) - new Date(a.date));
+        
         if (list.length === 0) {
             recentTasksTableBody.innerHTML = `<tr><td colspan="6" class="empty-state">No tasks found.</td></tr>`;
         } else {
@@ -776,7 +765,7 @@ function renderAdminDashboard() {
                 const emp = db.users.find(u => u.id === task.employeeId);
                 const dept = emp ? (emp.managerId === 'U2' ? 'Operations' : (emp.managerId === 'U3' ? 'Billing' : 'Support')) : 'Support';
                 const statusClass = task.status === 'Approved' ? 'approved' : (task.status === 'Rejected' ? 'rejected' : 'pending');
-
+                
                 let actionBtn = '';
                 if (task.status === 'Pending') {
                     actionBtn = `
@@ -788,7 +777,7 @@ function renderAdminDashboard() {
                 } else {
                     actionBtn = `<div style="text-align: center; color: var(--text-muted); font-size: 11px;">Processed</div>`;
                 }
-
+                
                 recentTasksTableBody.innerHTML += `
                     <tr>
                         <td class="bold">${task.tasks.join(', ')}</td>
@@ -812,17 +801,17 @@ function renderAdminDashboard() {
             { name: 'Billing', managerId: 'U3', icon: 'fa-file-invoice-dollar', color: '#c084fc' },
             { name: 'Customer Support', managerId: '', icon: 'fa-headset', color: '#4ade80' }
         ];
-
+        
         depts.forEach(d => {
             const deptUsers = db.users.filter(u => u.role === 'Employee' && (d.managerId ? u.managerId === d.managerId : (!u.managerId || u.managerId === 'U1')));
             const deptUserIds = deptUsers.map(u => u.id);
             const deptTasks = db.productivity.filter(p => deptUserIds.includes(p.employeeId));
-
+            
             const completed = deptTasks.filter(p => p.status === 'Approved').length;
             const pending = deptTasks.filter(p => p.status === 'Pending').length;
             const rejected = deptTasks.filter(p => p.status === 'Rejected').length;
             const totalTasks = deptTasks.length;
-
+            
             let c = completed, p = pending, r = rejected;
             if (totalTasks === 0) {
                 // Mock stats to guarantee dashboard looks live/rich initially
@@ -833,12 +822,12 @@ function renderAdminDashboard() {
             const sum = c + p + r;
             const maxCap = Math.max(12, sum + 2);
             const remaining = maxCap - sum;
-
+            
             const pctCompleted = (c / maxCap) * 100;
             const pctPending = (p / maxCap) * 100;
             const pctRejected = (r / maxCap) * 100;
             const pctRemaining = (remaining / maxCap) * 100;
-
+            
             deptListEl.innerHTML += `
                 <div class="department-status-item" style="margin-bottom: 12px;">
                     <div class="dept-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
@@ -860,7 +849,7 @@ function renderAdminDashboard() {
     const taskCountEl = document.getElementById('upcoming-task-count');
     const leaveCountEl = document.getElementById('upcoming-leave-count');
     const timesheetCountEl = document.getElementById('upcoming-timesheet-count');
-
+    
     if (taskCountEl) taskCountEl.textContent = pendingProductivity;
     if (leaveCountEl) leaveCountEl.textContent = pendingLeaves;
     if (timesheetCountEl) timesheetCountEl.textContent = db.attendance.filter(a => a.date === today && a.status === 'Late').length || 2;
@@ -871,7 +860,7 @@ function renderAdminEmployeesTab() {
     const empTableBody = document.getElementById('admin-tab-employees-table-body');
     const mgrTableBody = document.getElementById('admin-tab-managers-table-body');
     const teamsContainer = document.getElementById('admin-tab-teams-container');
-
+    
     // Helper to get name initials for avatars
     const getInitials = (name) => {
         if (!name) return 'E';
@@ -882,7 +871,7 @@ function renderAdminEmployeesTab() {
     if (empTableBody) {
         empTableBody.innerHTML = '';
         const employeesList = db.users.filter(user => user.role === 'Employee' && user.id !== currentUser.id);
-
+        
         if (employeesList.length === 0) {
             empTableBody.innerHTML = `<tr><td colspan="6" class="empty-state">No employees found.</td></tr>`;
         } else {
@@ -891,7 +880,7 @@ function renderAdminEmployeesTab() {
                 const mgrName = mgr ? mgr.name : '<span class="text-muted">None</span>';
                 const roleClass = user.role.toLowerCase();
                 const statusClass = user.status === 'Active' ? 'badge-active' : 'badge-inactive';
-
+                
                 empTableBody.innerHTML += `
                     <tr>
                         <td class="bold">
@@ -926,14 +915,14 @@ function renderAdminEmployeesTab() {
     if (mgrTableBody) {
         mgrTableBody.innerHTML = '';
         const managersList = db.users.filter(user => user.role === 'Manager' && user.id !== currentUser.id);
-
+        
         if (managersList.length === 0) {
             mgrTableBody.innerHTML = `<tr><td colspan="5" class="empty-state">No managers found.</td></tr>`;
         } else {
             managersList.forEach(user => {
                 const roleClass = user.role.toLowerCase();
                 const statusClass = user.status === 'Active' ? 'badge-active' : 'badge-inactive';
-
+                
                 mgrTableBody.innerHTML += `
                     <tr>
                         <td class="bold">
@@ -967,11 +956,11 @@ function renderAdminEmployeesTab() {
     if (teamsContainer) {
         teamsContainer.innerHTML = '';
         const managers = db.users.filter(user => user.role === 'Manager');
-
+        
         managers.forEach(manager => {
             const mgrInitials = getInitials(manager.name);
             const teamEmployees = db.users.filter(u => u.role === 'Employee' && u.managerId === manager.id);
-
+            
             let membersHTML = '';
             if (teamEmployees.length === 0) {
                 membersHTML = `<div style="color: var(--text-muted); font-size: 12px; font-style: italic; text-align: center; padding: 15px 0;">No team members assigned</div>`;
@@ -1017,7 +1006,7 @@ function renderAdminEmployeesTab() {
         // Group unassigned or support employees
         const activeMgrIds = managers.map(m => m.id);
         const unassignedEmployees = db.users.filter(u => u.role === 'Employee' && (!u.managerId || !activeMgrIds.includes(u.managerId)));
-
+        
         if (unassignedEmployees.length > 0) {
             let membersHTML = '';
             unassignedEmployees.forEach(emp => {
@@ -1061,7 +1050,7 @@ function renderAdminAttendanceTab() {
     const db = getDb();
     const filterDate = document.getElementById('admin-attendance-filter-date').value;
     const filterEmp = document.getElementById('admin-attendance-filter-employee').value;
-
+    
     // Fill Employee options
     const empSelect = document.getElementById('admin-attendance-filter-employee');
     const prevEmpVal = empSelect.value;
@@ -1072,14 +1061,14 @@ function renderAdminAttendanceTab() {
 
     const tableBody = document.getElementById('admin-attendance-table-body');
     tableBody.innerHTML = '';
-
+    
     let logs = db.attendance;
     if (filterDate) logs = logs.filter(l => l.date === filterDate);
     if (filterEmp) logs = logs.filter(l => l.employeeId === filterEmp);
-
+    
     // Sort by date desc
-    logs.sort((a, b) => new Date(b.date) - new Date(a.date));
-
+    logs.sort((a,b) => new Date(b.date) - new Date(a.date));
+    
     if (logs.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="6" class="empty-state">No attendance records found.</td></tr>`;
     } else {
@@ -1088,7 +1077,7 @@ function renderAdminAttendanceTab() {
             const empRole = emp ? emp.role : 'Employee';
             const mgr = emp ? db.users.find(u => u.id === emp.managerId) : null;
             const mgrName = mgr ? mgr.name : '<span class="text-muted">None</span>';
-
+            
             tableBody.innerHTML += `
                 <tr>
                     <td>${log.date}</td>
@@ -1107,17 +1096,17 @@ function renderAdminProductivityTab() {
     const db = getDb();
     const filterDate = document.getElementById('admin-prod-filter-date').value;
     const filterTask = document.getElementById('admin-prod-filter-task').value;
-
+    
     const tableBody = document.getElementById('admin-prod-table-body');
     tableBody.innerHTML = '';
-
+    
     let submissions = db.productivity;
     if (filterDate) submissions = submissions.filter(s => s.date === filterDate);
     if (filterTask) submissions = submissions.filter(s => s.tasks.includes(filterTask));
-
+    
     // Sort date desc
-    submissions.sort((a, b) => new Date(b.date) - new Date(a.date));
-
+    submissions.sort((a,b) => new Date(b.date) - new Date(a.date));
+    
     if (submissions.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="8" class="empty-state">No productivity logs found.</td></tr>`;
     } else {
@@ -1143,7 +1132,7 @@ function renderAdminLeaveTab() {
     const db = getDb();
     const tableBody = document.getElementById('admin-leave-table-body');
     tableBody.innerHTML = '';
-
+    
     // Sort leaves status: pending first, then by date
     const leaves = db.leaves;
     leaves.sort((a, b) => {
@@ -1151,7 +1140,7 @@ function renderAdminLeaveTab() {
         if (a.status !== 'Pending' && b.status === 'Pending') return 1;
         return new Date(b.startDate) - new Date(a.startDate);
     });
-
+    
     if (leaves.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="8" class="empty-state">No leave applications found.</td></tr>`;
     } else {
@@ -1163,7 +1152,7 @@ function renderAdminLeaveTab() {
             } else {
                 actionBtnHTML = `<span class="text-muted">Reviewed</span>`;
             }
-
+            
             tableBody.innerHTML += `
                 <tr>
                     <td class="bold">${l.employeeName}</td>
@@ -1183,7 +1172,7 @@ function renderAdminAnnouncementsTab() {
     const db = getDb();
     const container = document.getElementById('admin-tab-announcements-list');
     container.innerHTML = '';
-
+    
     if (db.announcements.length === 0) {
         container.innerHTML = `<div class="empty-state">No company announcements found. Create one above.</div>`;
     } else {
@@ -1211,14 +1200,14 @@ function renderAdminAnnouncementsTab() {
 function renderAdminSettingsTab() {
     const db = getDb();
     const weights = db.weights;
-
+    
     // Fill Weights form fields
     document.getElementById('weight-billing').value = weights["Billing"];
     document.getElementById('weight-followup').value = weights["Follow-up"];
     document.getElementById('weight-posting').value = weights["Payment Posting"];
     document.getElementById('weight-eligibility').value = weights["Eligibility Check"];
     document.getElementById('weight-reporting').value = weights["Report Preparation"];
-
+    
     renderAuditLogs();
 }
 
@@ -1226,7 +1215,7 @@ function renderAuditLogs() {
     const db = getDb();
     const logList = document.getElementById('admin-audit-log-list');
     logList.innerHTML = '';
-
+    
     if (db.auditLogs.length === 0) {
         logList.innerHTML = `<div class="empty-state">No system logs recorded.</div>`;
     } else {
@@ -1237,7 +1226,7 @@ function renderAuditLogs() {
             if (log.details.includes('Approved') || log.details.includes('Save')) logIcon = '<i class="fa-solid fa-circle-check text-success"></i>';
             if (log.details.includes('Rejected') || log.details.includes('Delete')) logIcon = '<i class="fa-solid fa-triangle-exclamation text-danger"></i>';
             if (log.details.includes('weights') || log.details.includes('configuration')) logIcon = '<i class="fa-solid fa-sliders text-warning"></i>';
-
+            
             logList.innerHTML += `
                 <div class="audit-log-item">
                     ${logIcon}
@@ -1256,33 +1245,33 @@ function renderManagerDashboard() {
     const db = getDb();
     const teamMembers = db.users.filter(u => u.role === 'Employee' && u.managerId === currentUser.id);
     const teamSize = teamMembers.length;
-
+    
     document.getElementById('manager-team-name-sub').textContent = `${currentUser.name}'s Reporting Team`;
-
+    
     // Team pending leaves
     const teamEmails = teamMembers.map(t => t.id);
     const pendingLeaves = db.leaves.filter(l => teamEmails.includes(l.employeeId) && l.status === 'Pending').length;
-
+    
     // Team attendance today
     const today = new Date().toISOString().split('T')[0];
     const presentCount = db.attendance.filter(a => a.date === today && a.status === 'Present' && teamEmails.includes(a.employeeId)).length;
     const attendancePct = teamSize > 0 ? Math.round((presentCount / teamSize) * 100) : 0;
-
+    
     // Average Team Productivity Score
     const teamProd = db.productivity.filter(p => teamEmails.includes(p.employeeId) && p.status === 'Approved');
-    const avgScore = teamProd.length > 0
-        ? Math.round(teamProd.reduce((sum, p) => sum + p.score, 0) / teamProd.length)
+    const avgScore = teamProd.length > 0 
+        ? Math.round(teamProd.reduce((sum, p) => sum + p.score, 0) / teamProd.length) 
         : 0;
-
+        
     document.getElementById('manager-metric-team-size').textContent = teamSize;
     document.getElementById('manager-metric-pending-leaves').textContent = pendingLeaves;
     document.getElementById('manager-metric-today-attendance').textContent = attendancePct + "%";
     document.getElementById('manager-metric-avg-score').textContent = avgScore;
-
+    
     // Team list table
     const tableBody = document.getElementById('manager-team-table-body');
     tableBody.innerHTML = '';
-
+    
     if (teamMembers.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="5" class="empty-state">No employees assigned to you yet.</td></tr>`;
     } else {
@@ -1290,13 +1279,13 @@ function renderManagerDashboard() {
             // Find today activity notes
             const todayProd = db.productivity.find(p => p.employeeId === emp.id && p.date === today);
             const todayActivity = todayProd ? todayProd.notes : '<span class="text-muted">No activity submitted today</span>';
-
+            
             // Total overall productivity score
             const empProdSubmissions = db.productivity.filter(p => p.employeeId === emp.id && p.status === 'Approved');
             const totalScore = empProdSubmissions.reduce((sum, p) => sum + p.score, 0);
-
+            
             const statusClass = emp.status === 'Active' ? 'badge-active' : 'badge-inactive';
-
+            
             tableBody.innerHTML += `
                 <tr>
                     <td class="bold">${emp.name}</td>
@@ -1310,7 +1299,7 @@ function renderManagerDashboard() {
             `;
         });
     }
-
+    
     // Team pending leaves panel
     const leavesList = document.getElementById('manager-pending-leaves-list');
     leavesList.innerHTML = '';
@@ -1334,7 +1323,7 @@ function renderManagerDashboard() {
             `;
         });
     }
-
+    
     // Team Pending Productivity Reviews Panel
     const reviewsList = document.getElementById('manager-pending-prod-list');
     reviewsList.innerHTML = '';
@@ -1365,9 +1354,9 @@ function renderManagerTeamTab() {
     const teamMembers = db.users.filter(u => u.role === 'Employee' && u.managerId === currentUser.id);
     const tableBody = document.getElementById('manager-tab-team-table-body');
     tableBody.innerHTML = '';
-
+    
     const today = new Date().toISOString().split('T')[0];
-
+    
     if (teamMembers.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="6" class="empty-state">No assigned team members.</td></tr>`;
     } else {
@@ -1375,12 +1364,12 @@ function renderManagerTeamTab() {
             // Attendance today status
             const attToday = db.attendance.find(a => a.employeeId === emp.id && a.date === today);
             const attStatus = attToday ? attToday.status : 'Absent';
-
+            
             // Score
             const totalScore = db.productivity.filter(p => p.employeeId === emp.id && p.status === 'Approved').reduce((s, p) => s + p.score, 0);
             const statusClass = emp.status === 'Active' ? 'badge-active' : 'badge-inactive';
             const attClass = attStatus === 'Present' ? 'approved' : 'rejected';
-
+            
             tableBody.innerHTML += `
                 <tr>
                     <td class="bold">${emp.name}</td>
@@ -1402,15 +1391,15 @@ function renderManagerAttendanceTab() {
     const team = db.users.filter(u => u.role === 'Employee' && u.managerId === currentUser.id);
     const teamEmails = team.map(t => t.id);
     const filterDate = document.getElementById('manager-attendance-filter-date').value;
-
+    
     const tableBody = document.getElementById('manager-attendance-table-body');
     tableBody.innerHTML = '';
-
+    
     let logs = db.attendance.filter(a => teamEmails.includes(a.employeeId));
     if (filterDate) logs = logs.filter(l => l.date === filterDate);
-
-    logs.sort((a, b) => new Date(b.date) - new Date(a.date));
-
+    
+    logs.sort((a,b) => new Date(b.date) - new Date(a.date));
+    
     if (logs.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="4" class="empty-state">No team attendance logs found.</td></tr>`;
     } else {
@@ -1431,7 +1420,7 @@ function renderManagerProductivityTab() {
     const db = getDb();
     const team = db.users.filter(u => u.role === 'Employee' && u.managerId === currentUser.id);
     const teamEmails = team.map(t => t.id);
-
+    
     // Fill employee filter select options
     const empSelect = document.getElementById('manager-prod-filter-emp');
     const selectedEmp = empSelect.value;
@@ -1439,18 +1428,18 @@ function renderManagerProductivityTab() {
     team.forEach(e => {
         empSelect.innerHTML += `<option value="${e.id}" ${selectedEmp === e.id ? 'selected' : ''}>${e.name}</option>`;
     });
-
+    
     const filterStatus = document.getElementById('manager-prod-filter-status').value;
-
+    
     const tableBody = document.getElementById('manager-prod-table-body');
     tableBody.innerHTML = '';
-
+    
     let submissions = db.productivity.filter(p => teamEmails.includes(p.employeeId));
     if (selectedEmp) submissions = submissions.filter(s => s.employeeId === selectedEmp);
     if (filterStatus) submissions = submissions.filter(s => s.status === filterStatus);
-
-    submissions.sort((a, b) => new Date(b.date) - new Date(a.date));
-
+    
+    submissions.sort((a,b) => new Date(b.date) - new Date(a.date));
+    
     if (submissions.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="9" class="empty-state">No productivity logs found.</td></tr>`;
     } else {
@@ -1462,7 +1451,7 @@ function renderManagerProductivityTab() {
             } else {
                 actionsHTML = `<span class="text-muted italic">${sub.comments || 'Reviewed'}</span>`;
             }
-
+            
             tableBody.innerHTML += `
                 <tr>
                     <td>${sub.date}</td>
@@ -1484,17 +1473,17 @@ function renderManagerLeaveTab() {
     const db = getDb();
     const team = db.users.filter(u => u.role === 'Employee' && u.managerId === currentUser.id);
     const teamEmails = team.map(t => t.id);
-
+    
     const tableBody = document.getElementById('manager-leave-table-body');
     tableBody.innerHTML = '';
-
+    
     const leaves = db.leaves.filter(l => teamEmails.includes(l.employeeId));
     leaves.sort((a, b) => {
         if (a.status === 'Pending' && b.status !== 'Pending') return -1;
         if (a.status !== 'Pending' && b.status === 'Pending') return 1;
         return new Date(b.startDate) - new Date(a.startDate);
     });
-
+    
     if (leaves.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="7" class="empty-state">No team leave requests found.</td></tr>`;
     } else {
@@ -1506,7 +1495,7 @@ function renderManagerLeaveTab() {
             } else {
                 actionsHTML = `<span class="text-muted">Reviewed</span>`;
             }
-
+            
             tableBody.innerHTML += `
                 <tr>
                     <td class="bold">${l.employeeName}</td>
@@ -1526,15 +1515,15 @@ function renderManagerLeaveTab() {
 function renderEmployeeDashboard() {
     const db = getDb();
     document.getElementById('employee-welcome-title').textContent = `Welcome Back, ${currentUser.name}!`;
-
+    
     // Attendance Today Card
     const today = new Date().toISOString().split('T')[0];
     const todayAtt = db.attendance.find(a => a.employeeId === currentUser.id && a.date === today);
     const attendanceVal = todayAtt ? todayAtt.status : 'Absent';
-
+    
     const attEl = document.getElementById('employee-metric-attendance');
     attEl.textContent = attendanceVal;
-
+    
     const iconContainer = document.getElementById('employee-attendance-icon');
     if (attendanceVal === 'Present') {
         attEl.className = 'value text-success';
@@ -1543,28 +1532,28 @@ function renderEmployeeDashboard() {
         attEl.className = 'value text-danger';
         iconContainer.className = 'card-icon bg-danger-light text-danger';
     }
-
+    
     // Total Leaves Taken approved
     const totalLeaves = db.leaves.filter(l => l.employeeId === currentUser.id && l.status === 'Approved').length;
     document.getElementById('employee-metric-leaves').textContent = totalLeaves;
-
+    
     // Pending requests Count (leaves + productivity)
     const pendingLeaves = db.leaves.filter(l => l.employeeId === currentUser.id && l.status === 'Pending').length;
     const pendingProd = db.productivity.filter(p => p.employeeId === currentUser.id && p.status === 'Pending').length;
     document.getElementById('employee-metric-pending').textContent = pendingLeaves + pendingProd;
-
+    
     // Productivity Score Today (approved or adjusted)
     const todayProd = db.productivity.find(p => p.employeeId === currentUser.id && p.date === today);
     const scoreVal = todayProd ? todayProd.score : 0;
     document.getElementById('employee-metric-score').textContent = scoreVal;
-
+    
     // Dashboard personal productivity table
     const tableBody = document.getElementById('employee-dashboard-prod-table');
     tableBody.innerHTML = '';
-
+    
     const myProd = db.productivity.filter(p => p.employeeId === currentUser.id);
-    myProd.sort((a, b) => new Date(b.date) - new Date(a.date));
-
+    myProd.sort((a,b) => new Date(b.date) - new Date(a.date));
+    
     if (myProd.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="6" class="empty-state">No productivity logs submitted yet.</td></tr>`;
     } else {
@@ -1582,21 +1571,21 @@ function renderEmployeeDashboard() {
             `;
         });
     }
-
+    
     // Dashboard leave status
     const leavesList = document.getElementById('employee-dashboard-leaves-list');
     leavesList.innerHTML = '';
-
+    
     const myLeaves = db.leaves.filter(l => l.employeeId === currentUser.id);
-    myLeaves.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
-
+    myLeaves.sort((a,b) => new Date(b.startDate) - new Date(a.startDate));
+    
     if (myLeaves.length === 0) {
         leavesList.innerHTML = `<div class="empty-state">No leave applications submitted.</div>`;
     } else {
         myLeaves.slice(0, 4).forEach(l => {
             const statusClass = l.status === 'Approved' ? 'approved' : (l.status === 'Rejected' ? 'rejected' : 'pending');
             const commentHTML = l.comments ? `<p class="comment mt-1">Comment: <strong class="text-primary">${l.comments}</strong></p>` : '';
-
+            
             leavesList.innerHTML += `
                 <div class="leave-mini-card">
                     <div class="leave-mini-card-header">
@@ -1609,12 +1598,12 @@ function renderEmployeeDashboard() {
             `;
         });
     }
-
+    
     // Dashboard announcements
     const announceList = document.getElementById('employee-announcements-list');
     announceList.innerHTML = '';
     const filteredAnnouncements = db.announcements.filter(a => a.target === 'All' || a.target === 'Employee');
-
+    
     if (filteredAnnouncements.length === 0) {
         announceList.innerHTML = `<div class="empty-state">No announcements.</div>`;
     } else {
@@ -1637,10 +1626,10 @@ function renderEmployeeAttendanceTab() {
     const db = getDb();
     const tableBody = document.getElementById('employee-tab-attendance-table');
     tableBody.innerHTML = '';
-
+    
     const myAtt = db.attendance.filter(a => a.employeeId === currentUser.id);
-    myAtt.sort((a, b) => new Date(b.date) - new Date(a.date));
-
+    myAtt.sort((a,b) => new Date(b.date) - new Date(a.date));
+    
     if (myAtt.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="3" class="empty-state">No attendance records.</td></tr>`;
     } else {
@@ -1660,10 +1649,10 @@ function renderEmployeeProductivityTab() {
     const db = getDb();
     const tableBody = document.getElementById('employee-tab-productivity-table');
     tableBody.innerHTML = '';
-
+    
     const myProd = db.productivity.filter(p => p.employeeId === currentUser.id);
-    myProd.sort((a, b) => new Date(b.date) - new Date(a.date));
-
+    myProd.sort((a,b) => new Date(b.date) - new Date(a.date));
+    
     if (myProd.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="8" class="empty-state">No productivity entries recorded.</td></tr>`;
     } else {
@@ -1689,10 +1678,10 @@ function renderEmployeeLeaveTab() {
     const db = getDb();
     const tableBody = document.getElementById('employee-tab-leave-table');
     tableBody.innerHTML = '';
-
+    
     const myLeaves = db.leaves.filter(l => l.employeeId === currentUser.id);
-    myLeaves.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
-
+    myLeaves.sort((a,b) => new Date(b.startDate) - new Date(a.startDate));
+    
     if (myLeaves.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="6" class="empty-state">No leave applications submitted.</td></tr>`;
     } else {
@@ -1717,12 +1706,12 @@ function renderNotifications() {
     const db = getDb();
     const panelList = document.getElementById('notifications-list');
     const badgeEl = document.getElementById('notification-badge-count');
-
+    
     if (!currentUser) return;
-
+    
     const myNotifications = db.notifications.filter(n => n.userId === currentUser.id);
     const unreadCount = myNotifications.filter(n => !n.read).length;
-
+    
     // Badge pulse handler
     if (unreadCount > 0) {
         badgeEl.textContent = unreadCount;
@@ -1730,7 +1719,7 @@ function renderNotifications() {
     } else {
         badgeEl.classList.add('hidden');
     }
-
+    
     panelList.innerHTML = '';
     if (myNotifications.length === 0) {
         panelList.innerHTML = `<div class="empty-state">No notifications.</div>`;
@@ -1771,17 +1760,17 @@ function openModal(modalId) {
 }
 
 // 1. Employee Profiles Modal
-window.viewUserProfile = function (userId) {
+window.viewUserProfile = function(userId) {
     const db = getDb();
     const user = db.users.find(u => u.id === userId);
     if (!user) return;
-
+    
     document.getElementById('profile-name').textContent = user.name;
     document.getElementById('profile-role').textContent = user.role;
     document.getElementById('profile-role').className = `role-badge badge-role ${user.role.toLowerCase()}`;
     document.getElementById('profile-email').textContent = user.email;
     document.getElementById('profile-status').textContent = user.status;
-
+    
     // Profile photo preview
     const avatarEl = document.getElementById('profile-avatar');
     if (user.profilePic) {
@@ -1789,7 +1778,7 @@ window.viewUserProfile = function (userId) {
     } else {
         avatarEl.innerHTML = user.name.charAt(0).toUpperCase();
     }
-
+    
     // New fields display
     document.getElementById('profile-emp-id').textContent = user.empId || user.id;
     document.getElementById('profile-father-name').textContent = user.fatherName || '-';
@@ -1799,7 +1788,7 @@ window.viewUserProfile = function (userId) {
     document.getElementById('profile-marital-status').textContent = user.maritalStatus || '-';
     document.getElementById('profile-phone').textContent = user.phone || '-';
     document.getElementById('profile-emergency').textContent = user.emergencyContact || '-';
-
+    
     const mgrRow = document.getElementById('profile-row-manager');
     if (user.role === 'Employee') {
         const mgr = db.users.find(u => u.id === user.managerId);
@@ -1808,7 +1797,7 @@ window.viewUserProfile = function (userId) {
     } else {
         mgrRow.style.display = 'none';
     }
-
+    
     // Documents section display
     const docContainer = document.getElementById('profile-documents-list');
     docContainer.innerHTML = '';
@@ -1836,22 +1825,22 @@ window.viewUserProfile = function (userId) {
                 docContainer.appendChild(btn);
             }
         };
-
+        
         setupDocButton(user.documents.cnic, 'CNIC Scan', 'fa-regular fa-id-card');
         setupDocButton(user.documents.cv, 'CV / Resume', 'fa-regular fa-file-pdf');
         setupDocButton(user.documents.cert, 'Certificates', 'fa-solid fa-graduation-cap');
     } else {
         docContainer.innerHTML = '<span style="font-size: 12px; color: var(--text-muted); font-style: italic;">No documents uploaded.</span>';
     }
-
+    
     openModal('modal-profile');
 };
 
 // 2. Add / Edit Employees Form (Admin & Manager)
-window.openEditEmployeeModal = function (userId) {
+window.openEditEmployeeModal = function(userId) {
     const db = getDb();
     const user = db.users.find(u => u.id === userId);
-
+    
     // Reset minimized/maximized modal states
     const modalEl = document.getElementById('modal-employee');
     if (modalEl) {
@@ -1859,12 +1848,12 @@ window.openEditEmployeeModal = function (userId) {
         const backdrop = document.getElementById('modal-backdrop');
         if (backdrop) backdrop.classList.remove('hidden');
     }
-
+    
     document.getElementById('modal-employee-title').textContent = user ? "Edit Profile" : "Add Team Member";
     document.getElementById('emp-form-id').value = user ? user.id : "";
     document.getElementById('emp-name').value = user ? user.name : "";
     document.getElementById('emp-email').value = user ? user.email : "";
-
+    
     // Auto generated Employee ID
     let nextId = "";
     if (user) {
@@ -1879,7 +1868,7 @@ window.openEditEmployeeModal = function (userId) {
         nextId = `EMP-${maxNum + 1}`;
     }
     document.getElementById('emp-id').value = nextId;
-
+    
     // New fields prefill
     document.getElementById('emp-father-name').value = user ? (user.fatherName || "") : "";
     document.getElementById('emp-gender').value = user ? (user.gender || "") : "";
@@ -1888,7 +1877,7 @@ window.openEditEmployeeModal = function (userId) {
     document.getElementById('emp-marital-status').value = user ? (user.maritalStatus || "") : "";
     document.getElementById('emp-phone').value = user ? (user.phone || "") : "";
     document.getElementById('emp-emergency-contact').value = user ? (user.emergencyContact || "") : "";
-
+    
     // Password mandatory for new users only
     const passInput = document.getElementById('emp-password');
     if (user) {
@@ -1899,7 +1888,7 @@ window.openEditEmployeeModal = function (userId) {
         document.getElementById('emp-pass-group').style.display = 'block';
         passInput.value = "";
     }
-
+    
     // Profile pic preview
     const picWrapper = document.getElementById('emp-pic-preview-wrapper');
     if (user && user.profilePic) {
@@ -1907,7 +1896,7 @@ window.openEditEmployeeModal = function (userId) {
     } else {
         picWrapper.innerHTML = `<i class="fa-regular fa-user"></i>`;
     }
-
+    
     // Reset file uploads
     document.querySelectorAll('.upload-zone').forEach(zone => {
         zone.classList.remove('has-file');
@@ -1915,17 +1904,17 @@ window.openEditEmployeeModal = function (userId) {
     document.getElementById('label-cnic-file').textContent = "Select or drop file";
     document.getElementById('label-cv-file').textContent = "Select or drop file";
     document.getElementById('label-cert-file').textContent = "Select or drop file";
-
+    
     const picInput = document.getElementById('emp-profile-pic');
     const cnicInput = document.getElementById('emp-doc-cnic');
     const cvInput = document.getElementById('emp-doc-cv');
     const certInput = document.getElementById('emp-doc-cert');
-
+    
     picInput.value = "";
     cnicInput.value = "";
     cvInput.value = "";
     certInput.value = "";
-
+    
     delete picInput.dataset.base64;
     delete cnicInput.dataset.base64;
     delete cnicInput.dataset.filename;
@@ -1949,7 +1938,7 @@ window.openEditEmployeeModal = function (userId) {
             document.getElementById('label-cert-file').textContent = user.documents.cert.name || "Certificate Uploaded";
         }
     }
-
+    
     // Dynamically inject roles based on active user
     const roleSelect = document.getElementById('emp-role');
     roleSelect.innerHTML = '';
@@ -1958,25 +1947,25 @@ window.openEditEmployeeModal = function (userId) {
         roleSelect.innerHTML += '<option value="Manager">Manager</option>';
     }
     roleSelect.innerHTML += '<option value="Employee">Employee</option>';
-
+    
     document.getElementById('emp-role').value = user ? user.role : "Employee";
     document.getElementById('emp-status').value = user ? user.status : "Active";
-
+    
     // Fill reporting managers dropdown
     const managerSelect = document.getElementById('emp-manager');
     managerSelect.innerHTML = '<option value="">None / Unassigned</option>';
     db.users.filter(u => u.role === 'Manager' || u.role === 'Admin').forEach(mgr => {
         managerSelect.innerHTML += `<option value="${mgr.id}">${mgr.name}</option>`;
     });
-
+    
     document.getElementById('emp-manager').value = (user && user.managerId) ? user.managerId : "";
-
+    
     // Role-based restrictions for Manager
     if (currentUser && currentUser.role === 'Manager') {
         document.getElementById('emp-role').value = "Employee";
         document.getElementById('emp-role').style.pointerEvents = 'none';
         document.getElementById('emp-role').style.opacity = '0.7';
-
+        
         document.getElementById('emp-manager').value = currentUser.id;
         document.getElementById('emp-manager').style.pointerEvents = 'none';
         document.getElementById('emp-manager').style.opacity = '0.7';
@@ -1986,9 +1975,9 @@ window.openEditEmployeeModal = function (userId) {
         document.getElementById('emp-manager').style.pointerEvents = 'auto';
         document.getElementById('emp-manager').style.opacity = '1';
     }
-
+    
     toggleManagerGroup();
-
+    
     openModal('modal-employee');
 };
 
@@ -2007,7 +1996,7 @@ function toggleManagerGroup() {
 document.getElementById('employee-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const db = getDb();
-
+    
     const id = document.getElementById('emp-form-id').value;
     const name = document.getElementById('emp-name').value.trim();
     const email = document.getElementById('emp-email').value.trim();
@@ -2015,7 +2004,7 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
     const role = document.getElementById('emp-role').value;
     const managerId = document.getElementById('emp-manager').value;
     const status = document.getElementById('emp-status').value;
-
+    
     const empId = document.getElementById('emp-id').value;
     const fatherName = document.getElementById('emp-father-name').value.trim();
     const gender = document.getElementById('emp-gender').value;
@@ -2024,32 +2013,32 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
     const maritalStatus = document.getElementById('emp-marital-status').value;
     const phone = document.getElementById('emp-phone').value.trim();
     const emergencyContact = document.getElementById('emp-emergency-contact').value.trim();
-
+    
     // Read base64 file datasets
     const picInput = document.getElementById('emp-profile-pic');
     const cnicInput = document.getElementById('emp-doc-cnic');
     const cvInput = document.getElementById('emp-doc-cv');
     const certInput = document.getElementById('emp-doc-cert');
-
+    
     const profilePic = picInput.dataset.base64 || "";
-
+    
     const docCnic = cnicInput.dataset.base64 ? { data: cnicInput.dataset.base64, name: cnicInput.dataset.filename } : null;
     const docCv = cvInput.dataset.base64 ? { data: cvInput.dataset.base64, name: cvInput.dataset.filename } : null;
     const docCert = certInput.dataset.base64 ? { data: certInput.dataset.base64, name: certInput.dataset.filename } : null;
-
+    
     // Validation
     if (!name || !email) {
         showToast("Validation Error", "All fields are required.", "error");
         return;
     }
-
+    
     // Email conflict check
     const emailConflict = db.users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.id !== id);
     if (emailConflict) {
         showToast("Conflict Error", "Email address already assigned to another user.", "error");
         return;
     }
-
+    
     if (id) {
         // Edit Mode
         const user = db.users.find(u => u.id === id);
@@ -2067,14 +2056,14 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
             user.maritalStatus = maritalStatus;
             user.phone = phone;
             user.emergencyContact = emergencyContact;
-
+            
             if (profilePic) user.profilePic = profilePic;
-
+            
             if (!user.documents) user.documents = {};
             if (docCnic) user.documents.cnic = docCnic;
             if (docCv) user.documents.cv = docCv;
             if (docCert) user.documents.cert = docCert;
-
+            
             saveDb(db);
             showToast("Success", `Profile updated successfully for ${name}.`);
             logAudit(`Updated profile details for employee: ${name} (${role}).`);
@@ -2085,7 +2074,7 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
             showToast("Password Error", "Password must be at least 6 characters.", "error");
             return;
         }
-
+        
         const newId = "U_" + Date.now();
         const newUser = {
             id: newId,
@@ -2111,12 +2100,12 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
             }
         };
         db.users.push(newUser);
-
+        
         saveDb(db);
         showToast("Created", `New user profile created for ${name}.`);
         logAudit(`Created new employee profile: ${name} (${role}).`);
     }
-
+    
     // Clear datasets
     delete picInput.dataset.base64;
     delete cnicInput.dataset.base64;
@@ -2125,13 +2114,13 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
     delete cvInput.dataset.filename;
     delete certInput.dataset.base64;
     delete certInput.dataset.filename;
-
+    
     closeAllModals();
     refreshTabContent(activeTab);
 });
 
 // Delete Employee Profile
-window.deleteEmployee = function (userId) {
+window.deleteEmployee = function(userId) {
     if (confirm("Are you sure you want to delete this employee profile? All submissions will remain logged.")) {
         const db = getDb();
         const userIndex = db.users.findIndex(u => u.id === userId);
@@ -2139,7 +2128,7 @@ window.deleteEmployee = function (userId) {
             const userName = db.users[userIndex].name;
             db.users.splice(userIndex, 1);
             saveDb(db);
-
+            
             showToast("Deleted", `Employee ${userName} removed from system.`);
             logAudit(`Deleted employee profile: ${userName}.`);
             refreshTabContent(activeTab);
@@ -2148,18 +2137,18 @@ window.deleteEmployee = function (userId) {
 };
 
 // 3. Review Leaves Request Modal (Manager / Admin View)
-window.reviewLeaveRequest = function (leaveId) {
+window.reviewLeaveRequest = function(leaveId) {
     const db = getDb();
     const leave = db.leaves.find(l => l.id === leaveId);
     if (!leave) return;
-
+    
     document.getElementById('leave-review-id').value = leave.id;
     document.getElementById('leave-review-emp').textContent = leave.employeeName;
     document.getElementById('leave-review-type').textContent = leave.type;
     document.getElementById('leave-review-dates').textContent = `${leave.startDate} to ${leave.endDate}`;
     document.getElementById('leave-review-reason').textContent = `"${leave.reason}"`;
     document.getElementById('leave-review-comment').value = leave.comments || "";
-
+    
     openModal('modal-leave-review');
 };
 
@@ -2176,24 +2165,24 @@ function processLeaveReview(status) {
     const db = getDb();
     const id = document.getElementById('leave-review-id').value;
     const comments = document.getElementById('leave-review-comment').value.trim();
-
+    
     const leave = db.leaves.find(l => l.id === id);
     if (leave) {
         leave.status = status;
         leave.comments = comments;
-
+        
         saveDb(db);
-
+        
         showToast("Leave Evaluation", `Leave request marked as ${status}.`);
         logAudit(`Leave request (${leave.type}) for ${leave.employeeName} marked as ${status}.`);
         addNotification(leave.employeeId, `Your leave request for ${leave.startDate} has been ${status}. Manager Remarks: ${comments || 'None'}`);
-
+        
         // If approved, update attendance register as Leave for those dates
         if (status === 'Approved') {
             logLeaveAttendance(leave);
         }
     }
-
+    
     closeAllModals();
     refreshTabContent(activeTab);
 }
@@ -2203,7 +2192,7 @@ function logLeaveAttendance(leave) {
     const db = getDb();
     let start = new Date(leave.startDate);
     const end = new Date(leave.endDate);
-
+    
     while (start <= end) {
         const dateStr = start.toISOString().split('T')[0];
         // Check if attendance already logged for that date, update to "On Leave"
@@ -2229,25 +2218,25 @@ function logLeaveAttendance(leave) {
 document.getElementById('leave-request-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const db = getDb();
-
+    
     const type = document.getElementById('leave-type').value;
     const startStr = document.getElementById('leave-start-date').value;
     const endStr = document.getElementById('leave-end-date').value;
     const reason = document.getElementById('leave-reason').value.trim();
-
+    
     if (!startStr || !endStr || !reason) {
         showToast("Validation Error", "All fields are required.", "error");
         return;
     }
-
+    
     const start = new Date(startStr);
     const end = new Date(endStr);
-
+    
     if (end < start) {
         showToast("Date Conflict", "End Date cannot be before Start Date.", "error");
         return;
     }
-
+    
     const newLeave = {
         id: "L_" + Date.now(),
         employeeId: currentUser.id,
@@ -2259,34 +2248,34 @@ document.getElementById('leave-request-form').addEventListener('submit', (e) => 
         status: "Pending",
         comments: ""
     };
-
+    
     db.leaves.push(newLeave);
     saveDb(db);
-
+    
     showToast("Submitted", "Leave application submitted to your manager.");
     logAudit(`Submitted leave request (${type}) from ${startStr} to ${endStr}.`);
-
+    
     // Notify manager if manager exists
     if (currentUser.managerId) {
         addNotification(currentUser.managerId, `${currentUser.name} has submitted a leave application for your review.`);
     }
-
+    
     closeAllModals();
     refreshTabContent(activeTab);
 });
 
 // 5. Review Productivity Submissions Modal (Manager view)
-window.reviewProductivitySubmission = function (prodId) {
+window.reviewProductivitySubmission = function(prodId) {
     const db = getDb();
     const sub = db.productivity.find(p => p.id === prodId);
     if (!sub) return;
-
+    
     document.getElementById('prod-review-id').value = sub.id;
     document.getElementById('prod-review-emp').textContent = sub.employeeName;
     document.getElementById('prod-review-date').textContent = sub.date;
     document.getElementById('prod-review-tasks').textContent = sub.tasks.join(', ');
     document.getElementById('prod-review-subcats').textContent = sub.subcategories.join(', ');
-
+    
     // Calculate total count
     const totalCount = Object.values(sub.counts).reduce((s, c) => s + c, 0);
     document.getElementById('prod-review-count').textContent = totalCount;
@@ -2295,7 +2284,7 @@ window.reviewProductivitySubmission = function (prodId) {
     document.getElementById('prod-review-notes').textContent = `"${sub.notes}"`;
     document.getElementById('prod-review-adjust-score').value = "";
     document.getElementById('prod-review-comment').value = sub.comments || "";
-
+    
     openModal('modal-productivity-review');
 };
 
@@ -2312,7 +2301,7 @@ function processProductivityReview(status) {
     const id = document.getElementById('prod-review-id').value;
     const adjustScoreVal = document.getElementById('prod-review-adjust-score').value;
     const comments = document.getElementById('prod-review-comment').value.trim();
-
+    
     const sub = db.productivity.find(p => p.id === id);
     if (sub) {
         sub.status = status;
@@ -2323,57 +2312,57 @@ function processProductivityReview(status) {
                 sub.score = finalScore;
             }
         }
-
+        
         saveDb(db);
-
+        
         showToast("Review Complete", `Productivity log has been marked as ${status}.`);
         logAudit(`Productivity log for ${sub.employeeName} reviewed: ${status} (Final Score: ${sub.score}).`);
         addNotification(sub.employeeId, `Your productivity log for ${sub.date} has been ${status}. Review Remarks: ${comments || 'None'}`);
     }
-
+    
     closeAllModals();
     refreshTabContent(activeTab);
 }
 
 // 6. Manual Attendance Logger Form
-window.openManualAttendanceModal = function () {
+window.openManualAttendanceModal = function() {
     const db = getDb();
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('att-log-date').value = today;
-
+    
     const empSelect = document.getElementById('att-log-emp');
     empSelect.innerHTML = '';
-
+    
     let targetUsers = [];
     if (currentUser.role === 'Admin') {
         targetUsers = db.users.filter(u => u.role === 'Employee');
     } else if (currentUser.role === 'Manager') {
         targetUsers = db.users.filter(u => u.role === 'Employee' && u.managerId === currentUser.id);
     }
-
+    
     targetUsers.forEach(emp => {
         empSelect.innerHTML += `<option value="${emp.id}">${emp.name}</option>`;
     });
-
+    
     openModal('modal-attendance-log');
 };
 
 document.getElementById('attendance-log-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const db = getDb();
-
+    
     const date = document.getElementById('att-log-date').value;
     const empId = document.getElementById('att-log-emp').value;
     const status = document.getElementById('att-log-status').value;
-
+    
     if (!date || !empId || !status) {
         showToast("Validation Error", "All fields are required.", "error");
         return;
     }
-
+    
     const emp = db.users.find(u => u.id === empId);
     if (!emp) return;
-
+    
     const existing = db.attendance.find(a => a.employeeId === empId && a.date === date);
     if (existing) {
         existing.status = status;
@@ -2387,12 +2376,12 @@ document.getElementById('attendance-log-form').addEventListener('submit', (e) =>
             markedBy: currentUser.name
         });
     }
-
+    
     saveDb(db);
     showToast("Attendance Saved", `Marked ${emp.name} as ${status} on ${date}.`);
     logAudit(`Logged attendance: ${emp.name} marked ${status} for ${date} by ${currentUser.name}.`);
     addNotification(empId, `Your attendance for ${date} was marked as ${status} manually by your manager/admin.`);
-
+    
     closeAllModals();
     refreshTabContent(activeTab);
 });
@@ -2401,18 +2390,18 @@ document.getElementById('attendance-log-form').addEventListener('submit', (e) =>
 document.getElementById('announcement-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const db = getDb();
-
+    
     const title = document.getElementById('announce-title').value.trim();
     const target = document.getElementById('announce-target').value;
     const content = document.getElementById('announce-content').value.trim();
-
+    
     if (!title || !content) {
         showToast("Validation Error", "Please fill in all announcement fields.", "error");
         return;
     }
-
+    
     const today = new Date().toISOString().split('T')[0];
-
+    
     const newAnn = {
         id: "A_" + Date.now(),
         title,
@@ -2421,25 +2410,25 @@ document.getElementById('announcement-form').addEventListener('submit', (e) => {
         date: today,
         author: currentUser.name
     };
-
+    
     db.announcements.unshift(newAnn);
     saveDb(db);
-
+    
     showToast("Broadcasted", `Announcement broadcasted to target audience: ${target}.`);
     logAudit(`Broadcasted company announcement: "${title}" to ${target}.`);
-
+    
     // Send notifications to target users
     db.users.forEach(u => {
         if (target === 'All' || u.role === target) {
             addNotification(u.id, `New Announcement: "${title}" posted by Admin.`);
         }
     });
-
+    
     closeAllModals();
     refreshTabContent(activeTab);
 });
 
-window.deleteAnnouncement = function (annId) {
+window.deleteAnnouncement = function(annId) {
     if (confirm("Delete this announcement? This will remove it from all employee panels.")) {
         const db = getDb();
         const index = db.announcements.findIndex(a => a.id === annId);
@@ -2447,7 +2436,7 @@ window.deleteAnnouncement = function (annId) {
             const title = db.announcements[index].title;
             db.announcements.splice(index, 1);
             saveDb(db);
-
+            
             showToast("Deleted", "Announcement removed.");
             logAudit(`Deleted announcement: "${title}".`);
             refreshTabContent(activeTab);
@@ -2459,29 +2448,29 @@ window.deleteAnnouncement = function (annId) {
 document.getElementById('settings-weights-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const db = getDb();
-
+    
     const wBilling = parseFloat(document.getElementById('weight-billing').value);
     const wFollowup = parseFloat(document.getElementById('weight-followup').value);
     const wPosting = parseFloat(document.getElementById('weight-posting').value);
     const wEligibility = parseFloat(document.getElementById('weight-eligibility').value);
     const wReporting = parseFloat(document.getElementById('weight-reporting').value);
-
+    
     if (isNaN(wBilling) || isNaN(wFollowup) || isNaN(wPosting) || isNaN(wEligibility) || isNaN(wReporting)) {
         showToast("Calculation Error", "Weights must be valid numeric values.", "error");
         return;
     }
-
+    
     db.weights["Billing"] = wBilling;
     db.weights["Follow-up"] = wFollowup;
     db.weights["Payment Posting"] = wPosting;
     db.weights["Eligibility Check"] = wEligibility;
     db.weights["Report Preparation"] = wReporting;
-
+    
     saveDb(db);
-
+    
     showToast("Weights Configured", "Evaluating formula weights saved successfully.");
     logAudit(`Modified task evaluation weights configuration.`);
-
+    
     refreshTabContent(activeTab);
 });
 
@@ -2500,32 +2489,32 @@ document.getElementById('btn-admin-clear-audit-logs').addEventListener('click', 
 function initMultiSelect() {
     const tasksSelectBox = document.querySelector('#tasks-multiselect .multiselect-select-box');
     const tasksOptions = document.querySelector('#tasks-multiselect .multiselect-options-container');
-
+    
     const subcatsSelectBox = document.querySelector('#subcats-multiselect .multiselect-select-box');
     const subcatsOptions = document.querySelector('#subcats-multiselect .multiselect-options-container');
-
+    
     // Toggle drop down displays
     tasksSelectBox.addEventListener('click', (e) => {
         e.stopPropagation();
         tasksOptions.classList.toggle('hidden');
         subcatsOptions.classList.add('hidden');
     });
-
+    
     subcatsSelectBox.addEventListener('click', (e) => {
         e.stopPropagation();
         subcatsOptions.classList.toggle('hidden');
         tasksOptions.classList.add('hidden');
     });
-
+    
     // Close dropdowns on outside click
     document.addEventListener('click', () => {
         tasksOptions.classList.add('hidden');
         subcatsOptions.classList.add('hidden');
     });
-
+    
     tasksOptions.addEventListener('click', (e) => e.stopPropagation());
     subcatsOptions.addEventListener('click', (e) => e.stopPropagation());
-
+    
     // Task selections changes
     const taskCheckboxes = tasksOptions.querySelectorAll('input[type="checkbox"]');
     taskCheckboxes.forEach(cb => {
@@ -2541,7 +2530,7 @@ function initMultiSelect() {
 function updateSelectedTasksUI() {
     const selectBoxSpan = document.querySelector('#tasks-multiselect .selected-text');
     const checked = Array.from(document.querySelectorAll('#tasks-multiselect input[type="checkbox"]:checked'));
-
+    
     if (checked.length === 0) {
         selectBoxSpan.textContent = "Select Tasks";
     } else {
@@ -2552,15 +2541,15 @@ function updateSelectedTasksUI() {
 function updateSubcategoriesOptions() {
     const subcatsContainer = document.getElementById('subcats-options-list');
     const checkedTasks = Array.from(document.querySelectorAll('#tasks-multiselect input[type="checkbox"]:checked')).map(c => c.value);
-
+    
     subcatsContainer.innerHTML = '';
-
+    
     if (checkedTasks.length === 0) {
         subcatsContainer.innerHTML = '<div class="placeholder-msg">Select a task first</div>';
         document.querySelector('#subcats-multiselect .selected-text').textContent = "Select Subcategories";
         return;
     }
-
+    
     checkedTasks.forEach(task => {
         const subs = TASK_SUBCATEGORIES[task] || [];
         if (subs.length > 0) {
@@ -2574,7 +2563,7 @@ function updateSubcategoriesOptions() {
             });
         }
     });
-
+    
     // Add change listeners to subcat checkboxes
     const subCheckboxes = subcatsContainer.querySelectorAll('input[type="checkbox"]');
     subCheckboxes.forEach(cb => {
@@ -2594,13 +2583,13 @@ function updateSubcategoriesOptions() {
 function renderDynamicCountInputs() {
     const form = document.getElementById('productivity-submission-form');
     const countFormGroup = document.getElementById('prod-count').closest('.form-group');
-
+    
     // Clean old dynamic count wrappers
     const oldInputs = form.querySelectorAll('.dynamic-count-row');
     oldInputs.forEach(el => el.remove());
-
+    
     const checkedTasks = Array.from(document.querySelectorAll('#tasks-multiselect input[type="checkbox"]:checked')).map(c => c.value);
-
+    
     if (checkedTasks.length <= 1) {
         // Show default count block
         document.getElementById('prod-count').closest('.form-group').style.display = 'block';
@@ -2609,7 +2598,7 @@ function renderDynamicCountInputs() {
         // Hide default count block and render individual ones
         countFormGroup.style.display = 'none';
         document.getElementById('prod-count').removeAttribute('required');
-
+        
         // Create input for each task
         checkedTasks.forEach(task => {
             const row = document.createElement('div');
@@ -2619,7 +2608,7 @@ function renderDynamicCountInputs() {
                 <input type="number" id="count-${task}" min="1" class="form-control task-count-input" data-task="${task}" required placeholder="Enter quantity completed for ${task}">
             `;
             countFormGroup.parentNode.insertBefore(row, countFormGroup);
-
+            
             // Re-calculate live score on input
             row.querySelector('input').addEventListener('input', calculateLiveProductivityScore);
         });
@@ -2630,16 +2619,16 @@ function calculateLiveProductivityScore() {
     const db = getDb();
     const weights = db.weights;
     const scoreText = document.getElementById('prod-score-live');
-
+    
     const checkedTasks = Array.from(document.querySelectorAll('#tasks-multiselect input[type="checkbox"]:checked')).map(c => c.value);
-
+    
     if (checkedTasks.length === 0) {
         scoreText.textContent = "0";
         return;
     }
-
+    
     let totalScore = 0;
-
+    
     if (checkedTasks.length === 1) {
         const task = checkedTasks[0];
         const count = parseInt(document.getElementById('prod-count').value) || 0;
@@ -2653,7 +2642,7 @@ function calculateLiveProductivityScore() {
             totalScore += count * weight;
         });
     }
-
+    
     scoreText.textContent = totalScore;
 }
 
@@ -2661,14 +2650,14 @@ function calculateLiveProductivityScore() {
 function resetProductivityForm() {
     const form = document.getElementById('productivity-submission-form');
     form.reset();
-
+    
     // Deselect multiselect dropdowns
     document.querySelectorAll('#tasks-multiselect input[type="checkbox"]').forEach(cb => cb.checked = false);
     updateSelectedTasksUI();
     updateSubcategoriesOptions();
     renderDynamicCountInputs();
     calculateLiveProductivityScore();
-
+    
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('prod-form-date').value = today;
 }
@@ -2677,12 +2666,12 @@ function resetProductivityForm() {
 document.getElementById('productivity-submission-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const database = getDb();
-
+    
     const checkedTasks = Array.from(document.querySelectorAll('#tasks-multiselect input[type="checkbox"]:checked')).map(c => c.value);
     const checkedSubcategories = Array.from(document.querySelectorAll('#subcats-multiselect input[type="checkbox"]:checked')).map(c => c.value);
     const notes = document.getElementById('prod-notes').value.trim();
     const today = new Date().toISOString().split('T')[0];
-
+    
     // Validation
     if (checkedTasks.length === 0) {
         showToast("Validation Error", "Please select at least one Task/Practice.", "error");
@@ -2696,11 +2685,11 @@ document.getElementById('productivity-submission-form').addEventListener('submit
         showToast("Validation Error", "Notes detail is required.", "error");
         return;
     }
-
+    
     // Gather Counts
     const counts = {};
     let score = 0;
-
+    
     if (checkedTasks.length === 1) {
         const task = checkedTasks[0];
         const count = parseInt(document.getElementById('prod-count').value);
@@ -2721,13 +2710,13 @@ document.getElementById('productivity-submission-form').addEventListener('submit
             counts[task] = count;
             score += count * (database.weights[task] || 0);
         });
-
+        
         if (hasCountError) {
             showToast("Validation Error", "Please enter positive numeric counts for all selected tasks.", "error");
             return;
         }
     }
-
+    
     const newSubmission = {
         id: "P_" + Date.now(),
         employeeId: currentUser.id,
@@ -2741,18 +2730,18 @@ document.getElementById('productivity-submission-form').addEventListener('submit
         status: "Pending",
         comments: ""
     };
-
+    
     database.productivity.push(newSubmission);
     saveDb(database);
-
+    
     showToast("Submitted", "Daily productivity submission recorded successfully!");
     logAudit(`Submitted productivity log details (Score: ${score}).`);
-
+    
     // Notify manager
     if (currentUser.managerId) {
         addNotification(currentUser.managerId, `${currentUser.name} submitted a daily productivity log for review.`);
     }
-
+    
     closeAllModals();
     refreshTabContent(activeTab);
 });
@@ -2765,26 +2754,26 @@ document.getElementById('prod-count').addEventListener('input', calculateLivePro
 // 1. ADMIN REPORTS
 function initAdminReportsTab() {
     const db = getDb();
-
+    
     // Fill Employee Filter Options
     const empSelect = document.getElementById('admin-report-employee');
     empSelect.innerHTML = '<option value="">All Employees</option>';
     db.users.filter(u => u.role === 'Employee').forEach(e => {
         empSelect.innerHTML += `<option value="${e.id}">${e.name}</option>`;
     });
-
+    
     // Fill Manager Filter Options
     const mgrSelect = document.getElementById('admin-report-manager');
     mgrSelect.innerHTML = '<option value="">All Managers</option>';
     db.users.filter(u => u.role === 'Manager').forEach(m => {
         mgrSelect.innerHTML += `<option value="${m.id}">${m.name}</option>`;
     });
-
+    
     // Default dates (past month)
     const end = new Date();
     const start = new Date();
     start.setMonth(start.getMonth() - 1);
-
+    
     document.getElementById('admin-report-start-date').value = start.toISOString().split('T')[0];
     document.getElementById('admin-report-end-date').value = end.toISOString().split('T')[0];
 }
@@ -2797,17 +2786,17 @@ document.getElementById('btn-admin-report-generate').addEventListener('click', (
 function initManagerReportsTab() {
     const db = getDb();
     const team = db.users.filter(u => u.role === 'Employee' && u.managerId === currentUser.id);
-
+    
     const empSelect = document.getElementById('manager-report-employee');
     empSelect.innerHTML = '<option value="">All Team Members</option>';
     team.forEach(e => {
         empSelect.innerHTML += `<option value="${e.id}">${e.name}</option>`;
     });
-
+    
     const end = new Date();
     const start = new Date();
     start.setMonth(start.getMonth() - 1);
-
+    
     document.getElementById('manager-report-start-date').value = start.toISOString().split('T')[0];
     document.getElementById('manager-report-end-date').value = end.toISOString().split('T')[0];
 }
@@ -2821,7 +2810,7 @@ let generatedReportData = null; // Store active generated records globally
 
 function generateReport(roleContext) {
     const db = getDb();
-
+    
     // Read Filter parameters
     const prefix = roleContext.toLowerCase();
     const reportType = document.getElementById(`${prefix}-report-type`).value;
@@ -2829,22 +2818,22 @@ function generateReport(roleContext) {
     const endDateStr = document.getElementById(`${prefix}-report-end-date`).value;
     const employeeId = document.getElementById(`${prefix}-report-employee`).value;
     const managerId = roleContext === 'Admin' ? document.getElementById('admin-report-manager').value : "";
-
+    
     const previewContainer = document.getElementById(`${prefix}-report-preview-container`);
-
+    
     if (!startDateStr || !endDateStr) {
         showToast("Filter Error", "Please select both start and end date range.", "error");
         return;
     }
-
+    
     const start = new Date(startDateStr);
     const end = new Date(endDateStr);
-
+    
     if (end < start) {
         showToast("Filter Error", "End date must be greater than start date.", "error");
         return;
     }
-
+    
     // Filter employees set based on parameters
     let filteredEmployees = db.users.filter(u => u.role === 'Employee');
     if (roleContext === 'Manager') {
@@ -2854,19 +2843,19 @@ function generateReport(roleContext) {
             filteredEmployees = filteredEmployees.filter(e => e.managerId === managerId);
         }
     }
-
+    
     if (employeeId) {
         filteredEmployees = filteredEmployees.filter(e => e.id === employeeId);
     }
-
+    
     const empIds = filteredEmployees.map(e => e.id);
-
+    
     let html = '';
-
+    
     // Report Metadata sheet details
     const timestamp = new Date().toLocaleString();
     const activeRangeDesc = `${startDateStr} to ${endDateStr}`;
-
+    
     if (reportType === 'productivity') {
         // Filter submissions
         let logs = db.productivity.filter(p => empIds.includes(p.employeeId));
@@ -2874,21 +2863,21 @@ function generateReport(roleContext) {
             const pDate = new Date(p.date);
             return pDate >= start && pDate <= end;
         });
-
+        
         generatedReportData = {
             type: 'productivity',
             range: activeRangeDesc,
             logs: logs
         };
-
+        
         if (logs.length === 0) {
             previewContainer.innerHTML = `<div class="empty-state">No productivity records found for specified parameters.</div>`;
             return;
         }
-
+        
         // Sum total score
         const totalScoreSum = logs.reduce((s, l) => s + l.score, 0);
-
+        
         html = `
             <div class="report-print-sheet">
                 <div class="report-print-header">
@@ -2912,7 +2901,7 @@ function generateReport(roleContext) {
                     </thead>
                     <tbody>
         `;
-
+        
         logs.forEach(log => {
             const statusClass = log.status === 'Approved' ? 'approved' : (log.status === 'Rejected' ? 'rejected' : 'pending');
             const totalCount = Object.values(log.counts).reduce((s, c) => s + c, 0);
@@ -2927,34 +2916,34 @@ function generateReport(roleContext) {
                 </tr>
             `;
         });
-
+        
         html += `
                     </tbody>
                 </table>
             </div>
         `;
-
+        
     } else if (reportType === 'attendance') {
         let logs = db.attendance.filter(a => empIds.includes(a.employeeId));
         logs = logs.filter(a => {
             const aDate = new Date(a.date);
             return aDate >= start && aDate <= end;
         });
-
+        
         generatedReportData = {
             type: 'attendance',
             range: activeRangeDesc,
             logs: logs
         };
-
+        
         if (logs.length === 0) {
             previewContainer.innerHTML = `<div class="empty-state">No attendance records found for specified parameters.</div>`;
             return;
         }
-
+        
         const presentCount = logs.filter(l => l.status === 'Present').length;
         const absentCount = logs.filter(l => l.status === 'Absent').length;
-
+        
         html = `
             <div class="report-print-sheet">
                 <div class="report-print-header">
@@ -2976,7 +2965,7 @@ function generateReport(roleContext) {
                     </thead>
                     <tbody>
         `;
-
+        
         logs.forEach(log => {
             html += `
                 <tr>
@@ -2987,7 +2976,7 @@ function generateReport(roleContext) {
                 </tr>
             `;
         });
-
+        
         html += `
                     </tbody>
                 </table>
@@ -2999,18 +2988,18 @@ function generateReport(roleContext) {
             const lStart = new Date(l.startDate);
             return lStart >= start && lStart <= end;
         });
-
+        
         generatedReportData = {
             type: 'leaves',
             range: activeRangeDesc,
             logs: logs
         };
-
+        
         if (logs.length === 0) {
             previewContainer.innerHTML = `<div class="empty-state">No leave applications found for specified parameters.</div>`;
             return;
         }
-
+        
         html = `
             <div class="report-print-sheet">
                 <div class="report-print-header">
@@ -3019,7 +3008,7 @@ function generateReport(roleContext) {
                 </div>
                 <div class="report-print-meta">
                     <div>Date Range: <strong>${activeRangeDesc}</strong></div>
-                    <div>Approved Requests: <strong>${logs.filter(l => l.status === 'Approved').length}</strong> | Pending: <strong>${logs.filter(l => l.status === 'Pending').length}</strong></div>
+                    <div>Approved Requests: <strong>${logs.filter(l=>l.status==='Approved').length}</strong> | Pending: <strong>${logs.filter(l=>l.status==='Pending').length}</strong></div>
                 </div>
                 <table class="data-table">
                     <thead>
@@ -3033,7 +3022,7 @@ function generateReport(roleContext) {
                     </thead>
                     <tbody>
         `;
-
+        
         logs.forEach(log => {
             const statusClass = log.status === 'Approved' ? 'approved' : (log.status === 'Rejected' ? 'rejected' : 'pending');
             html += `
@@ -3046,14 +3035,14 @@ function generateReport(roleContext) {
                 </tr>
             `;
         });
-
+        
         html += `
                     </tbody>
                 </table>
             </div>
         `;
     }
-
+    
     previewContainer.innerHTML = html;
     showToast("Report Rendered", `Successfully generated ${reportType} report sheet.`);
 }
@@ -3083,11 +3072,11 @@ function exportCSV() {
         showToast("Export Error", "Please generate a report view first.", "warning");
         return;
     }
-
+    
     let csvContent = "";
     const type = generatedReportData.type;
     const logs = generatedReportData.logs;
-
+    
     if (type === 'productivity') {
         csvContent += "Date,Employee Name,Tasks,Count,Estimated Score,Status,Manager Comments\n";
         logs.forEach(l => {
@@ -3105,7 +3094,7 @@ function exportCSV() {
             csvContent += `"${l.employeeName}","${l.type}","${l.startDate}","${l.endDate}","${l.reason}","${l.status}","${l.comments || ''}"\n`;
         });
     }
-
+    
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -3138,7 +3127,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     await syncServer();
-
+    
     // Set background image from DB state if available
     const db = getDb();
     if (db && db.login_bg) {
@@ -3147,24 +3136,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             authPanel.style.setProperty('background-image', `url('${db.login_bg}')`, 'important');
         }
     }
-
+    
     // Populate username dropdown after data loads
     populateLoginDropdown();
-
+    
     try {
         // Yeti eye tracking & arm animation (GSAP calibration)
-        const armL = document.querySelector('.armL');
-        const armR = document.querySelector('.armR');
+        const armL   = document.querySelector('.armL');
+        const armR   = document.querySelector('.armR');
         const pupilL = document.querySelector('.pupil-L');
         const pupilR = document.querySelector('.pupil-R');
         const passInput = document.getElementById('login-password');
-
+        
         if (typeof gsap !== 'undefined') {
             if (armL && armR) {
                 gsap.set(armL, { x: -93, y: 10 });
                 gsap.set(armR, { x: -93, y: 10 });
             }
-
+            
             if (passInput) {
                 passInput.addEventListener('focus', () => {
                     gsap.to(armL, { x: -10, y: 2, ease: "power2.out", duration: 0.6 });
@@ -3175,7 +3164,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     gsap.to(armR, { x: -93, y: 10, ease: "power2.in", duration: 0.5 });
                 });
             }
-
+            
             document.addEventListener('mousemove', (e) => {
                 if (document.activeElement === passInput) return;
                 const x = (e.clientX / window.innerWidth - 0.5) * 12;
@@ -3202,7 +3191,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (e) {
         console.error("Yeti initialization failed: ", e);
     }
-
+    
     // Login form submit
     try {
         const loginForm = document.getElementById('login-form');
@@ -3219,7 +3208,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (e) {
         console.error("Login form listener failed: ", e);
     }
-
+    
     // Helper to safely add event listeners without crashing if element doesn't exist
     const safeAddListener = (id, event, callback) => {
         const el = document.getElementById(id);
@@ -3229,24 +3218,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Logout buttons
     safeAddListener('btn-logout', 'click', handleLogout);
     safeAddListener('btn-profile-logout', 'click', handleLogout);
-
+    
     // Modals close triggers
     document.querySelectorAll('.modal-close').forEach(btn => {
         btn.addEventListener('click', closeAllModals);
     });
     safeAddListener('modal-backdrop', 'click', closeAllModals);
-
+    
     // Admin dashboard specific buttons
     safeAddListener('btn-admin-add-emp', 'click', () => openEditEmployeeModal(""));
     safeAddListener('btn-admin-add-emp-tab', 'click', () => openEditEmployeeModal(""));
     safeAddListener('btn-admin-mark-attendance', 'click', openManualAttendanceModal);
-
+    
     safeAddListener('btn-admin-add-announcement', 'click', () => openModal('modal-announcement'));
     safeAddListener('btn-admin-create-announcement-dash', 'click', () => openModal('modal-announcement'));
-
+    
     // Manager dashboard attendance log trigger
     safeAddListener('btn-manager-log-attendance', 'click', openManualAttendanceModal);
-
+    
     // Employee actions
     safeAddListener('btn-employee-update-prod-dash', 'click', () => {
         resetProductivityForm();
@@ -3260,7 +3249,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         resetProductivityForm();
         openModal('modal-productivity-form');
     });
-
+    
     safeAddListener('btn-employee-apply-leave-dash', 'click', () => {
         const form = document.getElementById('leave-request-form');
         if (form) form.reset();
@@ -3276,7 +3265,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (form) form.reset();
         openModal('modal-leave-form');
     });
-
+    
     // Profile drop down toggle
     const profileBtn = document.getElementById('btn-profile-dropdown');
     const profileMenu = document.getElementById('profile-dropdown');
@@ -3288,7 +3277,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (notifPanel) notifPanel.classList.add('hidden');
         });
     }
-
+    
     // Navigation / profile quick views
     safeAddListener('btn-view-profile', 'click', () => {
         if (profileMenu) profileMenu.classList.add('hidden');
@@ -3302,14 +3291,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             showToast("Permissions", "Settings panels are restricted to Admin role.", "warning");
         }
     });
-
+    
     // Close dropdowns on global click
     document.addEventListener('click', () => {
         if (profileMenu) profileMenu.classList.add('hidden');
         const notifPanel = document.getElementById('notifications-panel');
         if (notifPanel) notifPanel.classList.add('hidden');
     });
-
+    
     // Notifications panel toggle
     const notifBtn = document.getElementById('btn-notifications');
     const notifPanel = document.getElementById('notifications-panel');
@@ -3318,7 +3307,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             e.stopPropagation();
             notifPanel.classList.toggle('hidden');
             if (profileMenu) profileMenu.classList.add('hidden');
-
+            
             // Re-render to clear pulses
             renderNotifications();
         });
@@ -3326,7 +3315,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (notifPanel) {
         notifPanel.addEventListener('click', (e) => e.stopPropagation());
     }
-
+    
     safeAddListener('btn-clear-notifications', 'click', () => {
         const db = getDb();
         db.notifications.forEach(n => {
@@ -3336,19 +3325,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderNotifications();
         showToast("Notifications Read", "All alerts marked as read.");
     });
-
+    
     // Theme Toggle Handler
     const themeBtn = document.getElementById('btn-theme-toggle');
     const darkIcon = document.getElementById('theme-icon-dark');
     const lightIcon = document.getElementById('theme-icon-light');
-
+    
     if (themeBtn) {
         themeBtn.addEventListener('click', () => {
             document.body.classList.toggle('light-mode');
             document.body.classList.toggle('dark-mode');
             const isLight = document.body.classList.contains('light-mode');
             localStorage.setItem('theme', isLight ? 'light' : 'dark');
-
+            
             if (isLight) {
                 if (lightIcon) lightIcon.classList.add('hidden');
                 if (darkIcon) darkIcon.classList.remove('hidden');
@@ -3360,7 +3349,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     }
-
+    
     // Mobile Sidebar toggle menu
     const btnSidebarToggle = document.getElementById('btn-sidebar-toggle');
     if (btnSidebarToggle) {
@@ -3379,7 +3368,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (sidebar) sidebar.classList.remove('active');
         }
     });
-
+    
     // Admin filter changes listener
     safeAddListener('admin-filter-manager', 'change', renderAdminDashboard);
     safeAddListener('admin-filter-status', 'change', renderAdminDashboard);
@@ -3387,18 +3376,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     safeAddListener('admin-attendance-filter-employee', 'change', renderAdminAttendanceTab);
     safeAddListener('admin-prod-filter-date', 'change', renderAdminProductivityTab);
     safeAddListener('admin-prod-filter-task', 'change', renderAdminProductivityTab);
-
+    
     // Manager filter changes listener
     safeAddListener('manager-prod-filter-emp', 'change', renderManagerProductivityTab);
     safeAddListener('manager-prod-filter-status', 'change', renderManagerProductivityTab);
     safeAddListener('manager-attendance-filter-date', 'change', renderManagerAttendanceTab);
-
+    
     // Add manager select toggle to employee addition role change
     safeAddListener('emp-role', 'change', toggleManagerGroup);
-
+    
     // Init productivity form multiselect dropdown logic
     initMultiSelect();
-
+    
     // ----------------------------------------------------
     // Enhanced Employee Modal File Uploads and Window Controls Init
     // ----------------------------------------------------
@@ -3428,7 +3417,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const input = document.getElementById(inputId);
         const zone = document.getElementById(zoneId);
         const label = document.getElementById(labelId);
-
+        
         if (input && zone && label) {
             zone.addEventListener('dragover', (e) => {
                 e.preventDefault();
@@ -3456,7 +3445,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     input.click();
                 }
             });
-
+            
             input.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (file) {
@@ -3467,7 +3456,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                     zone.classList.add('has-file');
                     label.textContent = file.name;
-
+                    
                     const reader = new FileReader();
                     reader.onload = (evt) => {
                         input.dataset.base64 = evt.target.result;
@@ -3478,7 +3467,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
     };
-
+    
     setupDocUploadZone('emp-doc-cnic', 'upload-zone-cnic', 'label-cnic-file');
     setupDocUploadZone('emp-doc-cv', 'upload-zone-cv', 'label-cv-file');
     setupDocUploadZone('emp-doc-cert', 'upload-zone-cert', 'label-cert-file');
@@ -3489,13 +3478,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const btnMinimize = modalEmp.querySelector('.modal-minimize');
         const btnMaximize = modalEmp.querySelector('.modal-maximize');
         const header = modalEmp.querySelector('.modal-header');
-
+        
         if (btnMinimize) {
             btnMinimize.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const isMinimized = modalEmp.classList.toggle('modal-minimized');
                 const backdrop = document.getElementById('modal-backdrop');
-
+                
                 if (isMinimized) {
                     modalEmp.classList.remove('modal-maximized');
                     if (backdrop) backdrop.classList.add('hidden');
@@ -3505,7 +3494,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             });
         }
-
+        
         if (btnMaximize) {
             btnMaximize.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -3517,7 +3506,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             });
         }
-
+        
         if (header) {
             header.addEventListener('click', () => {
                 if (modalEmp.classList.contains('modal-minimized')) {
@@ -3534,11 +3523,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         btn.addEventListener('click', () => {
             const subtab = btn.dataset.subtab;
             const parent = btn.closest('.tab-view');
-
+            
             // Toggle active classes on buttons
             parent.querySelectorAll('.btn-sub-tab').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-
+            
             // Toggle visibility of subtab content panels
             parent.querySelectorAll('.sub-tab-content').forEach(c => c.classList.add('hidden'));
             const targetContent = document.getElementById(`subtab-content-${subtab}`);
