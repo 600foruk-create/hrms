@@ -1768,6 +1768,8 @@ window.viewUserProfile = function(userId) {
     }
     
     document.getElementById('profile-status').textContent = user.status;
+    document.getElementById('profile-designation').textContent = user.designation || 'Not Specified';
+    document.getElementById('profile-blood-group').textContent = user.bloodGroup || 'Not Specified';
     
     const docSection = document.getElementById('profile-documents-section');
     const docList = document.getElementById('profile-documents-list');
@@ -1893,8 +1895,10 @@ window.openEditEmployeeModal = function(userId) {
     document.getElementById('emp-dob').value = (user && user.dob) ? user.dob : "";
     document.getElementById('emp-cnic').value = (user && user.cnic) ? user.cnic : "";
     document.getElementById('emp-marital-status').value = (user && user.maritalStatus) ? user.maritalStatus : "Single";
+    document.getElementById('emp-blood-group').value = (user && user.bloodGroup) ? user.bloodGroup : "";
     document.getElementById('emp-phone').value = (user && user.phone) ? user.phone : "";
     document.getElementById('emp-emergency-contact').value = (user && user.emergencyContact) ? user.emergencyContact : "";
+    document.getElementById('emp-designation').value = (user && user.designation) ? user.designation : "";
     
     // Password mandatory for new users only
     const passInput = document.getElementById('emp-password');
@@ -2046,8 +2050,10 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
     const dob = document.getElementById('emp-dob').value;
     const cnic = document.getElementById('emp-cnic').value.trim();
     const maritalStatus = document.getElementById('emp-marital-status').value;
+    const bloodGroup = document.getElementById('emp-blood-group').value;
     const phone = document.getElementById('emp-phone').value.trim();
     const emergencyContact = document.getElementById('emp-emergency-contact').value.trim();
+    const designation = document.getElementById('emp-designation').value.trim();
     
     // Validation
     if (!name || !email || !cnic || !phone) {
@@ -2077,8 +2083,10 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
             user.dob = dob;
             user.cnic = cnic;
             user.maritalStatus = maritalStatus;
+            user.bloodGroup = bloodGroup;
             user.phone = phone;
             user.emergencyContact = emergencyContact;
+            user.designation = designation;
             user.startDate = startDate;
             user.salary = salary;
             
@@ -2120,8 +2128,10 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
             dob,
             cnic,
             maritalStatus,
+            bloodGroup,
             phone,
             emergencyContact,
+            designation,
             startDate,
             salary,
             endDate: endDate ? endDate : (status === 'Inactive' ? new Date().toISOString().split('T')[0] : null),
