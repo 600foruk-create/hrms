@@ -966,44 +966,8 @@ function renderAdminEmployeesTab() {
             `;
         });
 
-        // Group unassigned or support employees
-        const activeMgrIds = managers.map(m => m.id);
-        const unassignedEmployees = db.users.filter(u => u.role === 'Employee' && (!u.managerId || !activeMgrIds.includes(u.managerId)));
-        
-        if (unassignedEmployees.length > 0) {
-            let membersHTML = '';
-            unassignedEmployees.forEach(emp => {
-                const empInitials = getInitials(emp.name);
-                const statusClass = emp.status === 'Active' ? 'active' : 'inactive';
-                membersHTML += `
-                    <div class="team-member-item">
-                        <div class="team-member-left">
-                            <div class="team-member-avatar" style="background: rgba(225, 112, 85, 0.1); color: #e17055;">${empInitials}</div>
-                            <div class="team-member-info">
-                                <span class="team-member-name">${emp.name}</span>
-                                <span class="team-member-email">${emp.email}</span>
-                            </div>
-                        </div>
-                        <span class="team-member-status ${statusClass}">${emp.status}</span>
-                    </div>
-                `;
-            });
-
-            teamsContainer.innerHTML += `
-                <div class="team-card bg-glass" style="border-color: rgba(225, 112, 85, 0.2);">
-                    <div class="team-leader">
-                        <div class="avatar" style="background: linear-gradient(135deg, #ff7675 0%, #d63031 100%);"><i class="fa-solid fa-users-slash" style="font-size: 15px;"></i></div>
-                        <div class="team-leader-info">
-                            <h4>General Support</h4>
-                            <span>Unassigned Employees</span>
-                        </div>
-                    </div>
-                    <div class="team-members-list">
-                        ${membersHTML}
-                    </div>
-                </div>
-            `;
-        }
+        // Unassigned employees are intentionally hidden from Teams view
+        // They appear in the Employees tab with no manager label
     }
 }
 
