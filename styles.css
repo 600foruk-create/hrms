@@ -1525,7 +1525,7 @@ body.light-mode .report-preview-container {
     transition: var(--transition);
 }
 /* Form inside modal must be flex so body can scroll */
-#employee-form {
+#employee-form, #company-profile-form, .modal form {
     display: flex;
     flex-direction: column;
     flex: 1;
