@@ -264,8 +264,16 @@ function handleLogin(usernameOrEmail, password) {
     logAudit(`Logged in successfully to ${user.role} Portal.`);
     
     // Transition UI
-    document.getElementById('auth-panel').classList.add('hidden');
-    document.getElementById('app-shell').classList.remove('hidden');
+    const authPanel = document.getElementById('auth-panel');
+    const appShell = document.getElementById('app-shell');
+    if (authPanel) {
+        authPanel.classList.add('hidden');
+        authPanel.style.setProperty('display', 'none', 'important');
+    }
+    if (appShell) {
+        appShell.classList.remove('hidden');
+        appShell.style.setProperty('display', 'flex', 'important');
+    }
     
     // Clear search
     document.getElementById('global-search').value = "";
@@ -290,8 +298,16 @@ function handleLogout() {
     clearTimeout(inactivityTimeout);
     
     // Reset views
-    document.getElementById('app-shell').classList.add('hidden');
-    document.getElementById('auth-panel').classList.remove('hidden');
+    const authPanel = document.getElementById('auth-panel');
+    const appShell = document.getElementById('app-shell');
+    if (appShell) {
+        appShell.classList.add('hidden');
+        appShell.style.setProperty('display', 'none', 'important');
+    }
+    if (authPanel) {
+        authPanel.classList.remove('hidden');
+        authPanel.style.setProperty('display', 'flex', 'important');
+    }
     document.getElementById('login-form').reset();
     
     showToast("Signed Out", "You have been securely logged out.");
@@ -2725,8 +2741,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const prevSession = sessionStorage.getItem('current_user');
     if (prevSession) {
         currentUser = JSON.parse(prevSession);
-        document.getElementById('auth-panel').classList.add('hidden');
-        document.getElementById('app-shell').classList.remove('hidden');
+        const authPanel = document.getElementById('auth-panel');
+        const appShell = document.getElementById('app-shell');
+        if (authPanel) {
+            authPanel.classList.add('hidden');
+            authPanel.style.setProperty('display', 'none', 'important');
+        }
+        if (appShell) {
+            appShell.classList.remove('hidden');
+            appShell.style.setProperty('display', 'flex', 'important');
+        }
         renderSidebar();
         switchTab('dashboard');
         setupSessionTimer();
