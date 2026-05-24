@@ -3110,6 +3110,22 @@ function exportCSV() {
 
 // Initialization Flow
 document.addEventListener('DOMContentLoaded', async () => {
+    // Restore Theme State
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    const darkIcon = document.getElementById('theme-icon-dark');
+    const lightIcon = document.getElementById('theme-icon-light');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        document.body.classList.remove('dark-mode');
+        if (lightIcon) lightIcon.classList.add('hidden');
+        if (darkIcon) darkIcon.classList.remove('hidden');
+    } else {
+        document.body.classList.add('dark-mode');
+        document.body.classList.remove('light-mode');
+        if (lightIcon) lightIcon.classList.remove('hidden');
+        if (darkIcon) darkIcon.classList.add('hidden');
+    }
+
     await syncServer();
     
     // Set background image from DB state if available
@@ -3320,6 +3336,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.body.classList.toggle('light-mode');
             document.body.classList.toggle('dark-mode');
             const isLight = document.body.classList.contains('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
             
             if (isLight) {
                 if (lightIcon) lightIcon.classList.add('hidden');
@@ -3498,6 +3515,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (backdrop) backdrop.classList.remove('hidden');
                 }
             });
+        }
     }
 
     // Sub-tab switching handler for employee management view
