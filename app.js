@@ -1715,6 +1715,10 @@ window.openCompanyProfileModal = function() {
     document.getElementById('comp-website').value = cp.website || '';
     document.getElementById('comp-address').value = cp.address || '';
     document.getElementById('comp-reg').value = cp.reg || '';
+    document.getElementById('comp-slogan').value = cp.slogan || '';
+    document.getElementById('comp-industry').value = cp.industry || '';
+    document.getElementById('comp-size').value = cp.size || '';
+    document.getElementById('comp-type').value = cp.type || '';
     
     // Clear logo input just in case
     document.getElementById('comp-logo-input').value = '';
@@ -3262,6 +3266,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             cp.website = document.getElementById('comp-website').value;
             cp.address = document.getElementById('comp-address').value;
             cp.reg = document.getElementById('comp-reg').value;
+            cp.slogan = document.getElementById('comp-slogan').value;
+            cp.industry = document.getElementById('comp-industry').value;
+            cp.size = document.getElementById('comp-size').value;
+            cp.type = document.getElementById('comp-type').value;
             
             if (cpForm.dataset.logoBase64) {
                 cp.logoBase64 = cpForm.dataset.logoBase64;
