@@ -882,6 +882,57 @@ function renderAdminDashboard() {
     if (taskCountEl) taskCountEl.textContent = pendingProductivity;
     if (leaveCountEl) leaveCountEl.textContent = pendingLeaves;
     if (timesheetCountEl) timesheetCountEl.textContent = db.attendance.filter(a => a.date === today && a.status === 'Late').length || 2;
+
+    // 7. Company Teams Overview
+    const adminTeamsContainer = document.getElementById('admin-dashboard-teams-container');
+    if (adminTeamsContainer) {
+        adminTeamsContainer.innerHTML = '';
+        const teamManagers = db.users.filter(user => (user.role === 'Manager' || user.role === 'Admin') && user.status === 'Active');
+
+        if (teamManagers.length === 0) {
+            adminTeamsContainer.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--text-muted); background: rgba(255,255,255,0.02); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">No team managers or admins found in the company.</div>`;
+        }
+
+        teamManagers.forEach(manager => {
+            const mgrInitials = getInitials(manager.name);
+            const teamEmployees = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && u.managerId === manager.id && u.status === 'Active');
+
+            let membersHTML = '';
+            if (teamEmployees.length === 0) {
+                membersHTML = `<div style="color: var(--text-muted); font-size: 12px; font-style: italic; text-align: center; padding: 15px 0;">No team members assigned</div>`;
+            } else {
+                teamEmployees.forEach(emp => {
+                    const empInitials = getInitials(emp.name);
+                    const statusClass = emp.status === 'Active' ? 'active' : 'inactive';
+                    membersHTML += `
+                        <div class="team-member-item" style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <div class="team-member-left">
+                                <div class="team-member-avatar" style="background: rgba(95, 59, 246, 0.1); color: #5f3bf6; width: 24px; height: 24px; font-size: 10px;">${empInitials}</div>
+                                <div class="team-member-info">
+                                    <span class="team-member-name" style="font-size: 12px;">${emp.name}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            adminTeamsContainer.innerHTML += `
+                <div class="team-card bg-glass" style="padding: 1rem; gap: 0.75rem;">
+                    <div class="team-leader" style="padding-bottom: 0.75rem;">
+                        <div class="avatar" style="width: 32px; height: 32px; font-size: 12px;">${mgrInitials}</div>
+                        <div class="team-leader-info">
+                            <h4 style="font-size: 13px;">${manager.name}</h4>
+                            <span style="font-size: 10px;">${manager.role}</span>
+                        </div>
+                    </div>
+                    <div class="team-members-list" style="max-height: 150px; overflow-y: auto;">
+                        ${membersHTML}
+                    </div>
+                </div>
+            `;
+        });
+    }
 }
 
 function renderAdminEmployeesTab() {
@@ -1266,7 +1317,7 @@ function renderAuditLogs() {
 // ==================== RENDERING: MANAGER VIEWS ====================
 function renderManagerDashboard() {
     const db = getDb();
-    const teamMembers = db.users.filter(u => u.role === 'User' && u.managerId === currentUser.id);
+    const teamMembers = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && u.managerId === currentUser.id);
     const teamSize = teamMembers.length;
 
     document.getElementById('manager-team-name-sub').textContent = `${currentUser.name}'s Reporting Team`;
@@ -1642,6 +1693,59 @@ function renderEmployeeDashboard() {
                 </div>
             `;
         });
+    }
+
+    // My Team & Manager logic
+    const teamContainer = document.getElementById('employee-dashboard-team-container');
+    if (teamContainer) {
+        teamContainer.innerHTML = '';
+        
+        let manager = null;
+        if (currentUser.managerId) {
+            manager = db.users.find(u => u.id === currentUser.managerId);
+        }
+
+        if (!manager) {
+            teamContainer.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--text-muted); background: rgba(255,255,255,0.02); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">You are not assigned to a team yet.</div>`;
+        } else {
+            const mgrInitials = getInitials(manager.name);
+            const teamEmployees = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && u.managerId === manager.id && u.status === 'Active');
+
+            let membersHTML = '';
+            if (teamEmployees.length === 0) {
+                membersHTML = `<div style="color: var(--text-muted); font-size: 12px; font-style: italic; text-align: center; padding: 15px 0;">No other members assigned</div>`;
+            } else {
+                teamEmployees.forEach(emp => {
+                    const empInitials = getInitials(emp.name);
+                    const isMe = emp.id === currentUser.id;
+                    membersHTML += `
+                        <div class="team-member-item" style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <div class="team-member-left">
+                                <div class="team-member-avatar" style="background: rgba(95, 59, 246, 0.1); color: #5f3bf6; width: 24px; height: 24px; font-size: 10px;">${empInitials}</div>
+                                <div class="team-member-info">
+                                    <span class="team-member-name" style="font-size: 12px;">${emp.name} ${isMe ? '<span style="font-size: 9px; color: var(--primary); font-weight: 700; margin-left: 4px;">(You)</span>' : ''}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            teamContainer.innerHTML = `
+                <div class="team-card bg-glass" style="padding: 1rem; gap: 0.75rem;">
+                    <div class="team-leader" style="padding-bottom: 0.75rem;">
+                        <div class="avatar" style="width: 32px; height: 32px; font-size: 12px; background: rgba(56, 189, 248, 0.1); color: #38bdf8;">${mgrInitials}</div>
+                        <div class="team-leader-info">
+                            <h4 style="font-size: 13px;">${manager.name} <span style="font-size: 9px; color: var(--info); font-weight: 700; margin-left: 4px;">(Manager)</span></h4>
+                            <span style="font-size: 10px;">${manager.role}</span>
+                        </div>
+                    </div>
+                    <div class="team-members-list" style="max-height: 150px; overflow-y: auto;">
+                        ${membersHTML}
+                    </div>
+                </div>
+            `;
+        }
     }
 }
 

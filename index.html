@@ -492,6 +492,20 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Dashboard Split Row 3 (Company Teams Overview) -->
+                        <div class="section-card bg-glass" style="margin-bottom: 1.25rem;">
+                            <div class="section-card-header" style="justify-content: space-between; display: flex;">
+                                <div>
+                                    <h3 style="font-size: 16px; font-weight: 700; margin: 0; color: var(--text-primary);">Company Teams Overview</h3>
+                                    <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">A quick glance at all active teams and their members across the company.</p>
+                                </div>
+                                <a href="#" onclick="window.switchTab ? window.switchTab('employees') : null" class="btn btn-outline" style="font-size: 12px; padding: 6px 12px;">Manage Teams</a>
+                            </div>
+                            <div class="teams-grid" id="admin-dashboard-teams-container" style="margin-top: 15px;">
+                                <!-- Dynamically populated by JS -->
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Admin Employees Tab -->
@@ -1216,6 +1230,19 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Dashboard Split Row (My Team & Manager) -->
+                        <div class="section-card bg-glass" style="margin-bottom: 1.25rem;">
+                            <div class="section-card-header">
+                                <div>
+                                    <h3 style="font-size: 16px; font-weight: 700; margin: 0; color: var(--text-primary);">My Team & Manager</h3>
+                                    <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">People you work with in your team.</p>
+                                </div>
+                            </div>
+                            <div class="teams-grid" id="employee-dashboard-team-container" style="margin-top: 15px;">
+                                <!-- Dynamically populated by JS -->
+                            </div>
+                        </div>
 
                         <div class="sections-grid">
                             <!-- Left: Personal Productivity Tracker -->
@@ -1888,6 +1915,6 @@
     <!-- GSAP for Yeti Animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <!-- Main JS Application script -->
-    <script src="app.js?v=4.10"></script>
+    <script src="app.js?v=4.11"></script>
 </body>
 </html>
