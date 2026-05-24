@@ -477,7 +477,7 @@ body.light-mode .auth-card {
 .sidebar {
     width: 260px;
     background: var(--bg-sidebar);
-    border-right: 1px solid var(--border-color);
+    border-right: 2px solid var(--border-color);
     backdrop-filter: blur(20px);
     display: flex;
     flex-direction: column;
@@ -493,7 +493,7 @@ body.light-mode .auth-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 2px solid var(--border-color);
 }
 .sidebar-header .logo {
     display: flex;

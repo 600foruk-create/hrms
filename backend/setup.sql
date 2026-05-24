@@ -125,6 +125,25 @@ CREATE TABLE `notifications` (
 
 -- --------------------------------------------------------
 
+-- Table structure for table `company_profile`
+CREATE TABLE `company_profile` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(150) DEFAULT NULL,
+  `email` varchar(150) DEFAULT NULL,
+  `phone` varchar(50) DEFAULT NULL,
+  `website` varchar(150) DEFAULT NULL,
+  `address` varchar(255) DEFAULT NULL,
+  `reg` varchar(100) DEFAULT NULL,
+  `slogan` varchar(255) DEFAULT NULL,
+  `industry` varchar(100) DEFAULT NULL,
+  `size` varchar(50) DEFAULT NULL,
+  `type` varchar(50) DEFAULT NULL,
+  `logoBase64` longtext DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
 -- Indexes
 ALTER TABLE `users` ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `email` (`email`);
 ALTER TABLE `settings` ADD PRIMARY KEY (`key_name`);

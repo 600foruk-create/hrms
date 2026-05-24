@@ -36,6 +36,46 @@ try {
     }
 }
 
+}
+
+// Ensure company_profile table exists (in case of an update)
+try {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `company_profile` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `name` varchar(150) DEFAULT NULL,
+        `email` varchar(150) DEFAULT NULL,
+        `phone` varchar(50) DEFAULT NULL,
+        `website` varchar(150) DEFAULT NULL,
+        `address` varchar(255) DEFAULT NULL,
+        `reg` varchar(100) DEFAULT NULL,
+        `slogan` varchar(255) DEFAULT NULL,
+        `industry` varchar(100) DEFAULT NULL,
+        `size` varchar(50) DEFAULT NULL,
+        `type` varchar(50) DEFAULT NULL,
+        `logoBase64` longtext DEFAULT NULL,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+} catch (Exception $e) {
+    // Ignore if unsupported (e.g. SQLite doesn't support ENGINE=InnoDB)
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `company_profile` (
+            `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+            `name` TEXT,
+            `email` TEXT,
+            `phone` TEXT,
+            `website` TEXT,
+            `address` TEXT,
+            `reg` TEXT,
+            `slogan` TEXT,
+            `industry` TEXT,
+            `size` TEXT,
+            `type` TEXT,
+            `logoBase64` TEXT
+        );");
+    } catch (Exception $e2) {
+        error_log("Failed to create company_profile table: " . $e2->getMessage());
+    }
+}
 
 // Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -104,6 +144,15 @@ if ($action === 'load_all') {
             unset($n['read_status']);
         }
         $dbState['notifications'] = $notifs;
+
+        // Fetch Company Profile
+        $stmt = $pdo->query("SELECT * FROM company_profile LIMIT 1");
+        $cpRow = $stmt->fetch();
+        if ($cpRow) {
+            $dbState['companyProfile'] = $cpRow;
+        } else {
+            $dbState['companyProfile'] = [];
+        }
 
         echo json_encode(["status" => "success", "data" => $dbState]);
     } catch (Exception $e) {
@@ -200,6 +249,18 @@ elseif ($action === 'save_all') {
                 $readStatus = (!empty($n['read']) && $n['read']) ? 1 : 0;
                 $stmt->execute([$n['id'], $n['userId'], $n['message'], $readStatus, $n['time']]);
             }
+        }
+
+        // 9. Sync Company Profile
+        $pdo->exec("DELETE FROM company_profile");
+        if (!empty($data['companyProfile'])) {
+            $cp = $data['companyProfile'];
+            $stmt = $pdo->prepare("INSERT INTO company_profile (name, email, phone, website, address, reg, slogan, industry, size, type, logoBase64) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $cp['name'] ?? '', $cp['email'] ?? '', $cp['phone'] ?? '', $cp['website'] ?? '',
+                $cp['address'] ?? '', $cp['reg'] ?? '', $cp['slogan'] ?? '', $cp['industry'] ?? '',
+                $cp['size'] ?? '', $cp['type'] ?? '', $cp['logoBase64'] ?? ''
+            ]);
         }
 
         $pdo->commit();
