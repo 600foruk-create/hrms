@@ -47,6 +47,15 @@ async function syncServer() {
     // Fallback Mock Database if API fails or DB is empty (Allows local demo to work)
     if (!success) {
         console.warn("Using Fallback Mock Database...");
+        const localData = localStorage.getItem('hrms_fallback_db');
+        if (localData) {
+            try {
+                window.hrmsDatabase = JSON.parse(localData);
+                return;
+            } catch (e) {
+                console.error("Local storage DB parse error", e);
+            }
+        }
         window.hrmsDatabase = {
             login_bg: 'assets/images/login/login_bg.png',
             users: [
@@ -86,6 +95,10 @@ function getDb() {
 async function saveDb(data) {
     window.hrmsDatabase = data; // Immediate local update for UI speed
     try {
+        localStorage.setItem('hrms_fallback_db', JSON.stringify(data)); // Save locally
+    } catch(e) {}
+    
+    try {
         const response = await fetch(API_URL + '?action=save_all', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -94,11 +107,9 @@ async function saveDb(data) {
         const result = await response.json();
         if (result.status !== 'success') {
             console.error("Sync Error:", result.message);
-            showToast("Server Sync Error", "Failed to backup data to server.", "error");
         }
     } catch (err) {
         console.error("Network Error:", err);
-        showToast("Network Error", "Could not connect to database server.", "error");
     }
 }
 
