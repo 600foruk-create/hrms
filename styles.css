@@ -50,6 +50,7 @@ body.light-mode {
     --bg-base: #f8fafc;
     --bg-surface: rgba(255, 255, 255, 0.85);
     --bg-card: rgba(255, 255, 255, 0.95);
+    --bg-sidebar: #ffffff;
     --border-color: rgba(0, 0, 0, 0.08);
     --border-glow: rgba(99, 102, 241, 0.15);
     --text-primary: #0f172a;
@@ -571,6 +572,9 @@ body.light-mode .user-profile-badge {
 .sidebar-link:hover {
     background: rgba(255, 255, 255, 0.05);
     color: var(--text-primary);
+}
+body.light-mode .sidebar-link:hover {
+    background: rgba(0, 0, 0, 0.04);
 }
 .sidebar-link:hover i {
     color: var(--primary);

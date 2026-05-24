@@ -12,7 +12,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="styles.css?v=2.5">
+    <link rel="stylesheet" href="styles.css?v=2.6">
 </head>
 <body class="dark-mode">
     
@@ -111,7 +111,7 @@
                         </svg>
                     </div>
                     <div style="display: flex; flex-direction: column; line-height: 1.1;">
-                        <h3 id="sidebar-company-name" style="font-family: var(--font-heading); font-size: 16px; font-weight: 800; color: #fff; margin: 0; letter-spacing: -0.3px;">OceanStack</h3>
+                        <h3 id="sidebar-company-name" style="font-family: var(--font-heading); font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0; letter-spacing: -0.3px;">OceanStack</h3>
                         <span style="font-size: 9px; color: #00b0ff; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase;">HRM Operations</span>
                     </div>
                 </div>
@@ -124,7 +124,7 @@
             </nav>
 
             <!-- Sidebar Branding (matching login screen theme) -->
-            <div class="sidebar-branding" style="margin-top: auto; padding: 1.25rem 1.25rem 0.5rem; text-align: center; border-top: 1px solid rgba(255,255,255,0.06); font-family: var(--font-heading);">
+            <div class="sidebar-branding" style="margin-top: auto; padding: 1.25rem 1.25rem 0.5rem; text-align: center; border-top: 1px solid var(--border-color); font-family: var(--font-heading);">
                 <div style="font-weight: 800; color: #00b0ff; font-size: 13.5px; letter-spacing: 0.5px; margin-bottom: 2px;">OCEAN STACK</div>
                 <div style="font-size: 9.5px; color: var(--text-muted); opacity: 0.7; font-weight: 500;">A Project of <strong>SOFTIFYX TECHNOLOGIES</strong></div>
             </div>
@@ -188,7 +188,7 @@
                         <button class="profile-btn" id="btn-profile-dropdown" style="display: flex; align-items: center; gap: 10px; background: transparent; border: none; padding: 4px 8px; cursor: pointer;">
                             <div class="avatar-small" id="topbar-avatar" style="width: 34px; height: 34px; border-radius: 50%; background: #5f3bf6; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13.5px; box-shadow: none;">A</div>
                             <div style="display: flex; flex-direction: column; align-items: flex-start; text-align: left; line-height: 1.2;">
-                                <span id="topbar-user-name-label" style="font-size: 13px; font-weight: 700; color: #fff;">Admin</span>
+                                <span id="topbar-user-name-label" style="font-size: 13px; font-weight: 700; color: var(--text-primary);">Admin</span>
                                 <span id="topbar-user-role-label" style="font-size: 10px; color: var(--text-secondary); font-weight: 500;">HR Admin</span>
                             </div>
                             <i class="fa-solid fa-chevron-down" style="font-size: 10px; color: var(--text-muted); margin-left: 2px;"></i>
@@ -215,11 +215,11 @@
                     <div id="admin-tab-dashboard" class="tab-view active">
                         <div class="view-header" style="margin-bottom: 1.5rem; justify-content: space-between; display: flex;">
                             <div>
-                                <h1 style="font-size: 24px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">Welcome back, Admin! 👋</h1>
+                                <h1 style="font-size: 24px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">Welcome back, Admin! 👋</h1>
                                 <p class="text-secondary" style="font-size: 13px;">Here's what's happening with your team today.</p>
                             </div>
                             <div class="actions" style="display: flex; align-items: center; gap: 10px;">
-                                <div style="display: flex; align-items: center; gap: 8px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 6px 12px; font-size: 13px; color: #fff; font-weight: 600;">
+                                <div style="display: flex; align-items: center; gap: 8px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 6px 12px; font-size: 13px; color: var(--text-primary); font-weight: 600;">
                                     <i class="fa-regular fa-calendar" style="color: var(--text-secondary);"></i>
                                     <span id="dashboard-date-display">May 15, 2025</span>
                                     <i class="fa-solid fa-chevron-down" style="font-size: 10px; color: var(--text-secondary); margin-left: 4px;"></i>
@@ -1649,6 +1649,6 @@
     <!-- GSAP for Yeti Animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <!-- Main JS Application script -->
-    <script src="app.js?v=2.7"></script>
+    <script src="app.js?v=2.8"></script>
 </body>
 </html>
