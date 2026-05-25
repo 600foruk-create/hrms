@@ -315,15 +315,23 @@ elseif ($action === 'save_all') {
         }
 
         // 9. Sync Company Profile
-        $pdo->exec("DELETE FROM company_profile");
-        if (!empty($data['companyProfile'])) {
-            $cp = $data['companyProfile'];
-            $stmt = $pdo->prepare("INSERT INTO company_profile (name, email, phone, website, address, reg, slogan, industry, size, type, logoBase64) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([
-                $cp['name'] ?? '', $cp['email'] ?? '', $cp['phone'] ?? '', $cp['website'] ?? '',
-                $cp['address'] ?? '', $cp['reg'] ?? '', $cp['slogan'] ?? '', $cp['industry'] ?? '',
-                $cp['size'] ?? '', $cp['type'] ?? '', $cp['logoBase64'] ?? ''
-            ]);
+        try {
+            $pdo->exec("DELETE FROM company_profile");
+            if (!empty($data['companyProfile'])) {
+                // Safely try to alter extra columns the user might have added, so they don't break strict mode inserts
+                try { $pdo->exec("ALTER TABLE company_profile MODIFY `idCardFrontBase64` longtext DEFAULT NULL"); } catch (Exception $e) {}
+                try { $pdo->exec("ALTER TABLE company_profile MODIFY `idCardBackBase64` longtext DEFAULT NULL"); } catch (Exception $e) {}
+                
+                $cp = $data['companyProfile'];
+                $stmt = $pdo->prepare("INSERT INTO company_profile (name, email, phone, website, address, reg, slogan, industry, size, type, logoBase64) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([
+                    $cp['name'] ?? '', $cp['email'] ?? '', $cp['phone'] ?? '', $cp['website'] ?? '',
+                    $cp['address'] ?? '', $cp['reg'] ?? '', $cp['slogan'] ?? '', $cp['industry'] ?? '',
+                    $cp['size'] ?? '', $cp['type'] ?? '', $cp['logoBase64'] ?? ''
+                ]);
+            }
+        } catch (Exception $ex) {
+            error_log("Company profile sync failed: " . $ex->getMessage());
         }
 
         $pdo->commit();
