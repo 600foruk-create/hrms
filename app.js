@@ -60,7 +60,12 @@ async function syncServer() {
         window.hrmsDatabase = {
             login_bg: 'assets/images/login/login_bg.png',
             users: [
-                { id: "U1", email: "admin@hrms.com", password: "admin123", name: "admin", role: "Admin", managerId: "", status: "Active" }
+                { id: "U1", email: "admin@hrms.com", password: "admin123", name: "admin", role: "Admin", managerId: "", status: "Active" },
+                { id: "U2", email: "sarah.manager@hrms.com", password: "manager123", name: "Sarah Jenkins", role: "Manager", managerId: "", status: "Active" },
+                { id: "U3", email: "alex.manager@hrms.com", password: "manager123", name: "Alex Mercer", role: "Manager", managerId: "", status: "Active" },
+                { id: "U4", email: "john.emp@hrms.com", password: "employee123", name: "John Doe", role: "Employee", managerId: "U2", status: "Active" },
+                { id: "U5", email: "emma.emp@hrms.com", password: "employee123", name: "Emma Watson", role: "Employee", managerId: "U2", status: "Active" },
+                { id: "U6", email: "ryan.emp@hrms.com", password: "employee123", name: "Ryan Gosling", role: "Employee", managerId: "U3", status: "Active" }
             ],
             weights: {
                 "Billing": 2.0,
@@ -69,10 +74,19 @@ async function syncServer() {
                 "Eligibility Check": 1.0,
                 "Report Preparation": 2.0
             },
-            leaves: [],
-            productivity: [],
-            attendance: [],
-            announcements: [],
+            leaves: [
+                { id: "L1", employeeId: "U4", employeeName: "John Doe", type: "Annual", startDate: "2026-06-01", endDate: "2026-06-05", reason: "Family Vacation", status: "Approved" },
+                { id: "L2", employeeId: "U5", employeeName: "Emma Watson", type: "Sick", startDate: "2026-05-25", endDate: "2026-05-26", reason: "Fever", status: "Pending" }
+            ],
+            productivity: [
+                { id: "P1", employeeId: "U4", employeeName: "John Doe", date: "2026-05-20", tasks: ["Billing", "Follow-up"], subcategories: ["Demographics Entry", "Patient Follow-up"], counts: ["45", "12"], notes: "Completed daily quota.", score: 102.00, status: "Approved" }
+            ],
+            attendance: [
+                { date: "2026-05-20", employeeId: "U4", employeeName: "John Doe", status: "Present", markedBy: "Auto Login" }
+            ],
+            announcements: [
+                { id: "A1", title: "Welcome to HRMS", content: "This is a demo announcement.", target: "All", date: "2026-05-20", author: "Syed Admin" }
+            ],
             auditLogs: [],
             notifications: []
         };
@@ -3273,30 +3287,6 @@ function exportCSV() {
 document.addEventListener('DOMContentLoaded', async () => {
     await syncServer();
 
-    // ONE TIME CLEANUP: Remove dummy data and reset company profile logo to fix server payload crash
-    if (localStorage.getItem('dummy_data_cleared_v3') !== 'true') {
-        const db = getDb();
-        if (db && db.users) {
-            db.users = db.users.filter(u => u.id === 'U1' || u.role === 'Admin'); // keep only admins
-            db.leaves = [];
-            db.productivity = [];
-            db.attendance = [];
-            db.announcements = [];
-            // Remove massive logo string if it exists to unbrick the sync
-            if (db.companyProfile && db.companyProfile.logoBase64) {
-                db.companyProfile.logoBase64 = '';
-            }
-            try {
-                await saveDb(db);
-                localStorage.setItem('dummy_data_cleared_v3', 'true');
-                window.location.reload(true);
-                return;
-            } catch(e) {
-                console.error("Cleanup sync failed", e);
-            }
-        }
-    }
-
     // Set background image from DB state if available
     const db = getDb();
     if (db && db.login_bg) {
@@ -3625,49 +3615,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         const file = files[0];
         const reader = new FileReader();
         reader.onload = function (e) {
-            const img = new Image();
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 300;
-                const MAX_HEIGHT = 300;
-                let width = img.width;
-                let height = img.height;
+            const dataURL = e.target.result;
+            dropzone.innerHTML = `
+                <img src="${dataURL}" alt="Company Logo" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                <div style="font-size: 11px; color: var(--text-muted);">Click to change logo</div>
+                <input type="file" id="comp-logo-input" accept="image/*" style="display:none;">
+            `;
+            // Attach logo data to the form dataset for saving
+            document.getElementById('company-profile-form').dataset.logoBase64 = dataURL;
 
-                if (width > height) {
-                    if (width > MAX_WIDTH) {
-                        height *= MAX_WIDTH / width;
-                        width = MAX_WIDTH;
-                    }
-                } else {
-                    if (height > MAX_HEIGHT) {
-                        width *= MAX_HEIGHT / height;
-                        height = MAX_HEIGHT;
-                    }
-                }
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                const dataURL = canvas.toDataURL('image/png', 0.8);
-                
-                dropzone.innerHTML = `
-                    <img src="${dataURL}" alt="Company Logo" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
-                    <div style="font-size: 11px; color: var(--text-muted);">Click to change logo</div>
-                    <input type="file" id="comp-logo-input" accept="image/*" style="display:none;">
-                `;
-                // Attach logo data to the form dataset for saving
-                document.getElementById('company-profile-form').dataset.logoBase64 = dataURL;
-
-                // Reattach listener
-                const newInput = dropzone.querySelector('#comp-logo-input');
-                if (newInput) {
-                    newInput.addEventListener('change', () => {
-                        if (newInput.files.length) window.onCompLogoSelected(dropzone, newInput.files);
-                    });
-                    dropzone.addEventListener('click', () => newInput.click(), { once: true });
-                }
-            };
-            img.src = e.target.result;
+            // Reattach listener
+            const newInput = dropzone.querySelector('#comp-logo-input');
+            if (newInput) {
+                newInput.addEventListener('change', () => {
+                    if (newInput.files.length) window.onCompLogoSelected(dropzone, newInput.files);
+                });
+                dropzone.addEventListener('click', () => newInput.click(), { once: true });
+            }
         };
         reader.readAsDataURL(file);
     };
