@@ -97,6 +97,15 @@ function getDb() {
     return window.hrmsDatabase;
 }
 
+function getInitials(name) {
+    if (!name) return '?';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name.trim().substring(0, 2).toUpperCase();
+}
+
 async function saveDb(data) {
     window.hrmsDatabase = data; // Immediate local update for UI speed
     try {
@@ -895,7 +904,7 @@ function renderAdminDashboard() {
 
         teamManagers.forEach(manager => {
             const mgrInitials = getInitials(manager.name);
-            const teamEmployees = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && u.managerId === manager.id && u.status === 'Active');
+            const teamEmployees = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === manager.id || u.managerId === manager.name || u.managerId === manager.email) && u.status === 'Active');
 
             let membersHTML = '';
             if (teamEmployees.length === 0) {
@@ -956,7 +965,7 @@ function renderAdminEmployeesTab() {
             empTableBody.innerHTML = `<tr><td colspan="6" class="empty-state">No active employees found.</td></tr>`;
         } else {
             activeUsers.forEach(user => {
-                const mgr = db.users.find(u => u.id === user.managerId);
+                const mgr = db.users.find(u => u.id === user.managerId || u.name === user.managerId || u.email === user.managerId);
                 const mgrName = mgr ? mgr.name : '<span class="text-muted">None</span>';
                 const role = user.role || 'User';
                 const roleClass = role.toLowerCase();
@@ -973,6 +982,7 @@ function renderAdminEmployeesTab() {
                             <div class="btn-action-group">
                                 <button class="btn-action-circle" onclick="viewUserProfile('${user.id}')" tooltip="View Profile"><i class="fa-regular fa-eye"></i></button>
                                 <button class="btn-action-circle" onclick="openEditEmployeeModal('${user.id}')" tooltip="Edit"><i class="fa-regular fa-pen-to-square"></i></button>
+                                <button class="btn-action-circle btn-delete" onclick="deleteEmployee('${user.id}')" tooltip="Delete" style="color: var(--danger);"><i class="fa-regular fa-trash-can"></i></button>
                             </div>
                         </td>
                     </tr>
@@ -992,7 +1002,7 @@ function renderAdminEmployeesTab() {
 
         managers.forEach(manager => {
             const mgrInitials = getInitials(manager.name);
-            const teamEmployees = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && u.managerId === manager.id && u.status === 'Active');
+            const teamEmployees = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === manager.id || u.managerId === manager.name || u.managerId === manager.email) && u.status === 'Active');
 
             let membersHTML = '';
             if (teamEmployees.length === 0) {
@@ -1295,7 +1305,7 @@ function renderAuditLogs() {
 // ==================== RENDERING: MANAGER VIEWS ====================
 function renderManagerDashboard() {
     const db = getDb();
-    const teamMembers = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && u.managerId === currentUser.id);
+    const teamMembers = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
     const teamSize = teamMembers.length;
 
     document.getElementById('manager-team-name-sub').textContent = `${currentUser.name}'s Reporting Team`;
@@ -1403,7 +1413,7 @@ function renderManagerDashboard() {
 
 function renderManagerTeamTab() {
     const db = getDb();
-    const teamMembers = db.users.filter(u => u.role === 'User' && u.managerId === currentUser.id);
+    const teamMembers = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
     const tableBody = document.getElementById('manager-tab-team-table-body');
     tableBody.innerHTML = '';
 
@@ -1440,7 +1450,7 @@ function renderManagerTeamTab() {
 
 function renderManagerAttendanceTab() {
     const db = getDb();
-    const team = db.users.filter(u => u.role === 'User' && u.managerId === currentUser.id);
+    const team = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
     const teamEmails = team.map(t => t.id);
     const filterDate = document.getElementById('manager-attendance-filter-date').value;
 
@@ -1470,7 +1480,7 @@ function renderManagerAttendanceTab() {
 
 function renderManagerProductivityTab() {
     const db = getDb();
-    const team = db.users.filter(u => u.role === 'User' && u.managerId === currentUser.id);
+    const team = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
     const teamEmails = team.map(t => t.id);
 
     // Fill employee filter select options
@@ -1523,7 +1533,7 @@ function renderManagerProductivityTab() {
 
 function renderManagerLeaveTab() {
     const db = getDb();
-    const team = db.users.filter(u => u.role === 'User' && u.managerId === currentUser.id);
+    const team = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
     const teamEmails = team.map(t => t.id);
 
     const tableBody = document.getElementById('manager-leave-table-body');
@@ -1680,14 +1690,14 @@ function renderEmployeeDashboard() {
         
         let manager = null;
         if (currentUser.managerId) {
-            manager = db.users.find(u => u.id === currentUser.managerId);
+            manager = db.users.find(u => u.id === currentUser.managerId || u.name === currentUser.managerId || u.email === currentUser.managerId);
         }
 
         if (!manager) {
             teamContainer.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--text-muted); background: rgba(255,255,255,0.02); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">You are not assigned to a team yet.</div>`;
         } else {
             const mgrInitials = getInitials(manager.name);
-            const teamEmployees = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && u.managerId === manager.id && u.status === 'Active');
+            const teamEmployees = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === manager.id || u.managerId === manager.name || u.managerId === manager.email) && u.status === 'Active');
 
             let membersHTML = '';
             if (teamEmployees.length === 0) {
@@ -2060,7 +2070,12 @@ window.openEditEmployeeModal = function (userId) {
         managerSelect.innerHTML += `<option value="${mgr.id}">${mgr.name}</option>`;
     });
 
-    document.getElementById('emp-manager').value = (user && user.managerId) ? user.managerId : "";
+    let mgrIdVal = "";
+    if (user && user.managerId) {
+        const matchingMgr = db.users.find(u => u.id === user.managerId || u.name === user.managerId || u.email === user.managerId);
+        mgrIdVal = matchingMgr ? matchingMgr.id : user.managerId;
+    }
+    document.getElementById('emp-manager').value = mgrIdVal;
 
     // Role-based restrictions for Manager
     if (currentUser && currentUser.role === 'Manager') {
@@ -2471,9 +2486,9 @@ window.openManualAttendanceModal = function () {
 
     let targetUsers = [];
     if (currentUser.role === 'Admin') {
-        targetUsers = db.users.filter(u => u.role === 'User');
+        targetUsers = db.users.filter(u => u.role === 'User' || u.role === 'Employee');
     } else if (currentUser.role === 'Manager') {
-        targetUsers = db.users.filter(u => u.role === 'User' && u.managerId === currentUser.id);
+        targetUsers = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
     }
 
     targetUsers.forEach(emp => {
@@ -2576,6 +2591,30 @@ window.deleteAnnouncement = function (annId) {
             showToast("Deleted", "Announcement removed.");
             logAudit(`Deleted announcement: "${title}".`);
             refreshTabContent(activeTab);
+        }
+    }
+};
+
+window.deleteEmployee = function (userId) {
+    if (confirm("Are you sure you want to permanently delete this employee's profile and all associated logs? This cannot be undone.")) {
+        const db = getDb();
+        const index = db.users.findIndex(u => u.id === userId);
+        if (index > -1) {
+            const userName = db.users[index].name;
+            db.users.splice(index, 1);
+            
+            // Clean up dependencies
+            db.leaves = db.leaves.filter(l => l.employeeId !== userId);
+            db.productivity = db.productivity.filter(p => p.employeeId !== userId);
+            db.attendance = db.attendance.filter(a => a.employeeId !== userId);
+            
+            saveDb(db);
+            showToast("Deleted", `Employee "${userName}" has been deleted.`);
+            logAudit(`Deleted employee profile: "${userName}".`);
+            refreshTabContent('employees');
+            if (activeTab === 'dashboard') {
+                refreshTabContent('dashboard');
+            }
         }
     }
 };
@@ -2921,7 +2960,7 @@ document.getElementById('btn-admin-report-generate').addEventListener('click', (
 // 2. MANAGER REPORTS
 function initManagerReportsTab() {
     const db = getDb();
-    const team = db.users.filter(u => u.role === 'User' && u.managerId === currentUser.id);
+    const team = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
 
     const empSelect = document.getElementById('manager-report-employee');
     empSelect.innerHTML = '<option value="">All Team Members</option>';
@@ -2971,12 +3010,12 @@ function generateReport(roleContext) {
     }
 
     // Filter employees set based on parameters
-    let filteredEmployees = db.users.filter(u => u.role === 'User');
+    let filteredEmployees = db.users.filter(u => u.role === 'User' || u.role === 'Employee');
     if (roleContext === 'Manager') {
-        filteredEmployees = filteredEmployees.filter(e => e.managerId === currentUser.id);
+        filteredEmployees = filteredEmployees.filter(e => e.managerId === currentUser.id || e.managerId === currentUser.name || e.managerId === currentUser.email);
     } else { // Admin
         if (managerId) {
-            filteredEmployees = filteredEmployees.filter(e => e.managerId === managerId);
+            filteredEmployees = filteredEmployees.filter(e => e.managerId === managerId || e.managerId === (db.users.find(u => u.id === managerId) || {}).name || e.managerId === (db.users.find(u => u.id === managerId) || {}).email);
         }
     }
 
