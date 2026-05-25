@@ -50,14 +50,6 @@ try {
     $pdo->exec("UPDATE users SET role = 'User' WHERE role = 'Employee'");
 } catch (Exception $e) {}
 
-try {
-    $pdo->exec("ALTER TABLE company_profile ADD COLUMN `idCardFrontBase64` longtext DEFAULT NULL");
-} catch (Exception $e) {}
-
-try {
-    $pdo->exec("ALTER TABLE company_profile ADD COLUMN `idCardBackBase64` longtext DEFAULT NULL");
-} catch (Exception $e) {}
-
 // Ensure company_profile table exists (in case of an update)
 try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS `company_profile` (
@@ -300,11 +292,11 @@ elseif ($action === 'save_all') {
         $pdo->exec("DELETE FROM company_profile");
         if (!empty($data['companyProfile'])) {
             $cp = $data['companyProfile'];
-            $stmt = $pdo->prepare("INSERT INTO company_profile (name, email, phone, website, address, reg, slogan, industry, size, type, logoBase64, idCardFrontBase64, idCardBackBase64) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO company_profile (name, email, phone, website, address, reg, slogan, industry, size, type, logoBase64) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $cp['name'] ?? '', $cp['email'] ?? '', $cp['phone'] ?? '', $cp['website'] ?? '',
                 $cp['address'] ?? '', $cp['reg'] ?? '', $cp['slogan'] ?? '', $cp['industry'] ?? '',
-                $cp['size'] ?? '', $cp['type'] ?? '', $cp['logoBase64'] ?? '', $cp['idCardFrontBase64'] ?? '', $cp['idCardBackBase64'] ?? ''
+                $cp['size'] ?? '', $cp['type'] ?? '', $cp['logoBase64'] ?? ''
             ]);
         }
 

@@ -1795,110 +1795,6 @@ body.light-mode .report-preview-container {
     }
 }
 
-/* ==================== EMPLOYEE ID CARDS ==================== */
-.id-card-wrapper {
-    position: relative;
-    width: 2.125in;
-    height: 3.375in;
-    background-color: #222;
-    background-size: cover;
-    background-position: center;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    color: #fff;
-    font-family: 'Inter', sans-serif;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-.id-card-wrapper * {
-    box-sizing: border-box;
-}
-.id-card-wrapper.back-side {
-    color: #fff;
-}
-/* Absolute Positioning Overlays */
-.id-photo {
-    position: absolute;
-    top: 15%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 1.2in;
-    height: 1.2in;
-    border-radius: 50%;
-    border: 3px solid rgba(255, 255, 255, 0.8);
-    object-fit: cover;
-    background: #ccc;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-}
-.id-name {
-    position: absolute;
-    top: 55%;
-    width: 100%;
-    text-align: center;
-    font-size: 16px;
-    font-weight: 800;
-    text-shadow: 0px 1px 3px rgba(0,0,0,0.8);
-    letter-spacing: 0.5px;
-}
-.id-desig {
-    position: absolute;
-    top: 63%;
-    width: 100%;
-    text-align: center;
-    font-size: 11px;
-    font-weight: 500;
-    color: #38bdf8;
-    text-shadow: 0px 1px 2px rgba(0,0,0,0.8);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-.id-idno {
-    position: absolute;
-    bottom: 12%;
-    width: 100%;
-    text-align: center;
-    font-size: 10px;
-    font-weight: 600;
-    text-shadow: 0px 1px 2px rgba(0,0,0,0.8);
-}
-.id-dept {
-    position: absolute;
-    bottom: 7%;
-    width: 100%;
-    text-align: center;
-    font-size: 10px;
-    font-weight: 600;
-    text-shadow: 0px 1px 2px rgba(0,0,0,0.8);
-}
-
-/* Back side details */
-.id-back-details {
-    position: absolute;
-    top: 15%;
-    left: 10%;
-    width: 80%;
-    font-size: 10px;
-    line-height: 2;
-    text-shadow: 0px 1px 2px rgba(0,0,0,0.8);
-}
-.id-back-details table {
-    width: 100%;
-    border-collapse: collapse;
-}
-.id-back-details td {
-    padding: 3px 0;
-    vertical-align: top;
-}
-.id-back-details td:first-child {
-    font-weight: 700;
-    width: 45%;
-    color: #38bdf8;
-}
-
-.id-card-print-container {
-    display: none;
-}
-
 /* ==================== PRINT MEDIA QUERIES (PDF CLEAN EXPORT) ==================== */
 @media print {
     body {
@@ -1929,23 +1825,6 @@ body.light-mode .report-preview-container {
     }
     .tab-view {
         display: none !important;
-    }
-    .tab-view.print-active {
-        display: block !important;
-    }
-    .id-card-print-container {
-        display: flex !important;
-        flex-wrap: wrap;
-        gap: 0.5in;
-        justify-content: center;
-        align-items: flex-start;
-    }
-    .id-card-print-container .id-card-wrapper {
-        page-break-inside: avoid;
-        box-shadow: none !important;
-        border: 1px solid #ccc !important;
-        print-color-adjust: exact;
-        -webkit-print-color-adjust: exact;
     }
     .tab-view#admin-tab-reports,
     .tab-view#manager-tab-reports {
