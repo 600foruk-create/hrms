@@ -89,6 +89,11 @@ try {
     }
 }
 
+// Create an 'employees' view as an alias for 'users' table so that it appears in DB correctly
+try {
+    $pdo->exec("CREATE OR REPLACE VIEW employees AS SELECT * FROM users");
+} catch (Exception $e) {}
+
 // Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
@@ -207,9 +212,9 @@ elseif ($action === 'save_all') {
                 $stmt->execute([
                     $u['id'], $u['email'], $u['password'], $u['name'], $u['role'], 
                     $u['managerId'] ?? '', $u['status'], 
-                    $u['salary'] ?? 0, 
-                    $u['startDate'] ?? null, 
-                    $u['endDate'] ?? null,
+                    ($u['salary'] === '' || $u['salary'] === null) ? 0 : (float)$u['salary'], 
+                    !empty($u['startDate']) ? $u['startDate'] : null, 
+                    !empty($u['endDate']) ? $u['endDate'] : null,
                     $u['profilePic'] ?? null,
                     $u['documents'] ? json_encode($u['documents']) : null,
                     $u['bloodGroup'] ?? null,
@@ -232,7 +237,12 @@ elseif ($action === 'save_all') {
         if (!empty($data['leaves'])) {
             $stmt = $pdo->prepare("INSERT INTO leaves (id, employeeId, employeeName, type, startDate, endDate, reason, status, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
             foreach ($data['leaves'] as $l) {
-                $stmt->execute([$l['id'], $l['employeeId'], $l['employeeName'], $l['type'], $l['startDate'], $l['endDate'], $l['reason'], $l['status'], $l['comments'] ?? '']);
+                $stmt->execute([
+                    $l['id'], $l['employeeId'], $l['employeeName'], $l['type'], 
+                    !empty($l['startDate']) ? $l['startDate'] : null, 
+                    !empty($l['endDate']) ? $l['endDate'] : null, 
+                    $l['reason'], $l['status'], $l['comments'] ?? ''
+                ]);
             }
         }
 
@@ -242,9 +252,12 @@ elseif ($action === 'save_all') {
             $stmt = $pdo->prepare("INSERT INTO productivity (id, employeeId, employeeName, date, tasks, subcategories, counts, notes, score, status, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             foreach ($data['productivity'] as $p) {
                 $stmt->execute([
-                    $p['id'], $p['employeeId'], $p['employeeName'], $p['date'],
+                    $p['id'], $p['employeeId'], $p['employeeName'], 
+                    !empty($p['date']) ? $p['date'] : null,
                     json_encode($p['tasks']), json_encode($p['subcategories']), json_encode($p['counts']),
-                    $p['notes'], $p['score'], $p['status'], $p['comments'] ?? ''
+                    $p['notes'], 
+                    ($p['score'] === '' || $p['score'] === null) ? 0 : (float)$p['score'], 
+                    $p['status'], $p['comments'] ?? ''
                 ]);
             }
         }
@@ -256,7 +269,10 @@ elseif ($action === 'save_all') {
             // Actually, frontend relies on date + employeeId
             $stmt = $pdo->prepare("INSERT INTO attendance (date, employeeId, employeeName, status, markedBy) VALUES (?, ?, ?, ?, ?)");
             foreach ($data['attendance'] as $a) {
-                $stmt->execute([$a['date'], $a['employeeId'], $a['employeeName'], $a['status'], $a['markedBy'] ?? 'System']);
+                $stmt->execute([
+                    !empty($a['date']) ? $a['date'] : null, 
+                    $a['employeeId'], $a['employeeName'], $a['status'], $a['markedBy'] ?? 'System'
+                ]);
             }
         }
 
@@ -265,7 +281,11 @@ elseif ($action === 'save_all') {
         if (!empty($data['announcements'])) {
             $stmt = $pdo->prepare("INSERT INTO announcements (id, title, content, target, date, author) VALUES (?, ?, ?, ?, ?, ?)");
             foreach ($data['announcements'] as $a) {
-                $stmt->execute([$a['id'], $a['title'], $a['content'], $a['target'], $a['date'], $a['author']]);
+                $stmt->execute([
+                    $a['id'], $a['title'], $a['content'], $a['target'], 
+                    !empty($a['date']) ? $a['date'] : null, 
+                    $a['author']
+                ]);
             }
         }
 
@@ -274,7 +294,10 @@ elseif ($action === 'save_all') {
         if (!empty($data['auditLogs'])) {
             $stmt = $pdo->prepare("INSERT INTO audit_logs (timestamp, userId, userName, details) VALUES (?, ?, ?, ?)");
             foreach ($data['auditLogs'] as $al) {
-                $stmt->execute([$al['timestamp'], $al['userId'], $al['userName'], $al['details']]);
+                $stmt->execute([
+                    !empty($al['timestamp']) ? $al['timestamp'] : null, 
+                    $al['userId'], $al['userName'], $al['details']
+                ]);
             }
         }
 
@@ -284,7 +307,10 @@ elseif ($action === 'save_all') {
             $stmt = $pdo->prepare("INSERT INTO notifications (id, userId, message, read_status, time) VALUES (?, ?, ?, ?, ?)");
             foreach ($data['notifications'] as $n) {
                 $readStatus = (!empty($n['read']) && $n['read']) ? 1 : 0;
-                $stmt->execute([$n['id'], $n['userId'], $n['message'], $readStatus, $n['time']]);
+                $stmt->execute([
+                    $n['id'], $n['userId'], $n['message'], $readStatus, 
+                    !empty($n['time']) ? $n['time'] : null
+                ]);
             }
         }
 
