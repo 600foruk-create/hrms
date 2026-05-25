@@ -1049,39 +1049,6 @@ function renderAdminEmployeesTab() {
     // 5. Populate Employee Cards Sub-tab
     if (cardsContainer) {
         cardsContainer.innerHTML = '';
-        let activeUsers = db.users.filter(user => user.status === 'Active');
-
-        if (activeUsers.length === 0) {
-            cardsContainer.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1;">No active staff found.</div>`;
-        } else {
-            activeUsers.forEach(user => {
-                const initials = getInitials(user.name);
-                const roleClass = user.role.toLowerCase();
-                const dateJoined = user.startDate ? new Date(user.startDate).toLocaleDateString() : 'N/A';
-
-                cardsContainer.innerHTML += `
-                    <div class="team-card bg-glass" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
-                        <div class="avatar" style="width: 80px; height: 80px; font-size: 30px; margin-bottom: 10px;">${initials}</div>
-                        <h3 style="font-size: 18px; margin-bottom: 5px;">${user.name}</h3>
-                        <span class="badge-role ${roleClass}" style="margin-bottom: 15px;">${user.role}</span>
-                        <div style="font-size: 13px; color: var(--text-muted); width: 100%; text-align: left; background: rgba(0,0,0,0.1); padding: 10px; border-radius: 8px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                                <span>Employee ID:</span>
-                                <span class="bold text-primary">${user.id}</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                                <span>Email:</span>
-                                <span>${user.email}</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between;">
-                                <span>Joined:</span>
-                                <span>${dateJoined}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
     }
 
     // 6. Populate Inactive Sub-tab Table
