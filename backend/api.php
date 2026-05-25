@@ -50,7 +50,14 @@ try {
     $pdo->exec("UPDATE users SET role = 'User' WHERE role = 'Employee'");
 } catch (Exception $e) {}
 
-// Ensure company_profile table exists (in case of an update)
+// Ensure company_profile table exists and is clean (drop if it has old/bad columns)
+try {
+    $stmt = $pdo->query("SHOW COLUMNS FROM `company_profile` LIKE 'idCardFrontBase64'");
+    if ($stmt && $stmt->rowCount() > 0) {
+        $pdo->exec("DROP TABLE `company_profile`");
+    }
+} catch (Exception $e) {}
+
 try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS `company_profile` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
