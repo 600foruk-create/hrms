@@ -645,9 +645,9 @@
                                                 <th>Role</th>
                                                 <th>Assigned Manager</th>
                                                 <th>Status</th>
-                                                <th>Time In</th>
-                                                <th>Time Out</th>
-                                                <th>Marked By</th>
+                                                <th class="text-center">Time In</th>
+                                                <th class="text-center">Time Out</th>
+                                                <th class="text-center">Marked By</th>
                                             </tr>
                                         </thead>
                                         <tbody id="admin-attendance-table-body">
@@ -1899,6 +1899,16 @@
                         <option value="Present">Present</option>
                         <option value="Absent">Absent</option>
                     </select>
+                </div>
+                <div class="form-group" style="display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <label for="att-log-time-in">Time In (Optional)</label>
+                        <input type="time" id="att-log-time-in" class="form-control">
+                    </div>
+                    <div style="flex: 1;">
+                        <label for="att-log-time-out">Time Out (Optional)</label>
+                        <input type="time" id="att-log-time-out" class="form-control">
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">

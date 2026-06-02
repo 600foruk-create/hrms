@@ -1189,6 +1189,10 @@ function renderAdminAttendanceTab() {
             const mgr = emp ? db.users.find(u => u.id === emp.managerId) : null;
             const mgrName = mgr ? mgr.name : '<span class="text-muted">None</span>';
 
+            const cleanTimeIn = (log.timeIn && log.timeIn !== log.employeeName && log.timeIn.trim() !== '') ? log.timeIn : '-';
+            const cleanTimeOut = (log.timeOut && log.timeOut !== log.employeeName && log.timeOut.trim() !== '') ? log.timeOut : '-';
+            const cleanMarkedBy = (log.markedBy && log.markedBy.trim() !== '') ? log.markedBy : 'System';
+
             tableBody.innerHTML += `
                 <tr>
                     <td>${log.date}</td>
@@ -1196,9 +1200,9 @@ function renderAdminAttendanceTab() {
                     <td><span class="badge-role ${empRole.toLowerCase()}">${empRole}</span></td>
                     <td>${mgrName}</td>
                     <td><span class="badge-status ${log.status === 'Present' ? 'approved' : 'rejected'}">${log.status}</span></td>
-                    <td>${log.timeIn || '-'}</td>
-                    <td>${log.timeOut || '-'}</td>
-                    <td>${log.markedBy || 'System'}</td>
+                    <td class="text-center">${cleanTimeIn}</td>
+                    <td class="text-center">${cleanTimeOut}</td>
+                    <td class="text-center">${cleanMarkedBy}</td>
                 </tr>
             `;
         });
@@ -2683,11 +2687,21 @@ document.getElementById('attendance-log-form').addEventListener('submit', (e) =>
     const date = document.getElementById('att-log-date').value;
     const empId = document.getElementById('att-log-emp').value;
     const status = document.getElementById('att-log-status').value;
+    const timeInRaw = document.getElementById('att-log-time-in').value;
+    const timeOutRaw = document.getElementById('att-log-time-out').value;
 
     if (!date || !empId || !status) {
         showToast("Validation Error", "All fields are required.", "error");
         return;
     }
+
+    const formatTime = (timeStr) => {
+        if (!timeStr) return '';
+        const [h, m] = timeStr.split(':');
+        const d = new Date();
+        d.setHours(h, m);
+        return d.toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit' });
+    };
 
     const emp = db.users.find(u => u.id === empId);
     if (!emp) return;
@@ -2695,6 +2709,8 @@ document.getElementById('attendance-log-form').addEventListener('submit', (e) =>
     const existing = db.attendance.find(a => a.employeeId === empId && a.date === date);
     if (existing) {
         existing.status = status;
+        if (timeInRaw) existing.timeIn = formatTime(timeInRaw);
+        if (timeOutRaw) existing.timeOut = formatTime(timeOutRaw);
         existing.markedBy = currentUser.name;
     } else {
         db.attendance.push({
@@ -2702,6 +2718,8 @@ document.getElementById('attendance-log-form').addEventListener('submit', (e) =>
             employeeId: empId,
             employeeName: emp.name,
             status,
+            timeIn: timeInRaw ? formatTime(timeInRaw) : '',
+            timeOut: timeOutRaw ? formatTime(timeOutRaw) : '',
             markedBy: currentUser.name
         });
     }
