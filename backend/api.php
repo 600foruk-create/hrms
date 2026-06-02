@@ -50,6 +50,11 @@ try {
     $pdo->exec("UPDATE users SET role = 'User' WHERE role = 'Employee'");
 } catch (Exception $e) {}
 
+// Auto-upgrade attendance status column to varchar to support 'Late', 'On Leave', etc.
+try {
+    $pdo->exec("ALTER TABLE attendance MODIFY COLUMN `status` varchar(50) NOT NULL");
+} catch (Exception $e) {}
+
 // Ensure company_profile table exists (in case of an update)
 try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS `company_profile` (
@@ -207,11 +212,11 @@ elseif ($action === 'save_all') {
                 $stmt->execute([
                     $u['id'], $u['email'], $u['password'], $u['name'], $u['role'], 
                     $u['managerId'] ?? '', $u['status'], 
-                    $u['salary'] ?? 0, 
-                    $u['startDate'] ?? null, 
-                    $u['endDate'] ?? null,
+                    $u['salary'] === '' ? 0 : ($u['salary'] ?? 0), 
+                    $u['startDate'] === '' ? null : ($u['startDate'] ?? null), 
+                    $u['endDate'] === '' ? null : ($u['endDate'] ?? null),
                     $u['profilePic'] ?? null,
-                    $u['documents'] ? json_encode($u['documents']) : null,
+                    !empty($u['documents']) ? json_encode($u['documents']) : null,
                     $u['bloodGroup'] ?? null,
                     $u['designation'] ?? null
                 ]);

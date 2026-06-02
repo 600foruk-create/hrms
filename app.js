@@ -123,11 +123,11 @@ async function saveDb(data) {
         const result = await response.json();
         if (result.status !== 'success') {
             console.error("Sync Error:", result.message);
-            // showToast("Server Sync Error", "Failed to backup data to server.", "error");
+            showToast("Server Sync Error", "Failed to backup data to server: " + result.message, "error");
         }
-    } catch (err) {
-        console.error("Network Error:", err);
-        // showToast("Network Error", "Could not connect to database server.", "error");
+    } catch (error) {
+        console.error("Network Error:", error);
+        showToast("Server Sync Error", "Could not connect to database server.", "error");
     }
 }
 
