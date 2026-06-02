@@ -2672,9 +2672,9 @@ window.openManualAttendanceModal = function () {
 
     let targetUsers = [];
     if (currentUser.role === 'Admin') {
-        targetUsers = db.users.filter(u => u.role === 'User' || u.role === 'Employee');
+        targetUsers = db.users.filter(u => u.status === 'Active' && u.id !== currentUser.id);
     } else if (currentUser.role === 'Manager') {
-        targetUsers = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
+        targetUsers = db.users.filter(u => u.status === 'Active' && (u.role === 'User' || u.role === 'Employee') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
     }
 
     targetUsers.forEach(emp => {
