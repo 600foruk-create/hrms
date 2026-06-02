@@ -23,7 +23,7 @@ function renderAdminProductivityTab() {
             tableBody.innerHTML += `
                 <tr>
                     <td>${sub.date}</td>
-                    <td class="bold">${sub.employeeName}</td>
+                    <td class="bold">${sub.employeeName} <span style="font-size: 0.85em; color: var(--text-muted); font-weight: normal;">(${sub.employeeId})</span></td>
                     <td>${sub.tasks.join(', ')}</td>
                     <td>${sub.subcategories.join(', ')}</td>
                     <td>${Object.values(sub.counts).reduce((s, c) => s + c, 0)}</td>
@@ -75,7 +75,7 @@ function renderManagerProductivityTab() {
             tableBody.innerHTML += `
                 <tr>
                     <td>${sub.date}</td>
-                    <td class="bold">${sub.employeeName}</td>
+                    <td class="bold">${sub.employeeName} <span style="font-size: 0.85em; color: var(--text-muted); font-weight: normal;">(${sub.employeeId})</span></td>
                     <td>${sub.tasks.join(', ')}</td>
                     <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${sub.notes}">${sub.notes}</td>
                     <td>${Object.values(sub.counts).reduce((s, c) => s + c, 0)}</td>

@@ -29,7 +29,7 @@ function renderAdminEmployeesTab() {
 
                 empTableBody.innerHTML += `
                     <tr>
-                        <td class="bold">${user.name}</td>
+                        <td class="bold">${user.name} <span style="font-size: 0.85em; color: var(--text-muted); font-weight: normal;">(${user.displayId || user.id})</span></td>
                         <td>${user.email}</td>
                         <td>${mgrName}</td>
                         <td><span class="badge-role ${roleClass}">${role}</span></td>
@@ -120,7 +120,7 @@ function renderAdminEmployeesTab() {
 
                 inactiveTableBody.innerHTML += `
                     <tr style="opacity: 0.7;">
-                        <td class="bold">${user.name}</td>
+                        <td class="bold">${user.name} <span style="font-size: 0.85em; color: var(--text-muted); font-weight: normal;">(${user.displayId || user.id})</span></td>
                         <td><span class="badge-role ${roleClass}">${user.role}</span></td>
                         <td>${user.startDate || '-'}</td>
                         <td class="text-danger bold">${user.endDate || '-'}</td>
@@ -154,7 +154,7 @@ function renderManagerTeamTab() {
 
             tableBody.innerHTML += `
                 <tr>
-                    <td class="bold">${emp.name}</td>
+                    <td class="bold">${emp.name} <span style="font-size: 0.85em; color: var(--text-muted); font-weight: normal;">(${emp.displayId || emp.id})</span></td>
                     <td>${emp.email}</td>
                     <td><span class="badge-status ${attClass}">${attStatus}</span></td>
                     <td><strong class="text-info">${totalScore}</strong></td>

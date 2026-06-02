@@ -1470,7 +1470,7 @@ window.openManualAttendanceModal = function () {
                     <div class="attendance-bulk-info">
                         <div class="attendance-bulk-avatar">${emp.name.charAt(0).toUpperCase()}</div>
                         <div>
-                            <div class="attendance-bulk-name">${emp.name}</div>
+                            <div class="attendance-bulk-name">${emp.name} <span style="font-size: 0.85em; color: var(--text-muted);">(${emp.displayId || emp.id})</span></div>
                             <div class="attendance-bulk-role">${emp.role}</div>
                         </div>
                     </div>
