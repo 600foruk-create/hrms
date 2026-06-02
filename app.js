@@ -420,6 +420,77 @@ function markAutoAttendance(employee) {
     }
 }
 
+// Attendance Punch In / Out logic
+function updatePunchButtonState() {
+    if (!currentUser) return;
+    const db = getDb();
+    const today = new Date().toISOString().split('T')[0];
+    const record = db.attendance.find(a => a.employeeId === currentUser.id && a.date === today);
+    const btnText = document.getElementById('punch-btn-text');
+    const btnIcon = document.querySelector('#btn-punch-attendance i');
+    const btn = document.getElementById('btn-punch-attendance');
+    
+    if (record && record.timeIn && !record.timeOut) {
+        btnText.textContent = "Punch Out";
+        btnIcon.className = "fa-solid fa-person-walking-arrow-right";
+        btn.style.background = "rgba(244, 63, 94, 0.1)";
+        btn.style.borderColor = "rgba(244, 63, 94, 0.3)";
+        btn.style.color = "#f43f5e";
+    } else if (record && record.timeOut) {
+        btnText.textContent = "Punched Out";
+        btnIcon.className = "fa-solid fa-check";
+        btn.style.background = "rgba(34, 197, 94, 0.1)";
+        btn.style.borderColor = "rgba(34, 197, 94, 0.3)";
+        btn.style.color = "#22c55e";
+        btn.disabled = true;
+    } else {
+        btnText.textContent = "Punch In";
+        btnIcon.className = "fa-solid fa-fingerprint";
+        btn.style.background = "rgba(56, 189, 248, 0.1)";
+        btn.style.borderColor = "rgba(56, 189, 248, 0.3)";
+        btn.style.color = "#38bdf8";
+        btn.disabled = false;
+    }
+}
+
+function handlePunchInOut() {
+    if (!currentUser) return;
+    const db = getDb();
+    const today = new Date().toISOString().split('T')[0];
+    const now = new Date().toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit' });
+    let record = db.attendance.find(a => a.employeeId === currentUser.id && a.date === today);
+    
+    if (!record) {
+        // Create Punch In record
+        db.attendance.push({
+            date: today,
+            employeeId: currentUser.id,
+            employeeName: currentUser.name,
+            status: "Present",
+            markedBy: currentUser.name,
+            timeIn: now,
+            timeOut: null
+        });
+        showToast("Punched In", `You successfully punched in at ${now}.`, "success");
+    } else if (record.timeIn && !record.timeOut) {
+        // Punch Out
+        record.timeOut = now;
+        showToast("Punched Out", `You successfully punched out at ${now}.`, "info");
+    } else {
+        return; // Already punched out
+    }
+    
+    saveDb(db);
+    updatePunchButtonState();
+    
+    // Refresh tables if we are looking at them
+    if (activeTab === 'attendance') {
+        if (currentUser.role === 'Admin') renderAdminAttendanceTab(db);
+        if (currentUser.role === 'Manager') renderManagerAttendanceTab(db);
+        if (currentUser.role === 'User') renderEmployeeAttendanceTab(db);
+    }
+}
+
 // ==================== SIDEBAR & VIEW ROUTING ====================
 function renderSidebar() {
     const sidebarMenu = document.getElementById('sidebar-menu');
@@ -492,6 +563,8 @@ function renderSidebar() {
     }
 
     sidebarMenu.innerHTML = menuHTML;
+
+    updatePunchButtonState();
 
     // Add Click Listeners to Sidebar Items
     document.querySelectorAll('.sidebar-link').forEach(link => {
@@ -764,7 +837,7 @@ function renderAdminDashboard() {
                             <div class="avatar-small" style="background: rgba(95, 59, 246, 0.15); color: #5f3bf6; width: 32px; height: 32px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center;">${initials}</div>
                             <div style="display: flex; flex-direction: column;">
                                 <span style="font-size: 13px; font-weight: 700; color: #fff;">${task.employeeName}</span>
-                                <span style="font-size: 11px; color: var(--text-secondary);">${task.tasks.join(', ')} • Score: <strong>${task.score}</strong></span>
+                                <span style="font-size: 11px; color: var(--text-secondary);">${task.tasks.join(', ')} â€¢ Score: <strong>${task.score}</strong></span>
                             </div>
                         </div>
                         ${actionButtons}
@@ -1115,6 +1188,8 @@ function renderAdminAttendanceTab() {
                     <td><span class="badge-role ${empRole.toLowerCase()}">${empRole}</span></td>
                     <td>${mgrName}</td>
                     <td><span class="badge-status ${log.status === 'Present' ? 'approved' : 'rejected'}">${log.status}</span></td>
+                    <td>${log.timeIn || '-'}</td>
+                    <td>${log.timeOut || '-'}</td>
                     <td>${log.markedBy || 'System'}</td>
                 </tr>
             `;
@@ -1190,7 +1265,7 @@ function renderAdminLeaveTab() {
                     <td>${l.startDate} to ${l.endDate}</td>
                     <td class="italic">"${l.reason}"</td>
                     <td><span class="badge-status ${statusClass}">${l.status}</span></td>
-                    <td><span class="text-muted italic">${l.comments || '—'}</span></td>
+                    <td><span class="text-muted italic">${l.comments || 'â€”'}</span></td>
                     <td>${actionBtnHTML}</td>
                 </tr>
             `;
@@ -1239,7 +1314,55 @@ function renderAdminSettingsTab() {
     document.getElementById('weight-reporting').value = weights["Report Preparation"];
 
     renderAuditLogs();
+    renderLeaveTypes();
 }
+
+function renderLeaveTypes() {
+    const db = getDb();
+    const tbody = document.getElementById('settings-leave-types-body');
+    tbody.innerHTML = '';
+    
+    let leaveTypes = db.companyProfile?.leaveTypes;
+    if (!leaveTypes || !Array.isArray(leaveTypes)) {
+        leaveTypes = [
+            { id: 'L1', name: 'Casual Leave', days: 5 },
+            { id: 'L2', name: 'Medical Leave', days: 5 },
+            { id: 'L3', name: 'Annual Leave', days: 15 }
+        ];
+        if (!db.companyProfile) db.companyProfile = {};
+        db.companyProfile.leaveTypes = leaveTypes;
+        saveDb(db);
+    }
+    
+    if (leaveTypes.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="empty-state">No leave types configured.</td></tr>`;
+    } else {
+        leaveTypes.forEach(lt => {
+            tbody.innerHTML += `
+                <tr>
+                    <td class="bold">${lt.name}</td>
+                    <td>${lt.days}</td>
+                    <td>
+                        <button class="btn-action-circle text-danger" onclick="deleteLeaveType('${lt.id}')" tooltip="Delete">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+}
+
+window.deleteLeaveType = function(id) {
+    if(confirm("Are you sure you want to delete this leave type?")) {
+        const db = getDb();
+        db.companyProfile.leaveTypes = db.companyProfile.leaveTypes.filter(lt => lt.id !== id);
+        saveDb(db);
+        logAudit("Deleted a leave type policy.");
+        renderLeaveTypes();
+        showToast("Success", "Leave type deleted.");
+    }
+};
 
 function renderAuditLogs() {
     const db = getDb();
@@ -1369,7 +1492,7 @@ function renderManagerDashboard() {
                         <span class="text-info font-heading bold">Est. Score: ${p.score}</span>
                     </div>
                     <p class="text-muted italic">"${p.notes}"</p>
-                    <div class="date">${p.date} • Tasks: ${p.tasks.join(', ')}</div>
+                    <div class="date">${p.date} â€¢ Tasks: ${p.tasks.join(', ')}</div>
                     <div class="footer-actions">
                         <button class="btn btn-sm btn-outline" onclick="reviewProductivitySubmission('${p.id}')">Review</button>
                     </div>
@@ -1439,6 +1562,8 @@ function renderManagerAttendanceTab() {
                     <td>${log.date}</td>
                     <td class="bold">${log.employeeName}</td>
                     <td><span class="badge-status ${log.status === 'Present' ? 'approved' : 'rejected'}">${log.status}</span></td>
+                    <td>${log.timeIn || '-'}</td>
+                    <td>${log.timeOut || '-'}</td>
                     <td>${log.markedBy || 'System'}</td>
                 </tr>
             `;
@@ -1533,7 +1658,7 @@ function renderManagerLeaveTab() {
                     <td>${l.startDate} to ${l.endDate}</td>
                     <td class="italic">"${l.reason}"</td>
                     <td><span class="badge-status ${statusClass}">${l.status}</span></td>
-                    <td><span class="text-muted italic">${l.comments || '—'}</span></td>
+                    <td><span class="text-muted italic">${l.comments || 'â€”'}</span></td>
                     <td>${actionsHTML}</td>
                 </tr>
             `;
@@ -1721,6 +1846,8 @@ function renderEmployeeAttendanceTab() {
                 <tr>
                     <td>${att.date}</td>
                     <td><span class="badge-status ${att.status === 'Present' ? 'approved' : 'rejected'}">${att.status}</span></td>
+                    <td>${att.timeIn || '-'}</td>
+                    <td>${att.timeOut || '-'}</td>
                     <td>${att.markedBy || 'System'}</td>
                 </tr>
             `;
@@ -1750,7 +1877,7 @@ function renderEmployeeProductivityTab() {
                     <td>${Object.values(p.counts).reduce((s, c) => s + c, 0)}</td>
                     <td><strong class="text-info">${p.score}</strong></td>
                     <td><span class="badge-status ${statusClass}">${p.status}</span></td>
-                    <td><span class="text-muted italic">${p.comments || '—'}</span></td>
+                    <td><span class="text-muted italic">${p.comments || 'â€”'}</span></td>
                 </tr>
             `;
         });
@@ -1777,7 +1904,7 @@ function renderEmployeeLeaveTab() {
                     <td>${l.endDate}</td>
                     <td class="italic">"${l.reason}"</td>
                     <td><span class="badge-status ${statusClass}">${l.status}</span></td>
-                    <td><span class="text-muted italic">${l.comments || '—'}</span></td>
+                    <td><span class="text-muted italic">${l.comments || 'â€”'}</span></td>
                 </tr>
             `;
         });
@@ -2101,6 +2228,36 @@ window.openEditEmployeeModal = function (userId) {
         window.renderDocumentsDropzone(docDropzone);
     }
 
+    // Leave Balances Logic
+    const leaveSection = document.getElementById('emp-leave-balances-section');
+    const leaveTableBody = document.getElementById('emp-leave-balances-table');
+    if (user && user.id) {
+        leaveSection.style.display = 'block';
+        leaveTableBody.innerHTML = '';
+        
+        let balances = user.leaveBalances || [];
+        if (balances.length === 0) {
+            leaveTableBody.innerHTML = `<tr><td colspan="3" class="empty-state">No leave balances found for this employee.</td></tr>`;
+        } else {
+            balances.forEach(b => {
+                leaveTableBody.innerHTML += `
+                    <tr>
+                        <td class="bold">${b.name}</td>
+                        <td>${b.balance} days</td>
+                        <td>
+                            <div style="display:flex; gap:5px; align-items:center;">
+                                <input type="number" id="leave-bal-${b.id}" class="form-control" style="width:70px; padding:4px;" value="${b.balance}">
+                                <button type="button" class="btn btn-sm btn-primary" onclick="updateEmployeeLeaveBalance('${user.id}', '${b.id}')">Save</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+    } else {
+        leaveSection.style.display = 'none';
+    }
+
     toggleManagerGroup();
 
     openModal('modal-employee');
@@ -2226,7 +2383,8 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
             designation,
             endDate: endDate ? endDate : (status === 'Inactive' ? new Date().toISOString().split('T')[0] : null),
             profilePic: window.tempProfilePic,
-            documents: window.tempDocuments
+            documents: window.tempDocuments,
+            leaveBalances: (db.companyProfile?.leaveTypes || []).map(lt => ({ id: lt.id, name: lt.name, balance: lt.days }))
         });
 
         saveDb(db);
@@ -2299,6 +2457,19 @@ function processLeaveReview(status) {
         // If approved, update attendance register as Leave for those dates
         if (status === 'Approved') {
             logLeaveAttendance(leave);
+            
+            // Deduct from leave balance
+            const user = db.users.find(u => u.id === leave.employeeId);
+            if (user && user.leaveBalances) {
+                const bal = user.leaveBalances.find(b => b.name === leave.type);
+                if (bal) {
+                    const start = new Date(leave.startDate);
+                    const end = new Date(leave.endDate);
+                    const days = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
+                    bal.balance = Math.max(0, bal.balance - days);
+                    saveDb(db);
+                }
+            }
         }
     }
 
@@ -2615,6 +2786,33 @@ document.getElementById('settings-weights-form').addEventListener('submit', (e) 
     logAudit(`Modified task evaluation weights configuration.`);
 
     refreshTabContent(activeTab);
+});
+
+document.getElementById('settings-add-leave-type-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = document.getElementById('new-leave-type-name').value.trim();
+    const days = parseInt(document.getElementById('new-leave-type-days').value, 10);
+    
+    if(!name || isNaN(days)) {
+        showToast("Error", "Invalid inputs.", "error");
+        return;
+    }
+    
+    const db = getDb();
+    if (!db.companyProfile) db.companyProfile = {};
+    if (!db.companyProfile.leaveTypes) db.companyProfile.leaveTypes = [];
+    
+    db.companyProfile.leaveTypes.push({
+        id: 'L' + Date.now(),
+        name: name,
+        days: days
+    });
+    
+    saveDb(db);
+    logAudit(`Added new leave type: ${name} (${days} days)`);
+    showToast("Success", "Leave type added.");
+    e.target.reset();
+    renderLeaveTypes();
 });
 
 document.getElementById('btn-admin-clear-audit-logs').addEventListener('click', () => {
@@ -3174,7 +3372,7 @@ function generateReport(roleContext) {
                     <td><span class="badge-role employee">${log.type}</span></td>
                     <td>${log.startDate} to ${log.endDate}</td>
                     <td><span class="badge-status ${statusClass}">${log.status}</span></td>
-                    <td class="italic">${log.comments || '—'}</td>
+                    <td class="italic">${log.comments || 'â€”'}</td>
                 </tr>
             `;
         });
@@ -3438,21 +3636,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         openModal('modal-productivity-form');
     });
 
-    safeAddListener('btn-employee-apply-leave-dash', 'click', () => {
+    window.openLeaveRequestModal = function() {
         const form = document.getElementById('leave-request-form');
         if (form) form.reset();
+        
+        const typeSelect = document.getElementById('leave-type');
+        if (typeSelect) {
+            typeSelect.innerHTML = '';
+            const db = getDb();
+            const leaveTypes = db.companyProfile?.leaveTypes || [
+                { id: 'L1', name: 'Casual Leave' },
+                { id: 'L2', name: 'Medical Leave' },
+                { id: 'L3', name: 'Annual Leave' }
+            ];
+            leaveTypes.forEach(lt => {
+                typeSelect.innerHTML += `<option value="${lt.name}">${lt.name}</option>`;
+            });
+        }
+        
         openModal('modal-leave-form');
-    });
-    safeAddListener('btn-employee-apply-leave-sub', 'click', () => {
-        const form = document.getElementById('leave-request-form');
-        if (form) form.reset();
-        openModal('modal-leave-form');
-    });
-    safeAddListener('btn-employee-add-leave-tab', 'click', () => {
-        const form = document.getElementById('leave-request-form');
-        if (form) form.reset();
-        openModal('modal-leave-form');
-    });
+    };
+
+    safeAddListener('btn-employee-apply-leave-dash', 'click', window.openLeaveRequestModal);
+    safeAddListener('btn-employee-apply-leave-sub', 'click', window.openLeaveRequestModal);
+    safeAddListener('btn-employee-add-leave-tab', 'click', window.openLeaveRequestModal);
 
     // Profile drop down toggle
     const profileBtn = document.getElementById('btn-profile-dropdown');
@@ -3555,6 +3762,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (sidebar) sidebar.classList.remove('active');
         }
     });
+
+    safeAddListener('btn-punch-attendance', 'click', handlePunchInOut);
 
     // Admin filter changes listener
     safeAddListener('admin-filter-manager', 'change', renderAdminDashboard);
@@ -3789,7 +3998,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // Document dropzone – handle new files and append
+    // Document dropzone â€“ handle new files and append
     window.onDocumentsSelected = async (zone, files) => {
         if (!window.tempDocuments) window.tempDocuments = [];
 
@@ -3829,3 +4038,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         showToast("Session Restored", `Welcome back, ${currentUser.name}.`);
     }
 });
+
+
+window.updateEmployeeLeaveBalance = function(userId, leaveId) {
+    const val = parseInt(document.getElementById('leave-bal-' + leaveId).value, 10);
+    if(isNaN(val) || val < 0) {
+        showToast('Error', 'Invalid balance value.', 'error');
+        return;
+    }
+    const db = getDb();
+    const user = db.users.find(u => u.id === userId);
+    if (user && user.leaveBalances) {
+        const bal = user.leaveBalances.find(b => b.id === leaveId);
+        if (bal) {
+            bal.balance = val;
+            saveDb(db);
+            logAudit('Updated leave balance for ' + user.name);
+            showToast('Success', 'Leave balance updated.');
+            openEditEmployeeModal(userId); // refresh
+        }
+    }
+};

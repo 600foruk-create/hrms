@@ -44,7 +44,8 @@ $new_columns = [
     "ADD COLUMN `endDate` date DEFAULT NULL",
     "ADD COLUMN `managerId` varchar(50) DEFAULT NULL",
     "ADD COLUMN `profilePic` longtext DEFAULT NULL",
-    "ADD COLUMN `documents` longtext DEFAULT NULL"
+    "ADD COLUMN `documents` longtext DEFAULT NULL",
+    "ADD COLUMN `leaveBalances` longtext DEFAULT NULL"
 ];
 
 foreach ($new_columns as $col) {
@@ -61,9 +62,11 @@ try {
     $pdo->exec("UPDATE users SET role = 'User' WHERE role = 'Employee'");
 } catch (Exception $e) {}
 
-// Auto-upgrade attendance status column to varchar to support 'Late', 'On Leave', etc.
+// Auto-upgrade attendance status column and add time columns
 try {
     $pdo->exec("ALTER TABLE attendance MODIFY COLUMN `status` varchar(50) NOT NULL");
+    $pdo->exec("ALTER TABLE attendance ADD COLUMN `timeIn` varchar(50) DEFAULT NULL");
+    $pdo->exec("ALTER TABLE attendance ADD COLUMN `timeOut` varchar(50) DEFAULT NULL");
 } catch (Exception $e) {}
 
 // Ensure company_profile table exists (in case of an update)
@@ -81,8 +84,10 @@ try {
         `size` varchar(50) DEFAULT NULL,
         `type` varchar(50) DEFAULT NULL,
         `logoBase64` longtext DEFAULT NULL,
+        `leaveTypes` longtext DEFAULT NULL,
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    $pdo->exec("ALTER TABLE company_profile ADD COLUMN `leaveTypes` longtext DEFAULT NULL");
 } catch (Exception $e) {
     // Ignore if unsupported (e.g. SQLite doesn't support ENGINE=InnoDB)
     try {
@@ -98,8 +103,10 @@ try {
             `industry` TEXT,
             `size` TEXT,
             `type` TEXT,
-            `logoBase64` TEXT
+            `logoBase64` TEXT,
+            `leaveTypes` TEXT
         );");
+        $pdo->exec("ALTER TABLE company_profile ADD COLUMN `leaveTypes` TEXT");
     } catch (Exception $e2) {
         error_log("Failed to create company_profile table: " . $e2->getMessage());
     }
@@ -133,13 +140,18 @@ if ($action === 'load_all') {
             } else {
                 $u['documents'] = [];
             }
+            if (!empty($u['leaveBalances'])) {
+                $u['leaveBalances'] = json_decode($u['leaveBalances'], true) ?: [];
+            } else {
+                $u['leaveBalances'] = [];
+            }
         }
         if (empty($usersRecords)) {
             // Re-inject default admin if table is empty to prevent lockout
             $pdo->exec("INSERT INTO users (id, email, password, name, role, status) VALUES ('U1', 'admin@company.com', 'admin123', 'admin', 'Admin', 'Active')");
             $stmt = $pdo->query("SELECT * FROM users");
             $usersRecords = $stmt->fetchAll();
-            foreach ($usersRecords as &$u) { $u['documents'] = []; }
+            foreach ($usersRecords as &$u) { $u['documents'] = []; $u['leaveBalances'] = []; }
         }
         $dbState['users'] = $usersRecords;
 
@@ -192,9 +204,15 @@ if ($action === 'load_all') {
         $stmt = $pdo->query("SELECT * FROM company_profile LIMIT 1");
         $cpRow = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($cpRow) {
+            if (!empty($cpRow['leaveTypes'])) {
+                $cpRow['leaveTypes'] = json_decode($cpRow['leaveTypes'], true) ?: [];
+            } else {
+                $cpRow['leaveTypes'] = [];
+            }
             $dbState['companyProfile'] = $cpRow;
         } else {
             $dbState['companyProfile'] = new stdClass();
+            $dbState['companyProfile']->leaveTypes = [];
         }
 
         echo json_encode(["status" => "success", "data" => $dbState]);
@@ -218,7 +236,7 @@ elseif ($action === 'save_all') {
         // 1. Sync Users
         $pdo->exec("DELETE FROM users");
         if (!empty($data['users'])) {
-            $stmt = $pdo->prepare("INSERT INTO users (id, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, documents, bloodGroup, designation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO users (id, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, documents, bloodGroup, designation, leaveBalances) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             foreach ($data['users'] as $u) {
                 $stmt->execute([
                     $u['id'], $u['email'], $u['password'], $u['name'], $u['role'], 
@@ -229,7 +247,8 @@ elseif ($action === 'save_all') {
                     $u['profilePic'] ?? null,
                     !empty($u['documents']) ? json_encode($u['documents']) : null,
                     $u['bloodGroup'] ?? null,
-                    $u['designation'] ?? null
+                    $u['designation'] ?? null,
+                    !empty($u['leaveBalances']) ? json_encode($u['leaveBalances']) : null
                 ]);
             }
         }
@@ -268,11 +287,9 @@ elseif ($action === 'save_all') {
         // 5. Sync Attendance
         $pdo->exec("DELETE FROM attendance");
         if (!empty($data['attendance'])) {
-            // Re-insert without specific ID since it's auto_increment or just let ID be overridden if provided
-            // Actually, frontend relies on date + employeeId
-            $stmt = $pdo->prepare("INSERT INTO attendance (date, employeeId, employeeName, status, markedBy) VALUES (?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO attendance (date, employeeId, employeeName, status, markedBy, timeIn, timeOut) VALUES (?, ?, ?, ?, ?, ?, ?)");
             foreach ($data['attendance'] as $a) {
-                $stmt->execute([$a['date'], $a['employeeId'], $a['employeeName'], $a['status'], $a['markedBy'] ?? 'System']);
+                $stmt->execute([$a['date'], $a['employeeId'], $a['employeeName'], $a['status'], $a['markedBy'] ?? 'System', $a['timeIn'] ?? null, $a['timeOut'] ?? null]);
             }
         }
 
@@ -308,11 +325,12 @@ elseif ($action === 'save_all') {
         $pdo->exec("DELETE FROM company_profile");
         if (!empty($data['companyProfile'])) {
             $cp = $data['companyProfile'];
-            $stmt = $pdo->prepare("INSERT INTO company_profile (name, email, phone, website, address, reg, slogan, industry, size, type, logoBase64) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO company_profile (name, email, phone, website, address, reg, slogan, industry, size, type, logoBase64, leaveTypes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $cp['name'] ?? '', $cp['email'] ?? '', $cp['phone'] ?? '', $cp['website'] ?? '',
                 $cp['address'] ?? '', $cp['reg'] ?? '', $cp['slogan'] ?? '', $cp['industry'] ?? '',
-                $cp['size'] ?? '', $cp['type'] ?? '', $cp['logoBase64'] ?? ''
+                $cp['size'] ?? '', $cp['type'] ?? '', $cp['logoBase64'] ?? '',
+                !empty($cp['leaveTypes']) ? json_encode($cp['leaveTypes']) : null
             ]);
         }
 
