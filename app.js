@@ -1151,6 +1151,7 @@ function renderAdminEmployeesTab() {
 }
 
 function renderAdminAttendanceTab() {
+    renderLeaveTypes();
     const db = getDb();
     
     const dateInput = document.getElementById('admin-attendance-filter-date');

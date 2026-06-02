@@ -602,52 +602,93 @@
 
                     </div>
 
-                    <!-- Admin Attendance Tab -->
+                    <!-- Admin Attendance & Leave Tab -->
                     <div id="admin-tab-attendance" class="tab-view">
                         <div class="view-header">
                             <div>
-                                <h1>Attendance Management</h1>
-                                <p class="text-secondary">View company-wide logs and adjust employee attendance</p>
+                                <h1>Attendance & Leave Management</h1>
+                                <p class="text-secondary">View attendance records and configure leave policies.</p>
                             </div>
                             <div class="actions">
                                 <button class="btn btn-outline" id="btn-admin-mark-attendance"><i class="fa-regular fa-calendar-check"></i> Manual Log</button>
                             </div>
                         </div>
 
-                        <!-- Sub-Navigation for Attendance & Leave -->
-                        <div class="sub-nav-pills" style="margin-bottom: 20px; display: flex; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
-                            <button class="btn btn-primary" onclick="switchTab('attendance')">Attendance Log</button>
-                            <button class="btn btn-outline" onclick="switchTab('leave')" style="background: rgba(255,255,255,0.05); color: #ccc; border: 1px solid rgba(255,255,255,0.1);">Leave Management</button>
+                        <!-- Sub-tab Navigation -->
+                        <div class="sub-tab-nav">
+                            <button class="btn-sub-tab active" data-subtab="attendance-log">
+                                <i class="fa-solid fa-calendar-days"></i> Attendance Log
+                            </button>
+                            <button class="btn-sub-tab" data-subtab="leave-management">
+                                <i class="fa-solid fa-umbrella-beach"></i> Leave Management
+                            </button>
                         </div>
-                        
-                        <div class="section-card bg-glass">
-                            <div class="section-card-header">
-                                <h3>Attendance Log</h3>
-                                <div class="header-filters">
-                                    <input type="date" id="admin-attendance-filter-date" class="form-control">
-                                    <select id="admin-attendance-filter-employee" class="form-control">
-                                        <option value="">All Employees</option>
-                                    </select>
+
+                        <!-- Sub-tab Content: Attendance Log -->
+                        <div class="sub-tab-content" id="subtab-content-attendance-log">
+                            <div class="section-card bg-glass">
+                                <div class="section-card-header">
+                                    <h3>Attendance Log</h3>
+                                    <div class="header-filters">
+                                        <input type="date" id="admin-attendance-filter-date" class="form-control" onchange="renderAdminAttendanceTab()">
+                                        <select id="admin-attendance-filter-employee" class="form-control" onchange="renderAdminAttendanceTab()">
+                                            <option value="">All Employees</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Employee</th>
+                                                <th>Role</th>
+                                                <th>Assigned Manager</th>
+                                                <th>Status</th>
+                                                <th>Time In</th>
+                                                <th>Time Out</th>
+                                                <th>Marked By</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-attendance-table-body">
+                                            <!-- Dynamic Rows -->
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
-                            <div class="table-container">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Employee</th>
-                                            <th>Role</th>
-                                            <th>Assigned Manager</th>
-                                            <th>Status</th>
-                                            <th>Time In</th>
-                                            <th>Time Out</th>
-                                            <th>Marked By</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="admin-attendance-table-body">
-                                        <!-- Dynamic Rows -->
-                                    </tbody>
-                                </table>
+                        </div>
+
+                        <!-- Sub-tab Content: Leave Management -->
+                        <div class="sub-tab-content hidden" id="subtab-content-leave-management">
+                            <!-- Leave Policy Config -->
+                            <div class="section-card bg-glass mb-4">
+                                <h3>Leave Policy Configuration</h3>
+                                <p class="text-secondary mb-3">Define company leave types and their default yearly allowances.</p>
+                                <div class="table-container mb-3">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Leave Type</th>
+                                                <th>Default Days</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="settings-leave-types-body">
+                                            <!-- Dynamic Rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <form id="settings-add-leave-type-form" style="display: flex; gap: 10px; align-items: flex-end;" onsubmit="event.preventDefault();">
+                                    <div class="form-group" style="flex: 2; margin-bottom: 0;">
+                                        <label for="new-leave-type-name">Type Name</label>
+                                        <input type="text" id="new-leave-type-name" class="form-control" placeholder="e.g., Casual Leave" required>
+                                    </div>
+                                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                                        <label for="new-leave-type-days">Days/Year</label>
+                                        <input type="number" id="new-leave-type-days" class="form-control" placeholder="e.g., 5" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary" style="height: 38px; margin-bottom: 0;"><i class="fa-solid fa-plus"></i> Add New</button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -697,100 +738,6 @@
                         </div>
                     </div>
 
-                    <!-- Admin Leave Management Tab -->
-                    <div id="admin-tab-leave" class="tab-view">
-                        <div class="view-header">
-                            <div>
-                                <h1>Leave Management</h1>
-                                <p class="text-secondary">Approve leave applications and review company time-off stats</p>
-                            </div>
-                        </div>
-                        
-                        <!-- Sub-Navigation for Attendance & Leave -->
-                        <div class="sub-nav-pills" style="margin-bottom: 20px; display: flex; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
-                            <button class="btn btn-outline" onclick="switchTab('attendance')" style="background: rgba(255,255,255,0.05); color: #ccc; border: 1px solid rgba(255,255,255,0.1);">Attendance Log</button>
-                            <button class="btn btn-primary" onclick="switchTab('leave')">Leave Management</button>
-                        </div>
-                        
-                        <!-- Leave Policy Config -->
-                        <div class="section-card bg-glass mb-4">
-                            <h3>Leave Policy Configuration</h3>
-                            <p class="text-secondary mb-3">Define company leave types and their default yearly allowances.</p>
-                            <div class="table-container mb-3">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Leave Type</th>
-                                            <th>Default Days</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="settings-leave-types-body">
-                                        <!-- Dynamic Rows -->
-                                    </tbody>
-                                </table>
-                            </div>
-                            <form id="settings-add-leave-type-form" style="display: flex; gap: 10px; align-items: flex-end;">
-                                <div class="form-group" style="flex: 2; margin-bottom: 0;">
-                                    <label for="new-leave-type-name">Type Name</label>
-                                    <input type="text" id="new-leave-type-name" class="form-control" placeholder="e.g., Casual Leave" required>
-                                </div>
-                                <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                                    <label for="new-leave-type-days">Days/Year</label>
-                                    <input type="number" id="new-leave-type-days" class="form-control" placeholder="e.g., 5" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary" style="height: 38px; margin-bottom: 0;"><i class="fa-solid fa-plus"></i> Add New</button>
-                            </form>
-                        </div>
-
-                        <!-- Employee Leave Balances Config -->
-                        <div class="section-card bg-glass mb-4">
-                            <h3>Employee Leave Balances</h3>
-                            <p class="text-secondary mb-3">Search and manually adjust individual employee leave balances.</p>
-                            
-                            <div class="header-filters mb-3">
-                                <input type="text" id="admin-leave-balance-search" class="form-control" placeholder="Search employee by Name, ID, or Role..." oninput="if(window.renderAdminLeaveBalancesList) window.renderAdminLeaveBalancesList()">
-                            </div>
-
-                            <div class="table-container" style="max-height: 400px; overflow-y: auto;">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Employee</th>
-                                            <th>Role</th>
-                                            <th>Current Balances</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="admin-leave-balances-list-body">
-                                        <!-- Dynamic Rows -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <div class="section-card bg-glass">
-                            <div class="table-container">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Employee</th>
-                                            <th>Leave Type</th>
-                                            <th>Start Date</th>
-                                            <th>End Date</th>
-                                            <th>Reason</th>
-                                            <th>Status</th>
-                                            <th>Comments</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="admin-leave-table-body">
-                                        <!-- Dynamic Rows -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- Admin Reports Tab -->
                     <div id="admin-tab-reports" class="tab-view">
