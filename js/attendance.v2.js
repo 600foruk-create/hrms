@@ -263,13 +263,13 @@ function renderLeaveTypes() {
         leaveTypes.forEach(lt => {
             rowsHTML += `
                 <tr>
-                    <td>
-                        <input type="text" class="form-control" id="lt-name-${lt.id}" value="${lt.name}" disabled style="background: transparent; border: 1px solid transparent; color: var(--text-color); box-shadow: none; padding: 5px;">
+                    <td style="text-align: center;">
+                        <input type="text" class="form-control" id="lt-name-${lt.id}" value="${lt.name}" disabled style="background: transparent; border: 1px solid transparent; color: var(--text-color); box-shadow: none; padding: 5px; text-align: center; width: 100%;">
                     </td>
-                    <td>
-                        <input type="number" class="form-control" id="lt-days-${lt.id}" value="${lt.days}" disabled style="background: transparent; border: 1px solid transparent; color: var(--text-color); box-shadow: none; padding: 5px;">
+                    <td style="text-align: center;">
+                        <input type="number" class="form-control" id="lt-days-${lt.id}" value="${lt.days}" disabled style="background: transparent; border: 1px solid transparent; color: var(--text-color); box-shadow: none; padding: 5px; text-align: center; width: 100%;">
                     </td>
-                    <td>
+                    <td style="text-align: center;">
                         <button class="btn btn-sm btn-outline" id="btn-edit-${lt.id}" onclick="enableEditLeaveType('${lt.id}')"><i class="fa-solid fa-edit"></i> Edit</button>
                         <button class="btn btn-sm btn-primary" id="btn-save-${lt.id}" onclick="saveLeaveType('${lt.id}')" style="display:none;"><i class="fa-solid fa-save"></i> Save</button>
                         <button class="btn btn-sm btn-outline" style="color: var(--danger); border-color: var(--danger);" onclick="deleteLeaveType('${lt.id}')"><i class="fa-solid fa-trash"></i> Delete</button>
@@ -297,9 +297,9 @@ function renderLeaveTypes() {
                 <table class="data-table" style="margin: 0; border-radius: 0 0 10px 10px;">
                     <thead>
                         <tr>
-                            <th style="width: 40%;">Leave Type</th>
-                            <th style="width: 30%;">Yearly Allowance (Days)</th>
-                            <th style="width: 30%;">Actions</th>
+                            <th style="width: 40%; text-align: center;">Leave Type</th>
+                            <th style="width: 30%; text-align: center;">Yearly Allowance (Days)</th>
+                            <th style="width: 30%; text-align: center;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
