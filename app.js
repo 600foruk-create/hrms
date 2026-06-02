@@ -706,6 +706,7 @@ window.saveLeaveType = function(id) {
             saveDb(db);
             logAudit("Updated leave type: " + name);
             showToast("Success", "Leave type saved.");
+            if(typeof renderLeaveTypes === 'function') renderLeaveTypes();
         }
     }
 };
@@ -1685,7 +1686,7 @@ document.getElementById('settings-add-leave-type-form').addEventListener('submit
     logAudit(`Added new leave type: ${name} (${days} days)`);
     showToast("Success", "Leave type added.");
     e.target.reset();
-    renderLeaveTypes();
+    if(typeof renderLeaveTypes === 'function') renderLeaveTypes();
 });
 
 document.getElementById('btn-admin-clear-audit-logs').addEventListener('click', () => {

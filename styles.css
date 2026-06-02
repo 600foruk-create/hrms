@@ -2563,3 +2563,64 @@ body.light-mode .report-preview-container {
 }
 
 
+/* Accordion UI for Settings/Leave Configuration */
+.accordion-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.accordion-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+.accordion-header {
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.02);
+    user-select: none;
+    transition: background 0.2s ease;
+}
+.accordion-header:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+.accordion-header h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+.accordion-header .accordion-badge {
+    background: rgba(var(--primary-rgb), 0.1);
+    color: var(--primary);
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-right: 15px;
+}
+.accordion-toggle-icon {
+    transition: transform 0.3s ease;
+    color: var(--text-muted);
+}
+.accordion-item.expanded .accordion-toggle-icon {
+    transform: rotate(180deg);
+}
+.accordion-body {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    padding: 0 20px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--bg-card);
+}
+.accordion-item.expanded .accordion-body {
+    max-height: 500px;
+    opacity: 1;
+    padding: 20px;
+    border-top: 1px solid var(--border-color);
+}

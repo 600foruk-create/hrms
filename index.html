@@ -664,19 +664,8 @@
                             <div class="section-card bg-glass mb-4">
                                 <h3>Leave Policy Configuration</h3>
                                 <p class="text-secondary mb-3">Define company leave types and their default yearly allowances.</p>
-                                <div class="table-container mb-3">
-                                    <table class="data-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Leave Type</th>
-                                                <th>Default Days</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="settings-leave-types-body">
-                                            <!-- Dynamic Rows -->
-                                        </tbody>
-                                    </table>
+                                <div id="settings-leave-types-accordion" class="accordion-list" style="margin-bottom: 20px;">
+                                    <!-- Dynamic Accordion Items -->
                                 </div>
                                 <form id="settings-add-leave-type-form" style="display: flex; gap: 10px; align-items: flex-end;" onsubmit="event.preventDefault();">
                                     <div class="form-group" style="flex: 2; margin-bottom: 0;">
@@ -1910,6 +1899,6 @@
     <script src="js/settings.js"></script>
 
     <!-- Main JS Application script (Core) -->
-    <script src="app.js?v=4.24"></script>
+    <script src="app.js?v=4.25"></script>
 </body>
 </html>
