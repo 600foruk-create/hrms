@@ -1189,9 +1189,8 @@ function renderAdminAttendanceTab() {
             const mgr = emp ? db.users.find(u => u.id === emp.managerId) : null;
             const mgrName = mgr ? mgr.name : '<span class="text-muted">None</span>';
 
-            const isTimeFormat = (str) => /^(1[0-2]|0?[1-9]):[0-5][0-9]\s?(AM|PM|am|pm)$/i.test(str) || /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(str);
-            const cleanTimeIn = (log.timeIn && isTimeFormat(log.timeIn)) ? log.timeIn : '-';
-            const cleanTimeOut = (log.timeOut && isTimeFormat(log.timeOut)) ? log.timeOut : '-';
+            const cleanTimeIn = (log.timeIn && log.timeIn !== log.employeeName && log.timeIn.trim() !== '') ? log.timeIn : '-';
+            const cleanTimeOut = (log.timeOut && log.timeOut !== log.employeeName && log.timeOut.trim() !== '') ? log.timeOut : '-';
             const cleanMarkedBy = (log.markedBy && log.markedBy.trim() !== '') ? log.markedBy : 'System';
 
             tableBody.innerHTML += `
@@ -2661,15 +2660,8 @@ function processProductivityReview(status) {
 // 6. Manual Attendance Logger Form
 window.openManualAttendanceModal = function () {
     const db = getDb();
-    const now = new Date();
-    const today = now.toISOString().split('T')[0];
-    const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-    
+    const today = new Date().toISOString().split('T')[0];
     document.getElementById('att-log-date').value = today;
-    const timeInEl = document.getElementById('att-log-time-in');
-    const timeOutEl = document.getElementById('att-log-time-out');
-    if(timeInEl) timeInEl.value = timeStr;
-    if(timeOutEl) timeOutEl.value = timeStr;
 
     const empSelect = document.getElementById('att-log-emp');
     empSelect.innerHTML = '';
