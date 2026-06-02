@@ -1352,10 +1352,13 @@ function renderLeaveTypes() {
         leaveTypes.forEach(lt => {
             tbody.innerHTML += `
                 <tr>
-                    <td class="bold">${lt.name}</td>
-                    <td>${lt.days}</td>
+                    <td><input type="text" class="form-control form-control-sm" id="lt-name-${lt.id}" value="${lt.name}"></td>
+                    <td><input type="number" class="form-control form-control-sm" id="lt-days-${lt.id}" value="${lt.days}"></td>
                     <td>
-                        <button class="btn-action-circle text-danger" onclick="deleteLeaveType('${lt.id}')" tooltip="Delete">
+                        <button type="button" class="btn-action-circle text-success" onclick="saveLeaveType('${lt.id}')" tooltip="Save">
+                            <i class="fa-solid fa-save"></i>
+                        </button>
+                        <button type="button" class="btn-action-circle text-danger" onclick="deleteLeaveType('${lt.id}')" tooltip="Delete">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </td>
@@ -1373,6 +1376,29 @@ window.deleteLeaveType = function(id) {
         logAudit("Deleted a leave type policy.");
         renderLeaveTypes();
         showToast("Success", "Leave type deleted.");
+    }
+};
+
+window.saveLeaveType = function(id) {
+    const nameEl = document.getElementById(`lt-name-${id}`);
+    const daysEl = document.getElementById(`lt-days-${id}`);
+    if(!nameEl || !daysEl) return;
+    const name = nameEl.value.trim();
+    const days = parseInt(daysEl.value, 10);
+    if(!name || isNaN(days)) {
+        showToast("Error", "Invalid inputs.", "error");
+        return;
+    }
+    const db = getDb();
+    if(db.companyProfile && db.companyProfile.leaveTypes) {
+        const lt = db.companyProfile.leaveTypes.find(l => l.id === id);
+        if(lt) {
+            lt.name = name;
+            lt.days = days;
+            saveDb(db);
+            logAudit("Updated leave type: " + name);
+            showToast("Success", "Leave type saved.");
+        }
     }
 };
 
@@ -3463,6 +3489,10 @@ function exportCSV() {
 
 // Initialization Flow
 document.addEventListener('DOMContentLoaded', async () => {
+    // Global prevent default for all forms to stop page reloads
+    document.querySelectorAll('form').forEach(f => {
+        f.addEventListener('submit', e => { e.preventDefault(); });
+    });
     await syncServer();
 
     // Set background image from DB state if available
@@ -4061,7 +4091,7 @@ window.renderAdminLeaveBalancesList = function() {
     
     let filterTxt = searchInput ? searchInput.value.toLowerCase().trim() : '';
     
-    let users = db.users.filter(u => u.role === 'User' || u.role === 'Employee' || u.role === 'Manager');
+    let users = db.users;
     
     if (filterTxt) {
         users = users.filter(u => u.name.toLowerCase().includes(filterTxt) || String(u.id).toLowerCase().includes(filterTxt) || u.role.toLowerCase().includes(filterTxt));
@@ -4091,14 +4121,22 @@ window.renderAdminLeaveBalancesList = function() {
             balancesHtml = '<span class="text-secondary" style="font-size:12px;">No balances configured</span>';
         }
 
+        const summaryText = (user.leaveBalances && user.leaveBalances.length > 0) ? 'View / Edit Balances' : 'No Balances';
+        const finalBalancesHtml = `
+            <details style="cursor: pointer; background: rgba(255,255,255,0.02); padding: 5px 10px; border-radius: 4px;">
+                <summary style="font-size: 12px; font-weight: 600; outline: none; margin-bottom: 5px;">${summaryText}</summary>
+                <div style="margin-top: 8px;">${balancesHtml}</div>
+            </details>
+        `;
+
         tbody.innerHTML += `
             <tr>
                 <td>
                     <div style="font-weight: 600;">${user.name}</div>
                     <div class="text-secondary" style="font-size: 11px;">ID: ${user.id}</div>
                 </td>
-                <td><span class="badge ${user.role === 'Manager' ? 'badge-manager' : 'badge-user'}">${user.role}</span></td>
-                <td>${balancesHtml}</td>
+                <td><span class="badge-role ${user.role.toLowerCase()}">${user.role}</span></td>
+                <td>${finalBalancesHtml}</td>
                 <td>
                     <button type="button" class="btn btn-sm btn-outline" onclick="saveAllUserLeaves('${user.id}')" style="font-size: 12px; padding: 4px 8px;">Update Leaves</button>
                 </td>

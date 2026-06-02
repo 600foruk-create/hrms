@@ -146,6 +146,8 @@ body.light-mode .bg-gradient-orb {
 .mt-3 { margin-top: 1rem; }
 .mt-4 { margin-top: 1.5rem; }
 .mb-3 { margin-bottom: 1rem; }
+.mb-4 { margin-bottom: 1.5rem; }
+.mb-5 { margin-bottom: 2rem; }
 .mr-2 { margin-right: 0.5rem; }
 
 /* Custom Scrollbar */
