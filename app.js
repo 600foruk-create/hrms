@@ -584,7 +584,8 @@ function switchTab(tabId) {
 
     // Update Sidebar Selection active state
     document.querySelectorAll('.sidebar-link').forEach(link => {
-        if (link.getAttribute('data-tab') === tabId) {
+        const dataTab = link.getAttribute('data-tab');
+        if (dataTab === tabId || (dataTab === 'attendance' && tabId === 'leave' && currentUser.role === 'Admin')) {
             link.classList.add('active');
         } else {
             link.classList.remove('active');
@@ -1151,7 +1152,13 @@ function renderAdminEmployeesTab() {
 
 function renderAdminAttendanceTab() {
     const db = getDb();
-    const filterDate = document.getElementById('admin-attendance-filter-date').value;
+    
+    const dateInput = document.getElementById('admin-attendance-filter-date');
+    if (!dateInput.value) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+    }
+    const filterDate = dateInput.value;
+    
     const filterEmp = document.getElementById('admin-attendance-filter-employee').value;
 
     // Fill Employee options
@@ -1236,6 +1243,17 @@ function renderAdminProductivityTab() {
 function renderAdminLeaveTab() {
     renderLeaveTypes();
     const db = getDb();
+    
+    const empSelect = document.getElementById('admin-leave-balance-employee-filter');
+    if (empSelect) {
+        const prevVal = empSelect.value;
+        empSelect.innerHTML = '<option value="">Select Employee...</option>';
+        db.users.filter(u => u.role === 'User' || u.role === 'Employee' || u.role === 'Manager').forEach(u => {
+            empSelect.innerHTML += `<option value="${u.id}" ${prevVal === u.id ? 'selected' : ''}>${u.name}</option>`;
+        });
+        if(window.renderAdminLeaveBalancesTable) window.renderAdminLeaveBalancesTable();
+    }
+
     const tableBody = document.getElementById('admin-leave-table-body');
     tableBody.innerHTML = '';
 
@@ -4040,6 +4058,44 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 
+window.renderAdminLeaveBalancesTable = function() {
+    const db = getDb();
+    const empSelect = document.getElementById('admin-leave-balance-employee-filter');
+    const container = document.getElementById('admin-leave-balances-container');
+    const tbody = document.getElementById('admin-employee-leave-balances-table');
+    
+    if (!empSelect || !container || !tbody) return;
+    
+    const empId = empSelect.value;
+    if (!empId) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    container.style.display = 'block';
+    tbody.innerHTML = '';
+    
+    const user = db.users.find(u => u.id === empId);
+    if (!user || !user.leaveBalances || user.leaveBalances.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-secondary">No leave balances found for this employee.</td></tr>';
+        return;
+    }
+    
+    user.leaveBalances.forEach(lb => {
+        tbody.innerHTML += `
+            <tr>
+                <td><strong>${lb.name}</strong></td>
+                <td>
+                    <input type="number" id="leave-bal-${lb.id}" value="${lb.balance}" class="form-control" style="width: 80px; display: inline-block;">
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline" onclick="updateEmployeeLeaveBalance('${user.id}', '${lb.id}')">Save</button>
+                </td>
+            </tr>
+        `;
+    });
+};
+
 window.updateEmployeeLeaveBalance = function(userId, leaveId) {
     const val = parseInt(document.getElementById('leave-bal-' + leaveId).value, 10);
     if(isNaN(val) || val < 0) {
@@ -4055,7 +4111,7 @@ window.updateEmployeeLeaveBalance = function(userId, leaveId) {
             saveDb(db);
             logAudit('Updated leave balance for ' + user.name);
             showToast('Success', 'Leave balance updated.');
-            openEditEmployeeModal(userId); // refresh
+            if (window.renderAdminLeaveBalancesTable) window.renderAdminLeaveBalancesTable();
         }
     }
 };

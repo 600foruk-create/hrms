@@ -613,6 +613,13 @@
                                 <button class="btn btn-outline" id="btn-admin-mark-attendance"><i class="fa-regular fa-calendar-check"></i> Manual Log</button>
                             </div>
                         </div>
+
+                        <!-- Sub-Navigation for Attendance & Leave -->
+                        <div class="sub-nav-pills" style="margin-bottom: 20px; display: flex; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
+                            <button class="btn btn-primary" onclick="switchTab('attendance')">Attendance Log</button>
+                            <button class="btn btn-outline" onclick="switchTab('leave')" style="background: rgba(255,255,255,0.05); color: #ccc; border: 1px solid rgba(255,255,255,0.1);">Leave Management</button>
+                        </div>
+                        
                         <div class="section-card bg-glass">
                             <div class="section-card-header">
                                 <h3>Attendance Log</h3>
@@ -699,6 +706,12 @@
                             </div>
                         </div>
                         
+                        <!-- Sub-Navigation for Attendance & Leave -->
+                        <div class="sub-nav-pills" style="margin-bottom: 20px; display: flex; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
+                            <button class="btn btn-outline" onclick="switchTab('attendance')" style="background: rgba(255,255,255,0.05); color: #ccc; border: 1px solid rgba(255,255,255,0.1);">Attendance Log</button>
+                            <button class="btn btn-primary" onclick="switchTab('leave')">Leave Management</button>
+                        </div>
+                        
                         <!-- Leave Policy Config -->
                         <div class="section-card bg-glass mb-4">
                             <h3>Leave Policy Configuration</h3>
@@ -728,6 +741,34 @@
                                 </div>
                                 <button type="submit" class="btn btn-primary" style="height: 38px; margin-bottom: 0;"><i class="fa-solid fa-plus"></i> Add</button>
                             </form>
+                        </div>
+
+                        <!-- Employee Leave Balances Config -->
+                        <div class="section-card bg-glass mb-4">
+                            <h3>Employee Leave Balances</h3>
+                            <p class="text-secondary mb-3">Manually adjust individual employee leave balances.</p>
+                            
+                            <div class="header-filters mb-3">
+                                <select id="admin-leave-balance-employee-filter" class="form-control" onchange="renderAdminLeaveBalancesTable()">
+                                    <option value="">Select Employee...</option>
+                                    <!-- Dynamic Options -->
+                                </select>
+                            </div>
+
+                            <div class="table-container" id="admin-leave-balances-container" style="display: none;">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Leave Type</th>
+                                            <th>Remaining Balance</th>
+                                            <th>Adjust</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-employee-leave-balances-table">
+                                        <!-- Dynamic Rows -->
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
 
                         <div class="section-card bg-glass">
@@ -1550,23 +1591,7 @@
                     </div>
                 </div>
 
-                <div id="emp-leave-balances-section" style="display: none;">
-                    <h4 class="section-title mt-4">Leave Balances</h4>
-                    <div class="table-container mb-2">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Leave Type</th>
-                                    <th>Remaining Balance</th>
-                                    <th>Adjust</th>
-                                </tr>
-                            </thead>
-                            <tbody id="emp-leave-balances-table">
-                                <!-- Dynamic Rows -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+
 
             </div>
             <div class="modal-footer">
