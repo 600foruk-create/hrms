@@ -36,13 +36,24 @@ try {
     }
 }
 // Auto-add new columns if they are missing
-try {
-    $pdo->exec("ALTER TABLE users ADD COLUMN `bloodGroup` varchar(10) DEFAULT NULL");
-} catch (Exception $e) {}
+$new_columns = [
+    "ADD COLUMN `bloodGroup` varchar(10) DEFAULT NULL",
+    "ADD COLUMN `designation` varchar(100) DEFAULT NULL",
+    "ADD COLUMN `salary` decimal(10,2) NOT NULL DEFAULT '0.00'",
+    "ADD COLUMN `startDate` date DEFAULT NULL",
+    "ADD COLUMN `endDate` date DEFAULT NULL",
+    "ADD COLUMN `managerId` varchar(50) DEFAULT NULL",
+    "ADD COLUMN `profilePic` longtext DEFAULT NULL",
+    "ADD COLUMN `documents` longtext DEFAULT NULL"
+];
 
-try {
-    $pdo->exec("ALTER TABLE users ADD COLUMN `designation` varchar(100) DEFAULT NULL");
-} catch (Exception $e) {}
+foreach ($new_columns as $col) {
+    try {
+        $pdo->exec("ALTER TABLE users $col");
+    } catch (Exception $e) {
+        // Column likely already exists
+    }
+}
 
 // Auto-migrate role enum and update existing 'Employee' roles to 'User'
 try {
