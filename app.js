@@ -2492,13 +2492,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('salary-increment-percent').value = '';
         }
     });
-    safeAddListener('btn-admin-mark-attendance', 'click', openManualAttendanceModal);
+    // removed logic for btn-admin-mark-attendance
 
     safeAddListener('btn-admin-add-announcement', 'click', () => openModal('modal-announcement'));
     safeAddListener('btn-admin-create-announcement-dash', 'click', () => openModal('modal-announcement'));
 
     // Manager dashboard attendance log trigger
-    safeAddListener('btn-manager-log-attendance', 'click', openManualAttendanceModal);
+    // removed logic for btn-manager-log-attendance
 
     // Employee actions
     safeAddListener('btn-employee-update-prod-dash', 'click', () => {
@@ -2742,6 +2742,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             parent.querySelectorAll('.sub-tab-content').forEach(c => c.classList.add('hidden'));
             const targetContent = document.getElementById(`subtab-content-${subtab}`);
             if (targetContent) targetContent.classList.remove('hidden');
+
+            // Hide/Show manual log buttons based on subtab
+            if (subtab === 'leave-management') {
+                const adminBtn = parent.querySelector('#btn-admin-mark-attendance');
+                if (adminBtn) adminBtn.style.display = 'none';
+                const mgrBtn = parent.querySelector('#btn-manager-log-attendance');
+                if (mgrBtn) mgrBtn.style.display = 'none';
+            } else if (subtab === 'attendance-log') {
+                const adminBtn = parent.querySelector('#btn-admin-mark-attendance');
+                if (adminBtn) adminBtn.style.display = 'inline-block';
+                const mgrBtn = parent.querySelector('#btn-manager-log-attendance');
+                if (mgrBtn) mgrBtn.style.display = 'inline-block';
+            }
         });
     });
 
