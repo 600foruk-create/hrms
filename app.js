@@ -1234,6 +1234,7 @@ function renderAdminProductivityTab() {
 }
 
 function renderAdminLeaveTab() {
+    renderLeaveTypes();
     const db = getDb();
     const tableBody = document.getElementById('admin-leave-table-body');
     tableBody.innerHTML = '';
@@ -1314,7 +1315,6 @@ function renderAdminSettingsTab() {
     document.getElementById('weight-reporting').value = weights["Report Preparation"];
 
     renderAuditLogs();
-    renderLeaveTypes();
 }
 
 function renderLeaveTypes() {
