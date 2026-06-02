@@ -1448,6 +1448,10 @@ body.light-mode .report-preview-container {
 }
 
 /* Employee Modal - Fixed 1000x600 Rectangle */
+
+#admin-tab-cards-container * {
+    display: none !important;
+}
 .modal-window {
     width: 1000px !important;
     max-width: 98vw !important;
