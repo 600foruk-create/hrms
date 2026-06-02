@@ -46,7 +46,8 @@ function renderAdminAttendanceTab() {
             tableBody.innerHTML += `
                 <tr>
                     <td>${log.date}</td>
-                    <td class="bold">${log.employeeName} <span style="font-size: 0.85em; color: var(--text-muted); font-weight: normal;">(${log.employeeId})</span></td>
+                    <td>${log.employeeId}</td>
+                    <td class="bold">${log.employeeName}</td>
                     <td><span class="badge-role ${empRole.toLowerCase()}">${empRole}</span></td>
                     <td>${mgrName}</td>
                     <td><span class="badge-status ${log.status === 'Present' ? 'approved' : 'rejected'}">${log.status}</span></td>
@@ -84,7 +85,8 @@ function renderManagerAttendanceTab() {
             tableBody.innerHTML += `
                 <tr>
                     <td>${log.date}</td>
-                    <td class="bold">${log.employeeName} <span style="font-size: 0.85em; color: var(--text-muted); font-weight: normal;">(${log.employeeId})</span></td>
+                    <td>${log.employeeId}</td>
+                    <td class="bold">${log.employeeName}</td>
                     <td><span class="badge-status ${log.status === 'Present' ? 'approved' : 'rejected'}">${log.status}</span></td>
                     <td class="text-center">${cleanTimeIn}</td>
                     <td class="text-center">${cleanTimeOut}</td>
@@ -153,7 +155,8 @@ function renderAdminLeaveTab() {
 
             tableBody.innerHTML += `
                 <tr>
-                    <td class="bold">${l.employeeName} <span style="font-size: 0.85em; color: var(--text-muted); font-weight: normal;">(${l.employeeId})</span></td>
+                    <td>${l.employeeId}</td>
+                    <td class="bold">${l.employeeName}</td>
                     <td><span class="badge-role employee">${l.type}</span></td>
                     <td>${l.startDate} to ${l.endDate}</td>
                     <td class="italic">"${l.reason}"</td>
@@ -195,7 +198,8 @@ function renderManagerLeaveTab() {
 
             tableBody.innerHTML += `
                 <tr>
-                    <td class="bold">${l.employeeName} <span style="font-size: 0.85em; color: var(--text-muted); font-weight: normal;">(${l.employeeId})</span></td>
+                    <td>${l.employeeId}</td>
+                    <td class="bold">${l.employeeName}</td>
                     <td><span class="badge-role employee">${l.type}</span></td>
                     <td>${l.startDate} to ${l.endDate}</td>
                     <td class="italic">"${l.reason}"</td>
