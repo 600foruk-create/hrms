@@ -1444,10 +1444,11 @@ body.light-mode .report-preview-container {
     display: flex;
     flex-direction: column;
     animation: modalPop 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
 .modal.modal-lg {
-    max-width: 1000px;
-    height: 600px;
+    width: 1000px !important;
+    max-width: 98vw !important;
+    height: auto !important;
+    max-height: 98vh !important;
 }
 
 /* Bulk Attendance Modal Styles */
