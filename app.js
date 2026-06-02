@@ -2665,10 +2665,8 @@ function processProductivityReview(status) {
 window.openManualAttendanceModal = function () {
     const db = getDb();
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('att-log-date').value = today;
-
-    const empSelect = document.getElementById('att-log-emp');
-    empSelect.innerHTML = '';
+    const dateInput = document.getElementById('att-log-date');
+    dateInput.value = today;
 
     let targetUsers = [];
     if (currentUser.role === 'Admin') {
@@ -2677,9 +2675,43 @@ window.openManualAttendanceModal = function () {
         targetUsers = db.users.filter(u => u.status === 'Active' && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
     }
 
-    targetUsers.forEach(emp => {
-        empSelect.innerHTML += `<option value="${emp.id}">${emp.name}</option>`;
-    });
+    const renderBulkList = () => {
+        const selectedDate = dateInput.value || today;
+        const listContainer = document.getElementById('att-bulk-list-container');
+        listContainer.innerHTML = '';
+
+        if (targetUsers.length === 0) {
+            listContainer.innerHTML = '<div class="empty-state" style="padding: 20px;">No employees found to mark attendance for.</div>';
+            return;
+        }
+
+        targetUsers.forEach(emp => {
+            const existingRecord = db.attendance.find(a => a.employeeId === emp.id && a.date === selectedDate);
+            const status = existingRecord ? existingRecord.status : '';
+
+            listContainer.innerHTML += `
+                <div class="attendance-bulk-row" data-emp-id="${emp.id}" data-emp-name="${emp.name}">
+                    <div class="attendance-bulk-info">
+                        <div class="attendance-bulk-avatar">${emp.name.charAt(0).toUpperCase()}</div>
+                        <div>
+                            <div class="attendance-bulk-name">${emp.name}</div>
+                            <div class="attendance-bulk-role">${emp.role}</div>
+                        </div>
+                    </div>
+                    <div class="attendance-toggle-group">
+                        <input type="radio" name="att_status_${emp.id}" id="att_present_${emp.id}" value="Present" ${status === 'Present' ? 'checked' : ''}>
+                        <label for="att_present_${emp.id}">Present</label>
+
+                        <input type="radio" name="att_status_${emp.id}" id="att_absent_${emp.id}" value="Absent" ${status === 'Absent' ? 'checked' : ''}>
+                        <label for="att_absent_${emp.id}">Absent</label>
+                    </div>
+                </div>
+            `;
+        });
+    };
+
+    renderBulkList();
+    dateInput.addEventListener('change', renderBulkList);
 
     openModal('modal-attendance-log');
 };
@@ -2687,44 +2719,55 @@ window.openManualAttendanceModal = function () {
 document.getElementById('attendance-log-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const db = getDb();
-
     const date = document.getElementById('att-log-date').value;
-    const empId = document.getElementById('att-log-emp').value;
-    const status = document.getElementById('att-log-status').value;
 
-    if (!date || !empId || !status) {
-        showToast("Validation Error", "All fields are required.", "error");
+    if (!date) {
+        showToast("Validation Error", "Date is required.", "error");
         return;
     }
 
-    const emp = db.users.find(u => u.id === empId);
-    if (!emp) return;
-
-    // Capture exact current time for both In and Out automatically
     const nowStr = new Date().toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit' });
+    const rows = document.querySelectorAll('.attendance-bulk-row');
+    let saveCount = 0;
 
-    const existing = db.attendance.find(a => a.employeeId === empId && a.date === date);
-    if (existing) {
-        existing.status = status;
-        existing.timeIn = nowStr;
-        existing.timeOut = nowStr;
-        existing.markedBy = currentUser.name;
-    } else {
-        db.attendance.push({
-            date,
-            employeeId: empId,
-            employeeName: emp.name,
-            status,
-            timeIn: nowStr,
-            timeOut: nowStr,
-            markedBy: currentUser.name
-        });
-    }
+    rows.forEach(row => {
+        const empId = row.getAttribute('data-emp-id');
+        const empName = row.getAttribute('data-emp-name');
+        const selectedRadio = row.querySelector(`input[name="att_status_${empId}"]:checked`);
+        
+        if (selectedRadio) {
+            const status = selectedRadio.value;
+            const existing = db.attendance.find(a => a.employeeId === empId && a.date === date);
+            
+            if (existing) {
+                // If they change status, update it. (If it was empty, we now set it)
+                if (existing.status !== status) {
+                    existing.status = status;
+                    if (!existing.timeIn || existing.timeIn === '-') existing.timeIn = nowStr;
+                    if (!existing.timeOut || existing.timeOut === '-') existing.timeOut = nowStr;
+                    existing.markedBy = currentUser.name;
+                    addNotification(empId, `Your attendance for ${date} was updated to ${status} manually by your manager/admin.`);
+                    saveCount++;
+                }
+            } else {
+                db.attendance.push({
+                    date,
+                    employeeId: empId,
+                    employeeName: empName,
+                    status,
+                    timeIn: nowStr,
+                    timeOut: nowStr,
+                    markedBy: currentUser.name
+                });
+                addNotification(empId, `Your attendance for ${date} was marked as ${status} manually by your manager/admin.`);
+                saveCount++;
+            }
+        }
+    });
 
     saveDb(db);
-    showToast("Attendance Saved", `Marked ${emp.name} as ${status} on ${date}.`);
-    logAudit(`Logged attendance: ${emp.name} marked ${status} for ${date} by ${currentUser.name}.`);
-    addNotification(empId, `Your attendance for ${date} was marked as ${status} manually by your manager/admin.`);
+    showToast("Attendance Saved", `Successfully marked attendance for ${saveCount} employee(s) on ${date}.`, "success");
+    logAudit(`Bulk logged attendance for ${saveCount} employee(s) on ${date} by ${currentUser.name}.`);
 
     closeAllModals();
     refreshTabContent(activeTab);
