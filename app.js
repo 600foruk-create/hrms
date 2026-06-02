@@ -711,7 +711,21 @@ window.saveLeaveType = function(id) {
     }
 };
 
-
+window.enableEditLeaveType = function(id) {
+    const nameEl = document.getElementById(`lt-name-${id}`);
+    const daysEl = document.getElementById(`lt-days-${id}`);
+    const btnEdit = document.getElementById(`btn-edit-${id}`);
+    const btnSave = document.getElementById(`btn-save-${id}`);
+    
+    if (nameEl && daysEl) {
+        nameEl.disabled = false;
+        nameEl.style.border = '1px solid var(--primary-color)';
+        daysEl.disabled = false;
+        daysEl.style.border = '1px solid var(--primary-color)';
+    }
+    if (btnEdit) btnEdit.style.display = 'none';
+    if (btnSave) btnSave.style.display = 'inline-block';
+};
 
 // ==================== RENDERING: MANAGER VIEWS ====================
 
