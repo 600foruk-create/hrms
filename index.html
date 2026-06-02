@@ -746,25 +746,23 @@
                         <!-- Employee Leave Balances Config -->
                         <div class="section-card bg-glass mb-4">
                             <h3>Employee Leave Balances</h3>
-                            <p class="text-secondary mb-3">Manually adjust individual employee leave balances.</p>
+                            <p class="text-secondary mb-3">Search and manually adjust individual employee leave balances.</p>
                             
                             <div class="header-filters mb-3">
-                                <select id="admin-leave-balance-employee-filter" class="form-control" onchange="renderAdminLeaveBalancesTable()">
-                                    <option value="">Select Employee...</option>
-                                    <!-- Dynamic Options -->
-                                </select>
+                                <input type="text" id="admin-leave-balance-search" class="form-control" placeholder="Search employee by Name, ID, or Role..." oninput="if(window.renderAdminLeaveBalancesList) window.renderAdminLeaveBalancesList()">
                             </div>
 
-                            <div class="table-container" id="admin-leave-balances-container" style="display: none;">
+                            <div class="table-container" style="max-height: 400px; overflow-y: auto;">
                                 <table class="data-table">
                                     <thead>
                                         <tr>
-                                            <th>Leave Type</th>
-                                            <th>Remaining Balance</th>
-                                            <th>Adjust</th>
+                                            <th>Employee</th>
+                                            <th>Role</th>
+                                            <th>Current Balances</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="admin-employee-leave-balances-table">
+                                    <tbody id="admin-leave-balances-list-body">
                                         <!-- Dynamic Rows -->
                                     </tbody>
                                 </table>

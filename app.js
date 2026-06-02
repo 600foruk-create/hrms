@@ -1244,14 +1244,8 @@ function renderAdminLeaveTab() {
     renderLeaveTypes();
     const db = getDb();
     
-    const empSelect = document.getElementById('admin-leave-balance-employee-filter');
-    if (empSelect) {
-        const prevVal = empSelect.value;
-        empSelect.innerHTML = '<option value="">Select Employee...</option>';
-        db.users.filter(u => u.role === 'User' || u.role === 'Employee' || u.role === 'Manager').forEach(u => {
-            empSelect.innerHTML += `<option value="${u.id}" ${prevVal === u.id ? 'selected' : ''}>${u.name}</option>`;
-        });
-        if(window.renderAdminLeaveBalancesTable) window.renderAdminLeaveBalancesTable();
+    if(window.renderAdminLeaveBalancesList) {
+        window.renderAdminLeaveBalancesList();
     }
 
     const tableBody = document.getElementById('admin-leave-table-body');
@@ -4058,60 +4052,85 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 
-window.renderAdminLeaveBalancesTable = function() {
+window.renderAdminLeaveBalancesList = function() {
     const db = getDb();
-    const empSelect = document.getElementById('admin-leave-balance-employee-filter');
-    const container = document.getElementById('admin-leave-balances-container');
-    const tbody = document.getElementById('admin-employee-leave-balances-table');
+    const searchInput = document.getElementById('admin-leave-balance-search');
+    const tbody = document.getElementById('admin-leave-balances-list-body');
     
-    if (!empSelect || !container || !tbody) return;
+    if (!tbody) return;
     
-    const empId = empSelect.value;
-    if (!empId) {
-        container.style.display = 'none';
-        return;
+    let filterTxt = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    
+    let users = db.users.filter(u => u.role === 'User' || u.role === 'Employee' || u.role === 'Manager');
+    
+    if (filterTxt) {
+        users = users.filter(u => u.name.toLowerCase().includes(filterTxt) || String(u.id).toLowerCase().includes(filterTxt) || u.role.toLowerCase().includes(filterTxt));
     }
     
-    container.style.display = 'block';
     tbody.innerHTML = '';
     
-    const user = db.users.find(u => u.id === empId);
-    if (!user || !user.leaveBalances || user.leaveBalances.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-secondary">No leave balances found for this employee.</td></tr>';
+    if (users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-secondary">No employees found.</td></tr>';
         return;
     }
     
-    user.leaveBalances.forEach(lb => {
+    users.forEach(user => {
+        let balancesHtml = '';
+        if (user.leaveBalances && user.leaveBalances.length > 0) {
+            user.leaveBalances.forEach(lb => {
+                balancesHtml += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <span style="font-size: 12px; font-weight: 500;">${lb.name}</span>
+                        <div style="display: flex; gap: 5px;">
+                            <input type="number" id="leave-bal-${user.id}-${lb.id}" value="${lb.balance}" class="form-control" style="width: 60px; height: 28px; font-size: 12px; padding: 2px 5px;">
+                        </div>
+                    </div>
+                `;
+            });
+        } else {
+            balancesHtml = '<span class="text-secondary" style="font-size:12px;">No balances configured</span>';
+        }
+
         tbody.innerHTML += `
             <tr>
-                <td><strong>${lb.name}</strong></td>
                 <td>
-                    <input type="number" id="leave-bal-${lb.id}" value="${lb.balance}" class="form-control" style="width: 80px; display: inline-block;">
+                    <div style="font-weight: 600;">${user.name}</div>
+                    <div class="text-secondary" style="font-size: 11px;">ID: ${user.id}</div>
                 </td>
+                <td><span class="badge ${user.role === 'Manager' ? 'badge-manager' : 'badge-user'}">${user.role}</span></td>
+                <td>${balancesHtml}</td>
                 <td>
-                    <button type="button" class="btn btn-sm btn-outline" onclick="updateEmployeeLeaveBalance('${user.id}', '${lb.id}')">Save</button>
+                    <button type="button" class="btn btn-sm btn-outline" onclick="saveAllUserLeaves('${user.id}')" style="font-size: 12px; padding: 4px 8px;">Update Leaves</button>
                 </td>
             </tr>
         `;
     });
 };
 
-window.updateEmployeeLeaveBalance = function(userId, leaveId) {
-    const val = parseInt(document.getElementById('leave-bal-' + leaveId).value, 10);
-    if(isNaN(val) || val < 0) {
-        showToast('Error', 'Invalid balance value.', 'error');
-        return;
-    }
+window.saveAllUserLeaves = function(userId) {
     const db = getDb();
     const user = db.users.find(u => u.id === userId);
-    if (user && user.leaveBalances) {
-        const bal = user.leaveBalances.find(b => b.id === leaveId);
-        if (bal) {
-            bal.balance = val;
-            saveDb(db);
-            logAudit('Updated leave balance for ' + user.name);
-            showToast('Success', 'Leave balance updated.');
-            if (window.renderAdminLeaveBalancesTable) window.renderAdminLeaveBalancesTable();
+    if (!user || !user.leaveBalances) return;
+
+    let hasErrors = false;
+    user.leaveBalances.forEach(lb => {
+        const input = document.getElementById(`leave-bal-${userId}-${lb.id}`);
+        if (input) {
+            const val = parseInt(input.value, 10);
+            if (!isNaN(val) && val >= 0) {
+                lb.balance = val;
+            } else {
+                hasErrors = true;
+            }
         }
+    });
+
+    if (hasErrors) {
+        showToast('Warning', 'Some values were invalid and not saved.', 'error');
+    } else {
+        saveDb(db);
+        logAudit('Updated leave balances for ' + user.name);
+        showToast('Success', 'Leave balances updated.');
+        if (window.renderAdminLeaveBalancesList) window.renderAdminLeaveBalancesList();
     }
 };
