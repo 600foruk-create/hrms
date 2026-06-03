@@ -105,6 +105,152 @@ window.renderPayrollHistory = function() {
     }
 };
 
+window.openMonthlySummaryModal = function() {
+    const db = getDb();
+    if (!db) return;
+
+    let history = db.payrollHistory || [];
+    
+    // Apply filters to get the current list
+    const monthFilter = document.getElementById('history-filter-month')?.value || 'All';
+    const yearFilter = document.getElementById('history-filter-year')?.value || 'All';
+    const searchFilter = document.getElementById('history-filter-search')?.value.toLowerCase().trim() || '';
+
+    if (monthFilter !== 'All') {
+        history = history.filter(h => {
+            const d = new Date(h.endDate);
+            return String(d.getMonth() + 1).padStart(2, '0') === monthFilter;
+        });
+    }
+    if (yearFilter !== 'All') {
+        history = history.filter(h => {
+            const d = new Date(h.endDate);
+            return String(d.getFullYear()) === yearFilter;
+        });
+    }
+    
+    // Sort by most recent
+    history.sort((a, b) => new Date(b.processedAt) - new Date(a.processedAt));
+
+    let visibleCount = 0;
+    
+    let tableRows = '';
+    let grandTotalBasic = 0;
+    let grandTotalAllowances = 0;
+    let grandTotalDeductions = 0;
+    let grandTotalNet = 0;
+
+    history.forEach(record => {
+        const user = db.users.find(u => u.id === record.userId);
+        const name = user ? user.name : "Unknown";
+        const designation = user?.designation || "-";
+        
+        if (searchFilter) {
+            if (!name.toLowerCase().includes(searchFilter) && !record.userId.toLowerCase().includes(searchFilter)) {
+                return;
+            }
+        }
+        
+        visibleCount++;
+        
+        const basic = parseInt(user?.salary) || 0;
+        const totalDed = (record.absencyDeduction || 0) + (record.loanDeduction || 0) + (record.otherDeduction || 0);
+        // Note: record.netFixed includes basic + allowances based on standard calculations.
+        const totalAdd = (record.netFixed - basic) + (record.bonus || 0); 
+        
+        grandTotalBasic += basic;
+        grandTotalAllowances += totalAdd;
+        grandTotalDeductions += totalDed;
+        grandTotalNet += record.netPay;
+
+        tableRows += `
+            <tr style="border-bottom: 1px solid #e5e7eb;">
+                <td style="padding: 10px 15px; font-size: 13px;">${record.userId}</td>
+                <td style="padding: 10px 15px; font-size: 13px; font-weight: 600;">${name}<br><span style="font-size:10px; color:#6b7280; font-weight:400;">${designation}</span></td>
+                <td style="padding: 10px 15px; font-size: 13px;">Rs ${basic.toLocaleString()}</td>
+                <td style="padding: 10px 15px; font-size: 13px; color: #059669;">Rs ${Math.round(totalAdd).toLocaleString()}</td>
+                <td style="padding: 10px 15px; font-size: 13px; color: #dc2626;">Rs ${Math.round(totalDed).toLocaleString()}</td>
+                <td style="padding: 10px 15px; font-size: 13px; font-weight: 700;">Rs ${Math.round(record.netPay).toLocaleString()}</td>
+                <td style="padding: 10px 15px; font-size: 13px;">
+                    <div style="width: 100px; border-bottom: 1px solid #9ca3af; height: 15px;"></div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    if (visibleCount === 0) {
+        showToast("No records found for the selected filters to print.", "warning");
+        return;
+    }
+
+    const company = db.companyProfile || {};
+    const cName = company.name || 'Company Name';
+    const cAddress = company.address || '';
+    const printArea = document.getElementById('summary-print-area');
+    
+    let periodText = "";
+    if(monthFilter !== "All" && yearFilter !== "All") {
+        periodText = `${document.getElementById('history-filter-month').options[document.getElementById('history-filter-month').selectedIndex].text} ${yearFilter}`;
+    } else {
+        periodText = "Filtered Summary";
+    }
+
+    printArea.innerHTML = `
+        <div class="payslip-header" style="border-bottom: 2px solid #374151; padding-bottom: 15px; margin-bottom: 20px;">
+            <div>
+                <div style="font-size: 24px; font-weight: 800; color: #111827;">${cName}</div>
+                <div style="font-size: 14px; color: #4b5563;">${cAddress}</div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 20px; font-weight: 700; color: #374151;">MONTHLY PAYROLL SHEET</div>
+                <div style="font-size: 14px; color: #4b5563;">Period: ${periodText}</div>
+                <div style="font-size: 11px; color: #9ca3af; margin-top: 5px;">Total Employees: ${visibleCount}</div>
+            </div>
+        </div>
+        
+        <table style="width: 100%; border-collapse: collapse; text-align: left; margin-bottom: 30px;">
+            <thead style="background-color: #f3f4f6;">
+                <tr>
+                    <th style="padding: 12px 15px; font-size: 12px; font-weight: 700; color: #374151; border-bottom: 2px solid #d1d5db;">ID</th>
+                    <th style="padding: 12px 15px; font-size: 12px; font-weight: 700; color: #374151; border-bottom: 2px solid #d1d5db;">Employee</th>
+                    <th style="padding: 12px 15px; font-size: 12px; font-weight: 700; color: #374151; border-bottom: 2px solid #d1d5db;">Basic</th>
+                    <th style="padding: 12px 15px; font-size: 12px; font-weight: 700; color: #374151; border-bottom: 2px solid #d1d5db;">Allowances/Bonus</th>
+                    <th style="padding: 12px 15px; font-size: 12px; font-weight: 700; color: #374151; border-bottom: 2px solid #d1d5db;">Deductions</th>
+                    <th style="padding: 12px 15px; font-size: 12px; font-weight: 700; color: #374151; border-bottom: 2px solid #d1d5db;">Net Pay</th>
+                    <th style="padding: 12px 15px; font-size: 12px; font-weight: 700; color: #374151; border-bottom: 2px solid #d1d5db;">Signature</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${tableRows}
+            </tbody>
+            <tfoot>
+                <tr style="background-color: #f9fafb; font-weight: 800;">
+                    <td colspan="2" style="padding: 15px; text-align: right; border-top: 2px solid #374151;">GRAND TOTALS:</td>
+                    <td style="padding: 15px; border-top: 2px solid #374151;">Rs ${Math.round(grandTotalBasic).toLocaleString()}</td>
+                    <td style="padding: 15px; color: #059669; border-top: 2px solid #374151;">Rs ${Math.round(grandTotalAllowances).toLocaleString()}</td>
+                    <td style="padding: 15px; color: #dc2626; border-top: 2px solid #374151;">Rs ${Math.round(grandTotalDeductions).toLocaleString()}</td>
+                    <td style="padding: 15px; font-size: 16px; color: #111827; border-top: 2px solid #374151;">Rs ${Math.round(grandTotalNet).toLocaleString()}</td>
+                    <td style="border-top: 2px solid #374151;"></td>
+                </tr>
+            </tfoot>
+        </table>
+        
+        <div style="display: flex; justify-content: space-between; margin-top: 50px;">
+            <div style="text-align: center;">
+                <div style="width: 200px; border-top: 1px solid #374151; margin-bottom: 10px;"></div>
+                <div style="font-size: 14px; font-weight: 600;">Prepared By</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="width: 200px; border-top: 1px solid #374151; margin-bottom: 10px;"></div>
+                <div style="font-size: 14px; font-weight: 600;">Approved By</div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('modal-view-summary').classList.remove('hidden');
+    document.getElementById('modal-overlay').classList.remove('hidden');
+};
+
 window.openPayslipModal = function(recordId) {
     const db = getDb();
     const record = (db.payrollHistory || []).find(r => r.id === recordId);
