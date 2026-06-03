@@ -713,8 +713,18 @@
 
                             <!-- Employee Leave Balances Config -->
                             <div class="section-card bg-glass mb-4">
-                                <h3>Employee Leave Balances</h3>
-                                <p class="text-secondary mb-3">Adjust individual employee leave balances.</p>
+                                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;">
+                                    <div>
+                                        <h3>Employee Leave Balances</h3>
+                                        <p class="text-secondary">Adjust individual employee leave balances.</p>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <div class="input-with-icon" style="position: relative;">
+                                            <i class="fa-solid fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+                                            <input type="text" id="admin-leave-balance-search" class="form-control" placeholder="Search Employee..." onkeyup="if(window.renderAdminLeaveBalancesList) window.renderAdminLeaveBalancesList()" style="padding-left: 35px; width: 250px;">
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="table-container" style="margin-top: 15px;">
                                     <table class="data-table">
                                         <thead id="admin-employee-leave-balances-head">
@@ -1892,6 +1902,27 @@
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-primary modal-close">Close Profile</button>
+        </div>
+    </div>
+
+    <!-- 9. Edit Individual Leave Balances Modal -->
+    <div id="modal-edit-leave-balances" class="modal hidden">
+        <div class="modal-header">
+            <h3>Edit Leave Balances</h3>
+            <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <p id="edit-leave-balances-emp-name" class="bold mb-3" style="font-size: 16px;"></p>
+            <form id="edit-leave-balances-form" onsubmit="event.preventDefault(); window.saveIndividualLeaveBalances();">
+                <input type="hidden" id="edit-leave-balances-emp-id">
+                <div id="edit-leave-balances-inputs-container" style="display: flex; flex-direction: column; gap: 15px;">
+                    <!-- Dynamic Leave Type Inputs -->
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline modal-close">Cancel</button>
+            <button type="submit" form="edit-leave-balances-form" class="btn btn-primary">Save Balances</button>
         </div>
     </div>
 

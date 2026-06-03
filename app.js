@@ -1387,62 +1387,58 @@ function renderLeaveTypes() {
         countBadge.textContent = `${leaveTypes.length} Policies`;
     }
 }
-
 window.renderAdminLeaveBalancesList = function() {
     const db = getDb();
+    const searchInput = document.getElementById('admin-leave-balance-search');
     const thead = document.getElementById('admin-employee-leave-balances-head');
     const tbody = document.getElementById('admin-employee-leave-balances-body');
     const toggleBtn = document.getElementById('btn-toggle-emp-leave-balances');
     
     if (!thead || !tbody) return;
 
-    const leaveTypes = db.companyProfile?.leaveTypes || [];
-    const activeUsers = db.users.filter(u => u.status === 'Active');
+    let filterTxt = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    let activeUsers = db.users.filter(u => u.status === 'Active');
+    
+    if (filterTxt) {
+        activeUsers = activeUsers.filter(u => 
+            u.name.toLowerCase().includes(filterTxt) || 
+            String(u.id).toLowerCase().includes(filterTxt) || 
+            u.role.toLowerCase().includes(filterTxt)
+        );
+    }
 
     // Build Headers
-    let headHtml = `<tr>
-        <th style="width: 15%">Emp ID</th>
-        <th style="width: 25%">Employee Name</th>`;
-    leaveTypes.forEach(lt => {
-        headHtml += `<th class="text-center">${lt.name} (Days)</th>`;
-    });
-    headHtml += `<th style="width: 15%" class="text-center">Actions</th></tr>`;
-    thead.innerHTML = headHtml;
+    thead.innerHTML = <tr>
+        <th style="width: 20%">Emp ID</th>
+        <th style="width: 40%">Employee Name</th>
+        <th style="width: 20%">Role</th>
+        <th style="width: 20%" class="text-center">Actions</th>
+    </tr>;
 
     // Build Body
     let bodyHtml = '';
     if (activeUsers.length === 0) {
-        bodyHtml = `<tr><td colspan="${leaveTypes.length + 3}" class="empty-state">No active employees found.</td></tr>`;
+        bodyHtml = <tr><td colspan="4" class="empty-state">No employees found.</td></tr>;
         toggleBtn.classList.add('hidden');
     } else {
         activeUsers.forEach((user, index) => {
-            const hiddenClass = index >= 3 ? 'emp-leave-row-hidden' : '';
-            const rowStyle = index >= 3 ? 'display: none;' : '';
+            const hiddenClass = index >= 5 ? 'emp-leave-row-hidden' : '';
+            const rowStyle = index >= 5 ? 'display: none;' : '';
             
-            bodyHtml += `<tr class="${hiddenClass}" style="${rowStyle} border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <td class="text-secondary">${user.id}</td>
-                <td class="bold">${user.name}</td>`;
-                
-            leaveTypes.forEach(lt => {
-                let balance = lt.days;
-                if (user.leaveBalances) {
-                    const ub = user.leaveBalances.find(b => b.id === lt.id);
-                    if (ub) balance = ub.balance;
-                }
-                bodyHtml += `<td class="text-center">
-                    <input type="number" id="list-leave-bal-${user.id}-${lt.id}" value="${balance}" class="form-control" style="width: 60px; height: 28px; font-size: 12px; padding: 2px 5px; margin: 0 auto; text-align: center;">
-                </td>`;
-            });
-            
-            bodyHtml += `<td class="text-center">
-                <button type="button" class="btn btn-sm btn-outline" onclick="saveAllUserLeavesFromList('${user.id}')" style="font-size: 12px; padding: 4px 8px;">Save</button>
-            </td></tr>`;
+            bodyHtml += <tr class=" + hiddenClass + " style=" + rowStyle +  border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td class="text-secondary"> + user.id + </td>
+                <td class="bold"> + user.name + </td>
+                <td><span class="badge-role  + user.role.toLowerCase() + "> + user.role + </span></td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-outline" onclick="openEditLeaveBalancesModal(' + user.id + ')" style="font-size: 12px; padding: 4px 8px;">Edit Balances</button>
+                </td>
+            </tr>;
         });
         
-        if (activeUsers.length > 3) {
+        // Show toggle button only if no search filter is active and length > 5
+        if (activeUsers.length > 5 && !filterTxt) {
             toggleBtn.classList.remove('hidden');
-            // Reset text
-            toggleBtn.innerHTML = `Show More Employees <i class="fa-solid fa-chevron-down"></i>`;
+            toggleBtn.innerHTML = Show More Employees <i class="fa-solid fa-chevron-down"></i>;
             
             toggleBtn.onclick = function() {
                 const hiddenRows = tbody.querySelectorAll('.emp-leave-row-hidden');
@@ -1453,26 +1449,76 @@ window.renderAdminLeaveBalancesList = function() {
                 });
                 
                 toggleBtn.innerHTML = isExpanding 
-                    ? `Show Less Employees <i class="fa-solid fa-chevron-up"></i>`
-                    : `Show More Employees <i class="fa-solid fa-chevron-down"></i>`;
+                    ? Show Less Employees <i class="fa-solid fa-chevron-up"></i>
+                    : Show More Employees <i class="fa-solid fa-chevron-down"></i>;
             };
         } else {
             toggleBtn.classList.add('hidden');
         }
     }
+    
+    // Un-hide all rows if searching
+    if(filterTxt) {
+        bodyHtml = bodyHtml.replace(/display: none;/g, '');
+    }
+
     tbody.innerHTML = bodyHtml;
 };
 
-window.saveAllUserLeavesFromList = function(userId) {
+window.openEditLeaveBalancesModal = function(userId) {
     const db = getDb();
     const user = db.users.find(u => u.id === userId);
     if (!user) return;
+
+    const modal = document.getElementById('modal-edit-leave-balances');
+    const nameEl = document.getElementById('edit-leave-balances-emp-name');
+    const idEl = document.getElementById('edit-leave-balances-emp-id');
+    const container = document.getElementById('edit-leave-balances-inputs-container');
+
+    if (!modal || !nameEl || !idEl || !container) return;
+
+    nameEl.textContent = Employee:  + user.name +  ( + user.id + );
+    idEl.value = user.id;
+    container.innerHTML = '';
+
+    const leaveTypes = db.companyProfile?.leaveTypes || [];
     
+    if(leaveTypes.length === 0) {
+        container.innerHTML = '<p class="text-secondary text-center">No leave policies defined globally.</p>';
+    }
+
+    leaveTypes.forEach(lt => {
+        let balance = lt.days;
+        if (user.leaveBalances) {
+            const ub = user.leaveBalances.find(b => b.id === lt.id);
+            if (ub) balance = ub.balance;
+        }
+
+        container.innerHTML += 
+            <div class="form-group" style="margin-bottom: 0; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 6px;">
+                <label style="margin-bottom: 0;"> + lt.name + </label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="text-secondary" style="font-size: 12px;">Days/Year:</span>
+                    <input type="number" id="modal-leave-bal- + lt.id + " value=" + balance + " class="form-control" style="width: 80px; text-align: center;">
+                </div>
+            </div>
+        ;
+    });
+
+    modal.classList.remove('hidden');
+};
+
+window.saveIndividualLeaveBalances = function() {
+    const db = getDb();
+    const userId = document.getElementById('edit-leave-balances-emp-id').value;
+    const user = db.users.find(u => u.id === userId);
+    if (!user) return;
+
     if (!user.leaveBalances) user.leaveBalances = [];
     
     const leaveTypes = db.companyProfile?.leaveTypes || [];
     leaveTypes.forEach(lt => {
-        const input = document.getElementById(`list-leave-bal-${userId}-${lt.id}`);
+        const input = document.getElementById('modal-leave-bal-' + lt.id);
         if (input) {
             const newBal = parseInt(input.value) || 0;
             const existing = user.leaveBalances.find(b => b.id === lt.id);
@@ -1485,8 +1531,11 @@ window.saveAllUserLeavesFromList = function(userId) {
     });
     
     saveDb(db);
-    showToast("Balances Updated", `Leave balances for ${user.name} saved successfully.`);
-}
+    showToast("Balances Updated", "Leave balances for " + user.name + " saved successfully.");
+    document.getElementById('modal-edit-leave-balances').classList.add('hidden');
+    
+    if (window.renderAdminLeaveBalancesList) window.renderAdminLeaveBalancesList();
+};
 
 window.enableEditLeaveType = function(id) {
     const nameEl = document.getElementById(`lt-name-${id}`);
@@ -4303,96 +4352,3 @@ document.addEventListener('DOMContentLoaded', async () => {
         showToast("Session Restored", `Welcome back, ${currentUser.name}.`);
     }
 });
-
-
-window.renderAdminLeaveBalancesList = function() {
-    const db = getDb();
-    const searchInput = document.getElementById('admin-leave-balance-search');
-    const tbody = document.getElementById('admin-leave-balances-list-body');
-    
-    if (!tbody) return;
-    
-    let filterTxt = searchInput ? searchInput.value.toLowerCase().trim() : '';
-    
-    let users = db.users;
-    
-    if (filterTxt) {
-        users = users.filter(u => u.name.toLowerCase().includes(filterTxt) || String(u.id).toLowerCase().includes(filterTxt) || u.role.toLowerCase().includes(filterTxt));
-    }
-    
-    tbody.innerHTML = '';
-    
-    if (users.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-secondary">No employees found.</td></tr>';
-        return;
-    }
-    
-    users.forEach(user => {
-        let balancesHtml = '';
-        if (user.leaveBalances && user.leaveBalances.length > 0) {
-            user.leaveBalances.forEach(lb => {
-                balancesHtml += `
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                        <span style="font-size: 12px; font-weight: 500;">${lb.name}</span>
-                        <div style="display: flex; gap: 5px;">
-                            <input type="number" id="leave-bal-${user.id}-${lb.id}" value="${lb.balance}" class="form-control" style="width: 60px; height: 28px; font-size: 12px; padding: 2px 5px;">
-                        </div>
-                    </div>
-                `;
-            });
-        } else {
-            balancesHtml = '<span class="text-secondary" style="font-size:12px;">No balances configured</span>';
-        }
-
-        const summaryText = (user.leaveBalances && user.leaveBalances.length > 0) ? 'View / Edit Balances' : 'No Balances';
-        const finalBalancesHtml = `
-            <details style="cursor: pointer; background: rgba(255,255,255,0.02); padding: 5px 10px; border-radius: 4px;">
-                <summary style="font-size: 12px; font-weight: 600; outline: none; margin-bottom: 5px;">${summaryText}</summary>
-                <div style="margin-top: 8px;">${balancesHtml}</div>
-            </details>
-        `;
-
-        tbody.innerHTML += `
-            <tr>
-                <td>
-                    <div style="font-weight: 600;">${user.name}</div>
-                    <div class="text-secondary" style="font-size: 11px;">ID: ${user.id}</div>
-                </td>
-                <td><span class="badge-role ${user.role.toLowerCase()}">${user.role}</span></td>
-                <td>${finalBalancesHtml}</td>
-                <td>
-                    <button type="button" class="btn btn-sm btn-outline" onclick="saveAllUserLeaves('${user.id}')" style="font-size: 12px; padding: 4px 8px;">Update Leaves</button>
-                </td>
-            </tr>
-        `;
-    });
-};
-
-window.saveAllUserLeaves = function(userId) {
-    const db = getDb();
-    const user = db.users.find(u => u.id === userId);
-    if (!user || !user.leaveBalances) return;
-
-    let hasErrors = false;
-    user.leaveBalances.forEach(lb => {
-        const input = document.getElementById(`leave-bal-${userId}-${lb.id}`);
-        if (input) {
-            const val = parseInt(input.value, 10);
-            if (!isNaN(val) && val >= 0) {
-                lb.balance = val;
-            } else {
-                hasErrors = true;
-            }
-        }
-    });
-
-    if (hasErrors) {
-        showToast('Warning', 'Some values were invalid and not saved.', 'error');
-    } else {
-        saveDb(db);
-        logAudit('Updated leave balances for ' + user.name);
-        showToast('Success', 'Leave balances updated.');
-        if (window.renderAdminLeaveBalancesList) window.renderAdminLeaveBalancesList();
-    }
-};
-
