@@ -94,7 +94,6 @@ window.renderSalaryProfilesList = function() {
                 <td class="text-secondary">${user.id}</td>
                 <td class="bold">
                     ${user.name} 
-                    ${profile && profile.isCustomSlab ? '<span style="padding: 2px 6px; border-radius: 4px; background: rgba(59, 130, 246, 0.2); color: #60a5fa; font-size: 10px; margin-left: 8px; font-weight: 600;">Custom Slab</span>' : '<span style="padding: 2px 6px; border-radius: 4px; background: rgba(107, 114, 128, 0.2); color: #9ca3af; font-size: 10px; margin-left: 8px; font-weight: 600;">Global Slab</span>'}
                 </td>
                 <td>Rs ${basicSalary.toLocaleString()}</td>
                 <td class="text-primary">Rs ${Math.round(netFixed).toLocaleString()}</td>
