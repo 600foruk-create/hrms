@@ -2694,10 +2694,10 @@ window.openManualAttendanceModal = function () {
         let htmlStr = `<table class="data-table" style="margin: 0; width: 100%;">
             <thead>
                 <tr>
-                    <th style="padding-left: 16px; width: 35%;">Employee ID</th>
-                    <th style="width: 30%;">Employee Name</th>
-                    <th style="width: 10%;">Role</th>
-                    <th style="text-align: right; padding-right: 16px; width: 25%;">Action</th>
+                    <th style="padding-left: 16px; width: 25%;">Employee ID</th>
+                    <th style="width: 35%;">Employee Name</th>
+                    <th style="width: 15%;">Role</th>
+                    <th style="text-align: center; width: 25%;">Action</th>
                 </tr>
             </thead>
             <tbody>`;
@@ -2711,8 +2711,8 @@ window.openManualAttendanceModal = function () {
                     <td class="text-secondary" style="padding-left: 16px;">${emp.id}</td>
                     <td class="bold">${emp.name}</td>
                     <td><span class="badge-role ${emp.role.toLowerCase()}">${emp.role}</span></td>
-                    <td style="text-align: right; padding-right: 16px;">
-                        <div class="attendance-toggle-group">
+                    <td style="text-align: center;">
+                        <div class="attendance-toggle-group" style="justify-content: center;">
                             <input type="radio" name="att_status_${emp.id}" id="att_present_${emp.id}" value="Present" ${status === 'Present' ? 'checked' : ''}>
                             <label for="att_present_${emp.id}">Present</label>
 
