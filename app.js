@@ -1364,10 +1364,14 @@ function renderLeaveTypes() {
                         <input type="number" class="form-control" id="lt-days-${lt.id}" value="${lt.days}" disabled style="background: transparent; border: 1px solid transparent; color: var(--text-color); box-shadow: none; padding: 5px; text-align: center; width: 100%;">
                     </td>
                     <td style="text-align: center;">
-                        <button type="button" class="btn btn-sm btn-outline" id="btn-edit-${lt.id}" onclick="enableEditLeaveType('${lt.id}')"><i class="fa-solid fa-edit"></i> Edit</button>
-                        <button type="button" class="btn btn-sm btn-primary" id="btn-save-${lt.id}" onclick="saveLeaveType('${lt.id}')" style="display:none;"><i class="fa-solid fa-save"></i> Save</button>
-                        <button type="button" class="btn btn-sm btn-outline" style="color: var(--danger); border-color: var(--danger);" onclick="deleteLeaveType('${lt.id}')" tooltip="Delete">
-                            <i class="fa-solid fa-trash"></i> Delete
+                        <button type="button" class="btn-action-circle text-info" id="btn-edit-${lt.id}" onclick="enableEditLeaveType('${lt.id}')" tooltip="Edit">
+                            <i class="fa-solid fa-edit"></i>
+                        </button>
+                        <button type="button" class="btn-action-circle text-success" id="btn-save-${lt.id}" onclick="saveLeaveType('${lt.id}')" style="display:none;" tooltip="Save">
+                            <i class="fa-solid fa-save"></i>
+                        </button>
+                        <button type="button" class="btn-action-circle text-danger" onclick="deleteLeaveType('${lt.id}')" tooltip="Delete">
+                            <i class="fa-solid fa-trash"></i>
                         </button>
                     </td>
                 </tr>
