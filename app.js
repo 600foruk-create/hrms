@@ -1473,104 +1473,105 @@ function renderManagerDashboard() {
 
     document.getElementById('manager-team-name-sub').textContent = `${currentUser.name}'s Reporting Team`;
 
-    // Team pending leaves
     const teamEmails = teamMembers.map(t => t.id);
-    const pendingLeaves = db.leaves.filter(l => teamEmails.includes(l.employeeId) && l.status === 'Pending').length;
-
+    
     // Team attendance today
     const today = new Date().toISOString().split('T')[0];
     const presentCount = db.attendance.filter(a => a.date === today && a.status === 'Present' && teamEmails.includes(a.employeeId)).length;
-    const attendancePct = teamSize > 0 ? Math.round((presentCount / teamSize) * 100) : 0;
+    const absentCount = teamSize - presentCount; // Simplified
 
-    // Average Team Productivity Score
-    const teamProd = db.productivity.filter(p => teamEmails.includes(p.employeeId) && p.status === 'Approved');
-    const avgScore = teamProd.length > 0
-        ? Math.round(teamProd.reduce((sum, p) => sum + p.score, 0) / teamProd.length)
-        : 0;
+    // Pending Approvals
+    const pendingLeaves = db.leaves.filter(l => teamEmails.includes(l.employeeId) && l.status === 'Pending').length;
+    const pendingProd = db.productivity.filter(p => teamEmails.includes(p.employeeId) && p.status === 'Pending').length;
+    const totalPending = pendingLeaves + pendingProd;
 
     document.getElementById('manager-metric-team-size').textContent = teamSize;
-    document.getElementById('manager-metric-pending-leaves').textContent = pendingLeaves;
-    document.getElementById('manager-metric-today-attendance').textContent = attendancePct + "%";
-    document.getElementById('manager-metric-avg-score').textContent = avgScore;
+    document.getElementById('manager-metric-today-present').textContent = presentCount;
+    document.getElementById('manager-metric-today-absent').textContent = absentCount;
+    document.getElementById('manager-metric-pending-approvals').textContent = totalPending;
 
-    // Team list table
-    const tableBody = document.getElementById('manager-team-table-body');
-    tableBody.innerHTML = '';
-
-    if (teamMembers.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="5" class="empty-state">No employees assigned to you yet.</td></tr>`;
-    } else {
-        teamMembers.forEach(emp => {
-            // Find today activity notes
-            const todayProd = db.productivity.find(p => p.employeeId === emp.id && p.date === today);
-            const todayActivity = todayProd ? todayProd.notes : '<span class="text-muted">No activity submitted today</span>';
-
-            // Total overall productivity score
-            const empProdSubmissions = db.productivity.filter(p => p.employeeId === emp.id && p.status === 'Approved');
-            const totalScore = empProdSubmissions.reduce((sum, p) => sum + p.score, 0);
-
-            const statusClass = emp.status === 'Active' ? 'badge-active' : 'badge-inactive';
-
-            tableBody.innerHTML += `
-                <tr>
-                    <td class="bold">${emp.name}</td>
-                    <td><span class="${statusClass}">${emp.status}</span></td>
-                    <td style="max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${todayActivity}</td>
-                    <td><strong class="text-info">${totalScore}</strong></td>
-                    <td>
-                        <button class="btn btn-sm btn-outline" onclick="viewUserProfile('${emp.id}')">View Details</button>
-                    </td>
-                </tr>
-            `;
-        });
+    // Team Productivity Chart
+    const prodChart = document.getElementById('manager-team-prod-chart');
+    const prodXaxis = document.getElementById('manager-team-prod-xaxis');
+    if (prodChart && prodXaxis) {
+        let pathD = "M 0 100 ";
+        let labelsHTML = "";
+        let maxScore = 50; 
+        
+        // Generate last 7 days chart
+        for (let i = 6; i >= 0; i--) {
+            let d = new Date();
+            d.setDate(d.getDate() - i);
+            let dateStr = d.toISOString().split('T')[0];
+            let displayDate = dateStr.slice(5).replace('-', '/');
+            
+            let dailyTeamProd = db.productivity.filter(p => p.date === dateStr && teamEmails.includes(p.employeeId) && p.status === 'Approved');
+            let dailyScore = dailyTeamProd.length > 0 ? dailyTeamProd.reduce((sum, p) => sum + p.score, 0) / dailyTeamProd.length : 0;
+            
+            let x = (6 - i) * 50;
+            let y = 100 - (dailyScore / maxScore) * 80;
+            if (y < 10) y = 10;
+            
+            pathD += `L ${x} ${y} `;
+            labelsHTML += `<span>${displayDate}</span>`;
+            
+            prodChart.innerHTML += `<circle cx="${x}" cy="${y}" r="4" class="svg-chart-dot completed" />`;
+        }
+        
+        const existingPath = prodChart.querySelector('path');
+        if (existingPath) existingPath.remove();
+        prodChart.innerHTML += `<path d="${pathD}" class="svg-chart-path completed" fill="none" />`;
+        prodXaxis.innerHTML = labelsHTML;
     }
 
-    // Team pending leaves panel
-    const leavesList = document.getElementById('manager-pending-leaves-list');
-    leavesList.innerHTML = '';
-    const pendingList = db.leaves.filter(l => teamEmails.includes(l.employeeId) && l.status === 'Pending');
-    if (pendingList.length === 0) {
-        leavesList.innerHTML = `<div class="empty-state">No pending leave requests.</div>`;
-    } else {
-        pendingList.forEach(l => {
-            leavesList.innerHTML += `
-                <div class="leave-mini-card">
-                    <div class="leave-mini-card-header">
-                        <h5>${l.employeeName}</h5>
-                        <span class="badge-status pending">${l.type}</span>
-                    </div>
-                    <p class="text-muted">"${l.reason}"</p>
-                    <div class="dates">${l.startDate} to ${l.endDate}</div>
-                    <div class="footer-actions">
-                        <button class="btn btn-sm btn-outline" onclick="reviewLeaveRequest('${l.id}')">Review</button>
-                    </div>
-                </div>
-            `;
-        });
-    }
+    // Manager Personal Stats
+    const myAttToday = db.attendance.find(a => a.employeeId === currentUser.id && a.date === today);
+    const myAttStatus = myAttToday ? myAttToday.status : 'Absent';
+    const myProdSubmissions = db.productivity.filter(p => p.employeeId === currentUser.id && p.status === 'Approved');
+    const myTotalScore = myProdSubmissions.length > 0 ? Math.round(myProdSubmissions.reduce((sum, p) => sum + p.score, 0) / myProdSubmissions.length) : 0;
 
-    // Team Pending Productivity Reviews Panel
-    const reviewsList = document.getElementById('manager-pending-prod-list');
-    reviewsList.innerHTML = '';
-    const pendingProdList = db.productivity.filter(p => teamEmails.includes(p.employeeId) && p.status === 'Pending');
-    if (pendingProdList.length === 0) {
-        reviewsList.innerHTML = `<div class="empty-state">All team productivity logs reviewed.</div>`;
-    } else {
-        pendingProdList.forEach(p => {
-            reviewsList.innerHTML += `
-                <div class="prod-review-card">
-                    <div class="prod-review-card-header">
-                        <h5>${p.employeeName}</h5>
-                        <span class="text-info font-heading bold">Est. Score: ${p.score}</span>
+    document.getElementById('manager-personal-attendance').textContent = myAttStatus;
+    document.getElementById('manager-personal-attendance').style.color = myAttStatus === 'Present' ? 'var(--success)' : 'var(--danger)';
+    document.getElementById('manager-personal-prod').textContent = myTotalScore;
+
+    // Quick Approvals Panel
+    const approvalsList = document.getElementById('manager-dash-pending-list');
+    if (approvalsList) {
+        approvalsList.innerHTML = '';
+        if (totalPending === 0) {
+            approvalsList.innerHTML = `<div class="empty-state">No pending approvals.</div>`;
+        } else {
+            const pendingList = db.leaves.filter(l => teamEmails.includes(l.employeeId) && l.status === 'Pending');
+            pendingList.forEach(l => {
+                approvalsList.innerHTML += `
+                    <div class="leave-mini-card">
+                        <div class="leave-mini-card-header">
+                            <h5>${l.employeeName} (Leave)</h5>
+                            <span class="badge-status pending">${l.type}</span>
+                        </div>
+                        <p class="text-muted">"${l.reason}"</p>
+                        <div class="footer-actions">
+                            <button class="btn btn-sm btn-outline" onclick="reviewLeaveRequest('${l.id}')">Review</button>
+                        </div>
                     </div>
-                    <p class="text-muted italic">"${p.notes}"</p>
-                    <div class="date">${p.date} â€¢ Tasks: ${p.tasks.join(', ')}</div>
-                    <div class="footer-actions">
-                        <button class="btn btn-sm btn-outline" onclick="reviewProductivitySubmission('${p.id}')">Review</button>
+                `;
+            });
+
+            const pendingProdList = db.productivity.filter(p => teamEmails.includes(p.employeeId) && p.status === 'Pending');
+            pendingProdList.forEach(p => {
+                approvalsList.innerHTML += `
+                    <div class="prod-review-card" style="padding: 10px; margin-bottom:10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                        <div class="prod-review-card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                            <h5 style="margin:0;">${p.employeeName} (Prod)</h5>
+                            <span class="text-info font-heading bold">Score: ${p.score}</span>
+                        </div>
+                        <div class="footer-actions" style="margin-top:10px;">
+                            <button class="btn btn-sm btn-outline" onclick="reviewProductivitySubmission('${p.id}')">Review</button>
+                        </div>
                     </div>
-                </div>
-            `;
-        });
+                `;
+            });
+        }
     }
 }
 
@@ -1750,13 +1751,17 @@ function renderEmployeeDashboard() {
     // Attendance Today Card
     const today = new Date().toISOString().split('T')[0];
     const todayAtt = db.attendance.find(a => a.employeeId === currentUser.id && a.date === today);
-    const attendanceVal = todayAtt ? todayAtt.status : 'Absent';
-
+    
+    // Top Metric Cards
+    const today = new Date().toISOString().split('T')[0];
+    const myAttToday = db.attendance.find(a => a.employeeId === currentUser.id && a.date === today);
+    const attStatus = myAttToday ? myAttToday.status : 'Absent';
+    
     const attEl = document.getElementById('employee-metric-attendance');
-    attEl.textContent = attendanceVal;
-
     const iconContainer = document.getElementById('employee-attendance-icon');
-    if (attendanceVal === 'Present') {
+    
+    attEl.textContent = attStatus;
+    if (attStatus === 'Present') {
         attEl.className = 'value text-success';
         iconContainer.className = 'card-icon bg-success-light text-success';
     } else {
@@ -1764,145 +1769,113 @@ function renderEmployeeDashboard() {
         iconContainer.className = 'card-icon bg-danger-light text-danger';
     }
 
-    // Total Leaves Taken approved
-    const totalLeaves = db.leaves.filter(l => l.employeeId === currentUser.id && l.status === 'Approved').length;
-    document.getElementById('employee-metric-leaves').textContent = totalLeaves;
+    // Avg Productivity
+    const myProdSubmissions = db.productivity.filter(p => p.employeeId === currentUser.id && p.status === 'Approved');
+    const myTotalScore = myProdSubmissions.length > 0 ? Math.round(myProdSubmissions.reduce((sum, p) => sum + p.score, 0) / myProdSubmissions.length) : 0;
+    document.getElementById('employee-metric-avg-prod').textContent = myTotalScore;
 
-    // Pending requests Count (leaves + productivity)
+    // Pending Leaves
     const pendingLeaves = db.leaves.filter(l => l.employeeId === currentUser.id && l.status === 'Pending').length;
-    const pendingProd = db.productivity.filter(p => p.employeeId === currentUser.id && p.status === 'Pending').length;
-    document.getElementById('employee-metric-pending').textContent = pendingLeaves + pendingProd;
+    document.getElementById('employee-metric-pending-leaves').textContent = pendingLeaves;
 
-    // Productivity Score Today (approved or adjusted)
-    const todayProd = db.productivity.find(p => p.employeeId === currentUser.id && p.date === today);
-    const scoreVal = todayProd ? todayProd.score : 0;
-    document.getElementById('employee-metric-score').textContent = scoreVal;
-
-    // Dashboard personal productivity table
-    const tableBody = document.getElementById('employee-dashboard-prod-table');
-    tableBody.innerHTML = '';
-
-    const myProd = db.productivity.filter(p => p.employeeId === currentUser.id);
-    myProd.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    if (myProd.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="6" class="empty-state">No productivity logs submitted yet.</td></tr>`;
-    } else {
-        myProd.slice(0, 5).forEach(sub => {
-            const statusClass = sub.status === 'Approved' ? 'approved' : (sub.status === 'Rejected' ? 'rejected' : 'pending');
-            tableBody.innerHTML += `
-                <tr>
-                    <td>${sub.date}</td>
-                    <td class="bold">${sub.tasks.join(', ')}</td>
-                    <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${sub.notes}</td>
-                    <td>${Object.values(sub.counts).reduce((s, c) => s + c, 0)}</td>
-                    <td><strong class="text-info">${sub.score}</strong></td>
-                    <td><span class="badge-status ${statusClass}">${sub.status}</span></td>
-                </tr>
-            `;
-        });
-    }
-
-    // Dashboard leave status
-    const leavesList = document.getElementById('employee-dashboard-leaves-list');
-    leavesList.innerHTML = '';
-
-    const myLeaves = db.leaves.filter(l => l.employeeId === currentUser.id);
-    myLeaves.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
-
-    if (myLeaves.length === 0) {
-        leavesList.innerHTML = `<div class="empty-state">No leave applications submitted.</div>`;
-    } else {
-        myLeaves.slice(0, 4).forEach(l => {
-            const statusClass = l.status === 'Approved' ? 'approved' : (l.status === 'Rejected' ? 'rejected' : 'pending');
-            const commentHTML = l.comments ? `<p class="comment mt-1">Comment: <strong class="text-primary">${l.comments}</strong></p>` : '';
-
-            leavesList.innerHTML += `
-                <div class="leave-mini-card">
-                    <div class="leave-mini-card-header">
-                        <h5>${l.type}</h5>
-                        <span class="badge-status ${statusClass}">${l.status}</span>
-                    </div>
-                    <div class="dates">${l.startDate} to ${l.endDate}</div>
-                    ${commentHTML}
-                </div>
-            `;
-        });
-    }
-
-    // Dashboard announcements
-    const announceList = document.getElementById('employee-announcements-list');
-    announceList.innerHTML = '';
-    const filteredAnnouncements = db.announcements.filter(a => a.target === 'All' || a.target === 'User');
-
-    if (filteredAnnouncements.length === 0) {
-        announceList.innerHTML = `<div class="empty-state">No announcements.</div>`;
-    } else {
-        filteredAnnouncements.forEach(ann => {
-            announceList.innerHTML += `
-                <div class="announcement-mini-card">
-                    <h4>${ann.title}</h4>
-                    <p>${ann.content}</p>
-                    <div class="meta">
-                        <span>By: <strong>${ann.author}</strong></span>
-                        <span>${ann.date}</span>
-                    </div>
-                </div>
-            `;
-        });
-    }
-
-    // My Team & Manager logic
-    const teamContainer = document.getElementById('employee-dashboard-team-container');
-    if (teamContainer) {
-        teamContainer.innerHTML = '';
+    // Productivity Chart
+    const prodChart = document.getElementById('employee-prod-chart');
+    const prodXaxis = document.getElementById('employee-prod-xaxis');
+    if (prodChart && prodXaxis) {
+        let pathD = "M 0 100 ";
+        let labelsHTML = "";
+        let maxScore = 50; 
         
-        let manager = null;
-        if (currentUser.managerId) {
-            manager = db.users.find(u => u.id === currentUser.managerId || u.name === currentUser.managerId || u.email === currentUser.managerId);
+        // Generate last 7 days chart
+        for (let i = 6; i >= 0; i--) {
+            let d = new Date();
+            d.setDate(d.getDate() - i);
+            let dateStr = d.toISOString().split('T')[0];
+            let displayDate = dateStr.slice(5).replace('-', '/');
+            
+            let dailyProd = db.productivity.find(p => p.date === dateStr && p.employeeId === currentUser.id && p.status === 'Approved');
+            let dailyScore = dailyProd ? dailyProd.score : 0;
+            
+            let x = (6 - i) * 50;
+            let y = 100 - (dailyScore / maxScore) * 80;
+            if (y < 10) y = 10;
+            
+            pathD += `L ${x} ${y} `;
+            labelsHTML += `<span>${displayDate}</span>`;
+            
+            prodChart.innerHTML += `<circle cx="${x}" cy="${y}" r="4" class="svg-chart-dot completed" />`;
         }
+        
+        const existingPath = prodChart.querySelector('path');
+        if (existingPath) existingPath.remove();
+        prodChart.innerHTML += `<path d="${pathD}" class="svg-chart-path completed" fill="none" />`;
+        prodXaxis.innerHTML = labelsHTML;
+    }
 
-        if (!manager) {
-            teamContainer.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--text-muted); background: rgba(255,255,255,0.02); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">You are not assigned to a team yet.</div>`;
-        } else {
-            const mgrInitials = getInitials(manager.name);
-            const teamEmployees = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === manager.id || u.managerId === manager.name || u.managerId === manager.email) && u.status === 'Active');
-
-            let membersHTML = '';
-            if (teamEmployees.length === 0) {
-                membersHTML = `<div style="color: var(--text-muted); font-size: 12px; font-style: italic; text-align: center; padding: 15px 0;">No other members assigned</div>`;
-            } else {
-                teamEmployees.forEach(emp => {
-                    const empInitials = getInitials(emp.name);
-                    const isMe = emp.id === currentUser.id;
-                    membersHTML += `
-                        <div class="team-member-item" style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                            <div class="team-member-left">
-                                <div class="team-member-avatar" style="background: rgba(95, 59, 246, 0.1); color: #5f3bf6; width: 24px; height: 24px; font-size: 10px;">${empInitials}</div>
-                                <div class="team-member-info">
-                                    <span class="team-member-name" style="font-size: 12px;">${emp.name} ${isMe ? '<span style="font-size: 9px; color: var(--primary); font-weight: 700; margin-left: 4px;">(You)</span>' : ''}</span>
-                                </div>
-                            </div>
+    // Leave Policies Summary
+    const policiesList = document.getElementById('employee-dash-leave-policies');
+    if (policiesList) {
+        policiesList.innerHTML = '';
+        if (db.companyProfile && db.companyProfile.leaveTypes && db.companyProfile.leaveTypes.length > 0) {
+            db.companyProfile.leaveTypes.forEach(policy => {
+                policiesList.innerHTML += `
+                    <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
+                        <div style="display:flex; justify-content:space-between;">
+                            <strong>${policy.name}</strong>
+                            <span class="text-info">${policy.days} days/yr</span>
                         </div>
-                    `;
-                });
+                    </div>
+                `;
+            });
+        } else {
+            policiesList.innerHTML = '<div class="empty-state">No leave policies defined.</div>';
+        }
+    }
+
+    // Quick Leave Form Type options
+    const quickLeaveType = document.getElementById('quick-leave-type');
+    if (quickLeaveType) {
+        quickLeaveType.innerHTML = '<option value="">Select Type...</option>';
+        if (db.companyProfile && db.companyProfile.leaveTypes) {
+            db.companyProfile.leaveTypes.forEach(lt => {
+                quickLeaveType.innerHTML += `<option value="${lt.name}">${lt.name}</option>`;
+            });
+        }
+    }
+
+    // Bind Quick Leave Submit Event
+    const quickLeaveForm = document.getElementById('quick-leave-form');
+    if (quickLeaveForm) {
+        quickLeaveForm.onsubmit = function(e) {
+            e.preventDefault();
+            const type = document.getElementById('quick-leave-type').value;
+            const start = document.getElementById('quick-leave-start').value;
+            const end = document.getElementById('quick-leave-end').value;
+
+            if (new Date(end) < new Date(start)) {
+                alert('End date cannot be before start date.');
+                return;
             }
 
-            teamContainer.innerHTML = `
-                <div class="team-card bg-glass" style="padding: 1rem; gap: 0.75rem;">
-                    <div class="team-leader" style="padding-bottom: 0.75rem;">
-                        <div class="avatar" style="width: 32px; height: 32px; font-size: 12px; background: rgba(56, 189, 248, 0.1); color: #38bdf8;">${mgrInitials}</div>
-                        <div class="team-leader-info">
-                            <h4 style="font-size: 13px;">${manager.name} <span style="font-size: 9px; color: var(--info); font-weight: 700; margin-left: 4px;">(Manager)</span></h4>
-                            <span style="font-size: 10px;">${manager.role}</span>
-                        </div>
-                    </div>
-                    <div class="team-members-list" style="max-height: 150px; overflow-y: auto;">
-                        ${membersHTML}
-                    </div>
-                </div>
-            `;
-        }
+            const db = getDb();
+            const newLeave = {
+                id: generateId(),
+                employeeId: currentUser.id,
+                employeeName: currentUser.name,
+                type: type,
+                startDate: start,
+                endDate: end,
+                reason: 'Submitted via Quick Request',
+                status: 'Pending',
+                submittedAt: new Date().toISOString()
+            };
+
+            db.leaves.push(newLeave);
+            saveDb(db);
+            alert('Leave request submitted successfully.');
+            quickLeaveForm.reset();
+            renderEmployeeDashboard(); // refresh
+        };
     }
 }
 

@@ -922,82 +922,84 @@
                                 <h1>Manager Dashboard</h1>
                                 <p class="text-secondary" id="manager-team-name-sub">Team Summary Overview</p>
                             </div>
+                            <div class="actions manager-actions">
+                                <button class="btn btn-primary" id="btn-manager-add-emp-dash"><i class="fa-solid fa-user-plus"></i> Add Team Member</button>
+                            </div>
                         </div>
 
-                        <!-- Metric Cards -->
-                        <div class="metrics-grid">
+                        <!-- Top Metric Cards -->
+                        <div class="metrics-grid-4 mb-4">
                             <div class="metric-card bg-glass">
-                                <div class="card-icon bg-info-light text-info"><i class="fa-solid fa-users-viewfinder"></i></div>
+                                <div class="card-icon bg-primary-light text-primary"><i class="fa-solid fa-users"></i></div>
                                 <div class="card-info">
-                                    <span class="label">Assigned Team</span>
+                                    <span class="label">Total Team Size</span>
                                     <h2 class="value" id="manager-metric-team-size">0</h2>
                                 </div>
                             </div>
                             <div class="metric-card bg-glass">
-                                <div class="card-icon bg-warning-light text-warning"><i class="fa-solid fa-person-walking-arrow-right"></i></div>
+                                <div class="card-icon bg-success-light text-success"><i class="fa-regular fa-calendar-check"></i></div>
                                 <div class="card-info">
-                                    <span class="label">Team Pending Leaves</span>
-                                    <h2 class="value" id="manager-metric-pending-leaves">0</h2>
+                                    <span class="label">Present Today</span>
+                                    <h2 class="value" id="manager-metric-today-present">0</h2>
                                 </div>
                             </div>
                             <div class="metric-card bg-glass">
-                                <div class="card-icon bg-success-light text-success"><i class="fa-solid fa-user-check"></i></div>
+                                <div class="card-icon bg-danger-light text-danger"><i class="fa-regular fa-calendar-xmark"></i></div>
                                 <div class="card-info">
-                                    <span class="label">Today Present</span>
-                                    <h2 class="value" id="manager-metric-today-attendance">0%</h2>
+                                    <span class="label">Absent Today</span>
+                                    <h2 class="value" id="manager-metric-today-absent">0</h2>
                                 </div>
                             </div>
                             <div class="metric-card bg-glass">
-                                <div class="card-icon bg-danger-light text-danger"><i class="fa-solid fa-chart-simple"></i></div>
+                                <div class="card-icon bg-warning-light text-warning"><i class="fa-solid fa-bell"></i></div>
                                 <div class="card-info">
-                                    <span class="label">Avg Team Productivity</span>
-                                    <h2 class="value" id="manager-metric-avg-score">0</h2>
+                                    <span class="label">Pending Approvals</span>
+                                    <h2 class="value" id="manager-metric-pending-approvals">0</h2>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="sections-grid">
-                            <!-- Team List Table -->
-                            <div class="section-card bg-glass">
-                                <div class="section-card-header">
-                                    <h3>Team Members</h3>
+                        <div class="dashboard-grid">
+                            <div class="main-column">
+                                <!-- Team Productivity Chart -->
+                                <div class="section-card bg-glass">
+                                    <div class="section-card-header">
+                                        <h3>Team Productivity Trend</h3>
+                                    </div>
+                                    <div class="chart-container">
+                                        <svg viewBox="0 0 300 120" class="svg-chart" id="manager-team-prod-chart">
+                                            <!-- Path inserted via JS -->
+                                        </svg>
+                                        <div class="chart-xaxis-labels" id="manager-team-prod-xaxis"></div>
+                                    </div>
                                 </div>
-                                <div class="table-container">
-                                    <table class="data-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Employee Name</th>
-                                                <th>Status</th>
-                                                <th>Today's Activity</th>
-                                                <th>Productivity Score</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="manager-team-table-body">
-                                            <!-- Dynamic Team rows -->
-                                        </tbody>
-                                    </table>
+
+                                <!-- My Reports (Personal Stats) -->
+                                <div class="section-card bg-glass">
+                                    <div class="section-card-header">
+                                        <h3>My Reports (Personal Stats)</h3>
+                                    </div>
+                                    <div id="manager-personal-stats" style="display:flex; justify-content:space-around; align-items:center; padding: 20px 0;">
+                                        <div style="text-align:center;">
+                                            <h1 id="manager-personal-attendance" style="color:var(--success);">Present</h1>
+                                            <span class="text-secondary">Today's Status</span>
+                                        </div>
+                                        <div style="text-align:center;">
+                                            <h1 id="manager-personal-prod" style="color:var(--primary);">0</h1>
+                                            <span class="text-secondary">Avg Productivity</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="sections-column">
-                                <!-- Pending Leaves Panel -->
+                            <div class="side-column">
+                                <!-- Quick Approvals -->
                                 <div class="section-card bg-glass scrollable-section">
                                     <div class="section-card-header">
-                                        <h3>Leave Requests</h3>
+                                        <h3>Pending Approvals</h3>
                                     </div>
-                                    <div class="leaves-mini-list" id="manager-pending-leaves-list">
-                                        <!-- Dynamic leave rows -->
-                                    </div>
-                                </div>
-
-                                <!-- Recent Team Submissions -->
-                                <div class="section-card bg-glass scrollable-section">
-                                    <div class="section-card-header">
-                                        <h3>Productivity Reviews</h3>
-                                    </div>
-                                    <div class="productivity-review-list" id="manager-pending-prod-list">
-                                        <!-- Dynamic submissions -->
+                                    <div class="leaves-mini-list" id="manager-dash-pending-list">
+                                        <!-- Dynamic pending items -->
                                     </div>
                                 </div>
                             </div>
@@ -1200,7 +1202,6 @@
 
                 <!-- ==================== EMPLOYEE VIEW ==================== -->
                 <div id="employee-view" class="role-view hidden">
-                    <!-- Employee Dashboard Tab -->
                     <div id="employee-tab-dashboard" class="tab-view active">
                         <div class="view-header">
                             <div>
@@ -1209,12 +1210,11 @@
                             </div>
                             <div class="actions employee-actions">
                                 <button class="btn btn-primary" id="btn-employee-update-prod-dash"><i class="fa-solid fa-plus-circle"></i> Update Productivity</button>
-                                <button class="btn btn-outline" id="btn-employee-apply-leave-dash"><i class="fa-solid fa-calendar-plus"></i> Apply Leave</button>
                             </div>
                         </div>
 
                         <!-- Metric Cards -->
-                        <div class="metrics-grid">
+                        <div class="metrics-grid mb-4">
                             <div class="metric-card bg-glass">
                                 <div class="card-icon bg-success-light text-success" id="employee-attendance-icon"><i class="fa-regular fa-calendar-check"></i></div>
                                 <div class="card-info">
@@ -1223,87 +1223,70 @@
                                 </div>
                             </div>
                             <div class="metric-card bg-glass">
-                                <div class="card-icon bg-info-light text-info"><i class="fa-solid fa-umbrella-beach"></i></div>
+                                <div class="card-icon bg-primary-light text-primary"><i class="fa-solid fa-star"></i></div>
                                 <div class="card-info">
-                                    <span class="label">Total Leaves Taken</span>
-                                    <h2 class="value" id="employee-metric-leaves">0</h2>
+                                    <span class="label">Avg Productivity</span>
+                                    <h2 class="value" id="employee-metric-avg-prod">0</h2>
                                 </div>
                             </div>
                             <div class="metric-card bg-glass">
-                                <div class="card-icon bg-warning-light text-warning"><i class="fa-solid fa-circle-question"></i></div>
+                                <div class="card-icon bg-warning-light text-warning"><i class="fa-regular fa-clock"></i></div>
                                 <div class="card-info">
-                                    <span class="label">Pending Requests</span>
-                                    <h2 class="value" id="employee-metric-pending">0</h2>
-                                </div>
-                            </div>
-                            <div class="metric-card bg-glass">
-                                <div class="card-icon bg-danger-light text-danger"><i class="fa-solid fa-fire"></i></div>
-                                <div class="card-info">
-                                    <span class="label">Productivity Score (Today)</span>
-                                    <h2 class="value" id="employee-metric-score">0</h2>
+                                    <span class="label">Pending Leaves</span>
+                                    <h2 class="value" id="employee-metric-pending-leaves">0</h2>
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Dashboard Split Row (My Team & Manager) -->
-                        <div class="section-card bg-glass" style="margin-bottom: 1.25rem;">
-                            <div class="section-card-header">
-                                <div>
-                                    <h3 style="font-size: 16px; font-weight: 700; margin: 0; color: var(--text-primary);">My Team & Manager</h3>
-                                    <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">People you work with in your team.</p>
-                                </div>
-                            </div>
-                            <div class="teams-grid" id="employee-dashboard-team-container" style="margin-top: 15px;">
-                                <!-- Dynamically populated by JS -->
-                            </div>
-                        </div>
 
-                        <div class="sections-grid">
-                            <!-- Left: Personal Productivity Tracker -->
-                            <div class="section-card bg-glass">
-                                <div class="section-card-header">
-                                    <h3>My Recent Productivity Submissions</h3>
-                                    <button class="btn btn-sm btn-primary" id="btn-employee-update-prod-sub"><i class="fa-solid fa-plus"></i> Add</button>
+                        <!-- Main Content 2-Column Grid -->
+                        <div class="dashboard-grid">
+                            <div class="main-column">
+                                <!-- Charts Section -->
+                                <div class="section-card bg-glass">
+                                    <div class="section-card-header">
+                                        <h3>Personal Productivity Trend</h3>
+                                    </div>
+                                    <div class="chart-container">
+                                        <svg viewBox="0 0 300 120" class="svg-chart" id="employee-prod-chart">
+                                            <!-- Path inserted via JS -->
+                                        </svg>
+                                        <div class="chart-xaxis-labels" id="employee-prod-xaxis"></div>
+                                    </div>
                                 </div>
-                                <div class="table-container">
-                                    <table class="data-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Date</th>
-                                                <th>Tasks</th>
-                                                <th>Detail Notes</th>
-                                                <th>Count</th>
-                                                <th>Score</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="employee-dashboard-prod-table">
-                                            <!-- Dynamic productivity records -->
-                                        </tbody>
-                                    </table>
+                                
+                                <!-- Quick Leave Request Panel inside Main Column -->
+                                <div class="section-card bg-glass mt-4">
+                                    <div class="section-card-header">
+                                        <h3>Quick Leave Request</h3>
+                                    </div>
+                                    <form id="quick-leave-form" style="display:flex; gap:15px; align-items:flex-end; flex-wrap:wrap;">
+                                        <div class="form-group" style="flex:1; min-width: 150px;">
+                                            <label>Leave Type</label>
+                                            <select id="quick-leave-type" class="form-control" required></select>
+                                        </div>
+                                        <div class="form-group" style="flex:1; min-width: 150px;">
+                                            <label>Start Date</label>
+                                            <input type="date" id="quick-leave-start" class="form-control" required>
+                                        </div>
+                                        <div class="form-group" style="flex:1; min-width: 150px;">
+                                            <label>End Date</label>
+                                            <input type="date" id="quick-leave-end" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Submit</button>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
 
-                            <!-- Right widgets -->
-                            <div class="sections-column">
-                                <!-- Announcements -->
+                            <div class="side-column">
+                                <!-- Leave Policies Summary -->
                                 <div class="section-card bg-glass scrollable-section">
                                     <div class="section-card-header">
-                                        <h3>Company Announcements</h3>
+                                        <h3>Leave Policies</h3>
                                     </div>
-                                    <div class="announcements-mini-list" id="employee-announcements-list">
-                                        <!-- Dynamic announcements -->
-                                    </div>
-                                </div>
-
-                                <!-- Leaves Status -->
-                                <div class="section-card bg-glass scrollable-section">
-                                    <div class="section-card-header">
-                                        <h3>My Leave Status</h3>
-                                        <button class="btn btn-sm btn-outline" id="btn-employee-apply-leave-sub"><i class="fa-solid fa-calendar-plus"></i> Apply</button>
-                                    </div>
-                                    <div class="leaves-mini-list" id="employee-dashboard-leaves-list">
-                                        <!-- Dynamic leaves -->
+                                    <div id="employee-dash-leave-policies" style="display: flex; flex-direction: column; gap: 10px;">
+                                        <!-- JS will populate -->
                                     </div>
                                 </div>
                             </div>
