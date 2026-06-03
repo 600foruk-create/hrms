@@ -1749,10 +1749,6 @@ function renderEmployeeDashboard() {
     const db = getDb();
     document.getElementById('employee-welcome-title').textContent = `Welcome Back, ${currentUser.name}!`;
 
-    // Attendance Today Card
-    const today = new Date().toISOString().split('T')[0];
-    const todayAtt = db.attendance.find(a => a.employeeId === currentUser.id && a.date === today);
-    
     // Top Metric Cards
     const today = new Date().toISOString().split('T')[0];
     const myAttToday = db.attendance.find(a => a.employeeId === currentUser.id && a.date === today);
