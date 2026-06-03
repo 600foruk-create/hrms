@@ -906,6 +906,26 @@
                             <div class="section-card bg-glass mb-4">
                                 <h3>Payroll History</h3>
                                 <p class="text-secondary">View locked payroll records from previous months.</p>
+                                
+                                <div class="table-container mt-4">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Batch ID</th>
+                                                <th>Employee Name</th>
+                                                <th>Cycle Period</th>
+                                                <th>Net Fixed Pay</th>
+                                                <th>Total Deductions</th>
+                                                <th>Total Additions</th>
+                                                <th class="text-primary bold">Final Net Pay</th>
+                                                <th>Processed On</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="payroll-history-tbody">
+                                            <!-- Generated via JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2252,7 +2272,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <!-- Main JS Application script -->
     <script src="app.js?v=7.0"></script>
-    <script src="payroll.js?v=6.0"></script>
+    <script src="payroll.js?v=7.0"></script>
 </body>
 </html>
 
