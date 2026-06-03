@@ -594,9 +594,11 @@ function switchTab(tabId) {
 
     // Toggle role outer views
     const views = ['admin-view', 'manager-view', 'employee-view'];
+    let roleStr = currentUser.role.toLowerCase();
+    if (roleStr === 'user') roleStr = 'employee';
+
     views.forEach(v => {
-        const role = currentUser.role.toLowerCase();
-        if (v === `${role}-view`) {
+        if (v === `${roleStr}-view`) {
             document.getElementById(v).classList.remove('hidden');
         } else {
             document.getElementById(v).classList.add('hidden');
@@ -604,10 +606,9 @@ function switchTab(tabId) {
     });
 
     // Toggle tab sub-views
-    const rolePrefix = currentUser.role.toLowerCase();
-    const tabSelector = `${rolePrefix}-tab-${tabId}`;
+    const tabSelector = `${roleStr}-tab-${tabId}`;
 
-    document.querySelectorAll(`#${rolePrefix}-view .tab-view`).forEach(tab => {
+    document.querySelectorAll(`#${roleStr}-view .tab-view`).forEach(tab => {
         if (tab.id === tabSelector) {
             tab.classList.add('active');
         } else {
