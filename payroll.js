@@ -39,19 +39,42 @@ window.renderPayrollHistory = function() {
     if (!tbody || !db) return;
 
     tbody.innerHTML = '';
-    const history = db.payrollHistory || [];
+    let history = db.payrollHistory || [];
     
-    if (history.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="empty-state">No payroll records found.</td></tr>`;
-        return;
-    }
+    // Apply filters
+    const monthFilter = document.getElementById('history-filter-month')?.value || 'All';
+    const yearFilter = document.getElementById('history-filter-year')?.value || 'All';
+    const searchFilter = document.getElementById('history-filter-search')?.value.toLowerCase().trim() || '';
 
+    if (monthFilter !== 'All') {
+        history = history.filter(h => {
+            const d = new Date(h.endDate);
+            return String(d.getMonth() + 1).padStart(2, '0') === monthFilter;
+        });
+    }
+    if (yearFilter !== 'All') {
+        history = history.filter(h => {
+            const d = new Date(h.endDate);
+            return String(d.getFullYear()) === yearFilter;
+        });
+    }
+    
     // Sort by most recent
     history.sort((a, b) => new Date(b.processedAt) - new Date(a.processedAt));
+
+    let visibleCount = 0;
 
     history.forEach(record => {
         const user = db.users.find(u => u.id === record.userId);
         const name = user ? user.name : "Unknown Employee";
+        
+        if (searchFilter) {
+            if (!name.toLowerCase().includes(searchFilter) && !record.userId.toLowerCase().includes(searchFilter)) {
+                return;
+            }
+        }
+        
+        visibleCount++;
         
         const totalDed = (record.absencyDeduction || 0) + (record.loanDeduction || 0) + (record.otherDeduction || 0);
         const totalAdd = (record.bonus || 0);
@@ -68,9 +91,138 @@ window.renderPayrollHistory = function() {
                 <td class="text-success">+Rs ${Math.round(totalAdd).toLocaleString()}</td>
                 <td class="text-primary bold">Rs ${Math.round(record.netPay).toLocaleString()}</td>
                 <td class="text-secondary">${processedDate}</td>
+                <td>
+                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="window.openPayslipModal('${record.id}')">
+                        <i class="fa-solid fa-eye"></i> View
+                    </button>
+                </td>
             </tr>
         `;
     });
+    
+    if (visibleCount === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="empty-state">No payroll records match your filters.</td></tr>`;
+    }
+};
+
+window.openPayslipModal = function(recordId) {
+    const db = getDb();
+    const record = (db.payrollHistory || []).find(r => r.id === recordId);
+    if (!record) return;
+    
+    const user = (db.users || []).find(u => u.id === record.userId);
+    const company = db.companyProfile || {};
+    
+    const cName = company.name || 'Company Name';
+    const cAddress = company.address || '';
+    
+    // Reconstruct allowances/deductions for the payslip print view
+    const basicSalary = parseInt(user?.salary) || 0;
+    const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
+    let profile = db.salaryProfiles?.find(p => p.userId === record.userId);
+    let allowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
+    let deductions = profile && profile.isCustomSlab ? (profile.deductions || []) : (globalSlab.deductions || []);
+    
+    let allowHtml = `<div class="payslip-row"><span>Basic Salary</span><span>Rs ${basicSalary.toLocaleString()}</span></div>`;
+    let totalAllow = basicSalary;
+    
+    allowances.forEach(a => {
+        const val = parseFloat(a.value) || 0;
+        const computed = (a.type === 'percentage') ? (basicSalary * val) / 100 : val;
+        allowHtml += `<div class="payslip-row"><span>${a.name}</span><span>Rs ${Math.round(computed).toLocaleString()}</span></div>`;
+        totalAllow += computed;
+    });
+    
+    if (record.bonus > 0) {
+        allowHtml += `<div class="payslip-row"><span>Bonus / Arrears</span><span>Rs ${Math.round(record.bonus).toLocaleString()}</span></div>`;
+        totalAllow += record.bonus;
+    }
+    
+    let dedHtml = ``;
+    let totalDed = 0;
+    
+    deductions.forEach(d => {
+        const val = parseFloat(d.value) || 0;
+        const computed = (d.type === 'percentage') ? (basicSalary * val) / 100 : val;
+        dedHtml += `<div class="payslip-row"><span>${d.name}</span><span>Rs ${Math.round(computed).toLocaleString()}</span></div>`;
+        totalDed += computed;
+    });
+    
+    if (record.absencyDeduction > 0) {
+        dedHtml += `<div class="payslip-row"><span>Absents / Lates</span><span>Rs ${Math.round(record.absencyDeduction).toLocaleString()}</span></div>`;
+        totalDed += record.absencyDeduction;
+    }
+    if (record.loanDeduction > 0) {
+        dedHtml += `<div class="payslip-row"><span>Loan Installment</span><span>Rs ${Math.round(record.loanDeduction).toLocaleString()}</span></div>`;
+        totalDed += record.loanDeduction;
+    }
+    if (record.otherDeduction > 0) {
+        dedHtml += `<div class="payslip-row"><span>Other Deductions</span><span>Rs ${Math.round(record.otherDeduction).toLocaleString()}</span></div>`;
+        totalDed += record.otherDeduction;
+    }
+
+    const printArea = document.getElementById('payslip-print-area');
+    printArea.innerHTML = `
+        <div class="payslip-header">
+            <div>
+                <div class="payslip-title">${cName}</div>
+                <div class="payslip-period">${cAddress}</div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 20px; font-weight: 800; color: #374151;">PAYSLIP</div>
+                <div class="payslip-period">${new Date(record.startDate).toLocaleDateString()} to ${new Date(record.endDate).toLocaleDateString()}</div>
+                <div style="font-size: 11px; color: #9ca3af; margin-top: 5px;">Ref: ${record.batchId}</div>
+            </div>
+        </div>
+        
+        <div class="payslip-info-grid">
+            <div class="payslip-info-item">
+                <span class="payslip-info-label">Employee Name</span>
+                <span class="payslip-info-value">${user ? user.name : 'Unknown'}</span>
+            </div>
+            <div class="payslip-info-item">
+                <span class="payslip-info-label">Employee ID</span>
+                <span class="payslip-info-value">${record.userId}</span>
+            </div>
+            <div class="payslip-info-item">
+                <span class="payslip-info-label">Designation</span>
+                <span class="payslip-info-value">${user && user.designation ? user.designation : 'N/A'}</span>
+            </div>
+            <div class="payslip-info-item">
+                <span class="payslip-info-label">Processed Date</span>
+                <span class="payslip-info-value">${new Date(record.processedAt).toLocaleDateString()}</span>
+            </div>
+        </div>
+        
+        <div class="payslip-table-grid">
+            <div class="payslip-section">
+                <div class="payslip-section-title">Earnings</div>
+                ${allowHtml}
+                <div class="payslip-row payslip-total">
+                    <span>Total Earnings</span>
+                    <span>Rs ${Math.round(totalAllow).toLocaleString()}</span>
+                </div>
+            </div>
+            <div class="payslip-section">
+                <div class="payslip-section-title">Deductions</div>
+                ${dedHtml || '<div class="payslip-row"><span style="color:#9ca3af; font-style:italic;">No Deductions</span></div>'}
+                <div class="payslip-row payslip-total">
+                    <span>Total Deductions</span>
+                    <span>Rs ${Math.round(totalDed).toLocaleString()}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="payslip-grand-total">
+            <div class="grand-total-box">
+                <div class="grand-total-label">Net Payable Salary</div>
+                <div class="grand-total-value">Rs ${Math.round(record.netPay).toLocaleString()}</div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('modal-view-payslip').classList.remove('hidden');
+    document.getElementById('modal-overlay').classList.remove('hidden');
 };
 
 // --- 1. Salary Profiles Management ---
