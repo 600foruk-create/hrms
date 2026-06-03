@@ -2307,31 +2307,33 @@ window.openEditEmployeeModal = function (userId) {
     // Leave Balances Logic
     const leaveSection = document.getElementById('emp-leave-balances-section');
     const leaveTableBody = document.getElementById('emp-leave-balances-table');
-    if (user && user.id) {
-        leaveSection.style.display = 'block';
-        leaveTableBody.innerHTML = '';
-        
-        let balances = user.leaveBalances || [];
-        if (balances.length === 0) {
-            leaveTableBody.innerHTML = `<tr><td colspan="3" class="empty-state">No leave balances found for this employee.</td></tr>`;
+    if (leaveSection && leaveTableBody) {
+        if (user && user.id) {
+            leaveSection.style.display = 'block';
+            leaveTableBody.innerHTML = '';
+            
+            let balances = user.leaveBalances || [];
+            if (balances.length === 0) {
+                leaveTableBody.innerHTML = `<tr><td colspan="3" class="empty-state">No leave balances found for this employee.</td></tr>`;
+            } else {
+                balances.forEach(b => {
+                    leaveTableBody.innerHTML += `
+                        <tr>
+                            <td class="bold">${b.name}</td>
+                            <td>${b.balance} days</td>
+                            <td>
+                                <div style="display:flex; gap:5px; align-items:center;">
+                                    <input type="number" id="leave-bal-${b.id}" class="form-control" style="width:70px; padding:4px;" value="${b.balance}">
+                                    <button type="button" class="btn btn-sm btn-primary" onclick="updateEmployeeLeaveBalance('${user.id}', '${b.id}')">Save</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
         } else {
-            balances.forEach(b => {
-                leaveTableBody.innerHTML += `
-                    <tr>
-                        <td class="bold">${b.name}</td>
-                        <td>${b.balance} days</td>
-                        <td>
-                            <div style="display:flex; gap:5px; align-items:center;">
-                                <input type="number" id="leave-bal-${b.id}" class="form-control" style="width:70px; padding:4px;" value="${b.balance}">
-                                <button type="button" class="btn btn-sm btn-primary" onclick="updateEmployeeLeaveBalance('${user.id}', '${b.id}')">Save</button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
+            leaveSection.style.display = 'none';
         }
-    } else {
-        leaveSection.style.display = 'none';
     }
 
     toggleManagerGroup();
