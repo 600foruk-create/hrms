@@ -2574,5 +2574,5 @@ body.light-mode .report-preview-container {
 .accordion-badge { background: rgba(95, 59, 246, 0.15); color: var(--primary); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-right: 15px; }
 .accordion-toggle-icon { transition: transform 0.3s ease; color: var(--text-secondary); }
 .accordion-body { max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease; padding: 0 20px; }
-.accordion-item.expanded .accordion-body { max-height: 1000px; padding: 15px 20px; }
+.accordion-item.expanded .accordion-body { max-height: 350px; overflow-y: auto; padding: 15px 20px; }
 .accordion-item.expanded .accordion-toggle-icon { transform: rotate(180deg); }
