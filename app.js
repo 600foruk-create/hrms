@@ -2691,29 +2691,41 @@ window.openManualAttendanceModal = function () {
             return;
         }
 
+        let htmlStr = `<table class="data-table" style="margin: 0; width: 100%;">
+            <thead>
+                <tr>
+                    <th style="padding-left: 16px;">Employee ID</th>
+                    <th>Employee Name</th>
+                    <th>Role</th>
+                    <th style="text-align: right; padding-right: 16px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
         targetUsers.forEach(emp => {
             const existingRecord = db.attendance.find(a => a.employeeId === emp.id && a.date === selectedDate);
             const status = existingRecord ? existingRecord.status : '';
 
-            listContainer.innerHTML += `
-                <div class="attendance-bulk-row" data-emp-id="${emp.id}" data-emp-name="${emp.name}">
-                    <div class="attendance-bulk-info">
-                        <div class="attendance-bulk-avatar">${emp.name.charAt(0).toUpperCase()}</div>
-                        <div>
-                            <div class="attendance-bulk-name">${emp.name}</div>
-                            <div class="attendance-bulk-role">${emp.role}</div>
-                        </div>
-                    </div>
-                    <div class="attendance-toggle-group">
-                        <input type="radio" name="att_status_${emp.id}" id="att_present_${emp.id}" value="Present" ${status === 'Present' ? 'checked' : ''}>
-                        <label for="att_present_${emp.id}">Present</label>
+            htmlStr += `
+                <tr class="attendance-bulk-row" data-emp-id="${emp.id}" data-emp-name="${emp.name}" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td class="text-secondary" style="padding-left: 16px;">${emp.id}</td>
+                    <td class="bold">${emp.name}</td>
+                    <td><span class="badge-role ${emp.role.toLowerCase()}">${emp.role}</span></td>
+                    <td style="text-align: right; padding-right: 16px;">
+                        <div class="attendance-toggle-group">
+                            <input type="radio" name="att_status_${emp.id}" id="att_present_${emp.id}" value="Present" ${status === 'Present' ? 'checked' : ''}>
+                            <label for="att_present_${emp.id}">Present</label>
 
-                        <input type="radio" name="att_status_${emp.id}" id="att_absent_${emp.id}" value="Absent" ${status === 'Absent' ? 'checked' : ''}>
-                        <label for="att_absent_${emp.id}">Absent</label>
-                    </div>
-                </div>
+                            <input type="radio" name="att_status_${emp.id}" id="att_absent_${emp.id}" value="Absent" ${status === 'Absent' ? 'checked' : ''}>
+                            <label for="att_absent_${emp.id}">Absent</label>
+                        </div>
+                    </td>
+                </tr>
             `;
         });
+        
+        htmlStr += `</tbody></table>`;
+        listContainer.innerHTML = htmlStr;
     };
 
     renderBulkList();
