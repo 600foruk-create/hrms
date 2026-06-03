@@ -375,17 +375,227 @@ window.deleteLoan = function(loanId) {
 
 // --- 3. Process Payroll (Placeholder for Phase 2) ---
 window.initPayrollProcessView = function() {
-    const monthInput = document.getElementById('payroll-process-month');
-    if (monthInput && !monthInput.value) {
+    const startInput = document.getElementById('payroll-process-start');
+    const endInput = document.getElementById('payroll-process-end');
+    
+    if (startInput && !startInput.value) {
         const today = new Date();
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, '0');
-        monthInput.value = `${yyyy}-${mm}`;
+        startInput.value = `${yyyy}-${mm}-01`;
+        
+        // Default end date to last day of the month
+        const lastDay = new Date(yyyy, today.getMonth() + 1, 0).getDate();
+        endInput.value = `${yyyy}-${mm}-${lastDay}`;
     }
 };
 
 window.generatePayrollPreview = function() {
-    showToast("Info", "Payroll processing logic is scheduled for Phase 2.", "info");
+    const db = getDb();
+    const startInput = document.getElementById('payroll-process-start').value;
+    const endInput = document.getElementById('payroll-process-end').value;
+    const deptFilter = document.getElementById('payroll-process-dept').value;
+
+    if (!startInput || !endInput) {
+        if(window.showToast) showToast("Error", "Please select both Start and End dates.", "error");
+        return;
+    }
+
+    const startDate = new Date(startInput);
+    const endDate = new Date(endInput);
+    
+    if (startDate > endDate) {
+        if(window.showToast) showToast("Error", "Start date cannot be after end date.", "error");
+        return;
+    }
+
+    let users = db.users.filter(u => u.status === 'Active');
+    
+    if (deptFilter !== 'All') {
+        // Implement department filter if added later
+    }
+
+    const tbody = document.getElementById('payroll-preview-tbody');
+    tbody.innerHTML = '';
+    
+    const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
+    let grandTotal = 0;
+
+    users.forEach(user => {
+        const basicSalary = parseInt(user.salary) || 0;
+        const dailyWage = basicSalary / 30; // Standard 30 day divisor
+
+        // 1. Calculate Fixed Slab
+        let profile = db.salaryProfiles?.find(p => p.userId === user.id);
+        let allowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
+        let deductions = profile && profile.isCustomSlab ? (profile.deductions || []) : (globalSlab.deductions || []);
+
+        let totalAllowances = 0;
+        allowances.forEach(a => {
+            const val = parseFloat(a.value) || 0;
+            totalAllowances += (a.type === 'percentage') ? (basicSalary * val) / 100 : val;
+        });
+
+        let totalDeductions = 0;
+        deductions.forEach(d => {
+            const val = parseFloat(d.value) || 0;
+            totalDeductions += (d.type === 'percentage') ? (basicSalary * val) / 100 : val;
+        });
+
+        const netFixed = (basicSalary + totalAllowances) - totalDeductions;
+
+        // 2. Fetch Attendance (Absents & Half Days)
+        let absentCount = 0;
+        let halfDayCount = 0;
+        if (db.attendance) {
+            db.attendance.forEach(att => {
+                if (att.userId === user.id) {
+                    const attDate = new Date(att.date);
+                    if (attDate >= startDate && attDate <= endDate) {
+                        if (att.status === 'Absent') absentCount += 1;
+                        if (att.status === 'Half Day') halfDayCount += 1;
+                    }
+                }
+            });
+        }
+        
+        // 2 Half days = 1 Absent
+        const totalAbsentEquivalent = absentCount + (halfDayCount * 0.5);
+        const absencyDeduction = totalAbsentEquivalent * dailyWage;
+
+        // 3. Fetch Active Loans
+        let loanEMI = 0;
+        let activeLoanId = null;
+        if (db.loans) {
+            const activeLoan = db.loans.find(l => l.userId === user.id && l.remainingAmount > 0);
+            if (activeLoan) {
+                activeLoanId = activeLoan.id;
+                loanEMI = activeLoan.monthlyInstallment;
+                if (loanEMI > activeLoan.remainingAmount) {
+                    loanEMI = activeLoan.remainingAmount; // Can't deduct more than what's left
+                }
+            }
+        }
+
+        // 4. Initial Net Payable
+        const netPayable = netFixed - absencyDeduction - loanEMI;
+        grandTotal += netPayable;
+
+        tbody.innerHTML += `
+            <tr class="payroll-preview-row" data-user-id="${user.id}" data-net-fixed="${netFixed}" data-absent-deduct="${absencyDeduction}" data-loan-emi="${loanEMI}" data-loan-id="${activeLoanId || ''}">
+                <td class="text-secondary">${user.id}</td>
+                <td class="bold">${user.name}</td>
+                <td>Rs ${Math.round(netFixed).toLocaleString()}</td>
+                <td>${totalAbsentEquivalent}</td>
+                <td class="text-danger">-Rs ${Math.round(absencyDeduction).toLocaleString()}</td>
+                <td class="text-warning">-Rs ${Math.round(loanEMI).toLocaleString()}</td>
+                <td>
+                    <input type="number" class="form-control bonus-input" style="width: 80px; padding: 4px; font-size: 12px; height: 28px;" value="0" min="0" onchange="window.recalculatePayrollRow(this)">
+                </td>
+                <td>
+                    <input type="number" class="form-control ded-input" style="width: 80px; padding: 4px; font-size: 12px; height: 28px;" value="0" min="0" onchange="window.recalculatePayrollRow(this)">
+                </td>
+                <td class="text-primary bold net-payable-cell">Rs ${Math.round(netPayable).toLocaleString()}</td>
+            </tr>
+        `;
+    });
+
+    document.getElementById('payroll-grand-total').textContent = `Rs ${Math.round(grandTotal).toLocaleString()}`;
+    
+    document.getElementById('payroll-preview-meta').textContent = `Showing calculations from ${startDate.toDateString()} to ${endDate.toDateString()}`;
+    document.getElementById('payroll-preview-container').classList.remove('hidden');
+};
+
+window.recalculatePayrollRow = function(inputElem) {
+    const row = inputElem.closest('tr');
+    
+    const netFixed = parseFloat(row.dataset.netFixed) || 0;
+    const absDeduct = parseFloat(row.dataset.absentDeduct) || 0;
+    const loanEmi = parseFloat(row.dataset.loanEmi) || 0;
+    
+    const bonus = parseFloat(row.querySelector('.bonus-input').value) || 0;
+    const otherDed = parseFloat(row.querySelector('.ded-input').value) || 0;
+    
+    const newNetPayable = netFixed - absDeduct - loanEmi + bonus - otherDed;
+    
+    row.querySelector('.net-payable-cell').textContent = `Rs ${Math.round(newNetPayable).toLocaleString()}`;
+    
+    // Recalculate Grand Total
+    let grandTotal = 0;
+    document.querySelectorAll('.payroll-preview-row').forEach(tr => {
+        const nF = parseFloat(tr.dataset.netFixed) || 0;
+        const aD = parseFloat(tr.dataset.absentDeduct) || 0;
+        const lE = parseFloat(tr.dataset.loanEmi) || 0;
+        const b = parseFloat(tr.querySelector('.bonus-input').value) || 0;
+        const od = parseFloat(tr.querySelector('.ded-input').value) || 0;
+        grandTotal += (nF - aD - lE + b - od);
+    });
+    
+    document.getElementById('payroll-grand-total').textContent = `Rs ${Math.round(grandTotal).toLocaleString()}`;
+};
+
+window.confirmAndProcessPayroll = function() {
+    if (!confirm("Are you sure you want to finalize this payroll? This will deduct loan EMI balances and generate official history logs.")) return;
+
+    const db = getDb();
+    if (!db.payrollHistory) db.payrollHistory = [];
+    
+    const startInput = document.getElementById('payroll-process-start').value;
+    const endInput = document.getElementById('payroll-process-end').value;
+    
+    const batchId = 'PRL-' + Date.now();
+    let totalProcessed = 0;
+    let totalPaid = 0;
+
+    const rows = document.querySelectorAll('.payroll-preview-row');
+    rows.forEach(row => {
+        const userId = row.dataset.userId;
+        const netFixed = parseFloat(row.dataset.netFixed) || 0;
+        const absDeduct = parseFloat(row.dataset.absentDeduct) || 0;
+        const loanEmi = parseFloat(row.dataset.loanEmi) || 0;
+        const loanId = row.dataset.loanId;
+        const bonus = parseFloat(row.querySelector('.bonus-input').value) || 0;
+        const otherDed = parseFloat(row.querySelector('.ded-input').value) || 0;
+        
+        const finalNetPay = netFixed - absDeduct - loanEmi + bonus - otherDed;
+
+        // Deduct EMI from active loan
+        if (loanId && loanEmi > 0 && db.loans) {
+            const loan = db.loans.find(l => l.id === loanId);
+            if (loan) {
+                loan.remainingAmount -= loanEmi;
+            }
+        }
+
+        // Create individual payslip record
+        db.payrollHistory.push({
+            id: 'SLP-' + Math.floor(Math.random() * 1000000),
+            batchId: batchId,
+            userId: userId,
+            startDate: startInput,
+            endDate: endInput,
+            netFixed: netFixed,
+            absencyDeduction: absDeduct,
+            loanDeduction: loanEmi,
+            bonus: bonus,
+            otherDeduction: otherDed,
+            netPay: finalNetPay,
+            processedAt: new Date().toISOString()
+        });
+
+        totalProcessed++;
+        totalPaid += finalNetPay;
+    });
+
+    saveDb(db);
+    
+    if(window.showToast) showToast("Payroll Processed", `Successfully generated payroll for ${totalProcessed} employees. Total: Rs ${Math.round(totalPaid).toLocaleString()}`);
+    
+    // Hide preview
+    document.getElementById('payroll-preview-container').classList.add('hidden');
+    
+    // Auto-switch to history tab (Phase 3)
+    if (window.switchPayrollSubTab) window.switchPayrollSubTab('history');
 };
 
 // Hook into existing switchTab

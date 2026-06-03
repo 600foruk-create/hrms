@@ -838,12 +838,16 @@
                         <!-- 3. Process Payroll Container -->
                         <div id="payroll-sub-process" class="payroll-sub-section hidden">
                             <div class="section-card bg-glass mb-4">
-                                <h3>Process Monthly Payroll</h3>
-                                <p class="text-secondary">Generate payroll for a specific month based on attendance, OT, and loans.</p>
+                                <h3>Process Payroll</h3>
+                                <p class="text-secondary">Generate payroll for a specific date range based on attendance, OT, and loans.</p>
                                 <div class="form-row mt-3" style="align-items: flex-end;">
                                     <div class="form-group" style="flex: 1;">
-                                        <label>Select Month</label>
-                                        <input type="month" id="payroll-process-month" class="form-control">
+                                        <label>Start Date</label>
+                                        <input type="date" id="payroll-process-start" class="form-control">
+                                    </div>
+                                    <div class="form-group" style="flex: 1;">
+                                        <label>End Date</label>
+                                        <input type="date" id="payroll-process-end" class="form-control">
                                     </div>
                                     <div class="form-group" style="flex: 1;">
                                         <label>Department / Filter</label>
@@ -858,7 +862,42 @@
                             </div>
                             
                             <div id="payroll-preview-container" class="hidden">
-                                <!-- Payroll Preview Table goes here -->
+                                <div class="section-card bg-glass">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                        <div>
+                                            <h3>Payroll Preview</h3>
+                                            <p class="text-secondary" id="payroll-preview-meta">Review and adjust calculations before finalizing.</p>
+                                        </div>
+                                    </div>
+                                    <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                                        <table class="data-table" style="min-width: 900px;">
+                                            <thead>
+                                                <tr>
+                                                    <th>Emp ID</th>
+                                                    <th>Name</th>
+                                                    <th>Fixed Pay</th>
+                                                    <th>Absents</th>
+                                                    <th>Abs. Deduct</th>
+                                                    <th>Loan EMI</th>
+                                                    <th style="width: 100px;">Bonus (Rs)</th>
+                                                    <th style="width: 100px;">Other Ded (Rs)</th>
+                                                    <th class="text-primary bold">Net Payable</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="payroll-preview-tbody">
+                                                <!-- Dynamic Rows -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                                        <div>
+                                            <h4 class="text-primary">Total Payroll Cost: <span id="payroll-grand-total">Rs 0</span></h4>
+                                        </div>
+                                        <button class="btn btn-success" onclick="if(window.confirmAndProcessPayroll) window.confirmAndProcessPayroll()">
+                                            <i class="fa-solid fa-check-double"></i> Confirm & Process
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -2213,7 +2252,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <!-- Main JS Application script -->
     <script src="app.js?v=7.0"></script>
-    <script src="payroll.js?v=5.0"></script>
+    <script src="payroll.js?v=6.0"></script>
 </body>
 </html>
 
