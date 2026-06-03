@@ -2694,10 +2694,10 @@ window.openManualAttendanceModal = function () {
         let htmlStr = `<table class="data-table" style="margin: 0; width: 100%;">
             <thead>
                 <tr>
-                    <th style="padding-left: 16px;">Employee ID</th>
-                    <th>Employee Name</th>
-                    <th>Role</th>
-                    <th style="text-align: right; padding-right: 16px;">Action</th>
+                    <th style="padding-left: 16px; width: 35%;">Employee ID</th>
+                    <th style="width: 30%;">Employee Name</th>
+                    <th style="width: 10%;">Role</th>
+                    <th style="text-align: right; padding-right: 16px; width: 25%;">Action</th>
                 </tr>
             </thead>
             <tbody>`;
@@ -2707,7 +2707,7 @@ window.openManualAttendanceModal = function () {
             const status = existingRecord ? existingRecord.status : '';
 
             htmlStr += `
-                <tr class="attendance-bulk-row" data-emp-id="${emp.id}" data-emp-name="${emp.name}" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <tr class="attendance-bulk-row" data-emp-id="${emp.id}" data-emp-name="${emp.name}" style="display: table-row !important; border-bottom: 1px solid rgba(255,255,255,0.05);">
                     <td class="text-secondary" style="padding-left: 16px;">${emp.id}</td>
                     <td class="bold">${emp.name}</td>
                     <td><span class="badge-role ${emp.role.toLowerCase()}">${emp.role}</span></td>
@@ -3447,7 +3447,7 @@ function generateReport(roleContext) {
                     <thead>
                         <tr>
                             <th>Date</th>
-                            <th>Employee Name</th>
+                            <th style="width: 30%;">Employee Name</th>
                             <th>Status</th>
                             <th>Marked By</th>
                         </tr>
@@ -3502,7 +3502,7 @@ function generateReport(roleContext) {
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Employee Name</th>
+                            <th style="width: 30%;">Employee Name</th>
                             <th>Leave Type</th>
                             <th>Duration Range</th>
                             <th>Status</th>
