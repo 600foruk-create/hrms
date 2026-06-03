@@ -12,7 +12,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="styles.css?v=6.3">
+    <link rel="stylesheet" href="styles.css?v=6.4">
 </head>
 <body class="dark-mode login-view">
     
@@ -696,13 +696,18 @@
                                 <form id="settings-add-leave-type-form" style="display: flex; gap: 10px; align-items: flex-end;" onsubmit="event.preventDefault();">
                                     <div class="form-group" style="flex: 2; margin-bottom: 0;">
                                         <label for="new-leave-type-name">Type Name</label>
-                                        <input type="text" id="new-leave-type-name" class="form-control" placeholder="e.g., Casual Leave" required>
+                                        <input type="text" id="new-leave-type-name" class="form-control" placeholder="e.g., Casual Leave" required disabled>
                                     </div>
                                     <div class="form-group" style="flex: 1; margin-bottom: 0;">
                                         <label for="new-leave-type-days">Days/Year</label>
-                                        <input type="number" id="new-leave-type-days" class="form-control" placeholder="e.g., 5" required>
+                                        <input type="number" id="new-leave-type-days" class="form-control" placeholder="e.g., 5" required disabled>
                                     </div>
-                                    <button type="submit" class="btn btn-primary" style="height: 38px; margin-bottom: 0;"><i class="fa-solid fa-plus"></i> Add New</button>
+                                    <button type="button" id="btn-enable-add-leave" class="btn btn-primary" style="height: 38px; margin-bottom: 0;" onclick="enableAddNewLeaveType()">
+                                        <i class="fa-solid fa-plus"></i> Add New
+                                    </button>
+                                    <button type="submit" id="btn-submit-add-leave" class="btn btn-success" style="height: 38px; margin-bottom: 0; display: none;">
+                                        <i class="fa-solid fa-save"></i> Save
+                                    </button>
                                 </form>
                             </div>
                         </div>
@@ -1917,6 +1922,6 @@
     <!-- GSAP for Yeti Animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <!-- Main JS Application script -->
-    <script src="app.js?v=6.3"></script>
+    <script src="app.js?v=6.4"></script>
 </body>
 </html>
