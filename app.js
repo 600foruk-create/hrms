@@ -1408,37 +1408,37 @@ window.renderAdminLeaveBalancesList = function() {
     }
 
     // Build Headers
-    thead.innerHTML = <tr>
+    thead.innerHTML = `<tr>
         <th style="width: 20%">Emp ID</th>
         <th style="width: 40%">Employee Name</th>
         <th style="width: 20%">Role</th>
         <th style="width: 20%" class="text-center">Actions</th>
-    </tr>;
+    </tr>`;
 
     // Build Body
     let bodyHtml = '';
     if (activeUsers.length === 0) {
-        bodyHtml = <tr><td colspan="4" class="empty-state">No employees found.</td></tr>;
+        bodyHtml = `<tr><td colspan="4" class="empty-state">No employees found.</td></tr>`;
         toggleBtn.classList.add('hidden');
     } else {
         activeUsers.forEach((user, index) => {
             const hiddenClass = index >= 5 ? 'emp-leave-row-hidden' : '';
             const rowStyle = index >= 5 ? 'display: none;' : '';
             
-            bodyHtml += <tr class=" + hiddenClass + " style=" + rowStyle +  border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <td class="text-secondary"> + user.id + </td>
-                <td class="bold"> + user.name + </td>
-                <td><span class="badge-role  + user.role.toLowerCase() + "> + user.role + </span></td>
+            bodyHtml += `<tr class="${hiddenClass}" style="${rowStyle} border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td class="text-secondary">${user.id}</td>
+                <td class="bold">${user.name}</td>
+                <td><span class="badge-role ${user.role.toLowerCase()}">${user.role}</span></td>
                 <td class="text-center">
-                    <button type="button" class="btn btn-sm btn-outline" onclick="openEditLeaveBalancesModal(' + user.id + ')" style="font-size: 12px; padding: 4px 8px;">Edit Balances</button>
+                    <button type="button" class="btn btn-sm btn-outline" onclick="openEditLeaveBalancesModal('${user.id}')" style="font-size: 12px; padding: 4px 8px;">Edit Balances</button>
                 </td>
-            </tr>;
+            </tr>`;
         });
         
         // Show toggle button only if no search filter is active and length > 5
         if (activeUsers.length > 5 && !filterTxt) {
             toggleBtn.classList.remove('hidden');
-            toggleBtn.innerHTML = Show More Employees <i class="fa-solid fa-chevron-down"></i>;
+            toggleBtn.innerHTML = `Show More Employees <i class="fa-solid fa-chevron-down"></i>`;
             
             toggleBtn.onclick = function() {
                 const hiddenRows = tbody.querySelectorAll('.emp-leave-row-hidden');
@@ -1449,8 +1449,8 @@ window.renderAdminLeaveBalancesList = function() {
                 });
                 
                 toggleBtn.innerHTML = isExpanding 
-                    ? Show Less Employees <i class="fa-solid fa-chevron-up"></i>
-                    : Show More Employees <i class="fa-solid fa-chevron-down"></i>;
+                    ? `Show Less Employees <i class="fa-solid fa-chevron-up"></i>`
+                    : `Show More Employees <i class="fa-solid fa-chevron-down"></i>`;
             };
         } else {
             toggleBtn.classList.add('hidden');
@@ -1477,7 +1477,7 @@ window.openEditLeaveBalancesModal = function(userId) {
 
     if (!modal || !nameEl || !idEl || !container) return;
 
-    nameEl.textContent = Employee:  + user.name +  ( + user.id + );
+    nameEl.textContent = `Employee: ${user.name} (${user.id})`;
     idEl.value = user.id;
     container.innerHTML = '';
 
@@ -1494,15 +1494,15 @@ window.openEditLeaveBalancesModal = function(userId) {
             if (ub) balance = ub.balance;
         }
 
-        container.innerHTML += 
+        container.innerHTML += `
             <div class="form-group" style="margin-bottom: 0; display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 6px;">
-                <label style="margin-bottom: 0;"> + lt.name + </label>
+                <label style="margin-bottom: 0;">${lt.name}</label>
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <span class="text-secondary" style="font-size: 12px;">Days/Year:</span>
-                    <input type="number" id="modal-leave-bal- + lt.id + " value=" + balance + " class="form-control" style="width: 80px; text-align: center;">
+                    <input type="number" id="modal-leave-bal-${lt.id}" value="${balance}" class="form-control" style="width: 80px; text-align: center;">
                 </div>
             </div>
-        ;
+        `;
     });
 
     modal.classList.remove('hidden');
@@ -1518,7 +1518,7 @@ window.saveIndividualLeaveBalances = function() {
     
     const leaveTypes = db.companyProfile?.leaveTypes || [];
     leaveTypes.forEach(lt => {
-        const input = document.getElementById('modal-leave-bal-' + lt.id);
+        const input = document.getElementById(`modal-leave-bal-${lt.id}`);
         if (input) {
             const newBal = parseInt(input.value) || 0;
             const existing = user.leaveBalances.find(b => b.id === lt.id);
@@ -1531,7 +1531,7 @@ window.saveIndividualLeaveBalances = function() {
     });
     
     saveDb(db);
-    showToast("Balances Updated", "Leave balances for " + user.name + " saved successfully.");
+    showToast("Balances Updated", `Leave balances for ${user.name} saved successfully.`);
     document.getElementById('modal-edit-leave-balances').classList.add('hidden');
     
     if (window.renderAdminLeaveBalancesList) window.renderAdminLeaveBalancesList();
