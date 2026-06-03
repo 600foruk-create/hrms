@@ -740,6 +740,124 @@
                         </div>
                     </div>
 
+                    <!-- Admin Payroll Tab -->
+                    <div id="admin-tab-payroll" class="tab-view hidden">
+                        <div class="view-header">
+                            <div>
+                                <h1>Payroll & Salary Management</h1>
+                                <p class="text-secondary">Configure salary profiles, manage loans, and process monthly payroll</p>
+                            </div>
+                        </div>
+
+                        <!-- Payroll Sub-Navigation -->
+                        <div class="sub-nav-tabs" style="margin-bottom: 20px; display: flex; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                            <button class="btn btn-sm btn-primary" id="btn-sub-payroll-profiles" onclick="window.switchPayrollSubTab('profiles')">Salary Profiles</button>
+                            <button class="btn btn-sm btn-outline" id="btn-sub-payroll-loans" onclick="window.switchPayrollSubTab('loans')">Loans & Advances</button>
+                            <button class="btn btn-sm btn-outline" id="btn-sub-payroll-process" onclick="window.switchPayrollSubTab('process')">Process Payroll</button>
+                            <button class="btn btn-sm btn-outline" id="btn-sub-payroll-history" onclick="window.switchPayrollSubTab('history')">History & Reports</button>
+                        </div>
+
+                        <!-- 1. Salary Profiles Container -->
+                        <div id="payroll-sub-profiles" class="payroll-sub-section">
+                            <div class="section-card bg-glass mb-4">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px;">
+                                    <div>
+                                        <h3>Employee Salary Structures</h3>
+                                        <p class="text-secondary">Set Basic, Allowances, and Fixed Deductions for each employee.</p>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <div class="input-with-icon" style="position: relative;">
+                                            <i class="fa-solid fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+                                            <input type="text" id="payroll-profile-search" class="form-control" placeholder="Search Employee..." onkeyup="if(window.renderSalaryProfilesList) window.renderSalaryProfilesList()" style="padding-left: 35px; width: 250px;">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 15%">Emp ID</th>
+                                                <th style="width: 25%">Employee Name</th>
+                                                <th style="width: 20%">Basic Salary</th>
+                                                <th style="width: 20%">Net Fixed Pay</th>
+                                                <th style="width: 20%" class="text-center">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="payroll-profiles-table-body">
+                                            <!-- Generated via JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Loans & Advances Container -->
+                        <div id="payroll-sub-loans" class="payroll-sub-section hidden">
+                            <div class="section-card bg-glass mb-4">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <div>
+                                        <h3>Active Loans & Advances</h3>
+                                        <p class="text-secondary">Track short-term advances and long-term loan installments.</p>
+                                    </div>
+                                    <button class="btn btn-primary" onclick="if(window.openIssueLoanModal) window.openIssueLoanModal()"><i class="fa-solid fa-plus"></i> Issue New Loan</button>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Employee</th>
+                                                <th>Type</th>
+                                                <th>Total Amount</th>
+                                                <th>Monthly Installment</th>
+                                                <th>Remaining</th>
+                                                <th>Status</th>
+                                                <th class="text-center">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="payroll-loans-table-body">
+                                            <!-- Generated via JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Process Payroll Container -->
+                        <div id="payroll-sub-process" class="payroll-sub-section hidden">
+                            <div class="section-card bg-glass mb-4">
+                                <h3>Process Monthly Payroll</h3>
+                                <p class="text-secondary">Generate payroll for a specific month based on attendance, OT, and loans.</p>
+                                <div class="form-row mt-3" style="align-items: flex-end;">
+                                    <div class="form-group" style="flex: 1;">
+                                        <label>Select Month</label>
+                                        <input type="month" id="payroll-process-month" class="form-control">
+                                    </div>
+                                    <div class="form-group" style="flex: 1;">
+                                        <label>Department / Filter</label>
+                                        <select id="payroll-process-dept" class="form-control">
+                                            <option value="All">All Employees</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <button class="btn btn-primary" onclick="if(window.generatePayrollPreview) window.generatePayrollPreview()"><i class="fa-solid fa-calculator"></i> Generate Preview</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="payroll-preview-container" class="hidden">
+                                <!-- Payroll Preview Table goes here -->
+                            </div>
+                        </div>
+
+                        <!-- 4. History Container -->
+                        <div id="payroll-sub-history" class="payroll-sub-section hidden">
+                            <div class="section-card bg-glass mb-4">
+                                <h3>Payroll History</h3>
+                                <p class="text-secondary">View locked payroll records from previous months.</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Admin Productivity Tab -->
                     <div id="admin-tab-productivity" class="tab-view">
                         <div class="view-header">
@@ -1926,6 +2044,100 @@
         </div>
     </div>
 
+    <!-- 10. Edit Salary Profile Modal -->
+    <div id="modal-edit-salary-profile" class="modal hidden">
+        <div class="modal-header">
+            <h3>Edit Salary Structure</h3>
+            <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <p id="edit-salary-emp-name" class="bold mb-3" style="font-size: 16px;"></p>
+            <form id="edit-salary-profile-form" onsubmit="event.preventDefault(); window.saveSalaryProfile();">
+                <input type="hidden" id="edit-salary-emp-id">
+                
+                <h4 class="text-primary mb-2 mt-2">Basic Salary</h4>
+                <div class="form-group">
+                    <div class="input-with-icon">
+                        <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);">Rs</span>
+                        <input type="number" id="salary-basic" class="form-control" style="padding-left: 35px;" required min="0">
+                    </div>
+                </div>
+
+                <h4 class="text-primary mb-2 mt-4">Fixed Allowances</h4>
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label>House Rent</label>
+                        <input type="number" id="salary-allow-rent" class="form-control" min="0" value="0">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Medical</label>
+                        <input type="number" id="salary-allow-medical" class="form-control" min="0" value="0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Conveyance / Fuel</label>
+                        <input type="number" id="salary-allow-fuel" class="form-control" min="0" value="0">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Special Allowance</label>
+                        <input type="number" id="salary-allow-special" class="form-control" min="0" value="0">
+                    </div>
+                </div>
+
+                <h4 class="text-primary mb-2 mt-4">Fixed Deductions</h4>
+                <div class="form-group">
+                    <label>Standard Fine / Deduction</label>
+                    <input type="number" id="salary-deduct-fine" class="form-control" min="0" value="0">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline modal-close">Cancel</button>
+            <button type="submit" form="edit-salary-profile-form" class="btn btn-primary">Save Structure</button>
+        </div>
+    </div>
+
+    <!-- 11. Issue Loan Modal -->
+    <div id="modal-issue-loan" class="modal hidden">
+        <div class="modal-header">
+            <h3>Issue Loan / Advance</h3>
+            <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <form id="issue-loan-form" onsubmit="event.preventDefault(); window.saveIssueLoan();">
+                <div class="form-group">
+                    <label>Select Employee</label>
+                    <select id="loan-emp-id" class="form-control" required>
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Type</label>
+                        <select id="loan-type" class="form-control" required>
+                            <option value="Advance">Short-term Advance</option>
+                            <option value="Loan">Long-term Loan</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Total Amount (Rs)</label>
+                        <input type="number" id="loan-total" class="form-control" required min="1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Monthly Installment Deduction (Rs)</label>
+                    <input type="number" id="loan-installment" class="form-control" required min="1">
+                    <small class="text-secondary">This amount will be automatically deducted from payroll every month.</small>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline modal-close">Cancel</button>
+            <button type="submit" form="issue-loan-form" class="btn btn-primary">Issue Loan</button>
+        </div>
+    </div>
+
     <!-- 8. Manual Attendance Logger Modal (Admin / Manager View) -->
     <div id="modal-attendance-log" class="modal modal-lg hidden">
         <div class="modal-header">
@@ -1953,7 +2165,8 @@
     <!-- GSAP for Yeti Animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <!-- Main JS Application script -->
-    <script src="app.js?v=6.19"></script>
+    <script src="app.js?v=6.20"></script>
+    <script src="payroll.js?v=1.0"></script>
 </body>
 </html>
 

@@ -20,7 +20,7 @@ const TASK_SUBCATEGORIES = {
 
 // ==================== DATABASE ENGINE (Hostinger PHP Backend) ====================
 const API_URL = 'backend/api.php';
-window.hrmsDatabase = { users: [], weights: {}, leaves: [], productivity: [], attendance: [], announcements: [], auditLogs: [], notifications: [] };
+window.hrmsDatabase = { users: [], weights: {}, leaves: [], productivity: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [] };
 
 async function syncServer() {
     let success = false;
@@ -88,7 +88,10 @@ async function syncServer() {
                 { id: "A1", title: "Welcome to HRMS", content: "This is a demo announcement.", target: "All", date: "2026-05-20", author: "Syed Admin" }
             ],
             auditLogs: [],
-            notifications: []
+            notifications: [],
+            salaryProfiles: [],
+            loans: [],
+            payrollHistory: []
         };
     }
 }
