@@ -2150,17 +2150,18 @@ window.tempProfilePic = null;
 window.tempDocuments = [];
 
 window.openEditEmployeeModal = function (userId) {
-    const db = getDb();
-    const user = db.users.find(u => u.id === userId);
+    try {
+        const db = getDb();
+        const user = db.users.find(u => u.id === userId);
 
-    const modalEl = document.getElementById('modal-employee');
-    if (modalEl) modalEl.classList.remove('modal-maximized', 'modal-minimized');
+        const modalEl = document.getElementById('modal-employee');
+        if (modalEl) modalEl.classList.remove('modal-maximized', 'modal-minimized');
 
-    document.getElementById('modal-employee-title').textContent = user ? "Edit Profile" : "Add Employee";
+        document.getElementById('modal-employee-title').textContent = user ? "Edit Profile" : "Add Employee";
 
-    let displayId = "";
-    if (user && user.displayId) {
-        displayId = user.displayId;
+        let displayId = "";
+        if (user && user.displayId) {
+            displayId = user.displayId;
     } else if (user && user.id) {
         displayId = user.id;
     }
@@ -2339,6 +2340,10 @@ window.openEditEmployeeModal = function (userId) {
     toggleManagerGroup();
 
     openModal('modal-employee');
+    } catch (e) {
+        alert("Error opening modal: " + e.message + "\nLine: " + e.lineNumber);
+        console.error(e);
+    }
 };
 
 function toggleManagerGroup() {
