@@ -895,7 +895,7 @@ function renderAdminDashboard() {
                 recentTasksTableBody.innerHTML += `
                     <tr>
                         <td class="bold">${task.tasks.join(', ')}</td>
-                        <td>${task.employeeName}</td>
+                        <td class="text-secondary">${task.employeeId}</td><td>${task.employeeName}</td>
                         <td><span style="font-size: 11px; font-weight: 700; color: #38bdf8;">${dept}</span></td>
                         <td>${task.date}</td>
                         <td><span class="badge-status ${statusClass}">${task.status}</span></td>
@@ -1049,7 +1049,7 @@ function renderAdminEmployeesTab() {
 
                 empTableBody.innerHTML += `
                     <tr>
-                        <td class="bold">${user.name}</td>
+                        <td class="text-secondary">${user.id}</td><td class="bold">${user.name}</td>
                         <td>${user.email}</td>
                         <td>${mgrName}</td>
                         <td><span class="badge-role ${roleClass}">${role}</span></td>
@@ -1140,7 +1140,7 @@ function renderAdminEmployeesTab() {
 
                 inactiveTableBody.innerHTML += `
                     <tr style="opacity: 0.7;">
-                        <td class="bold">${user.name}</td>
+                        <td class="text-secondary">${user.id}</td><td class="bold">${user.name}</td>
                         <td><span class="badge-role ${roleClass}">${user.role}</span></td>
                         <td>${user.startDate || '-'}</td>
                         <td class="text-danger bold">${user.endDate || '-'}</td>
@@ -1197,7 +1197,7 @@ function renderAdminAttendanceTab() {
             tableBody.innerHTML += `
                 <tr>
                     <td>${log.date}</td>
-                    <td class="bold">${log.employeeName}</td>
+                    <td class="text-secondary">${log.employeeId}</td><td class="bold">${log.employeeName}</td>
                     <td><span class="badge-role ${empRole.toLowerCase()}">${empRole}</span></td>
                     <td>${mgrName}</td>
                     <td><span class="badge-status ${log.status === 'Present' ? 'approved' : 'rejected'}">${log.status}</span></td>
@@ -1233,7 +1233,7 @@ function renderAdminProductivityTab() {
             tableBody.innerHTML += `
                 <tr>
                     <td>${sub.date}</td>
-                    <td class="bold">${sub.employeeName}</td>
+                    <td class="text-secondary">${sub.employeeId}</td><td class="bold">${sub.employeeName}</td>
                     <td>${sub.tasks.join(', ')}</td>
                     <td>${sub.subcategories.join(', ')}</td>
                     <td>${Object.values(sub.counts).reduce((s, c) => s + c, 0)}</td>
@@ -1599,7 +1599,7 @@ function renderManagerTeamTab() {
 
             tableBody.innerHTML += `
                 <tr>
-                    <td class="bold">${emp.name}</td>
+                    <td class="text-secondary">${emp.id}</td><td class="bold">${emp.name}</td>
                     <td>${emp.email}</td>
                     <td><span class="badge-status ${attClass}">${attStatus}</span></td>
                     <td><strong class="text-info">${totalScore}</strong></td>
@@ -1638,7 +1638,7 @@ function renderManagerAttendanceTab() {
             tableBody.innerHTML += `
                 <tr>
                     <td>${log.date}</td>
-                    <td class="bold">${log.employeeName}</td>
+                    <td class="text-secondary">${log.employeeId}</td><td class="bold">${log.employeeName}</td>
                     <td><span class="badge-status ${log.status === 'Present' ? 'approved' : 'rejected'}">${log.status}</span></td>
                     <td class="text-center">${cleanTimeIn}</td>
                     <td class="text-center">${cleanTimeOut}</td>
@@ -1688,7 +1688,7 @@ function renderManagerProductivityTab() {
             tableBody.innerHTML += `
                 <tr>
                     <td>${sub.date}</td>
-                    <td class="bold">${sub.employeeName}</td>
+                    <td class="text-secondary">${sub.employeeId}</td><td class="bold">${sub.employeeName}</td>
                     <td>${sub.tasks.join(', ')}</td>
                     <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${sub.notes}">${sub.notes}</td>
                     <td>${Object.values(sub.counts).reduce((s, c) => s + c, 0)}</td>
@@ -3385,7 +3385,7 @@ function generateReport(roleContext) {
             html += `
                 <tr>
                     <td>${log.date}</td>
-                    <td class="bold">${log.employeeName}</td>
+                    <td class="text-secondary">${log.employeeId}</td><td class="bold">${log.employeeName}</td>
                     <td>${log.tasks.join(', ')}</td>
                     <td>${totalCount}</td>
                     <td><span class="badge-status ${statusClass}">${log.status}</span></td>
@@ -3447,7 +3447,7 @@ function generateReport(roleContext) {
             html += `
                 <tr>
                     <td>${log.date}</td>
-                    <td class="bold">${log.employeeName}</td>
+                    <td class="text-secondary">${log.employeeId}</td><td class="bold">${log.employeeName}</td>
                     <td><span class="badge-status ${log.status === 'Present' ? 'approved' : 'rejected'}">${log.status}</span></td>
                     <td>${log.markedBy || 'System'}</td>
                 </tr>
@@ -3504,7 +3504,7 @@ function generateReport(roleContext) {
             const statusClass = log.status === 'Approved' ? 'approved' : (log.status === 'Rejected' ? 'rejected' : 'pending');
             html += `
                 <tr>
-                    <td class="bold">${log.employeeName}</td>
+                    <td class="text-secondary">${log.employeeId}</td><td class="bold">${log.employeeName}</td>
                     <td><span class="badge-role employee">${log.type}</span></td>
                     <td>${log.startDate} to ${log.endDate}</td>
                     <td><span class="badge-status ${statusClass}">${log.status}</span></td>
@@ -4270,3 +4270,4 @@ window.saveAllUserLeaves = function(userId) {
         if (window.renderAdminLeaveBalancesList) window.renderAdminLeaveBalancesList();
     }
 };
+
