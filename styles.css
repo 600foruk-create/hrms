@@ -1462,7 +1462,7 @@ body.light-mode .report-preview-container {
     background: var(--bg-card);
 }
 
-.attendance-bulk-row {
+.attendance-bulk-row-legacy {
     display: flex;
     align-items: center;
     justify-content: space-between;
