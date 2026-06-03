@@ -13,9 +13,8 @@ window.switchPayrollSubTab = function(subTab) {
     document.querySelectorAll('.payroll-sub-section').forEach(el => el.classList.add('hidden'));
     
     // Reset all buttons
-    document.querySelectorAll('.sub-nav-tabs button').forEach(btn => {
-        btn.classList.remove('btn-primary');
-        btn.classList.add('btn-outline');
+    document.querySelectorAll('#admin-tab-payroll .btn-sub-tab').forEach(btn => {
+        btn.classList.remove('active');
     });
 
     // Show target section & highlight button
@@ -24,8 +23,7 @@ window.switchPayrollSubTab = function(subTab) {
     
     if (targetEl) targetEl.classList.remove('hidden');
     if (targetBtn) {
-        targetBtn.classList.remove('btn-outline');
-        targetBtn.classList.add('btn-primary');
+        targetBtn.classList.add('active');
     }
 
     // Trigger rendering logic

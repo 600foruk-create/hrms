@@ -750,11 +750,19 @@
                         </div>
 
                         <!-- Payroll Sub-Navigation -->
-                        <div class="sub-nav-tabs" style="margin-bottom: 20px; display: flex; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
-                            <button class="btn btn-sm btn-primary" id="btn-sub-payroll-profiles" onclick="window.switchPayrollSubTab('profiles')">Salary Profiles</button>
-                            <button class="btn btn-sm btn-outline" id="btn-sub-payroll-loans" onclick="window.switchPayrollSubTab('loans')">Loans & Advances</button>
-                            <button class="btn btn-sm btn-outline" id="btn-sub-payroll-process" onclick="window.switchPayrollSubTab('process')">Process Payroll</button>
-                            <button class="btn btn-sm btn-outline" id="btn-sub-payroll-history" onclick="window.switchPayrollSubTab('history')">History & Reports</button>
+                        <div class="sub-tab-nav" style="margin-bottom: 20px;">
+                            <button class="btn-sub-tab active" id="btn-sub-payroll-profiles" onclick="window.switchPayrollSubTab('profiles')">
+                                <i class="fa-solid fa-file-invoice-dollar"></i> Salary Profiles
+                            </button>
+                            <button class="btn-sub-tab" id="btn-sub-payroll-loans" onclick="window.switchPayrollSubTab('loans')">
+                                <i class="fa-solid fa-hand-holding-dollar"></i> Loans & Advances
+                            </button>
+                            <button class="btn-sub-tab" id="btn-sub-payroll-process" onclick="window.switchPayrollSubTab('process')">
+                                <i class="fa-solid fa-calculator"></i> Process Payroll
+                            </button>
+                            <button class="btn-sub-tab" id="btn-sub-payroll-history" onclick="window.switchPayrollSubTab('history')">
+                                <i class="fa-solid fa-clock-rotate-left"></i> History & Reports
+                            </button>
                         </div>
 
                         <!-- 1. Salary Profiles Container -->
