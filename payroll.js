@@ -58,23 +58,46 @@ window.renderSalaryProfilesList = function() {
         return;
     }
 
-    users.forEach(user => {
-        // Find existing profile or use defaults
-        const profile = db.salaryProfiles?.find(p => p.userId === user.id) || {
-            basic: 0,
-            allowances: { rent: 0, medical: 0, fuel: 0, special: 0 },
-            deductions: { fine: 0 }
-        };
+    const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
 
-        const totalAllowances = profile.allowances.rent + profile.allowances.medical + profile.allowances.fuel + profile.allowances.special;
-        const netFixed = (profile.basic + totalAllowances) - profile.deductions.fine;
+    users.forEach(user => {
+        const basicSalary = parseInt(user.salary) || 0;
+        let profile = db.salaryProfiles?.find(p => p.userId === user.id);
+        
+        let allowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
+        let deductions = profile && profile.isCustomSlab ? (profile.deductions || []) : (globalSlab.deductions || []);
+
+        let totalAllowances = 0;
+        allowances.forEach(a => {
+            const val = parseFloat(a.value) || 0;
+            if (a.type === 'percentage') {
+                totalAllowances += (basicSalary * val) / 100;
+            } else {
+                totalAllowances += val;
+            }
+        });
+
+        let totalDeductions = 0;
+        deductions.forEach(d => {
+            const val = parseFloat(d.value) || 0;
+            if (d.type === 'percentage') {
+                totalDeductions += (basicSalary * val) / 100;
+            } else {
+                totalDeductions += val;
+            }
+        });
+
+        const netFixed = (basicSalary + totalAllowances) - totalDeductions;
 
         tbody.innerHTML += `
             <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
                 <td class="text-secondary">${user.id}</td>
-                <td class="bold">${user.name}</td>
-                <td>Rs ${profile.basic.toLocaleString()}</td>
-                <td class="text-primary">Rs ${netFixed.toLocaleString()}</td>
+                <td class="bold">
+                    ${user.name} 
+                    ${profile && profile.isCustomSlab ? '<span class="badge badge-primary" style="font-size:10px; margin-left:5px;">Custom Slab</span>' : '<span class="badge badge-secondary" style="font-size:10px; margin-left:5px;">Global Slab</span>'}
+                </td>
+                <td>Rs ${basicSalary.toLocaleString()}</td>
+                <td class="text-primary">Rs ${Math.round(netFixed).toLocaleString()}</td>
                 <td class="text-center">
                     <button class="btn btn-sm btn-outline" onclick="openEditSalaryProfileModal('${user.id}')" style="font-size: 12px; padding: 4px 8px;">
                         <i class="fa-solid fa-pen"></i> Setup
@@ -85,28 +108,141 @@ window.renderSalaryProfilesList = function() {
     });
 };
 
+function renderDynamicRows(containerId, dataArray, append = false) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    if (!append) container.innerHTML = '';
+    
+    dataArray.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'form-row dynamic-salary-row';
+        row.style.alignItems = 'flex-end';
+        row.dataset.id = item.id || ('id_' + Date.now() + Math.random());
+        row.innerHTML = `
+            <div class="form-group" style="flex: 2; margin-bottom: 0;">
+                <label>Name</label>
+                <input type="text" class="form-control row-name" value="${item.name || ''}" placeholder="e.g. House Rent">
+            </div>
+            <div class="form-group" style="flex: 1.5; margin-bottom: 0;">
+                <label>Type</label>
+                <select class="form-control row-type">
+                    <option value="percentage" ${item.type === 'percentage' ? 'selected' : ''}>% of Basic</option>
+                    <option value="fixed" ${item.type === 'fixed' ? 'selected' : ''}>Fixed (Rs)</option>
+                </select>
+            </div>
+            <div class="form-group" style="flex: 1.5; margin-bottom: 0;">
+                <label>Value</label>
+                <input type="number" class="form-control row-val" value="${item.value || 0}" min="0" step="any">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <button type="button" class="btn btn-outline text-danger" onclick="this.parentElement.parentElement.remove()" style="padding: 8px 12px;"><i class="fa-solid fa-trash"></i></button>
+            </div>
+        `;
+        container.appendChild(row);
+    });
+}
+
+function extractDynamicRows(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return [];
+    const rows = container.querySelectorAll('.dynamic-salary-row');
+    const data = [];
+    rows.forEach(row => {
+        data.push({
+            id: row.dataset.id,
+            name: row.querySelector('.row-name').value.trim() || 'Unnamed',
+            type: row.querySelector('.row-type').value,
+            value: parseFloat(row.querySelector('.row-val').value) || 0
+        });
+    });
+    return data;
+}
+
+window.addGlobalAllowanceRow = function() {
+    renderDynamicRows('global-allowances-container', [{ name: '', type: 'fixed', value: 0 }], true);
+};
+window.addGlobalDeductionRow = function() {
+    renderDynamicRows('global-deductions-container', [{ name: '', type: 'fixed', value: 0 }], true);
+};
+window.addCustomAllowanceRow = function() {
+    renderDynamicRows('custom-allowances-container', [{ name: '', type: 'fixed', value: 0 }], true);
+};
+window.addCustomDeductionRow = function() {
+    renderDynamicRows('custom-deductions-container', [{ name: '', type: 'fixed', value: 0 }], true);
+};
+
+window.openGlobalSalarySlabModal = function() {
+    const db = getDb();
+    const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
+
+    renderDynamicRows('global-allowances-container', globalSlab.allowances || []);
+    renderDynamicRows('global-deductions-container', globalSlab.deductions || []);
+
+    document.getElementById('modal-global-salary-slab').classList.remove('hidden');
+};
+
+window.saveGlobalSalarySlab = function() {
+    const db = getDb();
+    
+    db.globalSalarySettings = {
+        allowances: extractDynamicRows('global-allowances-container'),
+        deductions: extractDynamicRows('global-deductions-container')
+    };
+
+    saveDb(db);
+    if(window.showToast) showToast("Global Slab Updated", "Default allowances and deductions saved.");
+    document.getElementById('modal-global-salary-slab').classList.add('hidden');
+    window.renderSalaryProfilesList();
+};
+
 window.openEditSalaryProfileModal = function(userId) {
     const db = getDb();
     const user = db.users.find(u => u.id === userId);
     if (!user) return;
 
+    const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
+
     const profile = db.salaryProfiles?.find(p => p.userId === userId) || {
-        basic: 0,
-        allowances: { rent: 0, medical: 0, fuel: 0, special: 0 },
-        deductions: { fine: 0 }
+        isCustomSlab: false,
+        allowances: JSON.parse(JSON.stringify(globalSlab.allowances || [])),
+        deductions: JSON.parse(JSON.stringify(globalSlab.deductions || []))
     };
 
     document.getElementById('edit-salary-emp-name').textContent = `Employee: ${user.name} (${user.id})`;
     document.getElementById('edit-salary-emp-id').value = user.id;
+    document.getElementById('salary-basic').value = user.salary || 0;
     
-    document.getElementById('salary-basic').value = profile.basic;
-    document.getElementById('salary-allow-rent').value = profile.allowances.rent;
-    document.getElementById('salary-allow-medical').value = profile.allowances.medical;
-    document.getElementById('salary-allow-fuel').value = profile.allowances.fuel;
-    document.getElementById('salary-allow-special').value = profile.allowances.special;
-    document.getElementById('salary-deduct-fine').value = profile.deductions.fine;
+    let allowances = profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
+    let deductions = profile.isCustomSlab ? (profile.deductions || []) : (globalSlab.deductions || []);
+
+    renderDynamicRows('custom-allowances-container', JSON.parse(JSON.stringify(allowances)));
+    renderDynamicRows('custom-deductions-container', JSON.parse(JSON.stringify(deductions)));
+
+    const toggleBtn = document.getElementById('salary-override-toggle');
+    if (toggleBtn) {
+        toggleBtn.checked = profile.isCustomSlab;
+        window.toggleSalaryOverride(toggleBtn);
+    }
 
     document.getElementById('modal-edit-salary-profile').classList.remove('hidden');
+};
+
+window.toggleSalaryOverride = function(checkbox) {
+    const container = document.getElementById('salary-custom-slab-container');
+    if (!container) return;
+
+    if (checkbox.checked) {
+        container.style.opacity = '1';
+        container.style.pointerEvents = 'auto';
+    } else {
+        container.style.opacity = '0.5';
+        container.style.pointerEvents = 'none';
+        
+        const db = getDb();
+        const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
+        renderDynamicRows('custom-allowances-container', JSON.parse(JSON.stringify(globalSlab.allowances || [])));
+        renderDynamicRows('custom-deductions-container', JSON.parse(JSON.stringify(globalSlab.deductions || [])));
+    }
 };
 
 window.saveSalaryProfile = function() {
@@ -114,25 +250,28 @@ window.saveSalaryProfile = function() {
     if (!db.salaryProfiles) db.salaryProfiles = [];
 
     const userId = document.getElementById('edit-salary-emp-id').value;
-    const basic = parseInt(document.getElementById('salary-basic').value) || 0;
-    const rent = parseInt(document.getElementById('salary-allow-rent').value) || 0;
-    const medical = parseInt(document.getElementById('salary-allow-medical').value) || 0;
-    const fuel = parseInt(document.getElementById('salary-allow-fuel').value) || 0;
-    const special = parseInt(document.getElementById('salary-allow-special').value) || 0;
-    const fine = parseInt(document.getElementById('salary-deduct-fine').value) || 0;
-
+    const toggleBtn = document.getElementById('salary-override-toggle');
+    const isCustomSlab = toggleBtn ? toggleBtn.checked : false;
+    
+    
     let profile = db.salaryProfiles.find(p => p.userId === userId);
     if (!profile) {
         profile = { userId };
         db.salaryProfiles.push(profile);
     }
 
-    profile.basic = basic;
-    profile.allowances = { rent, medical, fuel, special };
-    profile.deductions = { fine };
+    profile.isCustomSlab = isCustomSlab;
+
+    if (isCustomSlab) {
+        profile.allowances = extractDynamicRows('custom-allowances-container');
+        profile.deductions = extractDynamicRows('custom-deductions-container');
+    } else {
+        delete profile.allowances;
+        delete profile.deductions;
+    }
 
     saveDb(db);
-    showToast("Profile Updated", "Salary structure saved successfully.");
+    if(window.showToast) showToast("Profile Updated", "Employee salary structure saved.");
     document.getElementById('modal-edit-salary-profile').classList.add('hidden');
     window.renderSalaryProfilesList();
 };

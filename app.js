@@ -20,7 +20,7 @@ const TASK_SUBCATEGORIES = {
 
 // ==================== DATABASE ENGINE (Hostinger PHP Backend) ====================
 const API_URL = 'backend/api.php';
-window.hrmsDatabase = { users: [], weights: {}, leaves: [], productivity: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [] };
+window.hrmsDatabase = { users: [], weights: {}, leaves: [], productivity: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [], globalSalarySettings: { allowances: [], deductions: [] } };
 
 async function syncServer() {
     let success = false;
@@ -91,7 +91,16 @@ async function syncServer() {
             notifications: [],
             salaryProfiles: [],
             loans: [],
-            payrollHistory: []
+            payrollHistory: [],
+            globalSalarySettings: {
+                allowances: [
+                    { id: 'a_' + Date.now(), name: 'House Rent', type: 'percentage', value: 10 },
+                    { id: 'a_' + Date.now() + 1, name: 'Medical', type: 'fixed', value: 2000 }
+                ],
+                deductions: [
+                    { id: 'd_' + Date.now(), name: 'Standard Fine', type: 'fixed', value: 0 }
+                ]
+            }
         };
     }
 }
