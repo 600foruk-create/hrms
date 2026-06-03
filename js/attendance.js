@@ -243,6 +243,7 @@ function renderLeaveTypes() {
     const db = getDb();
     const container = document.getElementById('settings-leave-types-accordion');
     if (!container) return;
+    container.innerHTML = '';
     
     let leaveTypes = db.companyProfile?.leaveTypes;
     if (!leaveTypes || !Array.isArray(leaveTypes)) {
@@ -256,57 +257,41 @@ function renderLeaveTypes() {
         saveDb(db);
     }
     
-    let rowsHTML = '';
     if (leaveTypes.length === 0) {
-        rowsHTML = `<tr><td colspan="3" class="empty-state">No leave types configured.</td></tr>`;
+        container.innerHTML = `<div class="empty-state">No leave types configured.</div>`;
     } else {
         leaveTypes.forEach(lt => {
-            rowsHTML += `
-                <tr>
-                    <td style="text-align: center;">
-                        <input type="text" class="form-control" id="lt-name-${lt.id}" value="${lt.name}" disabled style="background: transparent; border: 1px solid transparent; color: var(--text-color); box-shadow: none; padding: 5px; text-align: center; width: 100%;">
-                    </td>
-                    <td style="text-align: center;">
-                        <input type="number" class="form-control" id="lt-days-${lt.id}" value="${lt.days}" disabled style="background: transparent; border: 1px solid transparent; color: var(--text-color); box-shadow: none; padding: 5px; text-align: center; width: 100%;">
-                    </td>
-                    <td style="text-align: center;">
-                        <button class="btn btn-sm btn-outline" id="btn-edit-${lt.id}" onclick="enableEditLeaveType('${lt.id}')"><i class="fa-solid fa-edit"></i> Edit</button>
-                        <button class="btn btn-sm btn-primary" id="btn-save-${lt.id}" onclick="saveLeaveType('${lt.id}')" style="display:none;"><i class="fa-solid fa-save"></i> Save</button>
-                        <button class="btn btn-sm btn-outline" style="color: var(--danger); border-color: var(--danger);" onclick="deleteLeaveType('${lt.id}')"><i class="fa-solid fa-trash"></i> Delete</button>
-                    </td>
-                </tr>
+            container.innerHTML += `
+                <div class="accordion-item" id="accordion-${lt.id}">
+                    <div class="accordion-header" onclick="this.parentElement.classList.toggle('expanded')">
+                        <div style="display: flex; align-items: center;">
+                            <h4>${lt.name}</h4>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <span class="accordion-badge">${lt.days} Days / Year</span>
+                            <i class="fa-solid fa-chevron-down accordion-toggle-icon"></i>
+                        </div>
+                    </div>
+                    <div class="accordion-body">
+                        <div class="form-group" style="margin-top: 15px;">
+                            <label>Policy Name</label>
+                            <input type="text" class="form-control" id="lt-name-${lt.id}" value="${lt.name}">
+                        </div>
+                        <div class="form-group">
+                            <label>Yearly Allowance (Days)</label>
+                            <input type="number" class="form-control" id="lt-days-${lt.id}" value="${lt.days}">
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button type="button" class="btn btn-primary" onclick="saveLeaveType('${lt.id}')">
+                                <i class="fa-solid fa-save"></i> Save Changes
+                            </button>
+                            <button type="button" class="btn btn-outline" style="color: var(--danger); border-color: var(--danger);" onclick="deleteLeaveType('${lt.id}')">
+                                <i class="fa-solid fa-trash"></i> Delete Policy
+                            </button>
+                        </div>
+                    </div>
+                </div>
             `;
         });
     }
-
-    const masterAccordion = document.getElementById('accordion-saved-policies');
-    const isExpanded = masterAccordion ? masterAccordion.classList.contains('expanded') : false;
-    
-    container.innerHTML = `
-        <div class="accordion-item ${isExpanded ? 'expanded' : ''}" id="accordion-saved-policies">
-            <div class="accordion-header" onclick="this.parentElement.classList.toggle('expanded')">
-                <div style="display: flex; align-items: center;">
-                    <h4>Saved Policies</h4>
-                </div>
-                <div style="display: flex; align-items: center;">
-                    <span class="accordion-badge">${leaveTypes.length} Policies</span>
-                    <i class="fa-solid fa-chevron-down accordion-toggle-icon"></i>
-                </div>
-            </div>
-            <div class="accordion-body" style="padding: 0;">
-                <table class="data-table" style="margin: 0; border-radius: 0 0 10px 10px;">
-                    <thead>
-                        <tr>
-                            <th style="width: 40%; text-align: center;">Leave Type</th>
-                            <th style="width: 30%; text-align: center;">Yearly Allowance (Days)</th>
-                            <th style="width: 30%; text-align: center;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rowsHTML}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    `;
 }
