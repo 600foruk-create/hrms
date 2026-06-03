@@ -12,7 +12,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="styles.css?v=6.1">
+    <link rel="stylesheet" href="styles.css?v=6.2">
 </head>
 <body class="dark-mode login-view">
     
@@ -664,19 +664,34 @@
                             <div class="section-card bg-glass mb-4">
                                 <h3>Leave Policy Configuration</h3>
                                 <p class="text-secondary mb-3">Define company leave types and their default yearly allowances.</p>
-                                <div class="table-container mb-3">
-                                    <table class="data-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Leave Type</th>
-                                                <th>Default Days</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="settings-leave-types-body">
-                                            <!-- Dynamic Rows -->
-                                        </tbody>
-                                    </table>
+                                <div class="accordion-list mb-3">
+                                    <div class="accordion-item" id="leave-policies-accordion">
+                                        <div class="accordion-header" onclick="this.parentElement.classList.toggle('expanded')">
+                                            <div style="display: flex; align-items: center;">
+                                                <h4>Saved Policies</h4>
+                                            </div>
+                                            <div style="display: flex; align-items: center;">
+                                                <span class="accordion-badge" id="leave-policies-count">0 Policies</span>
+                                                <i class="fa-solid fa-chevron-down accordion-toggle-icon"></i>
+                                            </div>
+                                        </div>
+                                        <div class="accordion-body" style="padding: 0;">
+                                            <div class="table-container" style="margin: 0; box-shadow: none;">
+                                                <table class="data-table" style="margin: 0;">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="width: 40%; text-align: center;">Leave Type</th>
+                                                            <th style="width: 30%; text-align: center;">Yearly Allowance (Days)</th>
+                                                            <th style="width: 30%; text-align: center;">Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="settings-leave-types-body">
+                                                        <!-- Dynamic Rows -->
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <form id="settings-add-leave-type-form" style="display: flex; gap: 10px; align-items: flex-end;" onsubmit="event.preventDefault();">
                                     <div class="form-group" style="flex: 2; margin-bottom: 0;">
@@ -1902,6 +1917,6 @@
     <!-- GSAP for Yeti Animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <!-- Main JS Application script -->
-    <script src="app.js?v=6.1"></script>
+    <script src="app.js?v=6.2"></script>
 </body>
 </html>

@@ -1357,21 +1357,46 @@ function renderLeaveTypes() {
         leaveTypes.forEach(lt => {
             tbody.innerHTML += `
                 <tr>
-                    <td><input type="text" class="form-control form-control-sm" id="lt-name-${lt.id}" value="${lt.name}"></td>
-                    <td><input type="number" class="form-control form-control-sm" id="lt-days-${lt.id}" value="${lt.days}"></td>
-                    <td>
-                        <button type="button" class="btn-action-circle text-success" onclick="saveLeaveType('${lt.id}')" tooltip="Save">
-                            <i class="fa-solid fa-save"></i>
-                        </button>
-                        <button type="button" class="btn-action-circle text-danger" onclick="deleteLeaveType('${lt.id}')" tooltip="Delete">
-                            <i class="fa-solid fa-trash"></i>
+                    <td style="text-align: center;">
+                        <input type="text" class="form-control" id="lt-name-${lt.id}" value="${lt.name}" disabled style="background: transparent; border: 1px solid transparent; color: var(--text-color); box-shadow: none; padding: 5px; text-align: center; width: 100%;">
+                    </td>
+                    <td style="text-align: center;">
+                        <input type="number" class="form-control" id="lt-days-${lt.id}" value="${lt.days}" disabled style="background: transparent; border: 1px solid transparent; color: var(--text-color); box-shadow: none; padding: 5px; text-align: center; width: 100%;">
+                    </td>
+                    <td style="text-align: center;">
+                        <button type="button" class="btn btn-sm btn-outline" id="btn-edit-${lt.id}" onclick="enableEditLeaveType('${lt.id}')"><i class="fa-solid fa-edit"></i> Edit</button>
+                        <button type="button" class="btn btn-sm btn-primary" id="btn-save-${lt.id}" onclick="saveLeaveType('${lt.id}')" style="display:none;"><i class="fa-solid fa-save"></i> Save</button>
+                        <button type="button" class="btn btn-sm btn-outline" style="color: var(--danger); border-color: var(--danger);" onclick="deleteLeaveType('${lt.id}')" tooltip="Delete">
+                            <i class="fa-solid fa-trash"></i> Delete
                         </button>
                     </td>
                 </tr>
             `;
         });
     }
+
+    // Update policies count badge
+    const countBadge = document.getElementById('leave-policies-count');
+    if (countBadge) {
+        countBadge.textContent = `${leaveTypes.length} Policies`;
+    }
 }
+
+window.enableEditLeaveType = function(id) {
+    const nameEl = document.getElementById(`lt-name-${id}`);
+    const daysEl = document.getElementById(`lt-days-${id}`);
+    const btnEdit = document.getElementById(`btn-edit-${id}`);
+    const btnSave = document.getElementById(`btn-save-${id}`);
+    
+    if (nameEl && daysEl) {
+        nameEl.disabled = false;
+        nameEl.style.border = '1px solid var(--primary)';
+        daysEl.disabled = false;
+        daysEl.style.border = '1px solid var(--primary)';
+    }
+    if (btnEdit) btnEdit.style.display = 'none';
+    if (btnSave) btnSave.style.display = 'inline-block';
+};
 
 window.deleteLeaveType = function(id) {
     if(confirm("Are you sure you want to delete this leave type?")) {
