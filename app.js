@@ -1382,9 +1382,110 @@ function renderLeaveTypes() {
 
     // Update policies count badge
     const countBadge = document.getElementById('leave-policies-count');
+    if (window.renderAdminLeaveBalancesList) window.renderAdminLeaveBalancesList();
     if (countBadge) {
         countBadge.textContent = `${leaveTypes.length} Policies`;
     }
+}
+
+window.renderAdminLeaveBalancesList = function() {
+    const db = getDb();
+    const thead = document.getElementById('admin-employee-leave-balances-head');
+    const tbody = document.getElementById('admin-employee-leave-balances-body');
+    const toggleBtn = document.getElementById('btn-toggle-emp-leave-balances');
+    
+    if (!thead || !tbody) return;
+
+    const leaveTypes = db.companyProfile?.leaveTypes || [];
+    const activeUsers = db.users.filter(u => u.status === 'Active');
+
+    // Build Headers
+    let headHtml = `<tr>
+        <th style="width: 15%">Emp ID</th>
+        <th style="width: 25%">Employee Name</th>`;
+    leaveTypes.forEach(lt => {
+        headHtml += `<th class="text-center">${lt.name} (Days)</th>`;
+    });
+    headHtml += `<th style="width: 15%" class="text-center">Actions</th></tr>`;
+    thead.innerHTML = headHtml;
+
+    // Build Body
+    let bodyHtml = '';
+    if (activeUsers.length === 0) {
+        bodyHtml = `<tr><td colspan="${leaveTypes.length + 3}" class="empty-state">No active employees found.</td></tr>`;
+        toggleBtn.classList.add('hidden');
+    } else {
+        activeUsers.forEach((user, index) => {
+            const hiddenClass = index >= 3 ? 'emp-leave-row-hidden' : '';
+            const rowStyle = index >= 3 ? 'display: none;' : '';
+            
+            bodyHtml += `<tr class="${hiddenClass}" style="${rowStyle} border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td class="text-secondary">${user.id}</td>
+                <td class="bold">${user.name}</td>`;
+                
+            leaveTypes.forEach(lt => {
+                let balance = lt.days;
+                if (user.leaveBalances) {
+                    const ub = user.leaveBalances.find(b => b.id === lt.id);
+                    if (ub) balance = ub.balance;
+                }
+                bodyHtml += `<td class="text-center">
+                    <input type="number" id="list-leave-bal-${user.id}-${lt.id}" value="${balance}" class="form-control" style="width: 60px; height: 28px; font-size: 12px; padding: 2px 5px; margin: 0 auto; text-align: center;">
+                </td>`;
+            });
+            
+            bodyHtml += `<td class="text-center">
+                <button type="button" class="btn btn-sm btn-outline" onclick="saveAllUserLeavesFromList('${user.id}')" style="font-size: 12px; padding: 4px 8px;">Save</button>
+            </td></tr>`;
+        });
+        
+        if (activeUsers.length > 3) {
+            toggleBtn.classList.remove('hidden');
+            // Reset text
+            toggleBtn.innerHTML = `Show More Employees <i class="fa-solid fa-chevron-down"></i>`;
+            
+            toggleBtn.onclick = function() {
+                const hiddenRows = tbody.querySelectorAll('.emp-leave-row-hidden');
+                const isExpanding = toggleBtn.textContent.includes('Show More');
+                
+                hiddenRows.forEach(row => {
+                    row.style.display = isExpanding ? 'table-row' : 'none';
+                });
+                
+                toggleBtn.innerHTML = isExpanding 
+                    ? `Show Less Employees <i class="fa-solid fa-chevron-up"></i>`
+                    : `Show More Employees <i class="fa-solid fa-chevron-down"></i>`;
+            };
+        } else {
+            toggleBtn.classList.add('hidden');
+        }
+    }
+    tbody.innerHTML = bodyHtml;
+};
+
+window.saveAllUserLeavesFromList = function(userId) {
+    const db = getDb();
+    const user = db.users.find(u => u.id === userId);
+    if (!user) return;
+    
+    if (!user.leaveBalances) user.leaveBalances = [];
+    
+    const leaveTypes = db.companyProfile?.leaveTypes || [];
+    leaveTypes.forEach(lt => {
+        const input = document.getElementById(`list-leave-bal-${userId}-${lt.id}`);
+        if (input) {
+            const newBal = parseInt(input.value) || 0;
+            const existing = user.leaveBalances.find(b => b.id === lt.id);
+            if (existing) {
+                existing.balance = newBal;
+            } else {
+                user.leaveBalances.push({ id: lt.id, name: lt.name, balance: newBal });
+            }
+        }
+    });
+    
+    saveDb(db);
+    showToast("Balances Updated", `Leave balances for ${user.name} saved successfully.`);
 }
 
 window.enableEditLeaveType = function(id) {
@@ -4016,6 +4117,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             parent.querySelectorAll('.sub-tab-content').forEach(c => c.classList.add('hidden'));
             const targetContent = document.getElementById(`subtab-content-${subtab}`);
             if (targetContent) targetContent.classList.remove('hidden');
+
+            // Specific logic for Attendance & Leave tab
+            if (parent.id === 'admin-tab-attendance') {
+                const markAttBtn = document.getElementById('btn-admin-mark-attendance');
+                if (markAttBtn) {
+                    if (subtab === 'leave-management') {
+                        markAttBtn.classList.add('hidden');
+                    } else if (subtab === 'attendance-log') {
+                        markAttBtn.classList.remove('hidden');
+                    }
+                }
+            }
         });
     });
 
