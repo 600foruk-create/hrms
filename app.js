@@ -4541,11 +4541,11 @@ window.onIdCardFrontSelected = function(dropzone, files) {
     reader.onload = (e) => {
         const b64 = e.target.result;
         document.getElementById('company-profile-form').dataset.idCardFrontBase64 = b64;
-        dropzone.innerHTML = 
-            <img src=' + b64 + ' style='max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;'>
-            <div style='font-size: 11px; color: var(--text-muted);'>Click to change Front Template</div>
-            <input type='file' id='comp-idcard-front-input' accept='image/*' style='display:none;'>
-        ;
+        dropzone.innerHTML = `
+            <img src="${b64}" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+            <div style="font-size: 11px; color: var(--text-muted);">Click to change Front Template</div>
+            <input type="file" id="comp-idcard-front-input" accept="image/*" style="display:none;">
+        `;
         const newInput = dropzone.querySelector('#comp-idcard-front-input');
         if (newInput) {
             newInput.addEventListener('change', () => { if (newInput.files.length) window.onIdCardFrontSelected(dropzone, newInput.files); });
@@ -4562,11 +4562,11 @@ window.onIdCardBackSelected = function(dropzone, files) {
     reader.onload = (e) => {
         const b64 = e.target.result;
         document.getElementById('company-profile-form').dataset.idCardBackBase64 = b64;
-        dropzone.innerHTML = 
-            <img src=' + b64 + ' style='max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;'>
-            <div style='font-size: 11px; color: var(--text-muted);'>Click to change Back Template</div>
-            <input type='file' id='comp-idcard-back-input' accept='image/*' style='display:none;'>
-        ;
+        dropzone.innerHTML = `
+            <img src="${b64}" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+            <div style="font-size: 11px; color: var(--text-muted);">Click to change Back Template</div>
+            <input type="file" id="comp-idcard-back-input" accept="image/*" style="display:none;">
+        `;
         const newInput = dropzone.querySelector('#comp-idcard-back-input');
         if (newInput) {
             newInput.addEventListener('change', () => { if (newInput.files.length) window.onIdCardBackSelected(dropzone, newInput.files); });
