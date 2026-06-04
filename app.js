@@ -36,9 +36,32 @@ async function syncServer() {
                     u.password = 'admin123';
                 }
             });
+            
+            // Auto-cleanup orphaned/dummy records
+            const validUserIds = result.data.users.map(u => u.id);
+            let needsCleanup = false;
+            
+            const cleanList = (list, idField) => {
+                if (!list) return [];
+                const origLen = list.length;
+                const filtered = list.filter(item => validUserIds.includes(item[idField]));
+                if (filtered.length !== origLen) needsCleanup = true;
+                return filtered;
+            };
+            
+            result.data.leaves = cleanList(result.data.leaves, 'employeeId');
+            result.data.productivity = cleanList(result.data.productivity, 'employeeId');
+            result.data.attendance = cleanList(result.data.attendance, 'employeeId');
+            result.data.payrollHistory = cleanList(result.data.payrollHistory, 'userId');
+            
             window.hrmsDatabase = result.data;
             window.dbLoaded = true;
             success = true;
+            
+            if (needsCleanup) {
+                console.log("Orphaned/Dummy records detected. Auto-cleaning SQL database...");
+                setTimeout(() => saveDb(result.data), 2000);
+            }
         } else {
             console.error("Failed to load DB state or DB is empty:", result.message);
         }
