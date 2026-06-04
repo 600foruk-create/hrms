@@ -199,16 +199,13 @@ window.openMonthlySummaryModal = function() {
         <tr>
             <td colspan="6" style="padding: 0; border: none;">
                 <!-- Company Profile Letterhead -->
-                <div style="display: flex; align-items: center; border-bottom: 2px solid #3b82f6; padding-bottom: 15px; margin-bottom: 15px;">
-                    ${cLogo ? `<img src="${cLogo}" style="max-height: 60px; max-width: 150px; margin-right: 20px; object-fit: contain;">` : ''}
-                    <div style="flex-grow: 1;">
-                        <div style="font-size: 20px; font-weight: 800; color: #1e3a8a; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">${cName}</div>
-                        <div style="font-size: 11px; color: #475569; line-height: 1.4;">
-                            ${cAddress ? `<div><strong>Address:</strong> ${cAddress}</div>` : ''}
-                            <div style="display: flex; gap: 15px; margin-top: 2px;">
-                                ${cPhone ? `<div><strong>Phone:</strong> ${cPhone}</div>` : ''}
-                                ${cEmail ? `<div><strong>Email:</strong> ${cEmail}</div>` : ''}
-                            </div>
+                <div style="position: relative; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #1e293b; text-align: center; min-height: 70px; display: flex; flex-direction: column; justify-content: center;">
+                    ${cLogo ? `<div style="position: absolute; left: 0; top: 50%; transform: translateY(-50%);"><img src="${cLogo}" style="max-height: 70px; max-width: 180px; object-fit: contain;"></div>` : ''}
+                    <div style="margin: 0 auto; max-width: 60%; padding-left: ${cLogo ? '150px' : '0'};">
+                        <div style="font-size: 26px; font-weight: bold; font-style: italic; color: #1e293b; margin-bottom: 5px; font-family: 'Times New Roman', Times, serif;">${cName}</div>
+                        <div style="font-size: 12px; color: #334155; margin-bottom: 3px;">${cAddress}</div>
+                        <div style="font-size: 12px; color: #334155;">
+                            ${cPhone ? `Tel: ${cPhone}` : ''} ${cPhone && cEmail ? ' | ' : ''} ${cEmail ? `Email: ${cEmail}` : ''}
                         </div>
                     </div>
                 </div>
