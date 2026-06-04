@@ -56,10 +56,14 @@
         /* Print Styles */
         @media print {
             @page {
-                margin-top: 0;
-                margin-bottom: 0;
-                margin-left: 10mm;
-                margin-right: 10mm;
+                margin: 0; /* 0 margins for edge-to-edge printing */
+            }
+
+            html, body {
+                min-height: 0 !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
             }
 
             /* Hide ALL direct children of body by default */
