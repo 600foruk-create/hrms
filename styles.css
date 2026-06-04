@@ -639,7 +639,7 @@ body.light-mode .sidebar-link:hover {
 
 /* Main Layout content */
 .main-layout {
-    flex: 1;
+    width: calc(100% - 260px);
     margin-left: 260px;
     min-height: 100vh;
     display: flex;
@@ -1868,6 +1868,7 @@ body.light-mode .report-preview-container {
     }
     .main-layout {
         margin-left: 0;
+        width: 100%;
     }
     .topbar {
         padding: 0 1.25rem;

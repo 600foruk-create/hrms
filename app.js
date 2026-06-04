@@ -20,6 +20,7 @@ const TASK_SUBCATEGORIES = {
 
 // ==================== DATABASE ENGINE (Hostinger PHP Backend) ====================
 const API_URL = 'backend/api.php';
+window.dbLoaded = false;
 window.hrmsDatabase = { users: [], weights: {}, leaves: [], productivity: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [], globalSalarySettings: { allowances: [], deductions: [] } };
 
 async function syncServer() {
@@ -36,6 +37,7 @@ async function syncServer() {
                 }
             });
             window.hrmsDatabase = result.data;
+            window.dbLoaded = true;
             success = true;
         } else {
             console.error("Failed to load DB state or DB is empty:", result.message);
@@ -44,64 +46,11 @@ async function syncServer() {
         console.error("Network error loading DB:", e);
     }
 
-    // Fallback Mock Database if API fails or DB is empty (Allows local demo to work)
+    // DO NOT use Fallback Mock Database if API fails. This prevents dummy data from overwriting live SQL data.
     if (!success) {
-        console.warn("Using Fallback Mock Database...");
-        let localData = localStorage.getItem('hrms_fallback_db');
-        if (localData) {
-            try {
-                window.hrmsDatabase = JSON.parse(localData);
-                return;
-            } catch (e) {
-                console.error("Local DB parse error:", e);
-            }
-        }
-
-        window.hrmsDatabase = {
-            login_bg: 'assets/images/login/login_bg.png',
-            users: [
-                { id: "U1", email: "admin@hrms.com", password: "admin123", name: "admin", role: "Admin", managerId: "", status: "Active" },
-                { id: "U2", email: "sarah.manager@hrms.com", password: "manager123", name: "Sarah Jenkins", role: "Manager", managerId: "", status: "Active" },
-                { id: "U3", email: "alex.manager@hrms.com", password: "manager123", name: "Alex Mercer", role: "Manager", managerId: "", status: "Active" },
-                { id: "U4", email: "john.emp@hrms.com", password: "employee123", name: "John Doe", role: "Employee", managerId: "U2", status: "Active" },
-                { id: "U5", email: "emma.emp@hrms.com", password: "employee123", name: "Emma Watson", role: "Employee", managerId: "U2", status: "Active" },
-                { id: "U6", email: "ryan.emp@hrms.com", password: "employee123", name: "Ryan Gosling", role: "Employee", managerId: "U3", status: "Active" }
-            ],
-            weights: {
-                "Billing": 2.0,
-                "Follow-up": 1.0,
-                "Payment Posting": 1.5,
-                "Eligibility Check": 1.0,
-                "Report Preparation": 2.0
-            },
-            leaves: [
-                { id: "L1", employeeId: "U4", employeeName: "John Doe", type: "Annual", startDate: "2026-06-01", endDate: "2026-06-05", reason: "Family Vacation", status: "Approved" },
-                { id: "L2", employeeId: "U5", employeeName: "Emma Watson", type: "Sick", startDate: "2026-05-25", endDate: "2026-05-26", reason: "Fever", status: "Pending" }
-            ],
-            productivity: [
-                { id: "P1", employeeId: "U4", employeeName: "John Doe", date: "2026-05-20", tasks: ["Billing", "Follow-up"], subcategories: ["Demographics Entry", "Patient Follow-up"], counts: ["45", "12"], notes: "Completed daily quota.", score: 102.00, status: "Approved" }
-            ],
-            attendance: [
-                { date: "2026-05-20", employeeId: "U4", employeeName: "John Doe", status: "Present", markedBy: "Auto Login" }
-            ],
-            announcements: [
-                { id: "A1", title: "Welcome to HRMS", content: "This is a demo announcement.", target: "All", date: "2026-05-20", author: "Syed Admin" }
-            ],
-            auditLogs: [],
-            notifications: [],
-            salaryProfiles: [],
-            loans: [],
-            payrollHistory: [],
-            globalSalarySettings: {
-                allowances: [
-                    { id: 'a_' + Date.now(), name: 'House Rent', type: 'percentage', value: 10 },
-                    { id: 'a_' + Date.now() + 1, name: 'Medical', type: 'fixed', value: 2000 }
-                ],
-                deductions: [
-                    { id: 'd_' + Date.now(), name: 'Standard Fine', type: 'fixed', value: 0 }
-                ]
-            }
-        };
+        console.error("Critical Error: Failed to sync with live SQL Database. Preventing dummy data load to protect integrity.");
+        showToast("Database Connection Failed", "Could not connect to the live SQL database. Please check backend configuration.", "error");
+        return;
     }
 }
 
@@ -119,6 +68,11 @@ function getInitials(name) {
 }
 
 async function saveDb(data) {
+    if (!window.dbLoaded) {
+        console.error("Save blocked: Database was not properly loaded from server. Preventing accidental data wipe.");
+        showToast("Save Error", "Cannot save changes because the database connection failed on startup. Please refresh the page.", "error");
+        return;
+    }
     window.hrmsDatabase = data; // Immediate local update for UI speed
     try {
         localStorage.setItem('hrms_fallback_db', JSON.stringify(data));
