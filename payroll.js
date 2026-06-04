@@ -186,6 +186,7 @@ window.openMonthlySummaryModal = function() {
     const cPhone = company.phone || '';
     const cEmail = company.email || '';
     const cLogo = company.logoBase64 || '';
+    const cLetterhead = company.letterheadBase64 || '';
     const printArea = document.getElementById('summary-print-area');
     
     let periodText = "";
@@ -199,6 +200,11 @@ window.openMonthlySummaryModal = function() {
         <tr>
             <td colspan="6" style="padding: 0; border: none;">
                 <!-- Company Profile Letterhead -->
+                ${cLetterhead ? `
+                <div style="margin-bottom: 15px; text-align: center;">
+                    <img src="${cLetterhead}" style="max-width: 100%; height: auto; display: block; margin: 0 auto;" alt="Letterhead Banner">
+                </div>
+                ` : `
                 <div style="position: relative; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #1e293b; text-align: center; min-height: 70px; display: flex; flex-direction: column; justify-content: center;">
                     ${cLogo ? `<div style="position: absolute; left: 0; top: 50%; transform: translateY(-50%);"><img src="${cLogo}" style="max-height: 70px; max-width: 180px; object-fit: contain;"></div>` : ''}
                     <div style="margin: 0 auto; max-width: 60%; padding-left: ${cLogo ? '150px' : '0'};">
@@ -209,6 +215,7 @@ window.openMonthlySummaryModal = function() {
                         </div>
                     </div>
                 </div>
+                `}
                 
                 <!-- Document Title -->
                 <div style="text-align: center; margin-bottom: 20px;">

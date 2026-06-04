@@ -2272,6 +2272,39 @@ window.openCompanyProfileModal = function () {
                 dropzone.addEventListener('click', () => newInput.click(), { once: true });
             }
         }
+
+        const letterheadDropzone = document.getElementById('dropzone-company-letterhead');
+        if (letterheadDropzone) {
+            if (cp.letterheadBase64) {
+                document.getElementById('company-profile-form').dataset.letterheadBase64 = cp.letterheadBase64;
+                letterheadDropzone.innerHTML = `
+                    <img src="${cp.letterheadBase64}" alt="Letterhead Banner" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                    <div style="font-size: 11px; color: var(--text-muted);">Click to change banner</div>
+                    <input type="file" id="comp-letterhead-input" accept="image/*" style="display:none;">
+                `;
+                const newInput = letterheadDropzone.querySelector('#comp-letterhead-input');
+                if (newInput) {
+                    newInput.addEventListener('change', () => {
+                        if (newInput.files.length) window.onCompLetterheadSelected(letterheadDropzone, newInput.files);
+                    });
+                    letterheadDropzone.addEventListener('click', () => newInput.click(), { once: true });
+                }
+            } else {
+                letterheadDropzone.innerHTML = `
+                    <i class="fa-solid fa-file-image" style="font-size: 24px; color: var(--primary);"></i>
+                    <div style="font-weight: 600;">Upload Letterhead Banner</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">For Reports (Optional)</div>
+                    <input type="file" id="comp-letterhead-input" accept="image/*" style="display:none;">
+                `;
+                const newInput = letterheadDropzone.querySelector('#comp-letterhead-input');
+                if (newInput) {
+                    newInput.addEventListener('change', () => {
+                        if (newInput.files.length) window.onCompLetterheadSelected(letterheadDropzone, newInput.files);
+                    });
+                    letterheadDropzone.addEventListener('click', () => newInput.click(), { once: true });
+                }
+            }
+        }
     }
 
     openModal('modal-company-profile');
@@ -4127,6 +4160,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         reader.readAsDataURL(file);
     };
 
+    window.onCompLetterheadSelected = function (dropzone, files) {
+        if (!files.length) return;
+        const file = files[0];
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const dataURL = e.target.result;
+            dropzone.innerHTML = `
+                <img src="${dataURL}" alt="Letterhead Banner" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                <div style="font-size: 11px; color: var(--text-muted);">Click to change banner</div>
+                <input type="file" id="comp-letterhead-input" accept="image/*" style="display:none;">
+            `;
+            document.getElementById('company-profile-form').dataset.letterheadBase64 = dataURL;
+
+            const newInput = dropzone.querySelector('#comp-letterhead-input');
+            if (newInput) {
+                newInput.addEventListener('change', () => {
+                    if (newInput.files.length) window.onCompLetterheadSelected(dropzone, newInput.files);
+                });
+                dropzone.addEventListener('click', () => newInput.click(), { once: true });
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
     // Save Company Profile form
     const cpForm = document.getElementById('company-profile-form');
     if (cpForm) {
@@ -4148,6 +4205,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (cpForm.dataset.logoBase64) {
                 cp.logoBase64 = cpForm.dataset.logoBase64;
+            }
+            if (cpForm.dataset.letterheadBase64) {
+                cp.letterheadBase64 = cpForm.dataset.letterheadBase64;
             }
 
             db.companyProfile = cp;
