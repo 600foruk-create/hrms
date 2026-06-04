@@ -232,16 +232,7 @@ window.openMonthlySummaryModal = function() {
         </tr>
     `;
 
-    const letterheadFooter = `
-        <tr>
-            <td colspan="6" style="padding: 0; border: none;">
-                <div style="border-top: 1px solid #cbd5e1; padding-top: 10px; margin-top: 20px; display: flex; justify-content: space-between; font-size: 10px; color: #64748b;">
-                    <div>${cName} - Confidential Payroll Document</div>
-                    <div>Printed: ${new Date().toLocaleString()}</div>
-                </div>
-            </td>
-        </tr>
-    `;
+
 
     printArea.innerHTML = `
         <div style="width: 100%;">
@@ -281,9 +272,6 @@ window.openMonthlySummaryModal = function() {
                         </td>
                     </tr>
                 </tbody>
-                <tfoot style="display: table-footer-group;">
-                    ${letterheadFooter}
-                </tfoot>
             </table>
         </div>
     `;
