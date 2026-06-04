@@ -4162,15 +4162,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 `;
                 document.getElementById('company-profile-form').dataset.logoBase64 = dataURL;
 
-                // Auto-save immediately
-                const db = getDb();
-                if (!db.companyProfile) db.companyProfile = {};
-                db.companyProfile.logoBase64 = dataURL;
-                saveDb(db).then(() => {
-                    applyCompanyProfile(db);
-                    showToast("Saved", "Company Logo updated.");
-                });
-
                 const newInput = dropzone.querySelector('#comp-logo-input');
                 if (newInput) {
                     newInput.addEventListener('change', () => {
@@ -4213,14 +4204,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <input type="file" id="comp-letterhead-input" accept="image/*" style="display:none;">
                 `;
                 document.getElementById('company-profile-form').dataset.letterheadBase64 = dataURL;
-
-                // Auto-save immediately
-                const db = getDb();
-                if (!db.companyProfile) db.companyProfile = {};
-                db.companyProfile.letterheadBase64 = dataURL;
-                saveDb(db).then(() => {
-                    showToast("Saved", "Letterhead Banner updated.");
-                });
 
                 const newInput = dropzone.querySelector('#comp-letterhead-input');
                 if (newInput) {
