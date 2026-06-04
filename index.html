@@ -55,6 +55,13 @@
     <style>
         /* Print Styles */
         @media print {
+            @page {
+                margin-top: 0;
+                margin-bottom: 0;
+                margin-left: 10mm;
+                margin-right: 10mm;
+            }
+
             /* Hide ALL direct children of body by default */
             body > * {
                 display: none !important;
