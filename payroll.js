@@ -154,9 +154,13 @@ window.openMonthlySummaryModal = function() {
         visibleCount++;
         
         const basic = parseInt(user?.salary) || 0;
-        const totalDed = (record.absencyDeduction || 0) + (record.loanDeduction || 0) + (record.otherDeduction || 0);
-        // Note: record.netFixed includes basic + allowances based on standard calculations.
-        const totalAdd = (record.netFixed - basic) + (record.bonus || 0); 
+        
+        // Calculate correctly using explicit stored fixed portions if available
+        const fixedDed = record.fixedDeductions !== undefined ? record.fixedDeductions : 0;
+        const fixedAll = record.fixedAllowances !== undefined ? record.fixedAllowances : ((record.netFixed - basic) > 0 ? (record.netFixed - basic) : 0);
+
+        const totalDed = fixedDed + (record.absencyDeduction || 0) + (record.loanDeduction || 0) + (record.otherDeduction || 0);
+        const totalAdd = fixedAll + (record.bonus || 0); 
         
         grandTotalBasic += basic;
         grandTotalAllowances += totalAdd;
@@ -860,7 +864,7 @@ window.generatePayrollPreview = function() {
         grandTotal += netPayable;
 
         tbody.innerHTML += `
-            <tr class="payroll-preview-row" data-user-id="${user.id}" data-net-fixed="${netFixed}" data-absent-deduct="${absencyDeduction}" data-loan-emi="${loanEMI}" data-loan-id="${activeLoanId || ''}">
+            <tr class="payroll-preview-row" data-user-id="${user.id}" data-net-fixed="${netFixed}" data-absent-deduct="${absencyDeduction}" data-loan-emi="${loanEMI}" data-loan-id="${activeLoanId || ''}" data-fixed-allow="${totalAllowances}" data-fixed-deduct="${totalDeductions}">
                 <td class="text-secondary">${user.id}</td>
                 <td class="bold">${user.name}</td>
                 <td>Rs ${Math.round(netFixed).toLocaleString()}</td>
@@ -932,6 +936,8 @@ window.confirmAndProcessPayroll = function() {
         const absDeduct = parseFloat(row.dataset.absentDeduct) || 0;
         const loanEmi = parseFloat(row.dataset.loanEmi) || 0;
         const loanId = row.dataset.loanId;
+        const fixedAllow = parseFloat(row.dataset.fixedAllow) || 0;
+        const fixedDeduct = parseFloat(row.dataset.fixedDeduct) || 0;
         const bonus = parseFloat(row.querySelector('.bonus-input').value) || 0;
         const otherDed = parseFloat(row.querySelector('.ded-input').value) || 0;
         
@@ -953,6 +959,8 @@ window.confirmAndProcessPayroll = function() {
             startDate: startInput,
             endDate: endInput,
             netFixed: netFixed,
+            fixedAllowances: fixedAllow,
+            fixedDeductions: fixedDeduct,
             absencyDeduction: absDeduct,
             loanDeduction: loanEmi,
             bonus: bonus,
