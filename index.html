@@ -67,7 +67,8 @@
 
             html {
                 min-height: 0 !important;
-                height: auto !important;
+                height: max-content !important;
+                max-height: max-content !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 overflow: visible !important;
@@ -75,7 +76,8 @@
 
             body {
                 min-height: 0 !important;
-                height: auto !important;
+                height: max-content !important;
+                max-height: max-content !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 overflow: visible !important;
@@ -91,20 +93,23 @@
             body > #modal-view-payslip:not(.hidden),
             body > #modal-view-summary:not(.hidden) {
                 display: block !important;
-                position: static !important;
+                position: relative !important;
+                top: auto !important;
+                left: auto !important;
+                transform: none !important;
                 width: 100% !important;
+                max-width: 100% !important;
+                height: max-content !important;
+                max-height: none !important;
                 background: white !important;
                 color: black !important;
                 box-shadow: none !important;
                 border: none !important;
-                transform: none !important;
-                max-width: 100% !important;
-                max-height: none !important;
-                height: auto !important;
                 overflow: visible !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 page-break-after: auto !important;
+                page-break-before: auto !important;
             }
 
             #summary-print-area, #payslip-print-area {
@@ -112,7 +117,7 @@
                 width: 100% !important;
                 overflow: visible !important;
                 max-height: none !important;
-                height: auto !important;
+                height: max-content !important;
                 background: white !important;
                 color: black !important;
                 padding: 5mm 10mm !important;
