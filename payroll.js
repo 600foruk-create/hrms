@@ -167,14 +167,14 @@ window.openMonthlySummaryModal = function() {
         grandTotalDeductions += totalDed;
         grandTotalNet += record.netPay;
 
-        tableRows += `
-            <tr style="border-bottom: 1px solid #e5e7eb;">
-                <td style="padding: 8px 10mm 8px 10mm; font-size: 10px;">${record.userId}</td>
-                <td style="padding: 8px 10px; font-size: 11px; font-weight: 600;">${name}</td>
-                <td style="padding: 8px 10px; font-size: 10px;">Rs ${basic.toLocaleString()}</td>
-                <td style="padding: 8px 10px; font-size: 10px; color: #059669;">Rs ${Math.round(totalAdd).toLocaleString()}</td>
-                <td style="padding: 8px 10px; font-size: 10px; color: #dc2626;">Rs ${Math.round(totalDed).toLocaleString()}</td>
-                <td style="padding: 8px 10mm 8px 10px; font-size: 11px; font-weight: 700;">Rs ${Math.round(record.netPay).toLocaleString()}</td>
+        tbodyHTML += `
+            <tr>
+                <td class="text-secondary" style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px;">${record.userId}</td>
+                <td class="bold" style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px;">${name}</td>
+                <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; color: #334155; font-size: 11px;">Rs ${basic.toLocaleString()}</td>
+                <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; color: #059669; font-size: 11px;">Rs ${Math.round(totalAdd).toLocaleString()}</td>
+                <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; color: #dc2626; font-size: 11px;">Rs ${Math.round(totalDed).toLocaleString()}</td>
+                <td class="bold text-primary" style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; font-size: 12px;">Rs ${Math.round(record.netPay).toLocaleString()}</td>
             </tr>
         `;
     });
@@ -205,14 +205,13 @@ window.openMonthlySummaryModal = function() {
     const letterheadHeader = `
         <tr>
             <td colspan="6" style="padding: 0; border: none;">
-                <!-- Company Profile Letterhead -->
                 ${cLetterhead ? `
-                <div style="margin-bottom: 15px; text-align: center;">
-                    <img src="${cLetterhead}" style="width: 100%; height: auto; display: block; margin: 0;" alt="Letterhead Banner">
+                <div style="margin: 0 -30px 15px -30px; text-align: center;">
+                    <img src="${cLetterhead}" style="width: 100%; height: auto; display: block;" alt="Letterhead Banner">
                 </div>
                 ` : `
-                <div style="position: relative; padding: 0 10mm 15px 10mm; margin-bottom: 15px; border-bottom: 1px solid #1e293b; text-align: center; min-height: 70px; display: flex; flex-direction: column; justify-content: center;">
-                    ${cLogo ? `<div style="position: absolute; left: 10mm; top: 50%; transform: translateY(-50%);"><img src="${cLogo}" style="max-height: 70px; max-width: 180px; object-fit: contain;"></div>` : ''}
+                <div style="position: relative; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #1e293b; text-align: center; min-height: 70px; display: flex; flex-direction: column; justify-content: center;">
+                    ${cLogo ? `<div style="position: absolute; left: 0; top: 50%; transform: translateY(-50%);"><img src="${cLogo}" style="max-height: 70px; max-width: 180px; object-fit: contain;"></div>` : ''}
                     <div style="margin: 0 auto; max-width: 60%; padding-left: ${cLogo ? '150px' : '0'};">
                         <div style="font-size: 26px; font-weight: bold; font-style: italic; color: #1e293b; margin-bottom: 5px; font-family: 'Times New Roman', Times, serif;">${cName}</div>
                         <div style="font-size: 12px; color: #334155; margin-bottom: 3px;">${cAddress}</div>
@@ -223,8 +222,7 @@ window.openMonthlySummaryModal = function() {
                 </div>
                 `}
                 
-                <!-- Document Title -->
-                <div style="text-align: center; margin-bottom: 20px; padding: 0 10mm;">
+                <div style="text-align: center; margin-bottom: 20px;">
                     <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px 0;">Monthly Payroll Summary</h2>
                     <div style="font-size: 13px; color: #475569; font-weight: 600;">
                         For the Month of <span style="color: #2563eb;">${periodText}</span>
@@ -236,7 +234,7 @@ window.openMonthlySummaryModal = function() {
 
     const letterheadFooter = `
         <tr>
-            <td colspan="6" style="padding: 0 10mm; border: none;">
+            <td colspan="6" style="padding: 0; border: none;">
                 <div style="border-top: 1px solid #cbd5e1; padding-top: 10px; margin-top: 20px; display: flex; justify-content: space-between; font-size: 10px; color: #64748b;">
                     <div>${cName} - Confidential Payroll Document</div>
                     <div>Printed: ${new Date().toLocaleString()}</div>
@@ -260,8 +258,8 @@ window.openMonthlySummaryModal = function() {
                     </tr>
                 </thead>
                 <tbody>
-                    ${tableRows}
-                    <tr style="font-weight: 700; background-color: #f8fafc;">
+                    ${tbodyHTML}
+                    <tr>
                         <td colspan="2" style="padding: 12px 10px; text-align: right; border-top: 2px solid #cbd5e1; color: #334155; font-size: 11px;">GRAND TOTALS:</td>
                         <td style="padding: 12px 10px; border-top: 2px solid #cbd5e1; color: #334155; font-size: 11px;">Rs ${Math.round(grandTotalBasic).toLocaleString()}</td>
                         <td style="padding: 12px 10px; color: #059669; border-top: 2px solid #cbd5e1; font-size: 11px;">Rs ${Math.round(grandTotalAllowances).toLocaleString()}</td>
