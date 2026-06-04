@@ -183,6 +183,9 @@ window.openMonthlySummaryModal = function() {
     const company = db.companyProfile || {};
     const cName = company.name || 'Company Name';
     const cAddress = company.address || '';
+    const cPhone = company.phone || '';
+    const cEmail = company.email || '';
+    const cLogo = company.logoBase64 || '';
     const printArea = document.getElementById('summary-print-area');
     
     let periodText = "";
@@ -192,55 +195,84 @@ window.openMonthlySummaryModal = function() {
         periodText = "Filtered Summary";
     }
 
+    const letterheadHeader = `
+        <tr>
+            <td colspan="6" style="padding: 0; border: none;">
+                <div style="display: flex; align-items: center; border-bottom: 2px solid #3b82f6; padding-bottom: 15px; margin-bottom: 15px;">
+                    ${cLogo ? `<img src="${cLogo}" style="max-height: 60px; max-width: 150px; margin-right: 20px; object-fit: contain;">` : ''}
+                    <div style="flex-grow: 1;">
+                        <div style="font-size: 20px; font-weight: 800; color: #1e3a8a; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">${cName}</div>
+                        <div style="font-size: 11px; color: #475569; line-height: 1.4;">
+                            ${cAddress ? `<div><strong>Address:</strong> ${cAddress}</div>` : ''}
+                            <div style="display: flex; gap: 15px; margin-top: 2px;">
+                                ${cPhone ? `<div><strong>Phone:</strong> ${cPhone}</div>` : ''}
+                                ${cEmail ? `<div><strong>Email:</strong> ${cEmail}</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align: right; min-width: 200px;">
+                        <div style="font-size: 14px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; padding: 4px 8px; background: #eff6ff; border-radius: 4px; display: inline-block;">Payroll Summary</div>
+                        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Period: <span style="font-weight: 600; color: #334155;">${periodText}</span></div>
+                        <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">Total Employees: ${visibleCount}</div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    `;
+
+    const letterheadFooter = `
+        <tr>
+            <td colspan="6" style="padding: 0; border: none;">
+                <div style="border-top: 1px solid #cbd5e1; padding-top: 10px; margin-top: 20px; display: flex; justify-content: space-between; font-size: 10px; color: #64748b;">
+                    <div>${cName} - Confidential Payroll Document</div>
+                    <div>Printed: ${new Date().toLocaleString()}</div>
+                </div>
+            </td>
+        </tr>
+    `;
+
     printArea.innerHTML = `
-        <div style="padding-bottom: 15px; border-bottom: 2px solid #cbd5e1; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <div style="font-size: 18px; font-weight: 800; color: #0f172a; margin-bottom: 2px;">${cName}</div>
-                <div style="font-size: 11px; color: #64748b;">${cAddress}</div>
-            </div>
-            <div style="text-align: right;">
-                <div style="font-size: 14px; font-weight: 700; color: #334155; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Monthly Payroll Sheet</div>
-                <div style="font-size: 11px; color: #64748b;">Period: <span style="font-weight: 600; color: #475569;">${periodText}</span></div>
-                <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">Total Employees: ${visibleCount}</div>
-            </div>
-        </div>
-        
-        <div style="margin-bottom: 40px;">
+        <div style="width: 100%;">
             <table style="width: 100%; border-collapse: collapse; text-align: left;">
-                <thead>
+                <thead style="display: table-header-group;">
+                    ${letterheadHeader}
                     <tr>
-                        <th style="padding: 8px 10px; font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">ID</th>
-                        <th style="padding: 8px 10px; font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">Employee</th>
-                        <th style="padding: 8px 10px; font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">Basic</th>
-                        <th style="padding: 8px 10px; font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">Allowances</th>
-                        <th style="padding: 8px 10px; font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">Deductions</th>
-                        <th style="padding: 8px 10px; font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">Net Pay</th>
+                        <th style="padding: 8px 10px; font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; background-color: #f8fafc;">ID</th>
+                        <th style="padding: 8px 10px; font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; background-color: #f8fafc;">Employee</th>
+                        <th style="padding: 8px 10px; font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; background-color: #f8fafc;">Basic</th>
+                        <th style="padding: 8px 10px; font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; background-color: #f8fafc;">Allowances</th>
+                        <th style="padding: 8px 10px; font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; background-color: #f8fafc;">Deductions</th>
+                        <th style="padding: 8px 10px; font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; background-color: #f8fafc;">Net Pay</th>
                     </tr>
                 </thead>
                 <tbody>
                     ${tableRows}
-                </tbody>
-                <tfoot>
-                    <tr style="font-weight: 700;">
+                    <tr style="font-weight: 700; background-color: #f8fafc;">
                         <td colspan="2" style="padding: 12px 10px; text-align: right; border-top: 2px solid #cbd5e1; color: #334155; font-size: 11px;">GRAND TOTALS:</td>
                         <td style="padding: 12px 10px; border-top: 2px solid #cbd5e1; color: #334155; font-size: 11px;">Rs ${Math.round(grandTotalBasic).toLocaleString()}</td>
                         <td style="padding: 12px 10px; color: #059669; border-top: 2px solid #cbd5e1; font-size: 11px;">Rs ${Math.round(grandTotalAllowances).toLocaleString()}</td>
                         <td style="padding: 12px 10px; color: #dc2626; border-top: 2px solid #cbd5e1; font-size: 11px;">Rs ${Math.round(grandTotalDeductions).toLocaleString()}</td>
                         <td style="padding: 12px 10px; font-size: 12px; color: #0f172a; border-top: 2px solid #cbd5e1;">Rs ${Math.round(grandTotalNet).toLocaleString()}</td>
                     </tr>
+                    <tr>
+                        <td colspan="6" style="padding: 0; border: none;">
+                            <div style="display: flex; justify-content: space-between; margin-top: 60px; margin-bottom: 20px;">
+                                <div style="text-align: center;">
+                                    <div style="width: 200px; border-top: 1px solid #374151; margin-bottom: 10px;"></div>
+                                    <div style="font-size: 12px; font-weight: 600;">Prepared By</div>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="width: 200px; border-top: 1px solid #374151; margin-bottom: 10px;"></div>
+                                    <div style="font-size: 12px; font-weight: 600;">Approved By</div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot style="display: table-footer-group;">
+                    ${letterheadFooter}
                 </tfoot>
             </table>
-        </div>
-        
-        <div style="display: flex; justify-content: space-between; margin-top: 50px;">
-            <div style="text-align: center;">
-                <div style="width: 200px; border-top: 1px solid #374151; margin-bottom: 10px;"></div>
-                <div style="font-size: 14px; font-weight: 600;">Prepared By</div>
-            </div>
-            <div style="text-align: center;">
-                <div style="width: 200px; border-top: 1px solid #374151; margin-bottom: 10px;"></div>
-                <div style="font-size: 14px; font-weight: 600;">Approved By</div>
-            </div>
         </div>
     `;
     
