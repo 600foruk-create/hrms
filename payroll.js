@@ -190,10 +190,12 @@ window.openMonthlySummaryModal = function() {
     const printArea = document.getElementById('summary-print-area');
     
     let periodText = "";
-    if(monthFilter !== "All" && yearFilter !== "All") {
-        periodText = `${document.getElementById('history-filter-month').options[document.getElementById('history-filter-month').selectedIndex].text} ${yearFilter}`;
+    if (history.length > 0) {
+        const d = new Date(history[0].endDate || history[0].processedAt || new Date());
+        const mNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        periodText = `${mNames[d.getMonth()]} ${d.getFullYear()}`;
     } else {
-        periodText = "Filtered Summary";
+        periodText = "N/A";
     }
 
     const letterheadHeader = `
@@ -220,8 +222,8 @@ window.openMonthlySummaryModal = function() {
                 <!-- Document Title -->
                 <div style="text-align: center; margin-bottom: 20px;">
                     <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px 0;">Monthly Payroll Summary</h2>
-                    <div style="font-size: 12px; color: #475569; font-weight: 500;">
-                        Period: <span style="color: #2563eb; font-weight: 600;">${periodText}</span> &nbsp;|&nbsp; Total Employees: <span style="color: #2563eb; font-weight: 600;">${visibleCount}</span>
+                    <div style="font-size: 13px; color: #475569; font-weight: 600;">
+                        For the Month of <span style="color: #2563eb;">${periodText}</span>
                     </div>
                 </div>
             </td>
