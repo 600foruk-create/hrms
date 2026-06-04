@@ -56,7 +56,8 @@
         /* Print Styles */
         @media print {
             @page {
-                margin: 0; /* 0 margins for edge-to-edge printing */
+                size: auto;
+                margin: 0mm; /* 0mm forces removal of browser headers/footers */
             }
 
             html, body {
@@ -100,7 +101,7 @@
                 height: auto !important;
                 background: white !important;
                 color: black !important;
-                padding: 0 30px 30px 30px !important;
+                padding: 0 30px 0 30px !important; /* Removed bottom padding to prevent blank page */
                 box-sizing: border-box;
             }
 
