@@ -2287,12 +2287,36 @@
                     </div>
                 </div>
 
+                <h4 class="section-title">Bank Details</h4>
+                <div class="form-grid-3">
+                    <div class="form-group">
+                        <label for="emp-bank-name">Bank Name</label>
+                        <input type="text" id="emp-bank-name" class="form-control" placeholder="e.g. Meezan Bank">
+                    </div>
+                    <div class="form-group">
+                        <label for="emp-account-title">Account Title</label>
+                        <input type="text" id="emp-account-title" class="form-control" placeholder="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="emp-account-number">Account Number</label>
+                        <input type="text" id="emp-account-number" class="form-control" placeholder="0123456789">
+                    </div>
+                    <div class="form-group">
+                        <label for="emp-iban">IBAN</label>
+                        <input type="text" id="emp-iban" class="form-control" placeholder="PK00 MEZN 0000 0000">
+                    </div>
+                    <div class="form-group">
+                        <label for="emp-branch-code">Branch Code</label>
+                        <input type="text" id="emp-branch-code" class="form-control" placeholder="0123">
+                    </div>
+                </div>
+
                 <h4 class="section-title">System & Access</h4>
                 <div class="form-grid-3">
                     <div class="form-group" id="emp-pass-group">
-                        <label for="emp-password">Password <span class="text-danger">*</span></label>
+                        <label for="emp-password">Password <span id="emp-pass-asterisk" class="text-danger">*</span></label>
                         <input type="password" id="emp-password" class="form-control" required
-                            placeholder="Min 6 characters">
+                            placeholder="Min 6 characters (Leave blank to keep current)">
                     </div>
                     <div class="form-group">
                         <label for="emp-role">Role <span class="text-danger">*</span></label>

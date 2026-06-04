@@ -2327,6 +2327,13 @@ window.openEditEmployeeModal = function (userId) {
     document.getElementById('emp-emergency-contact').value = user && user.emergencyContact ? user.emergencyContact : "";
     document.getElementById('emp-designation').value = user && user.designation ? user.designation : "";
 
+    // Bank Details
+    document.getElementById('emp-bank-name').value = user && user.bankName ? user.bankName : "";
+    document.getElementById('emp-account-title').value = user && user.accountTitle ? user.accountTitle : "";
+    document.getElementById('emp-account-number').value = user && user.accountNumber ? user.accountNumber : "";
+    document.getElementById('emp-iban').value = user && user.iban ? user.iban : "";
+    document.getElementById('emp-branch-code').value = user && user.branchCode ? user.branchCode : "";
+
     if (user && user.endDate) {
         document.getElementById('emp-end-date').value = user.endDate;
     } else {
@@ -2346,24 +2353,19 @@ window.openEditEmployeeModal = function (userId) {
         submitBtn.style.display = isInactive ? 'none' : 'block';
     }
 
-    document.getElementById('emp-father-name').value = (user && user.fatherName) ? user.fatherName : "";
-    document.getElementById('emp-gender').value = (user && user.gender) ? user.gender : "Male";
-    document.getElementById('emp-dob').value = (user && user.dob) ? user.dob : "";
-    document.getElementById('emp-cnic').value = (user && user.cnic) ? user.cnic : "";
-    document.getElementById('emp-marital-status').value = (user && user.maritalStatus) ? user.maritalStatus : "Single";
-    document.getElementById('emp-phone').value = (user && user.phone) ? user.phone : "";
-    document.getElementById('emp-emergency-contact').value = (user && user.emergencyContact) ? user.emergencyContact : "";
-
-    // Password mandatory for new users only
+    // Password mandatory for new users only, but always visible
     const passInput = document.getElementById('emp-password');
+    const passAsterisk = document.getElementById('emp-pass-asterisk');
+    document.getElementById('emp-pass-group').style.display = 'block';
+    
     if (user) {
         passInput.removeAttribute('required');
-        document.getElementById('emp-pass-group').style.display = 'none';
+        if(passAsterisk) passAsterisk.style.display = 'none';
     } else {
         passInput.setAttribute('required', 'true');
-        document.getElementById('emp-pass-group').style.display = 'block';
-        passInput.value = "";
+        if(passAsterisk) passAsterisk.style.display = 'inline';
     }
+    passInput.value = "";
 
     // Dynamically inject roles based on active user
     const roleSelect = document.getElementById('emp-role');
@@ -2527,6 +2529,13 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
     const emergencyContact = document.getElementById('emp-emergency-contact').value.trim();
     const designation = document.getElementById('emp-designation').value.trim();
 
+    // Bank Details
+    const bankName = document.getElementById('emp-bank-name').value.trim();
+    const accountTitle = document.getElementById('emp-account-title').value.trim();
+    const accountNumber = document.getElementById('emp-account-number').value.trim();
+    const iban = document.getElementById('emp-iban').value.trim();
+    const branchCode = document.getElementById('emp-branch-code').value.trim();
+
     // Validation
     if (!displayId || !displayId.trim()) {
         showToast("Validation Error", "Employee ID is required. Please enter a unique Employee ID.", "error");
@@ -2599,6 +2608,23 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
             user.bloodGroup = bloodGroup;
             user.designation = designation;
 
+            // Bank Details
+            user.bankName = bankName;
+            user.accountTitle = accountTitle;
+            user.accountNumber = accountNumber;
+            user.iban = iban;
+            user.branchCode = branchCode;
+
+            // Password handling
+            if (password && password.trim().length > 0) {
+                 if (password.trim().length >= 6) {
+                     user.password = password.trim();
+                 } else {
+                     showToast("Password Error", "Password must be at least 6 characters.", "error");
+                     return;
+                 }
+            }
+
             // Keep existing endDate if typed manually, else calculate if Inactive
             if (endDate) {
                 user.endDate = endDate;
@@ -2643,6 +2669,11 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
             salary,
             bloodGroup,
             designation,
+            bankName,
+            accountTitle,
+            accountNumber,
+            iban,
+            branchCode,
             endDate: endDate ? endDate : (status === 'Inactive' ? new Date().toISOString().split('T')[0] : null),
             profilePic: window.tempProfilePic,
             documents: window.tempDocuments,
