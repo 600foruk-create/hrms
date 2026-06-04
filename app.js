@@ -2554,7 +2554,11 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
     }
 
     // Employee ID uniqueness check (for new employees, or if ID changed during edit)
-    const idConflict = db.users.find(u => u.id === displayId && u.id !== id);
+    const normalizedNewId = displayId.trim().toLowerCase();
+    const idConflict = db.users.find(u => 
+        (u.id.toLowerCase() === normalizedNewId || (u.displayId && u.displayId.toLowerCase() === normalizedNewId)) && 
+        u.id !== id
+    );
     if (idConflict) {
         showToast("Conflict Error", "This Employee ID is already assigned to another user. Please choose a unique ID.", "error");
         return;
