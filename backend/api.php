@@ -103,8 +103,8 @@ try {
         `leaveTypes` longtext DEFAULT NULL,
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-    $pdo->exec("ALTER TABLE company_profile ADD COLUMN `leaveTypes` longtext DEFAULT NULL");
-    $pdo->exec("ALTER TABLE company_profile ADD COLUMN `letterheadBase64` longtext DEFAULT NULL");
+    try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `leaveTypes` longtext DEFAULT NULL"); } catch (Exception $ex) {}
+    try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `letterheadBase64` longtext DEFAULT NULL"); } catch (Exception $ex) {}
 } catch (Exception $e) {
     // Ignore if unsupported (e.g. SQLite doesn't support ENGINE=InnoDB)
     try {
@@ -124,8 +124,8 @@ try {
             `letterheadBase64` TEXT,
             `leaveTypes` TEXT
         );");
-        $pdo->exec("ALTER TABLE company_profile ADD COLUMN `leaveTypes` TEXT");
-        $pdo->exec("ALTER TABLE company_profile ADD COLUMN `letterheadBase64` TEXT");
+        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `leaveTypes` TEXT"); } catch (Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `letterheadBase64` TEXT"); } catch (Exception $ex) {}
     } catch (Exception $e2) {
         error_log("Failed to create company_profile table: " . $e2->getMessage());
     }
