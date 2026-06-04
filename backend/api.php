@@ -60,7 +60,20 @@ $new_columns = [
     "ADD COLUMN `managerId` varchar(50) DEFAULT NULL",
     "ADD COLUMN `profilePic` longtext DEFAULT NULL",
     "ADD COLUMN `documents` longtext DEFAULT NULL",
-    "ADD COLUMN `leaveBalances` longtext DEFAULT NULL"
+    "ADD COLUMN `leaveBalances` longtext DEFAULT NULL",
+    "ADD COLUMN `displayId` varchar(50) DEFAULT NULL",
+    "ADD COLUMN `fatherName` varchar(100) DEFAULT NULL",
+    "ADD COLUMN `gender` varchar(20) DEFAULT NULL",
+    "ADD COLUMN `dob` date DEFAULT NULL",
+    "ADD COLUMN `cnic` varchar(50) DEFAULT NULL",
+    "ADD COLUMN `maritalStatus` varchar(50) DEFAULT NULL",
+    "ADD COLUMN `phone` varchar(50) DEFAULT NULL",
+    "ADD COLUMN `emergencyContact` varchar(100) DEFAULT NULL",
+    "ADD COLUMN `bankName` varchar(100) DEFAULT NULL",
+    "ADD COLUMN `accountTitle` varchar(100) DEFAULT NULL",
+    "ADD COLUMN `accountNumber` varchar(100) DEFAULT NULL",
+    "ADD COLUMN `iban` varchar(100) DEFAULT NULL",
+    "ADD COLUMN `branchCode` varchar(50) DEFAULT NULL"
 ];
 
 foreach ($new_columns as $col) {
@@ -295,11 +308,17 @@ elseif ($action === 'save_all') {
         // 1. Sync Users
         $pdo->exec("DELETE FROM users");
         if (!empty($data['users'])) {
-            $stmt = $pdo->prepare("INSERT INTO users (id, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, documents, bloodGroup, designation, leaveBalances) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, documents, bloodGroup, designation, leaveBalances, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             foreach ($data['users'] as $u) {
                 $stmt->execute([
-                    $u['id'], $u['email'], $u['password'], $u['name'], $u['role'], 
-                    $u['managerId'] ?? '', $u['status'], 
+                    $u['id'], 
+                    $u['displayId'] ?? null,
+                    $u['email'], 
+                    $u['password'], 
+                    $u['name'], 
+                    $u['role'], 
+                    $u['managerId'] ?? '', 
+                    $u['status'], 
                     $u['salary'] === '' ? 0 : ($u['salary'] ?? 0), 
                     $u['startDate'] === '' ? null : ($u['startDate'] ?? null), 
                     $u['endDate'] === '' ? null : ($u['endDate'] ?? null),
@@ -307,7 +326,19 @@ elseif ($action === 'save_all') {
                     !empty($u['documents']) ? json_encode($u['documents']) : null,
                     $u['bloodGroup'] ?? null,
                     $u['designation'] ?? null,
-                    !empty($u['leaveBalances']) ? json_encode($u['leaveBalances']) : null
+                    !empty($u['leaveBalances']) ? json_encode($u['leaveBalances']) : null,
+                    $u['fatherName'] ?? null,
+                    $u['gender'] ?? null,
+                    $u['dob'] === '' ? null : ($u['dob'] ?? null),
+                    $u['cnic'] ?? null,
+                    $u['maritalStatus'] ?? null,
+                    $u['phone'] ?? null,
+                    $u['emergencyContact'] ?? null,
+                    $u['bankName'] ?? null,
+                    $u['accountTitle'] ?? null,
+                    $u['accountNumber'] ?? null,
+                    $u['iban'] ?? null,
+                    $u['branchCode'] ?? null
                 ]);
             }
         }
