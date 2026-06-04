@@ -4139,23 +4139,38 @@ document.addEventListener('DOMContentLoaded', async () => {
         const file = files[0];
         const reader = new FileReader();
         reader.onload = function (e) {
-            const dataURL = e.target.result;
-            dropzone.innerHTML = `
-                <img src="${dataURL}" alt="Company Logo" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
-                <div style="font-size: 11px; color: var(--text-muted);">Click to change logo</div>
-                <input type="file" id="comp-logo-input" accept="image/*" style="display:none;">
-            `;
-            // Attach logo data to the form dataset for saving
-            document.getElementById('company-profile-form').dataset.logoBase64 = dataURL;
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                const maxWidth = 400; // max width for logo
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                const dataURL = canvas.toDataURL('image/png', 0.8);
+                dropzone.innerHTML = `
+                    <img src="${dataURL}" alt="Company Logo" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                    <div style="font-size: 11px; color: var(--text-muted);">Click to change logo</div>
+                    <input type="file" id="comp-logo-input" accept="image/*" style="display:none;">
+                `;
+                document.getElementById('company-profile-form').dataset.logoBase64 = dataURL;
 
-            // Reattach listener
-            const newInput = dropzone.querySelector('#comp-logo-input');
-            if (newInput) {
-                newInput.addEventListener('change', () => {
-                    if (newInput.files.length) window.onCompLogoSelected(dropzone, newInput.files);
-                });
-                dropzone.addEventListener('click', () => newInput.click(), { once: true });
-            }
+                const newInput = dropzone.querySelector('#comp-logo-input');
+                if (newInput) {
+                    newInput.addEventListener('change', () => {
+                        if (newInput.files.length) window.onCompLogoSelected(dropzone, newInput.files);
+                    });
+                    dropzone.addEventListener('click', () => newInput.click(), { once: true });
+                }
+            };
+            img.src = e.target.result;
         };
         reader.readAsDataURL(file);
     };
@@ -4165,21 +4180,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         const file = files[0];
         const reader = new FileReader();
         reader.onload = function (e) {
-            const dataURL = e.target.result;
-            dropzone.innerHTML = `
-                <img src="${dataURL}" alt="Letterhead Banner" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
-                <div style="font-size: 11px; color: var(--text-muted);">Click to change banner</div>
-                <input type="file" id="comp-letterhead-input" accept="image/*" style="display:none;">
-            `;
-            document.getElementById('company-profile-form').dataset.letterheadBase64 = dataURL;
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                const maxWidth = 1200; // max width for letterhead
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Compress to 70% quality JPEG
+                const dataURL = canvas.toDataURL('image/jpeg', 0.7);
+                
+                dropzone.innerHTML = `
+                    <img src="${dataURL}" alt="Letterhead Banner" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                    <div style="font-size: 11px; color: var(--text-muted);">Click to change banner</div>
+                    <input type="file" id="comp-letterhead-input" accept="image/*" style="display:none;">
+                `;
+                document.getElementById('company-profile-form').dataset.letterheadBase64 = dataURL;
 
-            const newInput = dropzone.querySelector('#comp-letterhead-input');
-            if (newInput) {
-                newInput.addEventListener('change', () => {
-                    if (newInput.files.length) window.onCompLetterheadSelected(dropzone, newInput.files);
-                });
-                dropzone.addEventListener('click', () => newInput.click(), { once: true });
-            }
+                const newInput = dropzone.querySelector('#comp-letterhead-input');
+                if (newInput) {
+                    newInput.addEventListener('change', () => {
+                        if (newInput.files.length) window.onCompLetterheadSelected(dropzone, newInput.files);
+                    });
+                    dropzone.addEventListener('click', () => newInput.click(), { once: true });
+                }
+            };
+            img.src = e.target.result;
         };
         reader.readAsDataURL(file);
     };
