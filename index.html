@@ -57,14 +57,29 @@
         @media print {
             @page {
                 size: auto;
-                margin: 0mm; /* 0mm forces removal of browser headers/footers */
+                margin: 5mm 10mm; /* Small margin for content, no browser headers */
             }
 
-            html, body {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            html {
                 min-height: 0 !important;
                 height: auto !important;
                 margin: 0 !important;
                 padding: 0 !important;
+                overflow: visible !important;
+            }
+
+            body {
+                min-height: 0 !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+                background: white !important;
             }
 
             /* Hide ALL direct children of body by default */
@@ -72,13 +87,11 @@
                 display: none !important;
             }
 
-            /* Specifically display ONLY the modals we want to print */
+            /* Specifically display ONLY the open modal being printed */
             body > #modal-view-payslip:not(.hidden),
             body > #modal-view-summary:not(.hidden) {
                 display: block !important;
-                position: relative !important;
-                left: auto !important;
-                top: auto !important;
+                position: static !important;
                 width: 100% !important;
                 background: white !important;
                 color: black !important;
@@ -91,23 +104,33 @@
                 overflow: visible !important;
                 margin: 0 !important;
                 padding: 0 !important;
+                page-break-after: avoid !important;
             }
-            
+
             #summary-print-area, #payslip-print-area {
                 display: block !important;
                 width: 100% !important;
-                overflow: hidden !important;
+                overflow: visible !important;
                 max-height: none !important;
                 height: auto !important;
                 background: white !important;
                 color: black !important;
-                padding: 0 !important;
+                padding: 5px 15px !important;
                 margin: 0 !important;
                 border: none !important;
+                border-radius: 0 !important;
                 box-sizing: border-box;
+                page-break-inside: avoid !important;
             }
 
-            .no-print {
+            /* Kill all modal flex/scroll behavior in print */
+            #modal-view-payslip:not(.hidden),
+            #modal-view-summary:not(.hidden) {
+                display: block !important;
+                flex-direction: unset !important;
+            }
+
+            .no-print, .modal-header {
                 display: none !important;
             }
         }

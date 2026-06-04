@@ -259,7 +259,7 @@ window.openMonthlySummaryModal = function() {
                     </tr>
                     <tr>
                         <td colspan="6" style="padding: 0; border: none;">
-                            <div style="display: flex; justify-content: space-between; margin-top: 60px; margin-bottom: 0px;">
+                            <div style="display: flex; justify-content: space-between; margin-top: 30px; margin-bottom: 0px;">
                                 <div style="text-align: center;">
                                     <div style="width: 200px; border-top: 1px solid #374151; margin-bottom: 10px;"></div>
                                     <div style="font-size: 12px; font-weight: 600;">Prepared By</div>

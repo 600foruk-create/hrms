@@ -1907,7 +1907,7 @@ body.light-mode .report-preview-container {
     .topbar,
     .toast-container,
     .modal-backdrop,
-    .modal,
+    .modal.hidden,
     .view-header .actions,
     .sidebar-toggle,
     .report-generator-grid .filter-panel,
