@@ -206,7 +206,7 @@ window.openMonthlySummaryModal = function() {
         <tr>
             <td colspan="6" style="padding: 0; border: none;">
                 ${cLetterhead ? `
-                <div style="margin: 0 0 15px 0; text-align: center;">
+                <div class="print-letterhead" style="margin: 0 0 15px 0; text-align: center;">
                     <img src="${cLetterhead}" style="width: 100%; height: auto; display: block;" alt="Letterhead Banner">
                 </div>
                 ` : `
