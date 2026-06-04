@@ -198,6 +198,7 @@ window.openMonthlySummaryModal = function() {
     const letterheadHeader = `
         <tr>
             <td colspan="6" style="padding: 0; border: none;">
+                <!-- Company Profile Letterhead -->
                 <div style="display: flex; align-items: center; border-bottom: 2px solid #3b82f6; padding-bottom: 15px; margin-bottom: 15px;">
                     ${cLogo ? `<img src="${cLogo}" style="max-height: 60px; max-width: 150px; margin-right: 20px; object-fit: contain;">` : ''}
                     <div style="flex-grow: 1;">
@@ -210,10 +211,13 @@ window.openMonthlySummaryModal = function() {
                             </div>
                         </div>
                     </div>
-                    <div style="text-align: right; min-width: 200px;">
-                        <div style="font-size: 14px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; padding: 4px 8px; background: #eff6ff; border-radius: 4px; display: inline-block;">Payroll Summary</div>
-                        <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Period: <span style="font-weight: 600; color: #334155;">${periodText}</span></div>
-                        <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">Total Employees: ${visibleCount}</div>
+                </div>
+                
+                <!-- Document Title -->
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px 0;">Monthly Payroll Summary</h2>
+                    <div style="font-size: 12px; color: #475569; font-weight: 500;">
+                        Period: <span style="color: #2563eb; font-weight: 600;">${periodText}</span> &nbsp;|&nbsp; Total Employees: <span style="color: #2563eb; font-weight: 600;">${visibleCount}</span>
                     </div>
                 </div>
             </td>
