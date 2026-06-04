@@ -99,10 +99,12 @@ try {
         `size` varchar(50) DEFAULT NULL,
         `type` varchar(50) DEFAULT NULL,
         `logoBase64` longtext DEFAULT NULL,
+        `letterheadBase64` longtext DEFAULT NULL,
         `leaveTypes` longtext DEFAULT NULL,
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
     $pdo->exec("ALTER TABLE company_profile ADD COLUMN `leaveTypes` longtext DEFAULT NULL");
+    $pdo->exec("ALTER TABLE company_profile ADD COLUMN `letterheadBase64` longtext DEFAULT NULL");
 } catch (Exception $e) {
     // Ignore if unsupported (e.g. SQLite doesn't support ENGINE=InnoDB)
     try {
@@ -119,9 +121,11 @@ try {
             `size` TEXT,
             `type` TEXT,
             `logoBase64` TEXT,
+            `letterheadBase64` TEXT,
             `leaveTypes` TEXT
         );");
         $pdo->exec("ALTER TABLE company_profile ADD COLUMN `leaveTypes` TEXT");
+        $pdo->exec("ALTER TABLE company_profile ADD COLUMN `letterheadBase64` TEXT");
     } catch (Exception $e2) {
         error_log("Failed to create company_profile table: " . $e2->getMessage());
     }
@@ -380,11 +384,11 @@ elseif ($action === 'save_all') {
         $pdo->exec("DELETE FROM company_profile");
         if (!empty($data['companyProfile'])) {
             $cp = $data['companyProfile'];
-            $stmt = $pdo->prepare("INSERT INTO company_profile (name, email, phone, website, address, reg, slogan, industry, size, type, logoBase64, leaveTypes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO company_profile (name, email, phone, website, address, reg, slogan, industry, size, type, logoBase64, letterheadBase64, leaveTypes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $cp['name'] ?? '', $cp['email'] ?? '', $cp['phone'] ?? '', $cp['website'] ?? '',
                 $cp['address'] ?? '', $cp['reg'] ?? '', $cp['slogan'] ?? '', $cp['industry'] ?? '',
-                $cp['size'] ?? '', $cp['type'] ?? '', $cp['logoBase64'] ?? '',
+                $cp['size'] ?? '', $cp['type'] ?? '', $cp['logoBase64'] ?? '', $cp['letterheadBase64'] ?? '',
                 !empty($cp['leaveTypes']) ? json_encode($cp['leaveTypes']) : null
             ]);
         }
