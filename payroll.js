@@ -203,38 +203,42 @@ window.openMonthlySummaryModal = function() {
     }
 
     const letterheadHeader = `
-        ${cLetterhead ? `
-        <div style="margin: -5mm -10mm 15px -10mm; text-align: center;">
-            <img src="${cLetterhead}" style="width: 100%; height: auto; display: block;" alt="Letterhead Banner">
-        </div>
-        ` : `
-        <div style="position: relative; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #1e293b; text-align: center; min-height: 70px; display: flex; flex-direction: column; justify-content: center;">
-            ${cLogo ? `<div style="position: absolute; left: 0; top: 50%; transform: translateY(-50%);"><img src="${cLogo}" style="max-height: 70px; max-width: 180px; object-fit: contain;"></div>` : ''}
-            <div style="margin: 0 auto; max-width: 60%; padding-left: ${cLogo ? '150px' : '0'};">
-                <div style="font-size: 26px; font-weight: bold; font-style: italic; color: #1e293b; margin-bottom: 5px; font-family: 'Times New Roman', Times, serif;">${cName}</div>
-                <div style="font-size: 12px; color: #334155; margin-bottom: 3px;">${cAddress}</div>
-                <div style="font-size: 12px; color: #334155;">
-                    ${cPhone ? `Tel: ${cPhone}` : ''} ${cPhone && cEmail ? ' | ' : ''} ${cEmail ? `Email: ${cEmail}` : ''}
+        <tr>
+            <td colspan="6" style="padding: 0; border: none;">
+                ${cLetterhead ? `
+                <div style="margin: -5mm -10mm 15px -10mm; text-align: center;">
+                    <img src="${cLetterhead}" style="width: 100%; height: auto; display: block;" alt="Letterhead Banner">
                 </div>
-            </div>
-        </div>
-        `}
-        
-        <div style="text-align: center; margin-bottom: 20px;">
-            <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px 0;">Monthly Payroll Summary</h2>
-            <div style="font-size: 13px; color: #475569; font-weight: 600;">
-                For the Month of <span style="color: #2563eb;">${periodText}</span>
-            </div>
-        </div>
+                ` : `
+                <div style="position: relative; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid #1e293b; text-align: center; min-height: 70px; display: flex; flex-direction: column; justify-content: center;">
+                    ${cLogo ? `<div style="position: absolute; left: 0; top: 50%; transform: translateY(-50%);"><img src="${cLogo}" style="max-height: 70px; max-width: 180px; object-fit: contain;"></div>` : ''}
+                    <div style="margin: 0 auto; max-width: 60%; padding-left: ${cLogo ? '150px' : '0'};">
+                        <div style="font-size: 26px; font-weight: bold; font-style: italic; color: #1e293b; margin-bottom: 5px; font-family: 'Times New Roman', Times, serif;">${cName}</div>
+                        <div style="font-size: 12px; color: #334155; margin-bottom: 3px;">${cAddress}</div>
+                        <div style="font-size: 12px; color: #334155;">
+                            ${cPhone ? `Tel: ${cPhone}` : ''} ${cPhone && cEmail ? ' | ' : ''} ${cEmail ? `Email: ${cEmail}` : ''}
+                        </div>
+                    </div>
+                </div>
+                `}
+                
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px 0;">Monthly Payroll Summary</h2>
+                    <div style="font-size: 13px; color: #475569; font-weight: 600;">
+                        For the Month of <span style="color: #2563eb;">${periodText}</span>
+                    </div>
+                </div>
+            </td>
+        </tr>
     `;
 
 
 
     printArea.innerHTML = `
-        <div style="width: 100%; overflow-x: hidden;">
-            ${letterheadHeader}
-            <table style="width: 100%; border-collapse: collapse; text-align: left; table-layout: fixed;">
+        <div style="width: 100%;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
                 <thead style="display: table-header-group;">
+                    ${letterheadHeader}
                     <tr>
                         <th style="padding: 8px 10px; font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; background-color: #f8fafc;">ID</th>
                         <th style="padding: 8px 10px; font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; background-color: #f8fafc;">Employee</th>
