@@ -2869,9 +2869,12 @@
 
     <!-- GSAP for Yeti Animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <!-- Main JS Application script -->
-    <script src="app.js?v=7.2"></script>
-    <script src="payroll.js?v=10.0"></script>
+    <!-- Main JS Application scripts (Dynamic Cache-Busting) -->
+    <script>
+        var cacheBuster = new Date().getTime();
+        document.write('<script src="app.js?v=' + cacheBuster + '"><\/script>');
+        document.write('<script src="payroll.js?v=' + cacheBuster + '"><\/script>');
+    </script>
 </body>
 
 </html>
