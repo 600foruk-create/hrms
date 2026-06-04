@@ -167,7 +167,7 @@ window.openMonthlySummaryModal = function() {
         grandTotalDeductions += totalDed;
         grandTotalNet += record.netPay;
 
-        tbodyHTML += `
+        tableRows += `
             <tr>
                 <td class="text-secondary" style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px;">${record.userId}</td>
                 <td class="bold" style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px;">${name}</td>
@@ -258,7 +258,7 @@ window.openMonthlySummaryModal = function() {
                     </tr>
                 </thead>
                 <tbody>
-                    ${tbodyHTML}
+                    ${tableRows}
                     <tr>
                         <td colspan="2" style="padding: 12px 10px; text-align: right; border-top: 2px solid #cbd5e1; color: #334155; font-size: 11px;">GRAND TOTALS:</td>
                         <td style="padding: 12px 10px; border-top: 2px solid #cbd5e1; color: #334155; font-size: 11px;">Rs ${Math.round(grandTotalBasic).toLocaleString()}</td>
