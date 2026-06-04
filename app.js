@@ -2164,6 +2164,16 @@ window.viewUserProfile = function (userId) {
     document.getElementById('profile-role').textContent = user.role;
     document.getElementById('profile-role').className = `role-badge badge-role ${user.role.toLowerCase()}`;
     document.getElementById('profile-email').textContent = user.email;
+    
+    const moreDetailsBtn = document.getElementById('profile-more-details-btn');
+    if (moreDetailsBtn) {
+        moreDetailsBtn.onclick = function(e) {
+            e.preventDefault();
+            closeAllModals();
+            openEditEmployeeModal(userId, true);
+        };
+    }
+
     const avatarEl = document.getElementById('profile-avatar');
     if (user.profilePic) {
         avatarEl.innerHTML = `<a href="${user.profilePic}" target="_blank" title="Click to view full image"><img src="${user.profilePic}" style="width:100%;height:100%;object-fit:cover;" alt="Profile Picture"></a>`;
@@ -2291,7 +2301,7 @@ window.openCompanyProfileModal = function () {
 window.tempProfilePic = null;
 window.tempDocuments = [];
 
-window.openEditEmployeeModal = function (userId) {
+window.openEditEmployeeModal = function (userId, isViewOnly = false) {
     try {
         const db = getDb();
         const user = db.users.find(u => u.id === userId);
@@ -2299,7 +2309,7 @@ window.openEditEmployeeModal = function (userId) {
         const modalEl = document.getElementById('modal-employee');
         if (modalEl) modalEl.classList.remove('modal-maximized', 'modal-minimized');
 
-        document.getElementById('modal-employee-title').textContent = user ? "Edit Profile" : "Add Employee";
+        document.getElementById('modal-employee-title').textContent = user ? (isViewOnly ? "View Profile Details" : "Edit Profile") : "Add Employee";
 
         let displayId = "";
         if (user && user.displayId) {
@@ -2340,23 +2350,37 @@ window.openEditEmployeeModal = function (userId) {
         document.getElementById('emp-end-date').value = "";
     }
 
-    // Read-only logic for Inactive users
+    // Read-only logic for Inactive users OR View-Only mode
     const isInactive = user && user.status === 'Inactive';
+    const shouldDisable = isViewOnly || isInactive;
+    
     const formElements = document.getElementById('employee-form').querySelectorAll('input, select');
     formElements.forEach(el => {
-        if (el.id !== 'emp-form-id' && el.id !== 'emp-display-id') {
+        if (isViewOnly) {
+            el.disabled = true; // Disable everything in view mode
+        } else if (el.id !== 'emp-form-id' && el.id !== 'emp-display-id') {
             el.disabled = isInactive;
+        } else {
+            el.disabled = false;
         }
     });
+    
     const submitBtn = document.querySelector('#employee-form button[type="submit"]');
     if (submitBtn) {
-        submitBtn.style.display = isInactive ? 'none' : 'block';
+        submitBtn.style.display = shouldDisable ? 'none' : 'block';
     }
 
-    // Password mandatory for new users only, but always visible
+    // Disable file dropzones in view mode
+    const dropzones = document.querySelectorAll('#modal-employee .dropzone');
+    dropzones.forEach(dz => {
+        dz.style.pointerEvents = isViewOnly ? 'none' : 'auto';
+        dz.style.opacity = isViewOnly ? '0.6' : '1';
+    });
+
+    // Password mandatory for new users only, but always visible (unless view only)
     const passInput = document.getElementById('emp-password');
     const passAsterisk = document.getElementById('emp-pass-asterisk');
-    document.getElementById('emp-pass-group').style.display = 'block';
+    document.getElementById('emp-pass-group').style.display = isViewOnly ? 'none' : 'block';
     
     if (user) {
         passInput.removeAttribute('required');
