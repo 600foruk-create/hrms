@@ -73,8 +73,8 @@
             }
 
             /* Specifically display ONLY the modals we want to print */
-            body > #modal-view-payslip,
-            body > #modal-view-summary {
+            body > #modal-view-payslip:not(.hidden),
+            body > #modal-view-summary:not(.hidden) {
                 display: block !important;
                 position: relative !important;
                 left: auto !important;
