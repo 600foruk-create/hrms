@@ -21,7 +21,6 @@ const TASK_SUBCATEGORIES = {
 // ==================== DATABASE ENGINE (Hostinger PHP Backend) ====================
 const API_URL = 'backend/api.php';
 window.hrmsDatabase = { users: [], weights: {}, leaves: [], productivity: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [], globalSalarySettings: { allowances: [], deductions: [] } };
-let isDummyMode = false; // Safety lock
 
 async function syncServer() {
     let success = false;
@@ -47,7 +46,6 @@ async function syncServer() {
 
     // Fallback Mock Database if API fails or DB is empty (Allows local demo to work)
     if (!success) {
-        isDummyMode = true; // Activate safety lock
         console.warn("Using Fallback Mock Database...");
         let localData = localStorage.getItem('hrms_fallback_db');
         if (localData) {
@@ -63,8 +61,11 @@ async function syncServer() {
             login_bg: 'assets/images/login/login_bg.png',
             users: [
                 { id: "U1", email: "admin@hrms.com", password: "admin123", name: "admin", role: "Admin", managerId: "", status: "Active" },
-                { id: "U2", email: "manager@hrms.com", password: "manager123", name: "Manager", role: "Manager", managerId: "", status: "Active" },
-                { id: "U3", email: "user@hrms.com", password: "user123", name: "User", role: "Employee", managerId: "U2", status: "Active" }
+                { id: "U2", email: "sarah.manager@hrms.com", password: "manager123", name: "Sarah Jenkins", role: "Manager", managerId: "", status: "Active" },
+                { id: "U3", email: "alex.manager@hrms.com", password: "manager123", name: "Alex Mercer", role: "Manager", managerId: "", status: "Active" },
+                { id: "U4", email: "john.emp@hrms.com", password: "employee123", name: "John Doe", role: "Employee", managerId: "U2", status: "Active" },
+                { id: "U5", email: "emma.emp@hrms.com", password: "employee123", name: "Emma Watson", role: "Employee", managerId: "U2", status: "Active" },
+                { id: "U6", email: "ryan.emp@hrms.com", password: "employee123", name: "Ryan Gosling", role: "Employee", managerId: "U3", status: "Active" }
             ],
             weights: {
                 "Billing": 2.0,
@@ -73,10 +74,19 @@ async function syncServer() {
                 "Eligibility Check": 1.0,
                 "Report Preparation": 2.0
             },
-            leaves: [],
-            productivity: [],
-            attendance: [],
-            announcements: [],
+            leaves: [
+                { id: "L1", employeeId: "U4", employeeName: "John Doe", type: "Annual", startDate: "2026-06-01", endDate: "2026-06-05", reason: "Family Vacation", status: "Approved" },
+                { id: "L2", employeeId: "U5", employeeName: "Emma Watson", type: "Sick", startDate: "2026-05-25", endDate: "2026-05-26", reason: "Fever", status: "Pending" }
+            ],
+            productivity: [
+                { id: "P1", employeeId: "U4", employeeName: "John Doe", date: "2026-05-20", tasks: ["Billing", "Follow-up"], subcategories: ["Demographics Entry", "Patient Follow-up"], counts: ["45", "12"], notes: "Completed daily quota.", score: 102.00, status: "Approved" }
+            ],
+            attendance: [
+                { date: "2026-05-20", employeeId: "U4", employeeName: "John Doe", status: "Present", markedBy: "Auto Login" }
+            ],
+            announcements: [
+                { id: "A1", title: "Welcome to HRMS", content: "This is a demo announcement.", target: "All", date: "2026-05-20", author: "Syed Admin" }
+            ],
             auditLogs: [],
             notifications: [],
             salaryProfiles: [],
@@ -110,15 +120,6 @@ function getInitials(name) {
 
 async function saveDb(data) {
     window.hrmsDatabase = data; // Immediate local update for UI speed
-    
-    if (isDummyMode) {
-        console.error("SAFETY LOCK: Cannot save dummy data to live SQL server. This would wipe the real database.");
-        if(typeof showToast === 'function') {
-            showToast("Database sync blocked to protect live data.", "error");
-        }
-        return;
-    }
-
     try {
         localStorage.setItem('hrms_fallback_db', JSON.stringify(data));
     } catch (e) {
