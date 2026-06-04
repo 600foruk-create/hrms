@@ -84,7 +84,7 @@ window.renderPayrollHistory = function() {
         tbody.innerHTML += `
             <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
                 <td class="text-secondary" style="font-size: 11px;">${record.batchId}</td>
-                <td class="bold">${name} <br><span class="text-secondary" style="font-size:10px;">${record.userId}</span></td>
+                <td class="bold">${name} <br><span class="text-secondary" style="font-size:10px;">${user?.displayId || record.userId}</span></td>
                 <td>${record.startDate} to ${record.endDate}</td>
                 <td>Rs ${Math.round(record.netFixed).toLocaleString()}</td>
                 <td class="text-danger">-Rs ${Math.round(totalDed).toLocaleString()}</td>
@@ -169,7 +169,7 @@ window.openMonthlySummaryModal = function() {
 
         tableRows += `
             <tr>
-                <td class="text-secondary" style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px;">${record.userId}</td>
+                <td class="text-secondary" style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px;">${user?.displayId || record.userId}</td>
                 <td class="bold" style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; font-size: 11px;">${name}</td>
                 <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; color: #334155; font-size: 11px;">Rs ${basic.toLocaleString()}</td>
                 <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; color: #059669; font-size: 11px;">Rs ${Math.round(totalAdd).toLocaleString()}</td>
@@ -357,7 +357,7 @@ window.openPayslipModal = function(recordId) {
             </div>
             <div class="payslip-info-item">
                 <span class="payslip-info-label">Employee ID</span>
-                <span class="payslip-info-value">${record.userId}</span>
+                <span class="payslip-info-value">${user?.displayId || record.userId}</span>
             </div>
             <div class="payslip-info-item">
                 <span class="payslip-info-label">Designation</span>

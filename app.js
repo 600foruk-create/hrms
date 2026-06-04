@@ -2528,15 +2528,26 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
     const designation = document.getElementById('emp-designation').value.trim();
 
     // Validation
+    if (!displayId || !displayId.trim()) {
+        showToast("Validation Error", "Employee ID is required. Please enter a unique Employee ID.", "error");
+        return;
+    }
     if (!name || !email || !cnic || !phone) {
         showToast("Validation Error", "Name, Email, CNIC and Phone are required.", "error");
         return;
     }
 
     // Email conflict check
-    const emailConflict = db.users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.id !== id);
+    const emailConflict = db.users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.id !== id && u.id !== displayId);
     if (emailConflict) {
         showToast("Conflict Error", "Email address already assigned to another user.", "error");
+        return;
+    }
+
+    // Employee ID uniqueness check (for new employees, or if ID changed during edit)
+    const idConflict = db.users.find(u => u.id === displayId && u.id !== id);
+    if (idConflict) {
+        showToast("Conflict Error", "This Employee ID is already assigned to another user. Please choose a unique ID.", "error");
         return;
     }
 
@@ -2544,12 +2555,38 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
         // Edit Mode
         const user = db.users.find(u => u.id === id);
         if (user) {
+            const oldId = user.id;
+            const newId = displayId.trim();
+
+            // If the Employee ID was changed, migrate all references
+            if (oldId !== newId) {
+                user.id = newId;
+                user.displayId = newId;
+                // Migrate attendance records
+                (db.attendance || []).forEach(a => { if (a.employeeId === oldId) a.employeeId = newId; });
+                // Migrate leave records
+                (db.leaves || []).forEach(l => { if (l.employeeId === oldId) l.employeeId = newId; });
+                // Migrate productivity records
+                (db.productivity || []).forEach(p => { if (p.employeeId === oldId) p.employeeId = newId; });
+                // Migrate payroll history
+                (db.payrollHistory || []).forEach(ph => { if (ph.userId === oldId) ph.userId = newId; });
+                // Migrate salary profiles
+                (db.salaryProfiles || []).forEach(sp => { if (sp.userId === oldId) sp.userId = newId; });
+                // Migrate loans
+                (db.loans || []).forEach(ln => { if (ln.userId === oldId) ln.userId = newId; });
+                // Migrate notifications
+                (db.notifications || []).forEach(n => { if (n.userId === oldId) n.userId = newId; });
+                // Update managerId references in other users
+                db.users.forEach(u => { if (u.managerId === oldId) u.managerId = newId; });
+            } else {
+                user.displayId = newId;
+            }
+
             user.name = name;
             user.email = email;
             user.role = role;
             user.managerId = managerId;
             user.status = status;
-            user.displayId = displayId;
             user.fatherName = fatherName;
             user.gender = gender;
             user.dob = dob;
@@ -2579,16 +2616,16 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
             logAudit(`Updated profile details for employee: ${name} (${role}).`);
         }
     } else {
-        // Create Mode
+        // Create Mode — use the admin-entered Employee ID as the actual primary ID
         if (password.length < 6) {
             showToast("Password Error", "Password must be at least 6 characters.", "error");
             return;
         }
 
-        const newId = "U_" + Date.now();
+        const actualId = displayId.trim();
         db.users.push({
-            id: newId,
-            displayId,
+            id: actualId,
+            displayId: actualId,
             name,
             email,
             password,
@@ -2613,8 +2650,8 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
         });
 
         saveDb(db);
-        showToast("Created", `New user profile created for ${name}.`);
-        logAudit(`Created new employee profile: ${name} (${role}).`);
+        showToast("Created", `New user profile created for ${name} (ID: ${actualId}).`);
+        logAudit(`Created new employee profile: ${name} (${role}, ID: ${actualId}).`);
     }
 
     closeAllModals();
