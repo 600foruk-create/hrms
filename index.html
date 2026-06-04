@@ -55,39 +55,41 @@
     <style>
         /* Print Styles */
         @media print {
-            body * {
-                visibility: hidden;
+            /* Hide ALL direct children of body by default */
+            body > * {
+                display: none !important;
             }
 
-            #modal-view-payslip,
-            #payslip-print-area,
-            #payslip-print-area *,
-            #modal-view-summary,
-            #summary-print-area,
-            #summary-print-area * {
-                visibility: visible;
-            }
-
-            #modal-view-payslip,
-            #modal-view-summary {
+            /* Specifically display ONLY the modals we want to print */
+            body > #modal-view-payslip,
+            body > #modal-view-summary {
                 display: block !important;
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                background: white;
-                box-shadow: none;
-                border: none;
-                transform: none;
-                max-width: none;
-                max-height: none;
-                overflow: visible;
+                position: relative !important;
+                left: auto !important;
+                top: auto !important;
+                width: 100% !important;
+                background: white !important;
+                color: black !important;
+                box-shadow: none !important;
+                border: none !important;
+                transform: none !important;
+                max-width: 100% !important;
+                max-height: none !important;
+                height: auto !important;
+                overflow: visible !important;
+                margin: 0 !important;
+                padding: 0 !important;
             }
             
             #summary-print-area, #payslip-print-area {
+                display: block !important;
+                width: 100% !important;
                 overflow: visible !important;
                 max-height: none !important;
                 height: auto !important;
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
             }
 
             .no-print {
