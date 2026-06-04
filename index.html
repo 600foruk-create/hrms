@@ -57,7 +57,7 @@
         @media print {
             @page {
                 size: auto;
-                margin: 5mm 10mm; /* Small margin for content, no browser headers */
+                margin: 0; /* No browser margins to allow edge-to-edge letterhead */
             }
 
             * {
@@ -115,12 +115,11 @@
                 height: auto !important;
                 background: white !important;
                 color: black !important;
-                padding: 5px 15px !important;
+                padding: 0 !important;
                 margin: 0 !important;
                 border: none !important;
                 border-radius: 0 !important;
                 box-sizing: border-box;
-                page-break-inside: avoid !important;
             }
 
             /* Kill all modal flex/scroll behavior in print */
