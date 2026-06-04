@@ -171,9 +171,6 @@ window.openMonthlySummaryModal = function() {
                 <td style="padding: 10px 15px; font-size: 13px; color: #059669;">Rs ${Math.round(totalAdd).toLocaleString()}</td>
                 <td style="padding: 10px 15px; font-size: 13px; color: #dc2626;">Rs ${Math.round(totalDed).toLocaleString()}</td>
                 <td style="padding: 10px 15px; font-size: 13px; font-weight: 700;">Rs ${Math.round(record.netPay).toLocaleString()}</td>
-                <td style="padding: 10px 15px; font-size: 13px;">
-                    <div style="width: 100px; border-bottom: 1px solid #9ca3af; height: 15px;"></div>
-                </td>
             </tr>
         `;
     });
@@ -196,44 +193,44 @@ window.openMonthlySummaryModal = function() {
     }
 
     printArea.innerHTML = `
-        <div class="payslip-header" style="border-bottom: 2px solid #374151; padding-bottom: 15px; margin-bottom: 20px;">
+        <div style="background-color: #f8fafc; padding: 25px 30px; border-radius: 12px 12px 0 0; border: 1px solid #e2e8f0; border-bottom: none; display: flex; justify-content: space-between; align-items: center;">
             <div>
-                <div style="font-size: 24px; font-weight: 800; color: #111827;">${cName}</div>
-                <div style="font-size: 14px; color: #4b5563;">${cAddress}</div>
+                <div style="font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 4px;">${cName}</div>
+                <div style="font-size: 13px; color: #64748b;">${cAddress}</div>
             </div>
             <div style="text-align: right;">
-                <div style="font-size: 20px; font-weight: 700; color: #374151;">MONTHLY PAYROLL SHEET</div>
-                <div style="font-size: 14px; color: #4b5563;">Period: ${periodText}</div>
-                <div style="font-size: 11px; color: #9ca3af; margin-top: 5px;">Total Employees: ${visibleCount}</div>
+                <div style="font-size: 18px; font-weight: 700; color: #334155; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Monthly Payroll Sheet</div>
+                <div style="font-size: 13px; color: #64748b;">Period: <span style="font-weight: 600; color: #475569;">${periodText}</span></div>
+                <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">Total Employees: ${visibleCount}</div>
             </div>
         </div>
         
-        <table style="width: 100%; border-collapse: collapse; text-align: left; margin-bottom: 30px;">
-            <thead style="background-color: #f3f4f6;">
-                <tr>
-                    <th style="padding: 12px 15px; font-size: 12px; font-weight: 700; color: #374151; border-bottom: 2px solid #d1d5db;">ID</th>
-                    <th style="padding: 12px 15px; font-size: 12px; font-weight: 700; color: #374151; border-bottom: 2px solid #d1d5db;">Employee</th>
-                    <th style="padding: 12px 15px; font-size: 12px; font-weight: 700; color: #374151; border-bottom: 2px solid #d1d5db;">Basic</th>
-                    <th style="padding: 12px 15px; font-size: 12px; font-weight: 700; color: #374151; border-bottom: 2px solid #d1d5db;">Allowances/Bonus</th>
-                    <th style="padding: 12px 15px; font-size: 12px; font-weight: 700; color: #374151; border-bottom: 2px solid #d1d5db;">Deductions</th>
-                    <th style="padding: 12px 15px; font-size: 12px; font-weight: 700; color: #374151; border-bottom: 2px solid #d1d5db;">Net Pay</th>
-                    <th style="padding: 12px 15px; font-size: 12px; font-weight: 700; color: #374151; border-bottom: 2px solid #d1d5db;">Signature</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${tableRows}
-            </tbody>
-            <tfoot>
-                <tr style="background-color: #f9fafb; font-weight: 800;">
-                    <td colspan="2" style="padding: 15px; text-align: right; border-top: 2px solid #374151;">GRAND TOTALS:</td>
-                    <td style="padding: 15px; border-top: 2px solid #374151;">Rs ${Math.round(grandTotalBasic).toLocaleString()}</td>
-                    <td style="padding: 15px; color: #059669; border-top: 2px solid #374151;">Rs ${Math.round(grandTotalAllowances).toLocaleString()}</td>
-                    <td style="padding: 15px; color: #dc2626; border-top: 2px solid #374151;">Rs ${Math.round(grandTotalDeductions).toLocaleString()}</td>
-                    <td style="padding: 15px; font-size: 16px; color: #111827; border-top: 2px solid #374151;">Rs ${Math.round(grandTotalNet).toLocaleString()}</td>
-                    <td style="border-top: 2px solid #374151;"></td>
-                </tr>
-            </tfoot>
-        </table>
+        <div style="border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px; overflow: hidden; margin-bottom: 50px;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead style="background-color: #f1f5f9;">
+                    <tr>
+                        <th style="padding: 14px 20px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">ID</th>
+                        <th style="padding: 14px 20px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">Employee</th>
+                        <th style="padding: 14px 20px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">Basic</th>
+                        <th style="padding: 14px 20px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">Allowances</th>
+                        <th style="padding: 14px 20px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">Deductions</th>
+                        <th style="padding: 14px 20px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">Net Pay</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${tableRows}
+                </tbody>
+                <tfoot>
+                    <tr style="background-color: #f8fafc; font-weight: 700;">
+                        <td colspan="2" style="padding: 20px; text-align: right; border-top: 2px solid #cbd5e1; color: #334155;">GRAND TOTALS:</td>
+                        <td style="padding: 20px; border-top: 2px solid #cbd5e1; color: #334155;">Rs ${Math.round(grandTotalBasic).toLocaleString()}</td>
+                        <td style="padding: 20px; color: #059669; border-top: 2px solid #cbd5e1;">Rs ${Math.round(grandTotalAllowances).toLocaleString()}</td>
+                        <td style="padding: 20px; color: #dc2626; border-top: 2px solid #cbd5e1;">Rs ${Math.round(grandTotalDeductions).toLocaleString()}</td>
+                        <td style="padding: 20px; font-size: 16px; color: #0f172a; border-top: 2px solid #cbd5e1;">Rs ${Math.round(grandTotalNet).toLocaleString()}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
         
         <div style="display: flex; justify-content: space-between; margin-top: 50px;">
             <div style="text-align: center;">
