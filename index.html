@@ -76,9 +76,7 @@
             body > #modal-view-payslip,
             body > #modal-view-summary {
                 display: block !important;
-                position: relative !important;
-                left: auto !important;
-                top: auto !important;
+                position: static !important;
                 width: 100% !important;
                 background: white !important;
                 color: black !important;
@@ -95,12 +93,14 @@
             
             #summary-print-area, #payslip-print-area {
                 display: block !important;
+                position: static !important;
                 width: 100% !important;
                 overflow: visible !important;
                 max-height: none !important;
                 height: auto !important;
                 background: white !important;
                 color: black !important;
+                margin: 0 !important;
                 padding: 0 30px 0 30px !important; /* Removed bottom padding to prevent blank page */
                 box-sizing: border-box;
             }
