@@ -1046,6 +1046,7 @@ function renderAdminEmployeesTab() {
                         <td>
                             <div class="btn-action-group">
                                 <button class="btn-action-circle" onclick="viewUserProfile('${user.id}')" tooltip="View Profile"><i class="fa-regular fa-eye"></i></button>
+                                <button class="btn-action-circle" onclick="window.openIdCardModal('${user.id}')" tooltip="View ID Card"><i class="fa-solid fa-id-card"></i></button>
                                 <button class="btn-action-circle" onclick="openEditEmployeeModal('${user.id}')" tooltip="Edit"><i class="fa-regular fa-pen-to-square"></i></button>
                                 <button class="btn-action-circle btn-delete" onclick="deleteEmployee('${user.id}')" tooltip="Delete" style="color: var(--danger);"><i class="fa-regular fa-trash-can"></i></button>
                             </div>
@@ -1273,7 +1274,7 @@ function renderAdminLeaveTab() {
                     <td>${l.startDate} to ${l.endDate}</td>
                     <td class="italic">"${l.reason}"</td>
                     <td><span class="badge-status ${statusClass}">${l.status}</span></td>
-                    <td><span class="text-muted italic">${l.comments || 'â€”'}</span></td>
+                    <td><span class="text-muted italic">${l.comments || '—'}</span></td>
                     <td>${actionBtnHTML}</td>
                 </tr>
             `;
@@ -1875,7 +1876,7 @@ function renderManagerLeaveTab() {
                     <td>${l.startDate} to ${l.endDate}</td>
                     <td class="italic">"${l.reason}"</td>
                     <td><span class="badge-status ${statusClass}">${l.status}</span></td>
-                    <td><span class="text-muted italic">${l.comments || 'â€”'}</span></td>
+                    <td><span class="text-muted italic">${l.comments || '—'}</span></td>
                     <td>${actionsHTML}</td>
                 </tr>
             `;
@@ -2062,7 +2063,7 @@ function renderEmployeeProductivityTab() {
                     <td>${Object.values(p.counts).reduce((s, c) => s + c, 0)}</td>
                     <td><strong class="text-info">${p.score}</strong></td>
                     <td><span class="badge-status ${statusClass}">${p.status}</span></td>
-                    <td><span class="text-muted italic">${p.comments || 'â€”'}</span></td>
+                    <td><span class="text-muted italic">${p.comments || '—'}</span></td>
                 </tr>
             `;
         });
@@ -2089,7 +2090,7 @@ function renderEmployeeLeaveTab() {
                     <td>${l.endDate}</td>
                     <td class="italic">"${l.reason}"</td>
                     <td><span class="badge-status ${statusClass}">${l.status}</span></td>
-                    <td><span class="text-muted italic">${l.comments || 'â€”'}</span></td>
+                    <td><span class="text-muted italic">${l.comments || '—'}</span></td>
                 </tr>
             `;
         });
@@ -2173,6 +2174,17 @@ window.viewUserProfile = function (userId) {
             openEditEmployeeModal(userId, true);
         };
     }
+
+    let viewCardBtn = document.getElementById('profile-view-card-btn');
+    if (!viewCardBtn) {
+        const btnHtml = `<button id="profile-view-card-btn" class="btn btn-primary" style="width: 100%; margin-top: 15px;"><i class="fa-solid fa-id-card"></i> View ID Card</button>`;
+        document.getElementById('profile-more-details-container').insertAdjacentHTML('afterend', btnHtml);
+        viewCardBtn = document.getElementById('profile-view-card-btn');
+    }
+    viewCardBtn.onclick = function() {
+        closeAllModals();
+        window.openIdCardModal(userId);
+    };
 
     const avatarEl = document.getElementById('profile-avatar');
     if (user.profilePic) {
@@ -2292,6 +2304,68 @@ window.openCompanyProfileModal = function () {
                 }
             }
         }
+
+        // Setup ID Card Front Dropzone
+        const idFrontDropzone = document.getElementById('dropzone-idcard-front');
+        if (idFrontDropzone) {
+            if (cp.idCardFrontBase64) {
+                document.getElementById('company-profile-form').dataset.idCardFrontBase64 = cp.idCardFrontBase64;
+                idFrontDropzone.innerHTML = `
+                    <img src="${cp.idCardFrontBase64}" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                    <div style="font-size: 11px; color: var(--text-muted);">Click to change Front Template</div>
+                    <input type="file" id="comp-idcard-front-input" accept="image/*" style="display:none;">
+                `;
+                const newInput = idFrontDropzone.querySelector('#comp-idcard-front-input');
+                if (newInput) {
+                    newInput.addEventListener('change', () => { if (newInput.files.length) window.onIdCardFrontSelected(idFrontDropzone, newInput.files); });
+                    idFrontDropzone.addEventListener('click', () => newInput.click(), { once: true });
+                }
+            } else {
+                document.getElementById('company-profile-form').dataset.idCardFrontBase64 = '';
+                idFrontDropzone.innerHTML = `
+                    <i class="fa-solid fa-id-card" style="font-size: 24px; color: var(--primary);"></i>
+                    <div style="font-weight: 600;">Front Template</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">JPG/PNG image</div>
+                    <input type="file" id="comp-idcard-front-input" accept="image/*" style="display:none;">
+                `;
+                const newInput = idFrontDropzone.querySelector('#comp-idcard-front-input');
+                if (newInput) {
+                    newInput.addEventListener('change', () => { if (newInput.files.length) window.onIdCardFrontSelected(idFrontDropzone, newInput.files); });
+                    idFrontDropzone.addEventListener('click', () => newInput.click(), { once: true });
+                }
+            }
+        }
+
+        // Setup ID Card Back Dropzone
+        const idBackDropzone = document.getElementById('dropzone-idcard-back');
+        if (idBackDropzone) {
+            if (cp.idCardBackBase64) {
+                document.getElementById('company-profile-form').dataset.idCardBackBase64 = cp.idCardBackBase64;
+                idBackDropzone.innerHTML = `
+                    <img src="${cp.idCardBackBase64}" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                    <div style="font-size: 11px; color: var(--text-muted);">Click to change Back Template</div>
+                    <input type="file" id="comp-idcard-back-input" accept="image/*" style="display:none;">
+                `;
+                const newInput = idBackDropzone.querySelector('#comp-idcard-back-input');
+                if (newInput) {
+                    newInput.addEventListener('change', () => { if (newInput.files.length) window.onIdCardBackSelected(idBackDropzone, newInput.files); });
+                    idBackDropzone.addEventListener('click', () => newInput.click(), { once: true });
+                }
+            } else {
+                document.getElementById('company-profile-form').dataset.idCardBackBase64 = '';
+                idBackDropzone.innerHTML = `
+                    <i class="fa-solid fa-id-card" style="font-size: 24px; color: var(--primary);"></i>
+                    <div style="font-weight: 600;">Back Template</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">JPG/PNG image</div>
+                    <input type="file" id="comp-idcard-back-input" accept="image/*" style="display:none;">
+                `;
+                const newInput = idBackDropzone.querySelector('#comp-idcard-back-input');
+                if (newInput) {
+                    newInput.addEventListener('change', () => { if (newInput.files.length) window.onIdCardBackSelected(idBackDropzone, newInput.files); });
+                    idBackDropzone.addEventListener('click', () => newInput.click(), { once: true });
+                }
+            }
+        }
     }
 
     openModal('modal-company-profile');
@@ -2336,6 +2410,7 @@ window.openEditEmployeeModal = function (userId, isViewOnly = false) {
     document.getElementById('emp-phone').value = user && user.phone ? user.phone : "";
     document.getElementById('emp-emergency-contact').value = user && user.emergencyContact ? user.emergencyContact : "";
     document.getElementById('emp-designation').value = user && user.designation ? user.designation : "";
+    document.getElementById('emp-department').value = user && user.department ? user.department : "";
 
     // Bank Details
     document.getElementById('emp-bank-name').value = user && user.bankName ? user.bankName : "";
@@ -2552,6 +2627,7 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
     const phone = document.getElementById('emp-phone').value.trim();
     const emergencyContact = document.getElementById('emp-emergency-contact').value.trim();
     const designation = document.getElementById('emp-designation').value.trim();
+    const department = document.getElementById('emp-department').value.trim();
 
     // Bank Details
     const bankName = document.getElementById('emp-bank-name').value.trim();
@@ -2635,6 +2711,7 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
             user.salary = salary;
             user.bloodGroup = bloodGroup;
             user.designation = designation;
+            user.department = department;
 
             // Bank Details
             user.bankName = bankName;
@@ -2697,6 +2774,7 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
             salary,
             bloodGroup,
             designation,
+            department,
             bankName,
             accountTitle,
             accountNumber,
@@ -4316,6 +4394,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (cpForm.dataset.letterheadBase64) {
                 cp.letterheadBase64 = cpForm.dataset.letterheadBase64;
             }
+            if (cpForm.dataset.idCardFrontBase64) {
+                cp.idCardFrontBase64 = cpForm.dataset.idCardFrontBase64;
+            }
+            if (cpForm.dataset.idCardBackBase64) {
+                cp.idCardBackBase64 = cpForm.dataset.idCardBackBase64;
+            }
 
             db.companyProfile = cp;
             await saveDb(db);
@@ -4531,3 +4615,107 @@ document.addEventListener('DOMContentLoaded', async () => {
         showToast("Session Restored", `Welcome back, ${currentUser.name}.`);
     }
 });
+
+
+// ==================== ID CARD LOGIC ====================
+window.onIdCardFrontSelected = function(dropzone, files) {
+    if(!files || !files.length) return;
+    const file = files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const b64 = e.target.result;
+        document.getElementById('company-profile-form').dataset.idCardFrontBase64 = b64;
+        dropzone.innerHTML = \
+            <img src='\ + b64 + \' style='max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;'>
+            <div style='font-size: 11px; color: var(--text-muted);'>Click to change Front Template</div>
+            <input type='file' id='comp-idcard-front-input' accept='image/*' style='display:none;'>
+        \;
+        const newInput = dropzone.querySelector('#comp-idcard-front-input');
+        if (newInput) {
+            newInput.addEventListener('change', () => { if (newInput.files.length) window.onIdCardFrontSelected(dropzone, newInput.files); });
+            dropzone.addEventListener('click', () => newInput.click(), { once: true });
+        }
+    };
+    reader.readAsDataURL(file);
+};
+
+window.onIdCardBackSelected = function(dropzone, files) {
+    if(!files || !files.length) return;
+    const file = files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const b64 = e.target.result;
+        document.getElementById('company-profile-form').dataset.idCardBackBase64 = b64;
+        dropzone.innerHTML = \
+            <img src='\ + b64 + \' style='max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;'>
+            <div style='font-size: 11px; color: var(--text-muted);'>Click to change Back Template</div>
+            <input type='file' id='comp-idcard-back-input' accept='image/*' style='display:none;'>
+        \;
+        const newInput = dropzone.querySelector('#comp-idcard-back-input');
+        if (newInput) {
+            newInput.addEventListener('change', () => { if (newInput.files.length) window.onIdCardBackSelected(dropzone, newInput.files); });
+            dropzone.addEventListener('click', () => newInput.click(), { once: true });
+        }
+    };
+    reader.readAsDataURL(file);
+};
+
+window.openIdCardModal = function(userId) {
+    const db = getDb();
+    const user = db.users.find(u => u.id === userId);
+    if(!user) return;
+    const cp = (!db.companyProfile || Array.isArray(db.companyProfile)) ? {} : db.companyProfile;
+
+    const frontBg = document.getElementById('id-card-front-bg');
+    if(cp.idCardFrontBase64) {
+        frontBg.src = cp.idCardFrontBase64;
+        frontBg.style.display = 'block';
+    } else {
+        frontBg.style.display = 'none';
+    }
+
+    const backBg = document.getElementById('id-card-back-bg');
+    if(cp.idCardBackBase64) {
+        backBg.src = cp.idCardBackBase64;
+        backBg.style.display = 'block';
+    } else {
+        backBg.style.display = 'none';
+    }
+
+    const photoContainer = document.getElementById('id-card-photo-container');
+    const photoImg = document.getElementById('id-card-photo');
+    if(user.profilePic) {
+        photoImg.src = user.profilePic;
+        photoContainer.style.display = 'block';
+    } else {
+        photoContainer.style.display = 'none';
+    }
+
+    document.getElementById('id-card-name').textContent = user.name || '';
+    document.getElementById('id-card-designation').textContent = user.designation || '';
+    document.getElementById('id-card-id').textContent = user.displayId || user.id || '';
+    document.getElementById('id-card-dept').textContent = user.department || '';
+    
+    document.getElementById('id-card-guardian').textContent = user.fatherName || '';
+    document.getElementById('id-card-cnic').textContent = user.cnic || '';
+    document.getElementById('id-card-emergency').textContent = user.emergencyContact || user.phone || '';
+    document.getElementById('id-card-blood').textContent = user.bloodGroup || '';
+    
+    let joinDate = user.startDate || '';
+    if(joinDate) {
+        const d = new Date(joinDate);
+        if(!isNaN(d.getTime())) {
+            joinDate = d.toLocaleDateString('en-GB'); // dd/mm/yyyy
+        }
+    }
+    document.getElementById('id-card-join').textContent = joinDate;
+
+    openModal('modal-id-card');
+};
+
+window.printIdCard = function() {
+    document.body.classList.add('printing-modal');
+    window.print();
+    document.body.classList.remove('printing-modal');
+};
+
