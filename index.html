@@ -72,9 +72,9 @@
                 display: none !important;
             }
 
-            /* Specifically display ONLY the modals we want to print */
-            body > #modal-view-payslip,
-            body > #modal-view-summary {
+            /* Specifically display ONLY the modals we want to print, if they are open */
+            body > #modal-view-payslip:not(.hidden),
+            body > #modal-view-summary:not(.hidden) {
                 display: block !important;
                 position: static !important;
                 width: 100% !important;
