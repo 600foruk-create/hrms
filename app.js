@@ -2151,6 +2151,12 @@ function markNotificationRead(notifId) {
 function closeAllModals() {
     document.getElementById('modal-backdrop').classList.add('hidden');
     document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
+    
+    // Restore document title if it was temporarily modified for printing
+    if (window.originalDocumentTitle) {
+        document.title = window.originalDocumentTitle;
+        window.originalDocumentTitle = null;
+    }
 }
 
 function openModal(modalId) {

@@ -197,11 +197,11 @@ window.openMonthlySummaryModal = function() {
     if (history.length > 0) {
         const d = new Date(history[0].endDate || history[0].processedAt || new Date());
         const mNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        periodText = `${mNames[d.getMonth()]} ${d.getFullYear()}`;
+        periodText = `${mNames[d.getMonth()]}-${d.getFullYear()}`;
     } else {
-        periodText = "N/A";
+        periodText = "N-A";
     }
-    window.currentSummaryFilename = `All_Employee_List_${periodText.replace(' ', '_')}`;
+    window.currentSummaryFilename = `All-Employee-List-${periodText}`;
 
     const letterheadHeader = `
         <tr>
@@ -279,6 +279,12 @@ window.openMonthlySummaryModal = function() {
     
     document.getElementById('modal-view-summary').classList.remove('hidden');
     document.getElementById('modal-overlay').classList.remove('hidden');
+    
+    // Set title for PDF saving
+    if (!window.originalDocumentTitle) {
+        window.originalDocumentTitle = document.title;
+    }
+    document.title = window.currentSummaryFilename;
 };
 
 window.openPayslipModal = function(recordId) {
@@ -377,8 +383,8 @@ window.openPayslipModal = function(recordId) {
     const doj = user?.startDate ? new Date(user.startDate).toLocaleDateString() : 'N/A';
 
     const empName = user ? user.name : 'Unknown';
-    const monthStr = new Date(record.startDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).replace(' ', '_');
-    window.currentPayslipFilename = `Payslip_${empName.replace(/\s+/g, '_')}_${monthStr}`;
+    const monthStr = new Date(record.startDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).replace(' ', '-');
+    window.currentPayslipFilename = `Payslip-${empName.replace(/\s+/g, '-')}-${monthStr}`;
 
     const printArea = document.getElementById('payslip-print-area');
     printArea.innerHTML = `
@@ -521,35 +527,19 @@ window.openPayslipModal = function(recordId) {
     
     document.getElementById('modal-view-payslip').classList.remove('hidden');
     document.getElementById('modal-overlay').classList.remove('hidden');
+    
+    // Set title for PDF saving
+    if (!window.originalDocumentTitle) {
+        window.originalDocumentTitle = document.title;
+    }
+    document.title = window.currentPayslipFilename;
 };
 
 window.printIndividualPayslip = function() {
-    const originalTitle = document.title;
-    if (window.currentPayslipFilename) {
-        document.title = window.currentPayslipFilename;
-    }
-    
-    // Restore title after print dialog closes
-    window.onafterprint = function() {
-        document.title = originalTitle;
-        window.onafterprint = null; // Clean up
-    };
-    
     window.print();
 };
 
 window.printSummary = function() {
-    const originalTitle = document.title;
-    if (window.currentSummaryFilename) {
-        document.title = window.currentSummaryFilename;
-    }
-    
-    // Restore title after print dialog closes
-    window.onafterprint = function() {
-        document.title = originalTitle;
-        window.onafterprint = null; // Clean up
-    };
-    
     window.print();
 };
 
