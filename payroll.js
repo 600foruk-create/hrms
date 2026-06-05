@@ -201,6 +201,7 @@ window.openMonthlySummaryModal = function() {
     } else {
         periodText = "N/A";
     }
+    window.currentSummaryFilename = `All_Employee_List_${periodText.replace(' ', '_')}`;
 
     const letterheadHeader = `
         <tr>
@@ -526,6 +527,21 @@ window.printIndividualPayslip = function() {
     const originalTitle = document.title;
     if (window.currentPayslipFilename) {
         document.title = window.currentPayslipFilename;
+    }
+    
+    // Restore title after print dialog closes
+    window.onafterprint = function() {
+        document.title = originalTitle;
+        window.onafterprint = null; // Clean up
+    };
+    
+    window.print();
+};
+
+window.printSummary = function() {
+    const originalTitle = document.title;
+    if (window.currentSummaryFilename) {
+        document.title = window.currentSummaryFilename;
     }
     
     // Restore title after print dialog closes
