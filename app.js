@@ -21,7 +21,7 @@ const TASK_SUBCATEGORIES = {
 // ==================== DATABASE ENGINE (Hostinger PHP Backend) ====================
 const API_URL = 'backend/api.php';
 window.dbLoaded = false;
-window.hrmsDatabase = { users: [], weights: {}, leaves: [], productivity: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [], globalSalarySettings: { allowances: [], deductions: [] } };
+window.hrmsDatabase = { users: [], weights: {}, leaves: [], practices: [], managerPractices: [], productivityLogs: [], productivityTasks: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [], globalSalarySettings: { allowances: [], deductions: [] } };
 
 async function syncServer() {
     let success = false;
@@ -50,8 +50,6 @@ async function syncServer() {
             };
             
             result.data.leaves = cleanList(result.data.leaves, 'employeeId');
-            result.data.productivity = cleanList(result.data.productivity, 'employeeId');
-            result.data.attendance = cleanList(result.data.attendance, 'employeeId');
             result.data.payrollHistory = cleanList(result.data.payrollHistory, 'userId');
             
             window.hrmsDatabase = result.data;
@@ -618,7 +616,7 @@ function refreshTabContent(tabId) {
         if (tabId === 'dashboard') renderAdminDashboard();
         else if (tabId === 'employees') renderAdminEmployeesTab();
         else if (tabId === 'attendance') renderAdminAttendanceTab();
-        else if (tabId === 'productivity') renderAdminProductivityTab();
+        else if (tabId === 'productivity') { if(window.renderAdminProductivityTab) window.renderAdminProductivityTab(); }
         else if (tabId === 'leave') renderAdminLeaveTab();
         else if (tabId === 'announcements') renderAdminAnnouncementsTab();
         else if (tabId === 'settings') renderAdminSettingsTab();
@@ -627,14 +625,14 @@ function refreshTabContent(tabId) {
         if (tabId === 'dashboard') renderManagerDashboard();
         else if (tabId === 'team') renderManagerTeamTab();
         else if (tabId === 'attendance') renderManagerAttendanceTab();
-        else if (tabId === 'productivity') renderManagerProductivityTab();
+        else if (tabId === 'productivity') { if(window.renderManagerProductivityTab) window.renderManagerProductivityTab(); }
         else if (tabId === 'leave') renderManagerLeaveTab();
         else if (tabId === 'reports') initManagerReportsTab();
         else if (tabId === 'mypayslips') { if(window.renderMyPayslips) window.renderMyPayslips(); }
     } else { // Employee
         if (tabId === 'dashboard') renderEmployeeDashboard();
         else if (tabId === 'attendance') renderEmployeeAttendanceTab();
-        else if (tabId === 'productivity') renderEmployeeProductivityTab();
+        else if (tabId === 'productivity') { if(window.renderEmployeeProductivityTab) window.renderEmployeeProductivityTab(); }
         else if (tabId === 'leave') renderEmployeeLeaveTab();
         else if (tabId === 'mypayslips') { if(window.renderMyPayslips) window.renderMyPayslips(); }
     }

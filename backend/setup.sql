@@ -67,18 +67,45 @@ CREATE TABLE `leaves` (
 
 -- --------------------------------------------------------
 
--- Table structure for table `productivity`
-CREATE TABLE `productivity` (
+-- Table structure for table `practices`
+CREATE TABLE `practices` (
   `id` varchar(50) NOT NULL,
-  `employeeId` varchar(50) NOT NULL,
-  `employeeName` varchar(100) NOT NULL,
-  `date` date NOT NULL,
-  `tasks` json NOT NULL,
-  `subcategories` json NOT NULL,
-  `counts` json NOT NULL,
-  `notes` text NOT NULL,
-  `score` decimal(10,2) NOT NULL,
-  `status` enum('Pending','Approved','Rejected') NOT NULL DEFAULT 'Pending',
+  `practice_name` varchar(150) NOT NULL,
+  `practice_code` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+-- Table structure for table `manager_practices`
+CREATE TABLE `manager_practices` (
+  `id` varchar(50) NOT NULL,
+  `manager_id` varchar(50) NOT NULL,
+  `practice_id` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+-- Table structure for table `productivity_logs`
+CREATE TABLE `productivity_logs` (
+  `id` varchar(50) NOT NULL,
+  `employee_id` varchar(50) NOT NULL,
+  `practice_id` varchar(50) NOT NULL,
+  `log_date` date NOT NULL,
+  `created_at` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+-- Table structure for table `productivity_tasks`
+CREATE TABLE `productivity_tasks` (
+  `id` varchar(50) NOT NULL,
+  `log_id` varchar(50) NOT NULL,
+  `task_type` varchar(100) NOT NULL,
+  `total_count` int(11) NOT NULL DEFAULT '0',
+  `time_minutes` int(11) NOT NULL DEFAULT '0',
+  `extra_data` json DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `status` enum('Pending','Approved','Flagged') NOT NULL DEFAULT 'Pending',
   `comments` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -155,7 +182,10 @@ CREATE TABLE `company_profile` (
 ALTER TABLE `users` ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `email` (`email`);
 ALTER TABLE `settings` ADD PRIMARY KEY (`key_name`);
 ALTER TABLE `leaves` ADD PRIMARY KEY (`id`);
-ALTER TABLE `productivity` ADD PRIMARY KEY (`id`);
+ALTER TABLE `practices` ADD PRIMARY KEY (`id`);
+ALTER TABLE `manager_practices` ADD PRIMARY KEY (`id`);
+ALTER TABLE `productivity_logs` ADD PRIMARY KEY (`id`);
+ALTER TABLE `productivity_tasks` ADD PRIMARY KEY (`id`);
 ALTER TABLE `announcements` ADD PRIMARY KEY (`id`);
 ALTER TABLE `notifications` ADD PRIMARY KEY (`id`);
 
