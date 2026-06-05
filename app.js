@@ -1838,6 +1838,26 @@ function renderManagerLeaveTab() {
                 `;
             });
         }
+
+        // Populate Manager Leave Balances
+        const balancesBody = document.getElementById('manager-my-leave-balances-body');
+        if (balancesBody) {
+            balancesBody.innerHTML = '';
+            const userRec = db.users.find(u => u.id === currentUser.id);
+            const balances = userRec?.leaveBalances || [];
+            if (balances.length === 0) {
+                balancesBody.innerHTML = `<tr><td colspan="2" class="empty-state">No balances set.</td></tr>`;
+            } else {
+                balances.forEach(b => {
+                    balancesBody.innerHTML += `
+                        <tr>
+                            <td class="bold">${b.name}</td>
+                            <td style="text-align:right"><span class="badge-status" style="background:var(--bg-glass); color:var(--text-main); border:1px solid var(--border-color);">${b.balance} days</span></td>
+                        </tr>
+                    `;
+                });
+            }
+        }
     }
 }
 
@@ -2025,10 +2045,30 @@ function renderEmployeeLeaveTab() {
                     <td>${l.endDate}</td>
                     <td class="italic">"${l.reason}"</td>
                     <td><span class="badge-status ${statusClass}">${l.status}</span></td>
-                    <td><span class="text-muted italic">${l.comments || 'â€”'}</span></td>
+                    <td><span class="text-muted italic">${l.comments || '—'}</span></td>
                 </tr>
             `;
         });
+    }
+
+    // Populate Leave Balances
+    const balancesBody = document.getElementById('employee-leave-balances-body');
+    if (balancesBody) {
+        balancesBody.innerHTML = '';
+        const userRec = db.users.find(u => u.id === currentUser.id);
+        const balances = userRec?.leaveBalances || [];
+        if (balances.length === 0) {
+            balancesBody.innerHTML = `<tr><td colspan="2" class="empty-state">No balances set.</td></tr>`;
+        } else {
+            balances.forEach(b => {
+                balancesBody.innerHTML += `
+                    <tr>
+                        <td class="bold">${b.name}</td>
+                        <td style="text-align:right"><span class="badge-status" style="background:var(--bg-glass); color:var(--text-main); border:1px solid var(--border-color);">${b.balance} days</span></td>
+                    </tr>
+                `;
+            });
+        }
     }
 }
 

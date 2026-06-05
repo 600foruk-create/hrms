@@ -1987,27 +1987,47 @@
 
                         <!-- Sub-tab: My Leaves -->
                         <div id="subtab-content-manager-leave-my" class="sub-tab-content hidden">
-                            <div class="section-card bg-glass">
-                                <div class="header-with-actions" style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
-                                    <h3 style="margin:0;">My Leave Requests</h3>
-                                    <button class="btn btn-primary" id="btn-manager-add-leave-tab"><i
-                                            class="fa-solid fa-plus"></i> Apply Leave</button>
+                            <div class="header-with-actions" style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                                <h3 style="margin:0;">My Leave Requests</h3>
+                                <button class="btn btn-primary" id="btn-manager-add-leave-tab"><i
+                                        class="fa-solid fa-plus"></i> Apply Leave</button>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 3fr 1fr; gap: 20px;">
+                                <div class="section-card bg-glass" style="margin: 0;">
+                                    <div class="table-container">
+                                        <table class="data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Leave Type</th>
+                                                    <th>Duration</th>
+                                                    <th>Reason</th>
+                                                    <th>Status</th>
+                                                    <th>Comments</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="manager-my-leave-table-body">
+                                                <!-- Dynamic Rows -->
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
-                                <div class="table-container">
-                                    <table class="data-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Leave Type</th>
-                                                <th>Duration</th>
-                                                <th>Reason</th>
-                                                <th>Status</th>
-                                                <th>Comments</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="manager-my-leave-table-body">
-                                            <!-- Dynamic Rows -->
-                                        </tbody>
-                                    </table>
+                                <div class="section-card bg-glass" style="margin: 0;">
+                                    <div class="section-card-header" style="margin-bottom: 15px;">
+                                        <h3 style="font-size: 14px;">Leave Balances</h3>
+                                    </div>
+                                    <div class="table-container">
+                                        <table class="data-table" style="font-size: 12px;">
+                                            <thead>
+                                                <tr>
+                                                    <th>Type</th>
+                                                    <th style="text-align:right">Remaining</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="manager-my-leave-balances-body">
+                                                <!-- Dynamic Rows -->
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -2298,23 +2318,43 @@
                                         class="fa-solid fa-plus"></i> Apply Leave</button>
                             </div>
                         </div>
-                        <div class="section-card bg-glass">
-                            <div class="table-container">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Leave Type</th>
-                                            <th>Start Date</th>
-                                            <th>End Date</th>
-                                            <th>Reason</th>
-                                            <th>Status</th>
-                                            <th>Approver Comments</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="employee-tab-leave-table">
-                                        <!-- Dynamic Rows -->
-                                    </tbody>
-                                </table>
+                        <div style="display: grid; grid-template-columns: 3fr 1fr; gap: 20px;">
+                            <div class="section-card bg-glass" style="margin: 0;">
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Leave Type</th>
+                                                <th>Start Date</th>
+                                                <th>End Date</th>
+                                                <th>Reason</th>
+                                                <th>Status</th>
+                                                <th>Approver Comments</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="employee-tab-leave-table">
+                                            <!-- Dynamic Rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="section-card bg-glass" style="margin: 0;">
+                                <div class="section-card-header" style="margin-bottom: 15px;">
+                                    <h3 style="font-size: 14px;">Leave Balances</h3>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table" style="font-size: 12px;">
+                                        <thead>
+                                            <tr>
+                                                <th>Type</th>
+                                                <th style="text-align:right">Remaining</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="employee-leave-balances-body">
+                                            <!-- Dynamic Rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
