@@ -1723,10 +1723,6 @@
                                 <h1>Manager Dashboard</h1>
                                 <p class="text-secondary" id="manager-team-name-sub">Team Summary Overview</p>
                             </div>
-                            <div class="actions manager-actions">
-                                <button class="btn btn-primary" id="btn-manager-add-emp-dash"><i
-                                        class="fa-solid fa-user-plus"></i> Add Team Member</button>
-                            </div>
                         </div>
 
                         <!-- Top Metric Cards -->
@@ -1821,10 +1817,6 @@
                                 <h1>My Team Directory</h1>
                                 <p class="text-secondary">View detailed contact information and activity summaries of
                                     your direct reports</p>
-                            </div>
-                            <div class="actions">
-                                <button class="btn btn-primary" id="btn-manager-add-emp-tab"><i
-                                        class="fa-solid fa-user-plus"></i> Add Team Member</button>
                             </div>
                         </div>
                         <div class="section-card bg-glass">
@@ -1954,28 +1946,69 @@
                         <div class="view-header">
                             <div>
                                 <h1>Leave Management</h1>
-                                <p class="text-secondary">Review and approve team leave requests</p>
+                                <p class="text-secondary">Review team leave requests and apply for your own leaves</p>
                             </div>
                         </div>
-                        <div class="section-card bg-glass">
-                            <div class="table-container">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Employee ID</th>
-                                            <th>Employee Name</th>
-                                            <th>Leave Type</th>
-                                            <th>Duration</th>
-                                            <th>Reason</th>
-                                            <th>Status</th>
-                                            <th>Comments</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="manager-leave-table-body">
-                                        <!-- Dynamic Rows -->
-                                    </tbody>
-                                </table>
+
+                        <!-- Sub-tab Navigation -->
+                        <div class="sub-tab-nav">
+                            <button class="btn-sub-tab active" data-subtab="manager-leave-team">
+                                <i class="fa-solid fa-users"></i> Team Leave Requests
+                            </button>
+                            <button class="btn-sub-tab" data-subtab="manager-leave-my">
+                                <i class="fa-solid fa-user"></i> My Leaves
+                            </button>
+                        </div>
+
+                        <!-- Sub-tab: Team Leave Requests -->
+                        <div id="subtab-content-manager-leave-team" class="sub-tab-content">
+                            <div class="section-card bg-glass">
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Employee ID</th>
+                                                <th>Employee Name</th>
+                                                <th>Leave Type</th>
+                                                <th>Duration</th>
+                                                <th>Reason</th>
+                                                <th>Status</th>
+                                                <th>Comments</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="manager-leave-table-body">
+                                            <!-- Dynamic Rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sub-tab: My Leaves -->
+                        <div id="subtab-content-manager-leave-my" class="sub-tab-content hidden">
+                            <div class="section-card bg-glass">
+                                <div class="header-with-actions" style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                                    <h3 style="margin:0;">My Leave Requests</h3>
+                                    <button class="btn btn-primary" id="btn-manager-add-leave-tab"><i
+                                            class="fa-solid fa-plus"></i> Apply Leave</button>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Leave Type</th>
+                                                <th>Duration</th>
+                                                <th>Reason</th>
+                                                <th>Status</th>
+                                                <th>Comments</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="manager-my-leave-table-body">
+                                            <!-- Dynamic Rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>

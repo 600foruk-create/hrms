@@ -1772,43 +1772,72 @@ function renderManagerProductivityTab() {
 
 function renderManagerLeaveTab() {
     const db = getDb();
+    
+    // 1. Render Team Leaves
     const team = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
     const teamEmails = team.map(t => t.id);
 
-    const tableBody = document.getElementById('manager-leave-table-body');
-    tableBody.innerHTML = '';
-
-    const leaves = db.leaves.filter(l => teamEmails.includes(l.employeeId));
-    leaves.sort((a, b) => {
-        if (a.status === 'Pending' && b.status !== 'Pending') return -1;
-        if (a.status !== 'Pending' && b.status === 'Pending') return 1;
-        return new Date(b.startDate) - new Date(a.startDate);
-    });
-
-    if (leaves.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="7" class="empty-state">No team leave requests found.</td></tr>`;
-    } else {
-        leaves.forEach(l => {
-            const statusClass = l.status === 'Approved' ? 'approved' : (l.status === 'Rejected' ? 'rejected' : 'pending');
-            let actionsHTML = '';
-            if (l.status === 'Pending') {
-                actionsHTML = `<button class="btn btn-sm btn-outline" onclick="reviewLeaveRequest('${l.id}')">Review</button>`;
-            } else {
-                actionsHTML = `<span class="text-muted">Reviewed</span>`;
-            }
-
-            tableBody.innerHTML += `
-                <tr>
-                    <td class="bold">${l.employeeName}</td>
-                    <td><span class="badge-role employee">${l.type}</span></td>
-                    <td>${l.startDate} to ${l.endDate}</td>
-                    <td class="italic">"${l.reason}"</td>
-                    <td><span class="badge-status ${statusClass}">${l.status}</span></td>
-                    <td><span class="text-muted italic">${l.comments || 'â€”'}</span></td>
-                    <td>${actionsHTML}</td>
-                </tr>
-            `;
+    const teamTableBody = document.getElementById('manager-leave-table-body');
+    if (teamTableBody) {
+        teamTableBody.innerHTML = '';
+        const teamLeaves = db.leaves.filter(l => teamEmails.includes(l.employeeId));
+        teamLeaves.sort((a, b) => {
+            if (a.status === 'Pending' && b.status !== 'Pending') return -1;
+            if (a.status !== 'Pending' && b.status === 'Pending') return 1;
+            return new Date(b.startDate) - new Date(a.startDate);
         });
+
+        if (teamLeaves.length === 0) {
+            teamTableBody.innerHTML = `<tr><td colspan="8" class="empty-state">No team leave requests found.</td></tr>`;
+        } else {
+            teamLeaves.forEach(l => {
+                const statusClass = l.status === 'Approved' ? 'approved' : (l.status === 'Rejected' ? 'rejected' : 'pending');
+                let actionsHTML = '';
+                if (l.status === 'Pending') {
+                    actionsHTML = `<button class="btn btn-sm btn-outline" onclick="reviewLeaveRequest('${l.id}')">Review</button>`;
+                } else {
+                    actionsHTML = `<span class="text-muted">Reviewed</span>`;
+                }
+
+                teamTableBody.innerHTML += `
+                    <tr>
+                        <td class="bold">${l.employeeId}</td>
+                        <td class="bold">${l.employeeName}</td>
+                        <td><span class="badge-role employee">${l.type}</span></td>
+                        <td>${l.startDate} to ${l.endDate}</td>
+                        <td class="italic">"${l.reason}"</td>
+                        <td><span class="badge-status ${statusClass}">${l.status}</span></td>
+                        <td><span class="text-muted italic">${l.comments || '—'}</span></td>
+                        <td>${actionsHTML}</td>
+                    </tr>
+                `;
+            });
+        }
+    }
+
+    // 2. Render My Leaves
+    const myTableBody = document.getElementById('manager-my-leave-table-body');
+    if (myTableBody) {
+        myTableBody.innerHTML = '';
+        const myLeaves = db.leaves.filter(l => l.employeeId === currentUser.id);
+        myLeaves.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+
+        if (myLeaves.length === 0) {
+            myTableBody.innerHTML = `<tr><td colspan="5" class="empty-state">No leave applications submitted.</td></tr>`;
+        } else {
+            myLeaves.forEach(l => {
+                const statusClass = l.status === 'Approved' ? 'approved' : (l.status === 'Rejected' ? 'rejected' : 'pending');
+                myTableBody.innerHTML += `
+                    <tr>
+                        <td><span class="badge-role employee">${l.type}</span></td>
+                        <td>${l.startDate} to ${l.endDate}</td>
+                        <td class="italic">"${l.reason}"</td>
+                        <td><span class="badge-status ${statusClass}">${l.status}</span></td>
+                        <td><span class="text-muted italic">${l.comments || '—'}</span></td>
+                    </tr>
+                `;
+            });
+        }
     }
 }
 
@@ -2125,6 +2154,10 @@ window.viewUserProfile = function (userId) {
 
 // 1b. Company Profile Modal
 window.openCompanyProfileModal = function () {
+    if (currentUser.role !== 'Admin') {
+        return showToast("Access Denied", "Only administrators can edit the company profile.", "error");
+    }
+
     const db = getDb();
     const cp = (!db.companyProfile || Array.isArray(db.companyProfile)) ? {} : db.companyProfile;
 
@@ -3663,6 +3696,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     safeAddListener('btn-employee-apply-leave-dash', 'click', window.openLeaveRequestModal);
     safeAddListener('btn-employee-apply-leave-sub', 'click', window.openLeaveRequestModal);
     safeAddListener('btn-employee-add-leave-tab', 'click', window.openLeaveRequestModal);
+    safeAddListener('btn-manager-add-leave-tab', 'click', window.openLeaveRequestModal);
+
 
     // Profile drop down toggle
     const profileBtn = document.getElementById('btn-profile-dropdown');
