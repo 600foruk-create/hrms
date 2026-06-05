@@ -375,6 +375,10 @@ window.openPayslipModal = function(recordId) {
     const empDept = user?.department || 'N/A';
     const doj = user?.startDate ? new Date(user.startDate).toLocaleDateString() : 'N/A';
 
+    const empName = user ? user.name : 'Unknown';
+    const monthStr = new Date(record.startDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).replace(' ', '_');
+    window.currentPayslipFilename = `Payslip_${empName.replace(/\s+/g, '_')}_${monthStr}`;
+
     const printArea = document.getElementById('payslip-print-area');
     printArea.innerHTML = `
         <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 30px; background: #ffffff;">
@@ -516,6 +520,18 @@ window.openPayslipModal = function(recordId) {
     
     document.getElementById('modal-view-payslip').classList.remove('hidden');
     document.getElementById('modal-overlay').classList.remove('hidden');
+};
+
+window.printIndividualPayslip = function() {
+    const originalTitle = document.title;
+    if (window.currentPayslipFilename) {
+        document.title = window.currentPayslipFilename;
+    }
+    window.print();
+    // Use setTimeout to ensure the title reverts after the print dialog resolves
+    setTimeout(() => {
+        document.title = originalTitle;
+    }, 100);
 };
 
 // --- 1. Salary Profiles Management ---
