@@ -1478,43 +1478,43 @@
                     <div id="admin-tab-productivity" class="tab-view">
                         <div class="view-header">
                             <div>
-                                <h1>Company Productivity</h1>
-                                <p class="text-secondary">Review all task metrics and score breakdowns</p>
+                                <h1>Company Practices & Assignments</h1>
+                                <p class="text-secondary">Manage practices and their assignments to managers.</p>
+                            </div>
+                        </div>
+                        <div class="section-card bg-glass mb-4">
+                            <div class="section-card-header">
+                                <h3>Practices</h3>
+                            </div>
+                            <div class="form-group row" style="padding:15px; border-bottom:1px solid var(--border-color); display:flex; gap:10px;">
+                                <input type="text" id="new-practice-name" placeholder="Practice Name" class="form-control" style="flex:1;">
+                                <input type="text" id="new-practice-code" placeholder="Practice Code" class="form-control" style="width:150px;">
+                                <button class="btn btn-primary" id="btn-add-practice">Add Practice</button>
+                            </div>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead><tr><th>Code</th><th>Name</th><th>Action</th></tr></thead>
+                                    <tbody id="admin-practice-table-body"></tbody>
+                                </table>
                             </div>
                         </div>
                         <div class="section-card bg-glass">
                             <div class="section-card-header">
-                                <h3>Submissions History</h3>
-                                <div class="header-filters">
-                                    <input type="date" id="admin-prod-filter-date" class="form-control">
-                                    <select id="admin-prod-filter-task" class="form-control">
-                                        <option value="">All Tasks</option>
-                                        <option value="Billing">Billing</option>
-                                        <option value="Follow-up">Follow-up</option>
-                                        <option value="Payment Posting">Payment Posting</option>
-                                        <option value="Eligibility Check">Eligibility Check</option>
-                                        <option value="Report Preparation">Report Preparation</option>
-                                    </select>
-                                </div>
+                                <h3>Manager Assignments</h3>
+                            </div>
+                            <div class="form-group row" style="padding:15px; border-bottom:1px solid var(--border-color); display:flex; gap:10px;">
+                                <select id="assign-manager-select" class="form-control" style="flex:1;">
+                                    <option value="">Select Manager...</option>
+                                </select>
+                                <select id="assign-practice-select" class="form-control" style="flex:1;">
+                                    <option value="">Select Practice...</option>
+                                </select>
+                                <button class="btn btn-primary" id="btn-assign-practice">Assign</button>
                             </div>
                             <div class="table-container">
                                 <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Employee ID</th>
-                                            <th>Employee Name</th>
-                                            <th>Tasks</th>
-                                            <th>Sub-Categories</th>
-                                            <th>Count</th>
-                                            <th>Score</th>
-                                            <th>Status</th>
-                                            <th>Comments</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="admin-prod-table-body">
-                                        <!-- Dynamic Rows -->
-                                    </tbody>
+                                    <thead><tr><th>Manager</th><th>Practice</th><th>Action</th></tr></thead>
+                                    <tbody id="admin-assignment-table-body"></tbody>
                                 </table>
                             </div>
                         </div>
@@ -1873,44 +1873,23 @@
                     <div id="manager-tab-productivity" class="tab-view">
                         <div class="view-header">
                             <div>
-                                <h1>Productivity Review Center</h1>
-                                <p class="text-secondary">Approve and adjust productivity scores submitted by team
-                                    members</p>
+                                <h1>Team Productivity Overview</h1>
+                                <p class="text-secondary">View daily productivity logs submitted by your team members</p>
                             </div>
                         </div>
                         <div class="section-card bg-glass">
-                            <div class="section-card-header">
-                                <h3>Team Submissions</h3>
-                                <div class="header-filters">
-                                    <select id="manager-prod-filter-emp" class="form-control">
-                                        <option value="">All Team Members</option>
-                                    </select>
-                                    <select id="manager-prod-filter-status" class="form-control">
-                                        <option value="">All Submissions</option>
-                                        <option value="Pending">Pending Review</option>
-                                        <option value="Approved">Approved</option>
-                                        <option value="Rejected">Rejected</option>
-                                    </select>
-                                </div>
-                            </div>
                             <div class="table-container">
                                 <table class="data-table">
                                     <thead>
                                         <tr>
                                             <th>Date</th>
-                                            <th>Employee ID</th>
-                                            <th>Employee Name</th>
-                                            <th>Tasks</th>
-                                            <th>Details</th>
-                                            <th>Count</th>
-                                            <th>Calculated Score</th>
-                                            <th>Final Score</th>
-                                            <th>Status</th>
-                                            <th>Actions</th>
+                                            <th>Employee</th>
+                                            <th>Practice</th>
+                                            <th>Total Work</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="manager-prod-table-body">
-                                        <!-- Dynamic Rows -->
+                                    <tbody id="manager-team-prod-body">
                                     </tbody>
                                 </table>
                             </div>
@@ -2158,32 +2137,66 @@
                         <div class="view-header">
                             <div>
                                 <h1>My Productivity Log</h1>
-                                <p class="text-secondary">Historical log of all task submissions</p>
-                            </div>
-                            <div class="actions">
-                                <button class="btn btn-primary" id="btn-employee-add-prod-tab"><i
-                                        class="fa-solid fa-circle-plus"></i> Submit Log</button>
+                                <p class="text-secondary">Log your daily tasks for assigned practices</p>
                             </div>
                         </div>
-                        <div class="section-card bg-glass">
-                            <div class="table-container">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Tasks</th>
-                                            <th>Sub-Categories</th>
-                                            <th>Notes</th>
-                                            <th>Count</th>
-                                            <th>Score</th>
-                                            <th>Status</th>
-                                            <th>Approver Comments</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="employee-tab-productivity-table">
-                                        <!-- Dynamic Rows -->
-                                    </tbody>
-                                </table>
+                        
+                        <div style="display:grid; grid-template-columns: 1fr 2fr; gap:20px;">
+                            <!-- Task Entry Form -->
+                            <div class="section-card bg-glass" style="height: fit-content;">
+                                <div class="section-card-header">
+                                    <h3>Log a Task</h3>
+                                </div>
+                                <div style="padding: 15px;">
+                                    <div class="form-group mb-3">
+                                        <label>Select Practice</label>
+                                        <select id="ept-practice-select" class="form-control" required></select>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label>Log Date</label>
+                                        <input type="date" id="ept-date" class="form-control" required>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label>Task Type</label>
+                                        <select id="ept-task-type" class="form-control" required onchange="window.onEptTaskTypeChange()">
+                                            <option value="">Select a Task Type...</option>
+                                            <option value="Eligibilities">Eligibilities</option>
+                                            <option value="Authorizations">Authorizations</option>
+                                            <option value="Claims">Claims</option>
+                                            <option value="Payment Posting">Payment Posting</option>
+                                            <option value="Follow Up">Follow Up</option>
+                                            <option value="Reports">Reports</option>
+                                            <option value="Others">Others</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div id="ept-dynamic-fields" style="background: rgba(0,0,0,0.02); padding: 10px; border-radius: 6px; margin-bottom: 15px;">
+                                        <div class="text-center text-muted" style="font-size: 12px; padding: 10px;">Select a task type to reveal fields</div>
+                                    </div>
+                                    
+                                    <button class="btn btn-primary btn-block" style="width: 100%;" onclick="window.saveTaskEntry()">Save Task Log</button>
+                                </div>
+                            </div>
+                            
+                            <!-- My Logs View -->
+                            <div class="section-card bg-glass">
+                                <div class="section-card-header">
+                                    <h3>Recent Logs</h3>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Practice</th>
+                                                <th>Tasks Added</th>
+                                                <th>Total Time</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="ept-my-logs-body">
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -3005,6 +3018,7 @@
         var cacheBuster = new Date().getTime();
         document.write('<script src="app.js?v=' + cacheBuster + '"><\/script>');
         document.write('<script src="payroll.js?v=' + cacheBuster + '"><\/script>');
+        document.write('<script src="productivity.js?v=' + cacheBuster + '"><\/script>');
     </script>
 </body>
 

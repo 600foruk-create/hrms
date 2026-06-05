@@ -50,6 +50,21 @@ try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS `payroll_history` (`id` TEXT PRIMARY KEY, `batchId` TEXT, `userId` TEXT, `startDate` TEXT, `endDate` TEXT, `netFixed` REAL, `absencyDeduction` REAL, `loanDeduction` REAL, `bonus` REAL, `otherDeduction` REAL, `netPay` REAL, `processedAt` TEXT)");
     } catch (Exception $e2) {}
 }
+
+// Ensure new productivity tables exist
+try {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `practices` (`id` varchar(50) NOT NULL, `practice_name` varchar(150) NOT NULL, `practice_code` varchar(50) NOT NULL, PRIMARY KEY (`id`))");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `manager_practices` (`id` varchar(50) NOT NULL, `manager_id` varchar(50) NOT NULL, `practice_id` varchar(50) NOT NULL, PRIMARY KEY (`id`))");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `productivity_logs` (`id` varchar(50) NOT NULL, `employee_id` varchar(50) NOT NULL, `practice_id` varchar(50) NOT NULL, `log_date` date NOT NULL, `created_at` datetime NOT NULL, PRIMARY KEY (`id`))");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `productivity_tasks` (`id` varchar(50) NOT NULL, `log_id` varchar(50) NOT NULL, `task_type` varchar(100) NOT NULL, `total_count` int(11) NOT NULL DEFAULT '0', `time_minutes` int(11) NOT NULL DEFAULT '0', `extra_data` json DEFAULT NULL, `notes` text DEFAULT NULL, PRIMARY KEY (`id`))");
+} catch (Exception $e) {
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `practices` (`id` TEXT PRIMARY KEY, `practice_name` TEXT, `practice_code` TEXT)");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `manager_practices` (`id` TEXT PRIMARY KEY, `manager_id` TEXT, `practice_id` TEXT)");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `productivity_logs` (`id` TEXT PRIMARY KEY, `employee_id` TEXT, `practice_id` TEXT, `log_date` TEXT, `created_at` TEXT)");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `productivity_tasks` (`id` TEXT PRIMARY KEY, `log_id` TEXT, `task_type` TEXT, `total_count` INTEGER, `time_minutes` INTEGER, `extra_data` TEXT, `notes` TEXT)");
+    } catch (Exception $e2) {}
+}
 // Auto-add new columns if they are missing
 $new_columns = [
     "ADD COLUMN `bloodGroup` varchar(10) DEFAULT NULL",
@@ -200,16 +215,32 @@ if ($action === 'load_all') {
         $stmt = $pdo->query("SELECT * FROM leaves");
         $dbState['leaves'] = $stmt->fetchAll();
 
-        // Fetch Productivity
-        $stmt = $pdo->query("SELECT * FROM productivity");
-        $prodRecords = $stmt->fetchAll();
-        foreach ($prodRecords as &$p) {
-            $p['tasks'] = json_decode($p['tasks'], true) ?: [];
-            $p['subcategories'] = json_decode($p['subcategories'], true) ?: [];
-            $p['counts'] = json_decode($p['counts'], true) ?: [];
-            $p['score'] = (float)$p['score'];
-        }
-        $dbState['productivity'] = $prodRecords;
+        // Fetch Productivity Data (Safe queries to prevent login breaks if tables missing)
+        try {
+            $stmt = $pdo->query("SELECT * FROM practices");
+            $dbState['practices'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) { $dbState['practices'] = []; }
+
+        try {
+            $stmt = $pdo->query("SELECT * FROM manager_practices");
+            $dbState['manager_practices'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) { $dbState['manager_practices'] = []; }
+
+        try {
+            $stmt = $pdo->query("SELECT * FROM productivity_logs");
+            $dbState['productivity_logs'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) { $dbState['productivity_logs'] = []; }
+
+        try {
+            $stmt = $pdo->query("SELECT * FROM productivity_tasks");
+            $prodTasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($prodTasks as &$pt) {
+                $pt['extra_data'] = $pt['extra_data'] ? json_decode($pt['extra_data'], true) : [];
+                $pt['total_count'] = (int)$pt['total_count'];
+                $pt['time_minutes'] = (int)$pt['time_minutes'];
+            }
+            $dbState['productivity_tasks'] = $prodTasks;
+        } catch (Exception $e) { $dbState['productivity_tasks'] = []; }
 
         // Fetch Attendance
         $stmt = $pdo->query("SELECT * FROM attendance");
@@ -362,15 +393,35 @@ elseif ($action === 'save_all') {
         }
 
         // 4. Sync Productivity
-        $pdo->exec("DELETE FROM productivity");
-        if (!empty($data['productivity'])) {
-            $stmt = $pdo->prepare("INSERT INTO productivity (id, employeeId, employeeName, date, tasks, subcategories, counts, notes, score, status, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            foreach ($data['productivity'] as $p) {
-                $stmt->execute([
-                    $p['id'], $p['employeeId'], $p['employeeName'], $p['date'],
-                    json_encode($p['tasks']), json_encode($p['subcategories']), json_encode($p['counts']),
-                    $p['notes'], $p['score'], $p['status'], $p['comments'] ?? ''
-                ]);
+        try { $pdo->exec("DELETE FROM practices"); } catch (Exception $e) {}
+        if (!empty($data['practices'])) {
+            $stmt = $pdo->prepare("INSERT INTO practices (id, practice_name, practice_code) VALUES (?, ?, ?)");
+            foreach ($data['practices'] as $p) {
+                $stmt->execute([$p['id'], $p['practice_name'], $p['practice_code']]);
+            }
+        }
+
+        try { $pdo->exec("DELETE FROM manager_practices"); } catch (Exception $e) {}
+        if (!empty($data['manager_practices'])) {
+            $stmt = $pdo->prepare("INSERT INTO manager_practices (id, manager_id, practice_id) VALUES (?, ?, ?)");
+            foreach ($data['manager_practices'] as $mp) {
+                $stmt->execute([$mp['id'], $mp['manager_id'], $mp['practice_id']]);
+            }
+        }
+
+        try { $pdo->exec("DELETE FROM productivity_logs"); } catch (Exception $e) {}
+        if (!empty($data['productivity_logs'])) {
+            $stmt = $pdo->prepare("INSERT INTO productivity_logs (id, employee_id, practice_id, log_date, created_at) VALUES (?, ?, ?, ?, ?)");
+            foreach ($data['productivity_logs'] as $pl) {
+                $stmt->execute([$pl['id'], $pl['employee_id'], $pl['practice_id'], $pl['log_date'], $pl['created_at']]);
+            }
+        }
+
+        try { $pdo->exec("DELETE FROM productivity_tasks"); } catch (Exception $e) {}
+        if (!empty($data['productivity_tasks'])) {
+            $stmt = $pdo->prepare("INSERT INTO productivity_tasks (id, log_id, task_type, total_count, time_minutes, extra_data, notes) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            foreach ($data['productivity_tasks'] as $pt) {
+                $stmt->execute([$pt['id'], $pt['log_id'], $pt['task_type'], $pt['total_count'], $pt['time_minutes'], $pt['extra_data'] ? json_encode($pt['extra_data']) : null, $pt['notes']]);
             }
         }
 

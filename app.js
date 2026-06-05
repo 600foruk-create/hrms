@@ -21,7 +21,7 @@ const TASK_SUBCATEGORIES = {
 // ==================== DATABASE ENGINE (Hostinger PHP Backend) ====================
 const API_URL = 'backend/api.php';
 window.dbLoaded = false;
-window.hrmsDatabase = { users: [], weights: {}, leaves: [], productivity: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [], globalSalarySettings: { allowances: [], deductions: [] } };
+awindow.hrmsDatabase = { users: [], weights: {}, leaves: [], practices: [], manager_practices: [], productivity_logs: [], productivity_tasks: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [], globalSalarySettings: { allowances: [], deductions: [] } };
 
 async function syncServer() {
     let success = false;
@@ -36,11 +36,11 @@ async function syncServer() {
                     u.password = 'admin123';
                 }
             });
-            
+
             // Auto-cleanup orphaned/dummy records
             const validUserIds = result.data.users.map(u => u.id);
             let needsCleanup = false;
-            
+
             const cleanList = (list, idField) => {
                 if (!list) return [];
                 const origLen = list.length;
@@ -48,16 +48,16 @@ async function syncServer() {
                 if (filtered.length !== origLen) needsCleanup = true;
                 return filtered;
             };
-            
+
             result.data.leaves = cleanList(result.data.leaves, 'employeeId');
-            result.data.productivity = cleanList(result.data.productivity, 'employeeId');
+            result.data.productivity_logs = cleanList(result.data.productivity_logs, 'employee_id');
             result.data.attendance = cleanList(result.data.attendance, 'employeeId');
             result.data.payrollHistory = cleanList(result.data.payrollHistory, 'userId');
-            
+
             window.hrmsDatabase = result.data;
             window.dbLoaded = true;
             success = true;
-            
+
             if (needsCleanup) {
                 console.log("Orphaned/Dummy records detected. Auto-cleaning SQL database...");
                 setTimeout(() => saveDb(result.data), 2000);
@@ -418,7 +418,7 @@ function updatePunchButtonState() {
     const btnText = document.getElementById('punch-btn-text');
     const btnIcon = document.querySelector('#btn-punch-attendance i');
     const btn = document.getElementById('btn-punch-attendance');
-    
+
     if (record && record.timeIn && !record.timeOut) {
         btnText.textContent = "Punch Out";
         btnIcon.className = "fa-solid fa-person-walking-arrow-right";
@@ -448,7 +448,7 @@ function handlePunchInOut() {
     const today = new Date().toISOString().split('T')[0];
     const now = new Date().toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit' });
     let record = db.attendance.find(a => a.employeeId === currentUser.id && a.date === today);
-    
+
     if (!record) {
         // Create Punch In record
         db.attendance.push({
@@ -468,10 +468,10 @@ function handlePunchInOut() {
     } else {
         return; // Already punched out
     }
-    
+
     saveDb(db);
     updatePunchButtonState();
-    
+
     // Refresh tables if we are looking at them
     if (activeTab === 'attendance') {
         if (currentUser.role === 'Admin') renderAdminAttendanceTab(db);
@@ -630,13 +630,13 @@ function refreshTabContent(tabId) {
         else if (tabId === 'productivity') renderManagerProductivityTab();
         else if (tabId === 'leave') renderManagerLeaveTab();
         else if (tabId === 'reports') initManagerReportsTab();
-        else if (tabId === 'mypayslips') { if(window.renderMyPayslips) window.renderMyPayslips(); }
+        else if (tabId === 'mypayslips') { if (window.renderMyPayslips) window.renderMyPayslips(); }
     } else { // Employee
         if (tabId === 'dashboard') renderEmployeeDashboard();
         else if (tabId === 'attendance') renderEmployeeAttendanceTab();
         else if (tabId === 'productivity') renderEmployeeProductivityTab();
         else if (tabId === 'leave') renderEmployeeLeaveTab();
-        else if (tabId === 'mypayslips') { if(window.renderMyPayslips) window.renderMyPayslips(); }
+        else if (tabId === 'mypayslips') { if (window.renderMyPayslips) window.renderMyPayslips(); }
     }
 }
 
@@ -1147,13 +1147,13 @@ function renderAdminEmployeesTab() {
 function renderAdminAttendanceTab() {
     renderLeaveTypes();
     const db = getDb();
-    
+
     const dateInput = document.getElementById('admin-attendance-filter-date');
     if (!dateInput.value) {
         dateInput.value = new Date().toISOString().split('T')[0];
     }
     const filterDate = dateInput.value;
-    
+
     const filterEmp = document.getElementById('admin-attendance-filter-employee').value;
 
     // Fill Employee options
@@ -1242,8 +1242,8 @@ function renderAdminProductivityTab() {
 function renderAdminLeaveTab() {
     renderLeaveTypes();
     const db = getDb();
-    
-    if(window.renderAdminLeaveBalancesList) {
+
+    if (window.renderAdminLeaveBalancesList) {
         window.renderAdminLeaveBalancesList();
     }
 
@@ -1332,7 +1332,7 @@ function renderLeaveTypes() {
     const db = getDb();
     const tbody = document.getElementById('settings-leave-types-body');
     tbody.innerHTML = '';
-    
+
     let leaveTypes = db.companyProfile?.leaveTypes;
     if (!leaveTypes || !Array.isArray(leaveTypes)) {
         leaveTypes = [
@@ -1344,7 +1344,7 @@ function renderLeaveTypes() {
         db.companyProfile.leaveTypes = leaveTypes;
         saveDb(db);
     }
-    
+
     if (leaveTypes.length === 0) {
         tbody.innerHTML = `<tr><td colspan="3" class="empty-state">No leave types configured.</td></tr>`;
     } else {
@@ -1380,22 +1380,22 @@ function renderLeaveTypes() {
         countBadge.textContent = `${leaveTypes.length} Policies`;
     }
 }
-window.renderAdminLeaveBalancesList = function() {
+window.renderAdminLeaveBalancesList = function () {
     const db = getDb();
     const searchInput = document.getElementById('admin-leave-balance-search');
     const thead = document.getElementById('admin-employee-leave-balances-head');
     const tbody = document.getElementById('admin-employee-leave-balances-body');
     const toggleBtn = document.getElementById('btn-toggle-emp-leave-balances');
-    
+
     if (!thead || !tbody) return;
 
     let filterTxt = searchInput ? searchInput.value.toLowerCase().trim() : '';
     let activeUsers = db.users.filter(u => u.status === 'Active');
-    
+
     if (filterTxt) {
-        activeUsers = activeUsers.filter(u => 
-            u.name.toLowerCase().includes(filterTxt) || 
-            String(u.id).toLowerCase().includes(filterTxt) || 
+        activeUsers = activeUsers.filter(u =>
+            u.name.toLowerCase().includes(filterTxt) ||
+            String(u.id).toLowerCase().includes(filterTxt) ||
             u.role.toLowerCase().includes(filterTxt)
         );
     }
@@ -1417,7 +1417,7 @@ window.renderAdminLeaveBalancesList = function() {
         activeUsers.forEach((user, index) => {
             const hiddenClass = index >= 5 ? 'emp-leave-row-hidden' : '';
             const rowStyle = index >= 5 ? 'display: none;' : '';
-            
+
             bodyHtml += `<tr class="${hiddenClass}" style="${rowStyle} border-bottom: 1px solid rgba(255,255,255,0.05);">
                 <td class="text-secondary">${user.displayId || user.id}</td>
                 <td class="bold">${user.name}</td>
@@ -1427,21 +1427,21 @@ window.renderAdminLeaveBalancesList = function() {
                 </td>
             </tr>`;
         });
-        
+
         // Show toggle button only if no search filter is active and length > 5
         if (activeUsers.length > 5 && !filterTxt) {
             toggleBtn.classList.remove('hidden');
             toggleBtn.innerHTML = `Show More Employees <i class="fa-solid fa-chevron-down"></i>`;
-            
-            toggleBtn.onclick = function() {
+
+            toggleBtn.onclick = function () {
                 const hiddenRows = tbody.querySelectorAll('.emp-leave-row-hidden');
                 const isExpanding = toggleBtn.textContent.includes('Show More');
-                
+
                 hiddenRows.forEach(row => {
                     row.style.display = isExpanding ? 'table-row' : 'none';
                 });
-                
-                toggleBtn.innerHTML = isExpanding 
+
+                toggleBtn.innerHTML = isExpanding
                     ? `Show Less Employees <i class="fa-solid fa-chevron-up"></i>`
                     : `Show More Employees <i class="fa-solid fa-chevron-down"></i>`;
             };
@@ -1449,16 +1449,16 @@ window.renderAdminLeaveBalancesList = function() {
             toggleBtn.classList.add('hidden');
         }
     }
-    
+
     // Un-hide all rows if searching
-    if(filterTxt) {
+    if (filterTxt) {
         bodyHtml = bodyHtml.replace(/display: none;/g, '');
     }
 
     tbody.innerHTML = bodyHtml;
 };
 
-window.openEditLeaveBalancesModal = function(userId) {
+window.openEditLeaveBalancesModal = function (userId) {
     const db = getDb();
     const user = db.users.find(u => u.id === userId);
     if (!user) return;
@@ -1475,8 +1475,8 @@ window.openEditLeaveBalancesModal = function(userId) {
     container.innerHTML = '';
 
     const leaveTypes = db.companyProfile?.leaveTypes || [];
-    
-    if(leaveTypes.length === 0) {
+
+    if (leaveTypes.length === 0) {
         container.innerHTML = '<p class="text-secondary text-center">No leave policies defined globally.</p>';
     }
 
@@ -1501,14 +1501,14 @@ window.openEditLeaveBalancesModal = function(userId) {
     modal.classList.remove('hidden');
 };
 
-window.saveIndividualLeaveBalances = function() {
+window.saveIndividualLeaveBalances = function () {
     const db = getDb();
     const userId = document.getElementById('edit-leave-balances-emp-id').value;
     const user = db.users.find(u => u.id === userId);
     if (!user) return;
 
     if (!user.leaveBalances) user.leaveBalances = [];
-    
+
     const leaveTypes = db.companyProfile?.leaveTypes || [];
     leaveTypes.forEach(lt => {
         const input = document.getElementById(`modal-leave-bal-${lt.id}`);
@@ -1522,20 +1522,20 @@ window.saveIndividualLeaveBalances = function() {
             }
         }
     });
-    
+
     saveDb(db);
     showToast("Balances Updated", `Leave balances for ${user.name} saved successfully.`);
     document.getElementById('modal-edit-leave-balances').classList.add('hidden');
-    
+
     if (window.renderAdminLeaveBalancesList) window.renderAdminLeaveBalancesList();
 };
 
-window.enableEditLeaveType = function(id) {
+window.enableEditLeaveType = function (id) {
     const nameEl = document.getElementById(`lt-name-${id}`);
     const daysEl = document.getElementById(`lt-days-${id}`);
     const btnEdit = document.getElementById(`btn-edit-${id}`);
     const btnSave = document.getElementById(`btn-save-${id}`);
-    
+
     if (nameEl && daysEl) {
         nameEl.disabled = false;
         nameEl.style.border = '1px solid var(--primary)';
@@ -1546,8 +1546,8 @@ window.enableEditLeaveType = function(id) {
     if (btnSave) btnSave.style.display = 'inline-block';
 };
 
-window.deleteLeaveType = function(id) {
-    if(confirm("Are you sure you want to delete this leave type?")) {
+window.deleteLeaveType = function (id) {
+    if (confirm("Are you sure you want to delete this leave type?")) {
         const db = getDb();
         db.companyProfile.leaveTypes = db.companyProfile.leaveTypes.filter(lt => lt.id !== id);
         saveDb(db);
@@ -1557,20 +1557,20 @@ window.deleteLeaveType = function(id) {
     }
 };
 
-window.saveLeaveType = function(id) {
+window.saveLeaveType = function (id) {
     const nameEl = document.getElementById(`lt-name-${id}`);
     const daysEl = document.getElementById(`lt-days-${id}`);
-    if(!nameEl || !daysEl) return;
+    if (!nameEl || !daysEl) return;
     const name = nameEl.value.trim();
     const days = parseInt(daysEl.value, 10);
-    if(!name || isNaN(days)) {
+    if (!name || isNaN(days)) {
         showToast("Error", "Invalid inputs.", "error");
         return;
     }
     const db = getDb();
-    if(db.companyProfile && db.companyProfile.leaveTypes) {
+    if (db.companyProfile && db.companyProfile.leaveTypes) {
         const lt = db.companyProfile.leaveTypes.find(l => l.id === id);
-        if(lt) {
+        if (lt) {
             lt.name = name;
             lt.days = days;
             saveDb(db);
@@ -1618,7 +1618,7 @@ function renderManagerDashboard() {
     document.getElementById('manager-team-name-sub').textContent = `${currentUser.name}'s Reporting Team`;
 
     const teamEmails = teamMembers.map(t => t.id);
-    
+
     // Team attendance today
     const today = new Date().toISOString().split('T')[0];
     const presentCount = db.attendance.filter(a => a.date === today && a.status === 'Present' && teamEmails.includes(a.employeeId)).length;
@@ -1640,28 +1640,28 @@ function renderManagerDashboard() {
     if (prodChart && prodXaxis) {
         let pathD = "M 0 100 ";
         let labelsHTML = "";
-        let maxScore = 50; 
-        
+        let maxScore = 50;
+
         // Generate last 7 days chart
         for (let i = 6; i >= 0; i--) {
             let d = new Date();
             d.setDate(d.getDate() - i);
             let dateStr = d.toISOString().split('T')[0];
             let displayDate = dateStr.slice(5).replace('-', '/');
-            
+
             let dailyTeamProd = db.productivity.filter(p => p.date === dateStr && teamEmails.includes(p.employeeId) && p.status === 'Approved');
             let dailyScore = dailyTeamProd.length > 0 ? dailyTeamProd.reduce((sum, p) => sum + p.score, 0) / dailyTeamProd.length : 0;
-            
+
             let x = (6 - i) * 50;
             let y = 100 - (dailyScore / maxScore) * 80;
             if (y < 10) y = 10;
-            
+
             pathD += `L ${x} ${y} `;
             labelsHTML += `<span>${displayDate}</span>`;
-            
+
             prodChart.innerHTML += `<circle cx="${x}" cy="${y}" r="4" class="svg-chart-dot completed" />`;
         }
-        
+
         const existingPath = prodChart.querySelector('path');
         if (existingPath) existingPath.remove();
         prodChart.innerHTML += `<path d="${pathD}" class="svg-chart-path completed" fill="none" />`;
@@ -1896,10 +1896,10 @@ function renderEmployeeDashboard() {
     const today = new Date().toISOString().split('T')[0];
     const myAttToday = db.attendance.find(a => a.employeeId === currentUser.id && a.date === today);
     const attStatus = myAttToday ? myAttToday.status : 'Absent';
-    
+
     const attEl = document.getElementById('employee-metric-attendance');
     const iconContainer = document.getElementById('employee-attendance-icon');
-    
+
     attEl.textContent = attStatus;
     if (attStatus === 'Present') {
         attEl.className = 'value text-success';
@@ -1924,28 +1924,28 @@ function renderEmployeeDashboard() {
     if (prodChart && prodXaxis) {
         let pathD = "M 0 100 ";
         let labelsHTML = "";
-        let maxScore = 50; 
-        
+        let maxScore = 50;
+
         // Generate last 7 days chart
         for (let i = 6; i >= 0; i--) {
             let d = new Date();
             d.setDate(d.getDate() - i);
             let dateStr = d.toISOString().split('T')[0];
             let displayDate = dateStr.slice(5).replace('-', '/');
-            
+
             let dailyProd = db.productivity.find(p => p.date === dateStr && p.employeeId === currentUser.id && p.status === 'Approved');
             let dailyScore = dailyProd ? dailyProd.score : 0;
-            
+
             let x = (6 - i) * 50;
             let y = 100 - (dailyScore / maxScore) * 80;
             if (y < 10) y = 10;
-            
+
             pathD += `L ${x} ${y} `;
             labelsHTML += `<span>${displayDate}</span>`;
-            
+
             prodChart.innerHTML += `<circle cx="${x}" cy="${y}" r="4" class="svg-chart-dot completed" />`;
         }
-        
+
         const existingPath = prodChart.querySelector('path');
         if (existingPath) existingPath.remove();
         prodChart.innerHTML += `<path d="${pathD}" class="svg-chart-path completed" fill="none" />`;
@@ -1986,7 +1986,7 @@ function renderEmployeeDashboard() {
     // Bind Quick Leave Submit Event
     const quickLeaveForm = document.getElementById('quick-leave-form');
     if (quickLeaveForm) {
-        quickLeaveForm.onsubmit = function(e) {
+        quickLeaveForm.onsubmit = function (e) {
             e.preventDefault();
             const type = document.getElementById('quick-leave-type').value;
             const start = document.getElementById('quick-leave-start').value;
@@ -2151,7 +2151,7 @@ function markNotificationRead(notifId) {
 function closeAllModals() {
     document.getElementById('modal-backdrop').classList.add('hidden');
     document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
-    
+
     // Restore document title if it was temporarily modified for printing
     if (window.originalDocumentTitle) {
         document.title = window.originalDocumentTitle;
@@ -2174,10 +2174,10 @@ window.viewUserProfile = function (userId) {
     document.getElementById('profile-role').textContent = user.role;
     document.getElementById('profile-role').className = `role-badge badge-role ${user.role.toLowerCase()}`;
     document.getElementById('profile-email').textContent = user.email;
-    
+
     const moreDetailsBtn = document.getElementById('profile-more-details-btn');
     if (moreDetailsBtn) {
-        moreDetailsBtn.onclick = function(e) {
+        moreDetailsBtn.onclick = function (e) {
             e.preventDefault();
             closeAllModals();
             openEditEmployeeModal(userId, true);
@@ -2324,134 +2324,134 @@ window.openEditEmployeeModal = function (userId, isViewOnly = false) {
         let displayId = "";
         if (user && user.displayId) {
             displayId = user.displayId;
-    } else if (user && user.id) {
-        displayId = user.id;
-    }
-
-    document.getElementById('emp-display-id').value = displayId;
-    document.getElementById('emp-form-id').value = user ? user.id : "";
-    document.getElementById('emp-name').value = user ? user.name : "";
-    document.getElementById('emp-email').value = user ? user.email : "";
-    document.getElementById('emp-start-date').value = (user && user.startDate) ? user.startDate : new Date().toISOString().split('T')[0];
-    document.getElementById('emp-salary').value = (user && user.salary) ? user.salary : "";
-
-    // Additional Optional Fields
-    document.getElementById('emp-father-name').value = user && user.fatherName ? user.fatherName : "";
-    document.getElementById('emp-gender').value = user && user.gender ? user.gender : "Male";
-    document.getElementById('emp-dob').value = user && user.dob ? user.dob : "";
-    document.getElementById('emp-cnic').value = user && user.cnic ? user.cnic : "";
-    document.getElementById('emp-marital-status').value = user && user.maritalStatus ? user.maritalStatus : "Single";
-    document.getElementById('emp-blood-group').value = user && user.bloodGroup ? user.bloodGroup : "";
-
-    document.getElementById('emp-phone').value = user && user.phone ? user.phone : "";
-    document.getElementById('emp-emergency-contact').value = user && user.emergencyContact ? user.emergencyContact : "";
-    document.getElementById('emp-designation').value = user && user.designation ? user.designation : "";
-
-    // Bank Details
-    document.getElementById('emp-bank-name').value = user && user.bankName ? user.bankName : "";
-    document.getElementById('emp-account-title').value = user && user.accountTitle ? user.accountTitle : "";
-    document.getElementById('emp-account-number').value = user && user.accountNumber ? user.accountNumber : "";
-    document.getElementById('emp-iban').value = user && user.iban ? user.iban : "";
-    document.getElementById('emp-branch-code').value = user && user.branchCode ? user.branchCode : "";
-
-    if (user && user.endDate) {
-        document.getElementById('emp-end-date').value = user.endDate;
-    } else {
-        document.getElementById('emp-end-date').value = "";
-    }
-
-    // Read-only logic for Inactive users OR View-Only mode
-    const isInactive = user && user.status === 'Inactive';
-    const shouldDisable = isViewOnly || isInactive;
-    
-    const formElements = document.getElementById('employee-form').querySelectorAll('input, select');
-    formElements.forEach(el => {
-        if (isViewOnly) {
-            el.disabled = true; // Disable everything in view mode
-        } else if (el.id !== 'emp-form-id' && el.id !== 'emp-display-id') {
-            el.disabled = isInactive;
-        } else {
-            el.disabled = false;
+        } else if (user && user.id) {
+            displayId = user.id;
         }
-    });
-    
-    const submitBtn = document.querySelector('#employee-form button[type="submit"]');
-    if (submitBtn) {
-        submitBtn.style.display = shouldDisable ? 'none' : 'block';
-    }
 
-    // Disable file dropzones in view mode
-    const dropzones = document.querySelectorAll('#modal-employee .dropzone');
-    dropzones.forEach(dz => {
-        dz.style.pointerEvents = isViewOnly ? 'none' : 'auto';
-        dz.style.opacity = isViewOnly ? '0.6' : '1';
-    });
+        document.getElementById('emp-display-id').value = displayId;
+        document.getElementById('emp-form-id').value = user ? user.id : "";
+        document.getElementById('emp-name').value = user ? user.name : "";
+        document.getElementById('emp-email').value = user ? user.email : "";
+        document.getElementById('emp-start-date').value = (user && user.startDate) ? user.startDate : new Date().toISOString().split('T')[0];
+        document.getElementById('emp-salary').value = (user && user.salary) ? user.salary : "";
 
-    // Password mandatory for new users only, but always visible (unless view only)
-    const passInput = document.getElementById('emp-password');
-    const passAsterisk = document.getElementById('emp-pass-asterisk');
-    document.getElementById('emp-pass-group').style.display = isViewOnly ? 'none' : 'block';
-    
-    if (user) {
-        passInput.removeAttribute('required');
-        if(passAsterisk) passAsterisk.style.display = 'none';
-    } else {
-        passInput.setAttribute('required', 'true');
-        if(passAsterisk) passAsterisk.style.display = 'inline';
-    }
-    passInput.value = "";
+        // Additional Optional Fields
+        document.getElementById('emp-father-name').value = user && user.fatherName ? user.fatherName : "";
+        document.getElementById('emp-gender').value = user && user.gender ? user.gender : "Male";
+        document.getElementById('emp-dob').value = user && user.dob ? user.dob : "";
+        document.getElementById('emp-cnic').value = user && user.cnic ? user.cnic : "";
+        document.getElementById('emp-marital-status').value = user && user.maritalStatus ? user.maritalStatus : "Single";
+        document.getElementById('emp-blood-group').value = user && user.bloodGroup ? user.bloodGroup : "";
 
-    // Dynamically inject roles based on active user
-    const roleSelect = document.getElementById('emp-role');
-    roleSelect.innerHTML = '';
-    if (currentUser && currentUser.role === 'Admin') {
-        roleSelect.innerHTML += '<option value="Admin">Admin</option>';
-        roleSelect.innerHTML += '<option value="Manager">Manager</option>';
-    }
-    roleSelect.innerHTML += '<option value="User">User</option>';
+        document.getElementById('emp-phone').value = user && user.phone ? user.phone : "";
+        document.getElementById('emp-emergency-contact').value = user && user.emergencyContact ? user.emergencyContact : "";
+        document.getElementById('emp-designation').value = user && user.designation ? user.designation : "";
 
-    document.getElementById('emp-role').value = user ? user.role : "User";
-    document.getElementById('emp-status').value = user ? user.status : "Active";
+        // Bank Details
+        document.getElementById('emp-bank-name').value = user && user.bankName ? user.bankName : "";
+        document.getElementById('emp-account-title').value = user && user.accountTitle ? user.accountTitle : "";
+        document.getElementById('emp-account-number').value = user && user.accountNumber ? user.accountNumber : "";
+        document.getElementById('emp-iban').value = user && user.iban ? user.iban : "";
+        document.getElementById('emp-branch-code').value = user && user.branchCode ? user.branchCode : "";
 
-    // Fill reporting managers dropdown
-    const managerSelect = document.getElementById('emp-manager');
-    managerSelect.innerHTML = '<option value="">None / Unassigned</option>';
-    db.users.filter(u => u.role === 'Manager' || u.role === 'Admin').forEach(mgr => {
-        managerSelect.innerHTML += `<option value="${mgr.id}">${mgr.name}</option>`;
-    });
+        if (user && user.endDate) {
+            document.getElementById('emp-end-date').value = user.endDate;
+        } else {
+            document.getElementById('emp-end-date').value = "";
+        }
 
-    let mgrIdVal = "";
-    if (user && user.managerId) {
-        const matchingMgr = db.users.find(u => u.id === user.managerId || u.name === user.managerId || u.email === user.managerId);
-        mgrIdVal = matchingMgr ? matchingMgr.id : user.managerId;
-    }
-    document.getElementById('emp-manager').value = mgrIdVal;
+        // Read-only logic for Inactive users OR View-Only mode
+        const isInactive = user && user.status === 'Inactive';
+        const shouldDisable = isViewOnly || isInactive;
 
-    // Role-based restrictions for Manager
-    if (currentUser && currentUser.role === 'Manager') {
-        document.getElementById('emp-role').value = "User";
-        document.getElementById('emp-role').style.pointerEvents = 'none';
-        document.getElementById('emp-role').style.opacity = '0.7';
+        const formElements = document.getElementById('employee-form').querySelectorAll('input, select');
+        formElements.forEach(el => {
+            if (isViewOnly) {
+                el.disabled = true; // Disable everything in view mode
+            } else if (el.id !== 'emp-form-id' && el.id !== 'emp-display-id') {
+                el.disabled = isInactive;
+            } else {
+                el.disabled = false;
+            }
+        });
 
-        document.getElementById('emp-manager').value = currentUser.id;
-        document.getElementById('emp-manager').style.pointerEvents = 'none';
-        document.getElementById('emp-manager').style.opacity = '0.7';
-    } else {
-        document.getElementById('emp-role').style.pointerEvents = 'auto';
-        document.getElementById('emp-role').style.opacity = '1';
-        document.getElementById('emp-manager').style.pointerEvents = 'auto';
-        document.getElementById('emp-manager').style.opacity = '1';
-    }
+        const submitBtn = document.querySelector('#employee-form button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.style.display = shouldDisable ? 'none' : 'block';
+        }
 
-    // Reset or populate temp files
-    window.tempProfilePic = user && user.profilePic ? user.profilePic : null;
-    window.tempDocuments = user && user.documents ? user.documents : [];
+        // Disable file dropzones in view mode
+        const dropzones = document.querySelectorAll('#modal-employee .dropzone');
+        dropzones.forEach(dz => {
+            dz.style.pointerEvents = isViewOnly ? 'none' : 'auto';
+            dz.style.opacity = isViewOnly ? '0.6' : '1';
+        });
 
-    // Refresh dropzone visuals
-    const picDropzone = document.getElementById('dropzone-profile-pic');
-    if (picDropzone) {
-        if (window.tempProfilePic) {
-            picDropzone.innerHTML = `
+        // Password mandatory for new users only, but always visible (unless view only)
+        const passInput = document.getElementById('emp-password');
+        const passAsterisk = document.getElementById('emp-pass-asterisk');
+        document.getElementById('emp-pass-group').style.display = isViewOnly ? 'none' : 'block';
+
+        if (user) {
+            passInput.removeAttribute('required');
+            if (passAsterisk) passAsterisk.style.display = 'none';
+        } else {
+            passInput.setAttribute('required', 'true');
+            if (passAsterisk) passAsterisk.style.display = 'inline';
+        }
+        passInput.value = "";
+
+        // Dynamically inject roles based on active user
+        const roleSelect = document.getElementById('emp-role');
+        roleSelect.innerHTML = '';
+        if (currentUser && currentUser.role === 'Admin') {
+            roleSelect.innerHTML += '<option value="Admin">Admin</option>';
+            roleSelect.innerHTML += '<option value="Manager">Manager</option>';
+        }
+        roleSelect.innerHTML += '<option value="User">User</option>';
+
+        document.getElementById('emp-role').value = user ? user.role : "User";
+        document.getElementById('emp-status').value = user ? user.status : "Active";
+
+        // Fill reporting managers dropdown
+        const managerSelect = document.getElementById('emp-manager');
+        managerSelect.innerHTML = '<option value="">None / Unassigned</option>';
+        db.users.filter(u => u.role === 'Manager' || u.role === 'Admin').forEach(mgr => {
+            managerSelect.innerHTML += `<option value="${mgr.id}">${mgr.name}</option>`;
+        });
+
+        let mgrIdVal = "";
+        if (user && user.managerId) {
+            const matchingMgr = db.users.find(u => u.id === user.managerId || u.name === user.managerId || u.email === user.managerId);
+            mgrIdVal = matchingMgr ? matchingMgr.id : user.managerId;
+        }
+        document.getElementById('emp-manager').value = mgrIdVal;
+
+        // Role-based restrictions for Manager
+        if (currentUser && currentUser.role === 'Manager') {
+            document.getElementById('emp-role').value = "User";
+            document.getElementById('emp-role').style.pointerEvents = 'none';
+            document.getElementById('emp-role').style.opacity = '0.7';
+
+            document.getElementById('emp-manager').value = currentUser.id;
+            document.getElementById('emp-manager').style.pointerEvents = 'none';
+            document.getElementById('emp-manager').style.opacity = '0.7';
+        } else {
+            document.getElementById('emp-role').style.pointerEvents = 'auto';
+            document.getElementById('emp-role').style.opacity = '1';
+            document.getElementById('emp-manager').style.pointerEvents = 'auto';
+            document.getElementById('emp-manager').style.opacity = '1';
+        }
+
+        // Reset or populate temp files
+        window.tempProfilePic = user && user.profilePic ? user.profilePic : null;
+        window.tempDocuments = user && user.documents ? user.documents : [];
+
+        // Refresh dropzone visuals
+        const picDropzone = document.getElementById('dropzone-profile-pic');
+        if (picDropzone) {
+            if (window.tempProfilePic) {
+                picDropzone.innerHTML = `
                 <div style="position:relative; display:inline-block;">
                     <img src="${window.tempProfilePic}" alt="Profile Preview" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--primary);">
                     <button type="button" class="delete-doc-btn" onclick="window.deleteTempProfilePic('${picDropzone.id}')" style="position:absolute;top:-5px;right:-10px;background:var(--danger);color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-xmark"></i></button>
@@ -2460,43 +2460,43 @@ window.openEditEmployeeModal = function (userId, isViewOnly = false) {
                 <div style="font-size:11px;color:var(--text-muted);">Click to change</div>
                 <input type="file" id="emp-profile-pic-input" accept="image/*" style="display:none;">
             `;
-            const picInput = picDropzone.querySelector('#emp-profile-pic-input');
-            if (picInput) {
-                picInput.addEventListener('change', () => { if (picInput.files.length) onProfilePicSelected(picDropzone, picInput.files); });
-            }
-        } else {
-            picDropzone.innerHTML = `
+                const picInput = picDropzone.querySelector('#emp-profile-pic-input');
+                if (picInput) {
+                    picInput.addEventListener('change', () => { if (picInput.files.length) onProfilePicSelected(picDropzone, picInput.files); });
+                }
+            } else {
+                picDropzone.innerHTML = `
                 <i class="fa-regular fa-image"></i>
                 <div style="font-weight: 600;">Upload Profile Picture</div>
                 <div style="font-size: 11px;">Drag & Drop or Click to browse (JPG, PNG)</div>
                 <input type="file" id="emp-profile-pic-input" accept="image/*" style="display: none;">
             `;
-            const picInput = picDropzone.querySelector('#emp-profile-pic-input');
-            if (picInput) {
-                picInput.addEventListener('change', () => { if (picInput.files.length) onProfilePicSelected(picDropzone, picInput.files); });
+                const picInput = picDropzone.querySelector('#emp-profile-pic-input');
+                if (picInput) {
+                    picInput.addEventListener('change', () => { if (picInput.files.length) onProfilePicSelected(picDropzone, picInput.files); });
+                }
             }
         }
-    }
 
-    const docDropzone = document.getElementById('dropzone-documents');
-    if (docDropzone) {
-        window.renderDocumentsDropzone(docDropzone);
-    }
+        const docDropzone = document.getElementById('dropzone-documents');
+        if (docDropzone) {
+            window.renderDocumentsDropzone(docDropzone);
+        }
 
-    // Leave Balances Logic
-    const leaveSection = document.getElementById('emp-leave-balances-section');
-    const leaveTableBody = document.getElementById('emp-leave-balances-table');
-    if (leaveSection && leaveTableBody) {
-        if (user && user.id) {
-            leaveSection.style.display = 'block';
-            leaveTableBody.innerHTML = '';
-            
-            let balances = user.leaveBalances || [];
-            if (balances.length === 0) {
-                leaveTableBody.innerHTML = `<tr><td colspan="3" class="empty-state">No leave balances found for this employee.</td></tr>`;
-            } else {
-                balances.forEach(b => {
-                    leaveTableBody.innerHTML += `
+        // Leave Balances Logic
+        const leaveSection = document.getElementById('emp-leave-balances-section');
+        const leaveTableBody = document.getElementById('emp-leave-balances-table');
+        if (leaveSection && leaveTableBody) {
+            if (user && user.id) {
+                leaveSection.style.display = 'block';
+                leaveTableBody.innerHTML = '';
+
+                let balances = user.leaveBalances || [];
+                if (balances.length === 0) {
+                    leaveTableBody.innerHTML = `<tr><td colspan="3" class="empty-state">No leave balances found for this employee.</td></tr>`;
+                } else {
+                    balances.forEach(b => {
+                        leaveTableBody.innerHTML += `
                         <tr>
                             <td class="bold">${b.name}</td>
                             <td>${b.balance} days</td>
@@ -2508,16 +2508,16 @@ window.openEditEmployeeModal = function (userId, isViewOnly = false) {
                             </td>
                         </tr>
                     `;
-                });
+                    });
+                }
+            } else {
+                leaveSection.style.display = 'none';
             }
-        } else {
-            leaveSection.style.display = 'none';
         }
-    }
 
-    toggleManagerGroup();
+        toggleManagerGroup();
 
-    openModal('modal-employee');
+        openModal('modal-employee');
     } catch (e) {
         alert("Error opening modal: " + e.message + "\nLine: " + e.lineNumber);
         console.error(e);
@@ -2589,8 +2589,8 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
 
     // Employee ID uniqueness check (for new employees, or if ID changed during edit)
     const normalizedNewId = displayId.trim().toLowerCase();
-    const idConflict = db.users.find(u => 
-        (u.id.toLowerCase() === normalizedNewId || (u.displayId && u.displayId.toLowerCase() === normalizedNewId)) && 
+    const idConflict = db.users.find(u =>
+        (u.id.toLowerCase() === normalizedNewId || (u.displayId && u.displayId.toLowerCase() === normalizedNewId)) &&
         u.id !== id
     );
     if (idConflict) {
@@ -2655,12 +2655,12 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
 
             // Password handling
             if (password && password.trim().length > 0) {
-                 if (password.trim().length >= 6) {
-                     user.password = password.trim();
-                 } else {
-                     showToast("Password Error", "Password must be at least 6 characters.", "error");
-                     return;
-                 }
+                if (password.trim().length >= 6) {
+                    user.password = password.trim();
+                } else {
+                    showToast("Password Error", "Password must be at least 6 characters.", "error");
+                    return;
+                }
             }
 
             // Keep existing endDate if typed manually, else calculate if Inactive
@@ -2788,7 +2788,7 @@ function processLeaveReview(status) {
         // If approved, update attendance register as Leave for those dates
         if (status === 'Approved') {
             logLeaveAttendance(leave);
-            
+
             // Deduct from leave balance
             const user = db.users.find(u => u.id === leave.employeeId);
             if (user && user.leaveBalances) {
@@ -3001,7 +3001,7 @@ window.openManualAttendanceModal = function () {
                 </tr>
             `;
         });
-        
+
         htmlStr += `</tbody></table>`;
         listContainer.innerHTML = htmlStr;
     };
@@ -3030,11 +3030,11 @@ document.getElementById('attendance-log-form').addEventListener('submit', (e) =>
         const empId = row.getAttribute('data-emp-id');
         const empName = row.getAttribute('data-emp-name');
         const selectedRadio = row.querySelector(`input[name="att_status_${empId}"]:checked`);
-        
+
         if (selectedRadio) {
             const status = selectedRadio.value;
             const existing = db.attendance.find(a => a.employeeId === empId && a.date === date);
-            
+
             if (existing) {
                 // If they change status, update it. (If it was empty, we now set it)
                 if (existing.status !== status) {
@@ -3134,12 +3134,12 @@ window.deleteEmployee = function (userId) {
         if (index > -1) {
             const userName = db.users[index].name;
             db.users.splice(index, 1);
-            
+
             // Clean up dependencies
             db.leaves = db.leaves.filter(l => l.employeeId !== userId);
             db.productivity = db.productivity.filter(p => p.employeeId !== userId);
             db.attendance = db.attendance.filter(a => a.employeeId !== userId);
-            
+
             saveDb(db);
             showToast("Deleted", `Employee "${userName}" has been deleted.`);
             logAudit(`Deleted employee profile: "${userName}".`);
@@ -3185,33 +3185,33 @@ document.getElementById('settings-add-leave-type-form').addEventListener('submit
     e.preventDefault();
     const name = document.getElementById('new-leave-type-name').value.trim();
     const days = parseInt(document.getElementById('new-leave-type-days').value, 10);
-    
-    if(!name || isNaN(days)) {
+
+    if (!name || isNaN(days)) {
         showToast("Error", "Invalid inputs.", "error");
         return;
     }
-    
+
     const db = getDb();
     if (!db.companyProfile) db.companyProfile = {};
     if (!db.companyProfile.leaveTypes) db.companyProfile.leaveTypes = [];
-    
+
     db.companyProfile.leaveTypes.push({
         id: 'L' + Date.now(),
         name: name,
         days: days
     });
-    
+
     saveDb(db);
     logAudit(`Added new leave type: ${name} (${days} days)`);
     showToast("Success", "Leave type added.");
     e.target.reset();
-    
+
     // Reset UI to disabled state
     const nameInput = document.getElementById('new-leave-type-name');
     const daysInput = document.getElementById('new-leave-type-days');
     const btnEnable = document.getElementById('btn-enable-add-leave');
     const btnSubmit = document.getElementById('btn-submit-add-leave');
-    
+
     if (nameInput && daysInput) {
         nameInput.disabled = true;
         nameInput.style.border = '';
@@ -3220,16 +3220,16 @@ document.getElementById('settings-add-leave-type-form').addEventListener('submit
     }
     if (btnEnable) btnEnable.style.display = 'inline-block';
     if (btnSubmit) btnSubmit.style.display = 'none';
-    
+
     renderLeaveTypes();
 });
 
-window.enableAddNewLeaveType = function() {
+window.enableAddNewLeaveType = function () {
     const nameInput = document.getElementById('new-leave-type-name');
     const daysInput = document.getElementById('new-leave-type-days');
     const btnEnable = document.getElementById('btn-enable-add-leave');
     const btnSubmit = document.getElementById('btn-submit-add-leave');
-    
+
     if (nameInput && daysInput) {
         nameInput.disabled = false;
         nameInput.style.border = '1px solid var(--primary)';
@@ -4066,10 +4066,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         openModal('modal-productivity-form');
     });
 
-    window.openLeaveRequestModal = function() {
+    window.openLeaveRequestModal = function () {
         const form = document.getElementById('leave-request-form');
         if (form) form.reset();
-        
+
         const typeSelect = document.getElementById('leave-type');
         if (typeSelect) {
             typeSelect.innerHTML = '';
@@ -4083,7 +4083,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 typeSelect.innerHTML += `<option value="${lt.name}">${lt.name}</option>`;
             });
         }
-        
+
         openModal('modal-leave-form');
     };
 
@@ -4223,7 +4223,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const reader = new FileReader();
         reader.onload = function (e) {
             const img = new Image();
-            img.onload = function() {
+            img.onload = function () {
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
@@ -4236,7 +4236,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
-                
+
                 const dataURL = canvas.toDataURL('image/png', 0.8);
                 dropzone.innerHTML = `
                     <img src="${dataURL}" alt="Company Logo" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
@@ -4264,7 +4264,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const reader = new FileReader();
         reader.onload = function (e) {
             const img = new Image();
-            img.onload = function() {
+            img.onload = function () {
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
@@ -4277,10 +4277,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
-                
+
                 // Compress to 70% quality JPEG
                 const dataURL = canvas.toDataURL('image/jpeg', 0.7);
-                
+
                 dropzone.innerHTML = `
                     <img src="${dataURL}" alt="Letterhead Banner" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
                     <div style="font-size: 11px; color: var(--text-muted);">Click to change banner</div>
@@ -4544,8 +4544,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 // ==================== ID CARD LOGIC ====================
-window.onIdCardFrontSelected = function(dropzone, files) {
-    if(!files || !files.length) return;
+window.onIdCardFrontSelected = function (dropzone, files) {
+    if (!files || !files.length) return;
     const file = files[0];
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -4565,8 +4565,8 @@ window.onIdCardFrontSelected = function(dropzone, files) {
     reader.readAsDataURL(file);
 };
 
-window.onIdCardBackSelected = function(dropzone, files) {
-    if(!files || !files.length) return;
+window.onIdCardBackSelected = function (dropzone, files) {
+    if (!files || !files.length) return;
     const file = files[0];
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -4586,14 +4586,14 @@ window.onIdCardBackSelected = function(dropzone, files) {
     reader.readAsDataURL(file);
 };
 
-window.openIdCardModal = function(userId) {
+window.openIdCardModal = function (userId) {
     const db = getDb();
     const user = db.users.find(u => u.id === userId);
-    if(!user) return;
+    if (!user) return;
     const cp = (!db.companyProfile || Array.isArray(db.companyProfile)) ? {} : db.companyProfile;
 
     const frontBg = document.getElementById('id-card-front-bg');
-    if(cp.idCardFrontBase64) {
+    if (cp.idCardFrontBase64) {
         frontBg.src = cp.idCardFrontBase64;
         frontBg.style.display = 'block';
     } else {
@@ -4601,7 +4601,7 @@ window.openIdCardModal = function(userId) {
     }
 
     const backBg = document.getElementById('id-card-back-bg');
-    if(cp.idCardBackBase64) {
+    if (cp.idCardBackBase64) {
         backBg.src = cp.idCardBackBase64;
         backBg.style.display = 'block';
     } else {
@@ -4610,7 +4610,7 @@ window.openIdCardModal = function(userId) {
 
     const photoContainer = document.getElementById('id-card-photo-container');
     const photoImg = document.getElementById('id-card-photo');
-    if(user.profilePic) {
+    if (user.profilePic) {
         photoImg.src = user.profilePic;
         photoContainer.style.display = 'block';
     } else {
@@ -4621,16 +4621,16 @@ window.openIdCardModal = function(userId) {
     document.getElementById('id-card-designation').textContent = user.designation || '';
     document.getElementById('id-card-id').textContent = user.displayId || user.id || '';
     document.getElementById('id-card-dept').textContent = user.department || '';
-    
+
     document.getElementById('id-card-guardian').textContent = user.fatherName || '';
     document.getElementById('id-card-cnic').textContent = user.cnic || '';
     document.getElementById('id-card-emergency').textContent = user.emergencyContact || user.phone || '';
     document.getElementById('id-card-blood').textContent = user.bloodGroup || '';
-    
+
     let joinDate = user.startDate || '';
-    if(joinDate) {
+    if (joinDate) {
         const d = new Date(joinDate);
-        if(!isNaN(d.getTime())) {
+        if (!isNaN(d.getTime())) {
             joinDate = d.toLocaleDateString('en-GB'); // dd/mm/yyyy
         }
     }
@@ -4639,7 +4639,7 @@ window.openIdCardModal = function(userId) {
     openModal('modal-id-card');
 };
 
-window.printIdCard = function() {
+window.printIdCard = function () {
     document.body.classList.add('printing-modal');
     window.print();
     document.body.classList.remove('printing-modal');
