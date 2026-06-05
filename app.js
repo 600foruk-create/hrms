@@ -1862,7 +1862,8 @@ function renderManagerLeaveTab() {
             } else {
                 balances.forEach(b => {
                     const globalType = (db.companyProfile?.leaveTypes || []).find(lt => lt.id === b.id || lt.name === b.name);
-                    const total = globalType ? globalType.days : b.balance;
+                    let total = b.total !== undefined ? b.total : (globalType ? globalType.days : b.balance);
+                    if (total < b.balance) total = b.balance;
                     balancesBody.innerHTML += `
                         <tr>
                             <td class="bold">${b.name}</td>
@@ -2086,7 +2087,8 @@ function renderEmployeeLeaveTab() {
         } else {
             balances.forEach(b => {
                 const globalType = (db.companyProfile?.leaveTypes || []).find(lt => lt.id === b.id || lt.name === b.name);
-                const total = globalType ? globalType.days : b.balance;
+                let total = b.total !== undefined ? b.total : (globalType ? globalType.days : b.balance);
+                if (total < b.balance) total = b.balance;
                 balancesBody.innerHTML += `
                     <tr>
                         <td class="bold">${b.name}</td>
@@ -2500,7 +2502,8 @@ window.openEditEmployeeModal = function (userId, isViewOnly = false) {
                 } else {
                     balances.forEach(b => {
                         const globalType = (db.companyProfile?.leaveTypes || []).find(lt => lt.id === b.id || lt.name === b.name);
-                        const total = b.total !== undefined ? b.total : (globalType ? globalType.days : b.balance);
+                        let total = b.total !== undefined ? b.total : (globalType ? globalType.days : b.balance);
+                        if (total < b.balance) total = b.balance;
                         leaveTableBody.innerHTML += `
                         <tr>
                             <td class="bold">${b.name}</td>
