@@ -4233,6 +4233,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             appShell.classList.remove('hidden');
             appShell.style.setProperty('display', 'flex', 'important');
         }
+        document.body.classList.remove('login-view');
         renderSidebar();
         switchTab('dashboard');
         setupSessionTimer();
