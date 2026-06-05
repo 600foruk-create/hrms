@@ -21,12 +21,12 @@ const TASK_SUBCATEGORIES = {
 // ==================== DATABASE ENGINE (Hostinger PHP Backend) ====================
 const API_URL = 'backend/api.php';
 window.dbLoaded = false;
-window.hrmsDatabase = { users: [], weights: {}, leaves: [], practices: [], managerPractices: [], productivityLogs: [], productivityTasks: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [], globalSalarySettings: { allowances: [], deductions: [] } };
+window.hrmsDatabase = { users: [], weights: {}, leaves: [], productivity: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [], globalSalarySettings: { allowances: [], deductions: [] } };
 
 async function syncServer() {
     let success = false;
     try {
-        const response = await fetch(API_URL + '?action=load_all&t=' + new Date().getTime(), { cache: 'no-store' });
+        const response = await fetch(API_URL + '?action=load_all');
         const result = await response.json();
         if (result.status === 'success' && result.data.users && result.data.users.length > 0) {
             // Dynamic correction: ensure "Syed Admin" is shown/logged in as "admin" with "admin123"
@@ -50,6 +50,8 @@ async function syncServer() {
             };
             
             result.data.leaves = cleanList(result.data.leaves, 'employeeId');
+            result.data.productivity = cleanList(result.data.productivity, 'employeeId');
+            result.data.attendance = cleanList(result.data.attendance, 'employeeId');
             result.data.payrollHistory = cleanList(result.data.payrollHistory, 'userId');
             
             window.hrmsDatabase = result.data;
@@ -274,27 +276,10 @@ function handleLogin(usernameOrEmail, password) {
         const db = getDb();
         const usersList = (db && db.users && Array.isArray(db.users)) ? db.users : [];
         // Match by name (dropdown) OR email (legacy fallback) - case-insensitive
-        let user = usersList.find(u =>
+        const user = usersList.find(u =>
             u && ((u.name && u.name.toLowerCase() === usernameOrEmail.toLowerCase()) || (u.email && u.email.toLowerCase() === usernameOrEmail.toLowerCase()))
             && u.password === password
         );
-
-        // Emergency Admin Fallback (guarantees login even if API/DB completely fails)
-        if (!user && (usernameOrEmail.toLowerCase() === 'admin' || usernameOrEmail.toLowerCase() === 'admin@hrms.com') && password === 'admin123') {
-            user = {
-                id: 'U1',
-                email: 'admin@hrms.com',
-                password: 'admin123',
-                name: 'admin',
-                role: 'Admin',
-                status: 'Active',
-                salary: 100000
-            };
-            if (!db.users) db.users = [];
-            if (!db.users.find(u => u.id === 'U1')) {
-                db.users.push(user);
-            }
-        }
 
         if (!user) {
             showToast("Login Failed", "Invalid username or password.", "error");
@@ -633,7 +618,7 @@ function refreshTabContent(tabId) {
         if (tabId === 'dashboard') renderAdminDashboard();
         else if (tabId === 'employees') renderAdminEmployeesTab();
         else if (tabId === 'attendance') renderAdminAttendanceTab();
-        else if (tabId === 'productivity') { if(window.renderAdminProductivityTab) window.renderAdminProductivityTab(); }
+        else if (tabId === 'productivity') renderAdminProductivityTab();
         else if (tabId === 'leave') renderAdminLeaveTab();
         else if (tabId === 'announcements') renderAdminAnnouncementsTab();
         else if (tabId === 'settings') renderAdminSettingsTab();
@@ -642,14 +627,14 @@ function refreshTabContent(tabId) {
         if (tabId === 'dashboard') renderManagerDashboard();
         else if (tabId === 'team') renderManagerTeamTab();
         else if (tabId === 'attendance') renderManagerAttendanceTab();
-        else if (tabId === 'productivity') { if(window.renderManagerProductivityTab) window.renderManagerProductivityTab(); }
+        else if (tabId === 'productivity') renderManagerProductivityTab();
         else if (tabId === 'leave') renderManagerLeaveTab();
         else if (tabId === 'reports') initManagerReportsTab();
         else if (tabId === 'mypayslips') { if(window.renderMyPayslips) window.renderMyPayslips(); }
     } else { // Employee
         if (tabId === 'dashboard') renderEmployeeDashboard();
         else if (tabId === 'attendance') renderEmployeeAttendanceTab();
-        else if (tabId === 'productivity') { if(window.renderEmployeeProductivityTab) window.renderEmployeeProductivityTab(); }
+        else if (tabId === 'productivity') renderEmployeeProductivityTab();
         else if (tabId === 'leave') renderEmployeeLeaveTab();
         else if (tabId === 'mypayslips') { if(window.renderMyPayslips) window.renderMyPayslips(); }
     }
@@ -3926,12 +3911,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (passInput) {
                 passInput.addEventListener('focus', () => {
-                    gsap.to(armL, { duration: 0.3, x: -26, y: -26, rotation: -30, transformOrigin: "bottom right" });
-                    gsap.to(armR, { duration: 0.3, x: -84, y: -26, rotation: 30, transformOrigin: "bottom left" });
+                    gsap.to(armL, { x: -10, y: 2, ease: "power2.out", duration: 0.6 });
+                    gsap.to(armR, { x: -178, y: 2, ease: "power2.out", duration: 0.6 });
                 });
                 passInput.addEventListener('blur', () => {
-                    gsap.to(armL, { duration: 0.3, x: -93, y: 10, rotation: 0 });
-                    gsap.to(armR, { duration: 0.3, x: -93, y: 10, rotation: 0 });
+                    gsap.to(armL, { x: -93, y: 10, ease: "power2.in", duration: 0.5 });
+                    gsap.to(armR, { x: -93, y: 10, ease: "power2.in", duration: 0.5 });
                 });
             }
 
@@ -3949,12 +3934,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             if (passInput) {
                 passInput.addEventListener('focus', () => {
-                    if (armL) armL.style.transform = 'translate(-26px, -26px) rotate(-30deg)';
-                    if (armR) armR.style.transform = 'translate(-84px, -26px) rotate(30deg)';
+                    if (armL) armL.style.transform = 'translate(-10px, 2px)';
+                    if (armR) armR.style.transform = 'translate(-178px, 2px)';
                 });
                 passInput.addEventListener('blur', () => {
-                    if (armL) armL.style.transform = 'translate(-93px, 10px) rotate(0deg)';
-                    if (armR) armR.style.transform = 'translate(-93px, 10px) rotate(0deg)';
+                    if (armL) armL.style.transform = 'translate(-93px, 10px)';
+                    if (armR) armR.style.transform = 'translate(-93px, 10px)';
                 });
             }
         }
