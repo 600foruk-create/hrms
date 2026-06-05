@@ -21,7 +21,7 @@ const TASK_SUBCATEGORIES = {
 // ==================== DATABASE ENGINE (Hostinger PHP Backend) ====================
 const API_URL = 'backend/api.php';
 window.dbLoaded = false;
-awindow.hrmsDatabase = { users: [], weights: {}, leaves: [], practices: [], manager_practices: [], productivity_logs: [], productivity_tasks: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [], globalSalarySettings: { allowances: [], deductions: [] } };
+window.hrmsDatabase = { users: [], weights: {}, leaves: [], practices: [], manager_practices: [], productivity_logs: [], productivity_tasks: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [], globalSalarySettings: { allowances: [], deductions: [] } };
 
 async function syncServer() {
     let success = false;
@@ -643,7 +643,7 @@ function refreshTabContent(tabId) {
 // ==================== RENDERING: ADMIN VIEWS ====================
 window.quickApproveTask = function (id, status) {
     const db = getDb();
-    const sub = db.productivity.find(p => p.id === id);
+    const sub = (db.productivity_logs || []).find(p => p.id === id);
     if (sub) {
         sub.status = status;
         saveDb(db);
@@ -667,7 +667,7 @@ function renderAdminDashboard() {
     const employees = db.users.filter(u => u.role === 'User');
     const managers = db.users.filter(u => u.role === 'Manager');
     const pendingLeaves = db.leaves.filter(l => l.status === 'Pending').length;
-    const pendingProductivity = db.productivity.filter(p => p.status === 'Pending').length;
+    const pendingProductivity = (db.productivity_logs || []).filter(p => p.status === 'Pending').length;
     const totalPendingApprovals = pendingLeaves + pendingProductivity;
 
     // Attendance % Today
@@ -680,8 +680,8 @@ function renderAdminDashboard() {
     const attendancePct = totalEmpCount > 0 ? Math.round((presentTodayCount / totalEmpCount) * 100) : 0;
 
     // Tasks Submitted / Completed
-    const tasksSubmitted = db.productivity.length;
-    const tasksCompleted = db.productivity.filter(p => p.status === 'Approved').length;
+    const tasksSubmitted = (db.productivity_logs || []).length;
+    const tasksCompleted = (db.productivity_logs || []).filter(p => p.status === 'Approved').length;
     const completionRate = tasksSubmitted > 0 ? Math.round((tasksCompleted / tasksSubmitted) * 100) : 0;
 
     // Apply Metrics to Cards
@@ -742,8 +742,8 @@ function renderAdminDashboard() {
         d.setDate(d.getDate() - i);
         last7Days.push(d.toISOString().split('T')[0]);
     }
-    const dailySubmitted = last7Days.map(day => db.productivity.filter(p => p.date === day).length);
-    const dailyCompleted = last7Days.map(day => db.productivity.filter(p => p.date === day && p.status === 'Approved').length);
+    const dailySubmitted = last7Days.map(day => (db.productivity_logs || []).filter(p => p.date === day).length);
+    const dailyCompleted = last7Days.map(day => (db.productivity_logs || []).filter(p => p.date === day && p.status === 'Approved').length);
 
     const maxVal = Math.max(5, ...dailySubmitted, ...dailyCompleted);
     const getSvgY = (val) => 95 - (val / maxVal) * 80;
@@ -803,8 +803,8 @@ function renderAdminDashboard() {
     const approvalsListEl = document.getElementById('admin-task-approvals-list');
     if (approvalsListEl) {
         approvalsListEl.innerHTML = '';
-        const pendingTasks = db.productivity.filter(p => p.status === 'Pending');
-        const approvedTasks = db.productivity.filter(p => p.status === 'Approved');
+        const pendingTasks = (db.productivity_logs || []).filter(p => p.status === 'Pending');
+        const approvedTasks = (db.productivity_logs || []).filter(p => p.status === 'Approved');
         const displayTasks = [...pendingTasks, ...approvedTasks].slice(0, 3);
 
         if (displayTasks.length === 0) {
@@ -858,7 +858,7 @@ function renderAdminDashboard() {
     const recentTasksTableBody = document.getElementById('admin-recent-tasks-table-body');
     if (recentTasksTableBody) {
         recentTasksTableBody.innerHTML = '';
-        let list = [...db.productivity];
+        let list = [...(db.productivity_logs || [])];
         const activeFilter = pillsContainer ? pillsContainer.querySelector('.pill-btn.active').dataset.filter : 'All';
         if (activeFilter !== 'All') {
             list = list.filter(item => item.status === activeFilter);
@@ -912,7 +912,7 @@ function renderAdminDashboard() {
         depts.forEach(d => {
             const deptUsers = db.users.filter(u => u.role === 'User' && (d.managerId ? u.managerId === d.managerId : (!u.managerId || u.managerId === 'U1')));
             const deptUserIds = deptUsers.map(u => u.id);
-            const deptTasks = db.productivity.filter(p => deptUserIds.includes(p.employeeId));
+            const deptTasks = (db.productivity_logs || []).filter(p => deptUserIds.includes(p.employeeId));
 
             const completed = deptTasks.filter(p => p.status === 'Approved').length;
             const pending = deptTasks.filter(p => p.status === 'Pending').length;
@@ -1204,39 +1204,10 @@ function renderAdminAttendanceTab() {
 }
 
 function renderAdminProductivityTab() {
-    const db = getDb();
-    const filterDate = document.getElementById('admin-prod-filter-date').value;
-    const filterTask = document.getElementById('admin-prod-filter-task').value;
-
-    const tableBody = document.getElementById('admin-prod-table-body');
-    tableBody.innerHTML = '';
-
-    let submissions = db.productivity;
-    if (filterDate) submissions = submissions.filter(s => s.date === filterDate);
-    if (filterTask) submissions = submissions.filter(s => s.tasks.includes(filterTask));
-
-    // Sort date desc
-    submissions.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    if (submissions.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="8" class="empty-state">No productivity logs found.</td></tr>`;
-    } else {
-        submissions.forEach(sub => {
-            const statusClass = sub.status === 'Approved' ? 'approved' : (sub.status === 'Rejected' ? 'rejected' : 'pending');
-            tableBody.innerHTML += `
-                <tr>
-                    <td>${sub.date}</td>
-                    <td class="text-secondary">${(db.users.find(u => u.id === sub.employeeId) || {}).displayId || sub.employeeId}</td><td class="bold">${sub.employeeName}</td>
-                    <td>${sub.tasks.join(', ')}</td>
-                    <td>${sub.subcategories.join(', ')}</td>
-                    <td>${Object.values(sub.counts).reduce((s, c) => s + c, 0)}</td>
-                    <td><strong class="text-info">${sub.score}</strong></td>
-                    <td><span class="badge-status ${statusClass}">${sub.status}</span></td>
-                    <td><span class="text-muted italic">${sub.comments || 'No comment'}</span></td>
-                </tr>
-            `;
-        });
+    if (window.renderAdminProductivityTab && window.renderAdminProductivityTab !== renderAdminProductivityTab) {
+        return window.renderAdminProductivityTab();
     }
+    // Populated by productivity.js
 }
 
 function renderAdminLeaveTab() {
@@ -1626,7 +1597,7 @@ function renderManagerDashboard() {
 
     // Pending Approvals
     const pendingLeaves = db.leaves.filter(l => teamEmails.includes(l.employeeId) && l.status === 'Pending').length;
-    const pendingProd = db.productivity.filter(p => teamEmails.includes(p.employeeId) && p.status === 'Pending').length;
+    const pendingProd = (db.productivity_logs || []).filter(p => teamEmails.includes(p.employeeId) && p.status === 'Pending').length;
     const totalPending = pendingLeaves + pendingProd;
 
     document.getElementById('manager-metric-team-size').textContent = teamSize;
@@ -1649,7 +1620,7 @@ function renderManagerDashboard() {
             let dateStr = d.toISOString().split('T')[0];
             let displayDate = dateStr.slice(5).replace('-', '/');
 
-            let dailyTeamProd = db.productivity.filter(p => p.date === dateStr && teamEmails.includes(p.employeeId) && p.status === 'Approved');
+            let dailyTeamProd = (db.productivity_logs || []).filter(p => p.date === dateStr && teamEmails.includes(p.employeeId) && p.status === 'Approved');
             let dailyScore = dailyTeamProd.length > 0 ? dailyTeamProd.reduce((sum, p) => sum + p.score, 0) / dailyTeamProd.length : 0;
 
             let x = (6 - i) * 50;
@@ -1671,7 +1642,7 @@ function renderManagerDashboard() {
     // Manager Personal Stats
     const myAttToday = db.attendance.find(a => a.employeeId === currentUser.id && a.date === today);
     const myAttStatus = myAttToday ? myAttToday.status : 'Absent';
-    const myProdSubmissions = db.productivity.filter(p => p.employeeId === currentUser.id && p.status === 'Approved');
+    const myProdSubmissions = (db.productivity_logs || []).filter(p => p.employeeId === currentUser.id && p.status === 'Approved');
     const myTotalScore = myProdSubmissions.length > 0 ? Math.round(myProdSubmissions.reduce((sum, p) => sum + p.score, 0) / myProdSubmissions.length) : 0;
 
     document.getElementById('manager-personal-attendance').textContent = myAttStatus;
@@ -1701,7 +1672,7 @@ function renderManagerDashboard() {
                 `;
             });
 
-            const pendingProdList = db.productivity.filter(p => teamEmails.includes(p.employeeId) && p.status === 'Pending');
+            const pendingProdList = (db.productivity_logs || []).filter(p => teamEmails.includes(p.employeeId) && p.status === 'Pending');
             pendingProdList.forEach(p => {
                 approvalsList.innerHTML += `
                     <div class="prod-review-card" style="padding: 10px; margin-bottom:10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
@@ -1736,7 +1707,7 @@ function renderManagerTeamTab() {
             const attStatus = attToday ? attToday.status : 'Absent';
 
             // Score
-            const totalScore = db.productivity.filter(p => p.employeeId === emp.id && p.status === 'Approved').reduce((s, p) => s + p.score, 0);
+            const totalScore = (db.productivity_logs || []).filter(p => p.employeeId === emp.id && p.status === 'Approved').reduce((s, p) => s + p.score, 0);
             const statusClass = emp.status === 'Active' ? 'badge-active' : 'badge-inactive';
             const attClass = attStatus === 'Present' ? 'approved' : 'rejected';
 
@@ -1793,56 +1764,10 @@ function renderManagerAttendanceTab() {
 }
 
 function renderManagerProductivityTab() {
-    const db = getDb();
-    const team = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
-    const teamEmails = team.map(t => t.id);
-
-    // Fill employee filter select options
-    const empSelect = document.getElementById('manager-prod-filter-emp');
-    const selectedEmp = empSelect.value;
-    empSelect.innerHTML = '<option value="">All Team Members</option>';
-    team.forEach(e => {
-        empSelect.innerHTML += `<option value="${e.id}" ${selectedEmp === e.id ? 'selected' : ''}>${e.name}</option>`;
-    });
-
-    const filterStatus = document.getElementById('manager-prod-filter-status').value;
-
-    const tableBody = document.getElementById('manager-prod-table-body');
-    tableBody.innerHTML = '';
-
-    let submissions = db.productivity.filter(p => teamEmails.includes(p.employeeId));
-    if (selectedEmp) submissions = submissions.filter(s => s.employeeId === selectedEmp);
-    if (filterStatus) submissions = submissions.filter(s => s.status === filterStatus);
-
-    submissions.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    if (submissions.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="9" class="empty-state">No productivity logs found.</td></tr>`;
-    } else {
-        submissions.forEach(sub => {
-            const statusClass = sub.status === 'Approved' ? 'approved' : (sub.status === 'Rejected' ? 'rejected' : 'pending');
-            let actionsHTML = '';
-            if (sub.status === 'Pending') {
-                actionsHTML = `<button class="btn btn-sm btn-outline" onclick="reviewProductivitySubmission('${sub.id}')">Review</button>`;
-            } else {
-                actionsHTML = `<span class="text-muted italic">${sub.comments || 'Reviewed'}</span>`;
-            }
-
-            tableBody.innerHTML += `
-                <tr>
-                    <td>${sub.date}</td>
-                    <td class="text-secondary">${(db.users.find(u => u.id === sub.employeeId) || {}).displayId || sub.employeeId}</td><td class="bold">${sub.employeeName}</td>
-                    <td>${sub.tasks.join(', ')}</td>
-                    <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${sub.notes}">${sub.notes}</td>
-                    <td>${Object.values(sub.counts).reduce((s, c) => s + c, 0)}</td>
-                    <td>${sub.score}</td>
-                    <td><strong class="text-info">${sub.score}</strong></td>
-                    <td><span class="badge-status ${statusClass}">${sub.status}</span></td>
-                    <td>${actionsHTML}</td>
-                </tr>
-            `;
-        });
+    if (window.renderManagerProductivityTab && window.renderManagerProductivityTab !== renderManagerProductivityTab) {
+        return window.renderManagerProductivityTab();
     }
+    // Populated by productivity.js
 }
 
 function renderManagerLeaveTab() {
@@ -1910,7 +1835,7 @@ function renderEmployeeDashboard() {
     }
 
     // Avg Productivity
-    const myProdSubmissions = db.productivity.filter(p => p.employeeId === currentUser.id && p.status === 'Approved');
+    const myProdSubmissions = (db.productivity_logs || []).filter(p => p.employeeId === currentUser.id && p.status === 'Approved');
     const myTotalScore = myProdSubmissions.length > 0 ? Math.round(myProdSubmissions.reduce((sum, p) => sum + p.score, 0) / myProdSubmissions.length) : 0;
     document.getElementById('employee-metric-avg-prod').textContent = myTotalScore;
 
@@ -1933,7 +1858,7 @@ function renderEmployeeDashboard() {
             let dateStr = d.toISOString().split('T')[0];
             let displayDate = dateStr.slice(5).replace('-', '/');
 
-            let dailyProd = db.productivity.find(p => p.date === dateStr && p.employeeId === currentUser.id && p.status === 'Approved');
+            let dailyProd = (db.productivity_logs || []).find(p => p.date === dateStr && p.employeeId === currentUser.id && p.status === 'Approved');
             let dailyScore = dailyProd ? dailyProd.score : 0;
 
             let x = (6 - i) * 50;
@@ -2045,32 +1970,10 @@ function renderEmployeeAttendanceTab() {
 }
 
 function renderEmployeeProductivityTab() {
-    const db = getDb();
-    const tableBody = document.getElementById('employee-tab-productivity-table');
-    tableBody.innerHTML = '';
-
-    const myProd = db.productivity.filter(p => p.employeeId === currentUser.id);
-    myProd.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    if (myProd.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="8" class="empty-state">No productivity entries recorded.</td></tr>`;
-    } else {
-        myProd.forEach(p => {
-            const statusClass = p.status === 'Approved' ? 'approved' : (p.status === 'Rejected' ? 'rejected' : 'pending');
-            tableBody.innerHTML += `
-                <tr>
-                    <td>${p.date}</td>
-                    <td class="bold">${p.tasks.join(', ')}</td>
-                    <td>${p.subcategories.join(', ')}</td>
-                    <td title="${p.notes}" style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.notes}</td>
-                    <td>${Object.values(p.counts).reduce((s, c) => s + c, 0)}</td>
-                    <td><strong class="text-info">${p.score}</strong></td>
-                    <td><span class="badge-status ${statusClass}">${p.status}</span></td>
-                    <td><span class="text-muted italic">${p.comments || 'â€”'}</span></td>
-                </tr>
-            `;
-        });
+    if (window.renderEmployeeProductivityTab && window.renderEmployeeProductivityTab !== renderEmployeeProductivityTab) {
+        return window.renderEmployeeProductivityTab();
     }
+    // Populated by productivity.js
 }
 
 function renderEmployeeLeaveTab() {
@@ -2614,7 +2517,7 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
                 // Migrate leave records
                 (db.leaves || []).forEach(l => { if (l.employeeId === oldId) l.employeeId = newId; });
                 // Migrate productivity records
-                (db.productivity || []).forEach(p => { if (p.employeeId === oldId) p.employeeId = newId; });
+                (db.productivity_logs || []).forEach(p => { if (p.employee_id === oldId) p.employee_id = newId; });
                 // Migrate payroll history
                 (db.payrollHistory || []).forEach(ph => { if (ph.userId === oldId) ph.userId = newId; });
                 // Migrate salary profiles
@@ -2885,65 +2788,8 @@ document.getElementById('leave-request-form').addEventListener('submit', (e) => 
     refreshTabContent(activeTab);
 });
 
-// 5. Review Productivity Submissions Modal (Manager view)
-window.reviewProductivitySubmission = function (prodId) {
-    const db = getDb();
-    const sub = db.productivity.find(p => p.id === prodId);
-    if (!sub) return;
+// Old productivity review modal removed — now handled by productivity.js
 
-    document.getElementById('prod-review-id').value = sub.id;
-    document.getElementById('prod-review-emp').textContent = sub.employeeName;
-    document.getElementById('prod-review-date').textContent = sub.date;
-    document.getElementById('prod-review-tasks').textContent = sub.tasks.join(', ');
-    document.getElementById('prod-review-subcats').textContent = sub.subcategories.join(', ');
-
-    // Calculate total count
-    const totalCount = Object.values(sub.counts).reduce((s, c) => s + c, 0);
-    document.getElementById('prod-review-count').textContent = totalCount;
-    document.getElementById('prod-review-calc-score').textContent = sub.score;
-    document.getElementById('prod-review-calc-score-hint').textContent = sub.score;
-    document.getElementById('prod-review-notes').textContent = `"${sub.notes}"`;
-    document.getElementById('prod-review-adjust-score').value = "";
-    document.getElementById('prod-review-comment').value = sub.comments || "";
-
-    openModal('modal-productivity-review');
-};
-
-document.getElementById('btn-prod-approve').addEventListener('click', () => {
-    processProductivityReview('Approved');
-});
-
-document.getElementById('btn-prod-reject').addEventListener('click', () => {
-    processProductivityReview('Rejected');
-});
-
-function processProductivityReview(status) {
-    const db = getDb();
-    const id = document.getElementById('prod-review-id').value;
-    const adjustScoreVal = document.getElementById('prod-review-adjust-score').value;
-    const comments = document.getElementById('prod-review-comment').value.trim();
-
-    const sub = db.productivity.find(p => p.id === id);
-    if (sub) {
-        sub.status = status;
-        sub.comments = comments;
-        if (status === 'Approved' && adjustScoreVal) {
-            const finalScore = parseFloat(adjustScoreVal);
-            if (!isNaN(finalScore)) {
-                sub.score = finalScore;
-            }
-        }
-
-        saveDb(db);
-
-        showToast("Review Complete", `Productivity log has been marked as ${status}.`);
-        logAudit(`Productivity log for ${sub.employeeName} reviewed: ${status} (Final Score: ${sub.score}).`);
-        addNotification(sub.employeeId, `Your productivity log for ${sub.date} has been ${status}. Review Remarks: ${comments || 'None'}`);
-    }
-
-    closeAllModals();
-    refreshTabContent(activeTab);
-}
 
 // 6. Manual Attendance Logger Form
 window.openManualAttendanceModal = function () {
@@ -3137,7 +2983,7 @@ window.deleteEmployee = function (userId) {
 
             // Clean up dependencies
             db.leaves = db.leaves.filter(l => l.employeeId !== userId);
-            db.productivity = db.productivity.filter(p => p.employeeId !== userId);
+            db.productivity_logs = (db.productivity_logs || []).filter(p => p.employee_id !== userId);
             db.attendance = db.attendance.filter(a => a.employeeId !== userId);
 
             saveDb(db);
@@ -3252,269 +3098,8 @@ document.getElementById('btn-admin-clear-audit-logs').addEventListener('click', 
     }
 });
 
-// ==================== DYNAMIC MULTI-SELECT DROPDOWNS (Productivity Submission) ====================
-function initMultiSelect() {
-    const tasksSelectBox = document.querySelector('#tasks-multiselect .multiselect-select-box');
-    const tasksOptions = document.querySelector('#tasks-multiselect .multiselect-options-container');
+// Old productivity multi-select form logic removed — now handled by productivity.js
 
-    const subcatsSelectBox = document.querySelector('#subcats-multiselect .multiselect-select-box');
-    const subcatsOptions = document.querySelector('#subcats-multiselect .multiselect-options-container');
-
-    // Toggle drop down displays
-    tasksSelectBox.addEventListener('click', (e) => {
-        e.stopPropagation();
-        tasksOptions.classList.toggle('hidden');
-        subcatsOptions.classList.add('hidden');
-    });
-
-    subcatsSelectBox.addEventListener('click', (e) => {
-        e.stopPropagation();
-        subcatsOptions.classList.toggle('hidden');
-        tasksOptions.classList.add('hidden');
-    });
-
-    // Close dropdowns on outside click
-    document.addEventListener('click', () => {
-        tasksOptions.classList.add('hidden');
-        subcatsOptions.classList.add('hidden');
-    });
-
-    tasksOptions.addEventListener('click', (e) => e.stopPropagation());
-    subcatsOptions.addEventListener('click', (e) => e.stopPropagation());
-
-    // Task selections changes
-    const taskCheckboxes = tasksOptions.querySelectorAll('input[type="checkbox"]');
-    taskCheckboxes.forEach(cb => {
-        cb.addEventListener('change', () => {
-            updateSelectedTasksUI();
-            updateSubcategoriesOptions();
-            renderDynamicCountInputs();
-            calculateLiveProductivityScore();
-        });
-    });
-}
-
-function updateSelectedTasksUI() {
-    const selectBoxSpan = document.querySelector('#tasks-multiselect .selected-text');
-    const checked = Array.from(document.querySelectorAll('#tasks-multiselect input[type="checkbox"]:checked'));
-
-    if (checked.length === 0) {
-        selectBoxSpan.textContent = "Select Tasks";
-    } else {
-        selectBoxSpan.textContent = checked.map(c => c.getAttribute('data-text')).join(', ');
-    }
-}
-
-function updateSubcategoriesOptions() {
-    const subcatsContainer = document.getElementById('subcats-options-list');
-    const checkedTasks = Array.from(document.querySelectorAll('#tasks-multiselect input[type="checkbox"]:checked')).map(c => c.value);
-
-    subcatsContainer.innerHTML = '';
-
-    if (checkedTasks.length === 0) {
-        subcatsContainer.innerHTML = '<div class="placeholder-msg">Select a task first</div>';
-        document.querySelector('#subcats-multiselect .selected-text').textContent = "Select Subcategories";
-        return;
-    }
-
-    checkedTasks.forEach(task => {
-        const subs = TASK_SUBCATEGORIES[task] || [];
-        if (subs.length > 0) {
-            subcatsContainer.innerHTML += `<div class="placeholder-msg" style="text-align:left; font-weight:bold; padding-bottom:2px; border-bottom: 1px solid var(--border-color);">${task}</div>`;
-            subs.forEach(s => {
-                subcatsContainer.innerHTML += `
-                    <label>
-                        <input type="checkbox" name="subcategories" value="${s}" data-text="${s}"> ${s}
-                    </label>
-                `;
-            });
-        }
-    });
-
-    // Add change listeners to subcat checkboxes
-    const subCheckboxes = subcatsContainer.querySelectorAll('input[type="checkbox"]');
-    subCheckboxes.forEach(cb => {
-        cb.addEventListener('change', () => {
-            const selectBoxSpan = document.querySelector('#subcats-multiselect .selected-text');
-            const checked = Array.from(subcatsContainer.querySelectorAll('input[type="checkbox"]:checked'));
-            if (checked.length === 0) {
-                selectBoxSpan.textContent = "Select Subcategories";
-            } else {
-                selectBoxSpan.textContent = checked.map(c => c.getAttribute('data-text')).join(', ');
-            }
-        });
-    });
-}
-
-// Generate separate numeric inputs for each selected task
-function renderDynamicCountInputs() {
-    const form = document.getElementById('productivity-submission-form');
-    const countFormGroup = document.getElementById('prod-count').closest('.form-group');
-
-    // Clean old dynamic count wrappers
-    const oldInputs = form.querySelectorAll('.dynamic-count-row');
-    oldInputs.forEach(el => el.remove());
-
-    const checkedTasks = Array.from(document.querySelectorAll('#tasks-multiselect input[type="checkbox"]:checked')).map(c => c.value);
-
-    if (checkedTasks.length <= 1) {
-        // Show default count block
-        document.getElementById('prod-count').closest('.form-group').style.display = 'block';
-        document.getElementById('prod-count').setAttribute('required', 'true');
-    } else {
-        // Hide default count block and render individual ones
-        countFormGroup.style.display = 'none';
-        document.getElementById('prod-count').removeAttribute('required');
-
-        // Create input for each task
-        checkedTasks.forEach(task => {
-            const row = document.createElement('div');
-            row.className = 'form-group dynamic-count-row';
-            row.innerHTML = `
-                <label for="count-${task}">${task} Count / Quantity <span class="required">*</span></label>
-                <input type="number" id="count-${task}" min="1" class="form-control task-count-input" data-task="${task}" required placeholder="Enter quantity completed for ${task}">
-            `;
-            countFormGroup.parentNode.insertBefore(row, countFormGroup);
-
-            // Re-calculate live score on input
-            row.querySelector('input').addEventListener('input', calculateLiveProductivityScore);
-        });
-    }
-}
-
-function calculateLiveProductivityScore() {
-    const db = getDb();
-    const weights = db.weights;
-    const scoreText = document.getElementById('prod-score-live');
-
-    const checkedTasks = Array.from(document.querySelectorAll('#tasks-multiselect input[type="checkbox"]:checked')).map(c => c.value);
-
-    if (checkedTasks.length === 0) {
-        scoreText.textContent = "0";
-        return;
-    }
-
-    let totalScore = 0;
-
-    if (checkedTasks.length === 1) {
-        const task = checkedTasks[0];
-        const count = parseInt(document.getElementById('prod-count').value) || 0;
-        const weight = weights[task] || 0;
-        totalScore = count * weight;
-    } else {
-        checkedTasks.forEach(task => {
-            const inputEl = document.getElementById(`count-${task}`);
-            const count = inputEl ? (parseInt(inputEl.value) || 0) : 0;
-            const weight = weights[task] || 0;
-            totalScore += count * weight;
-        });
-    }
-
-    scoreText.textContent = totalScore;
-}
-
-// Reset form elements
-function resetProductivityForm() {
-    const form = document.getElementById('productivity-submission-form');
-    form.reset();
-
-    // Deselect multiselect dropdowns
-    document.querySelectorAll('#tasks-multiselect input[type="checkbox"]').forEach(cb => cb.checked = false);
-    updateSelectedTasksUI();
-    updateSubcategoriesOptions();
-    renderDynamicCountInputs();
-    calculateLiveProductivityScore();
-
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('prod-form-date').value = today;
-}
-
-// Submit Productivity Submission form
-document.getElementById('productivity-submission-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const database = getDb();
-
-    const checkedTasks = Array.from(document.querySelectorAll('#tasks-multiselect input[type="checkbox"]:checked')).map(c => c.value);
-    const checkedSubcategories = Array.from(document.querySelectorAll('#subcats-multiselect input[type="checkbox"]:checked')).map(c => c.value);
-    const notes = document.getElementById('prod-notes').value.trim();
-    const today = new Date().toISOString().split('T')[0];
-
-    // Validation
-    if (checkedTasks.length === 0) {
-        showToast("Validation Error", "Please select at least one Task/Practice.", "error");
-        return;
-    }
-    if (checkedSubcategories.length === 0) {
-        showToast("Validation Error", "Please select at least one Subcategory.", "error");
-        return;
-    }
-    if (!notes) {
-        showToast("Validation Error", "Notes detail is required.", "error");
-        return;
-    }
-
-    // Gather Counts
-    const counts = {};
-    let score = 0;
-
-    if (checkedTasks.length === 1) {
-        const task = checkedTasks[0];
-        const count = parseInt(document.getElementById('prod-count').value);
-        if (isNaN(count) || count < 1) {
-            showToast("Validation Error", "Count must be a positive numeric value.", "error");
-            return;
-        }
-        counts[task] = count;
-        score = count * (database.weights[task] || 0);
-    } else {
-        let hasCountError = false;
-        checkedTasks.forEach(task => {
-            const inputEl = document.getElementById(`count-${task}`);
-            const count = inputEl ? parseInt(inputEl.value) : NaN;
-            if (isNaN(count) || count < 1) {
-                hasCountError = true;
-            }
-            counts[task] = count;
-            score += count * (database.weights[task] || 0);
-        });
-
-        if (hasCountError) {
-            showToast("Validation Error", "Please enter positive numeric counts for all selected tasks.", "error");
-            return;
-        }
-    }
-
-    const newSubmission = {
-        id: "P_" + Date.now(),
-        employeeId: currentUser.id,
-        employeeName: currentUser.name,
-        date: today,
-        tasks: checkedTasks,
-        subcategories: checkedSubcategories,
-        counts,
-        notes,
-        score,
-        status: "Pending",
-        comments: ""
-    };
-
-    database.productivity.push(newSubmission);
-    saveDb(database);
-
-    showToast("Submitted", "Daily productivity submission recorded successfully!");
-    logAudit(`Submitted productivity log details (Score: ${score}).`);
-
-    // Notify manager
-    if (currentUser.managerId) {
-        addNotification(currentUser.managerId, `${currentUser.name} submitted a daily productivity log for review.`);
-    }
-
-    closeAllModals();
-    refreshTabContent(activeTab);
-});
-
-// Add key listeners to default count field to update live preview
-document.getElementById('prod-count').addEventListener('input', calculateLiveProductivityScore);
 
 // ==================== REPORTS & EXPORT SHEETS ====================
 
@@ -3625,7 +3210,7 @@ function generateReport(roleContext) {
 
     if (reportType === 'productivity') {
         // Filter submissions
-        let logs = db.productivity.filter(p => empIds.includes(p.employeeId));
+        let logs = (db.productivity_logs || []).filter(p => empIds.includes(p.employeeId));
         logs = logs.filter(p => {
             const pDate = new Date(p.date);
             return pDate >= start && pDate <= end;
@@ -4052,19 +3637,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Manager dashboard attendance log trigger
     safeAddListener('btn-manager-log-attendance', 'click', openManualAttendanceModal);
 
-    // Employee actions
-    safeAddListener('btn-employee-update-prod-dash', 'click', () => {
-        resetProductivityForm();
-        openModal('modal-productivity-form');
-    });
-    safeAddListener('btn-employee-update-prod-sub', 'click', () => {
-        resetProductivityForm();
-        openModal('modal-productivity-form');
-    });
-    safeAddListener('btn-employee-add-prod-tab', 'click', () => {
-        resetProductivityForm();
-        openModal('modal-productivity-form');
-    });
+    // Employee productivity actions now handled by productivity.js
 
     window.openLeaveRequestModal = function () {
         const form = document.getElementById('leave-request-form');
@@ -4200,12 +3773,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     safeAddListener('admin-filter-status', 'change', renderAdminDashboard);
     safeAddListener('admin-attendance-filter-date', 'change', renderAdminAttendanceTab);
     safeAddListener('admin-attendance-filter-employee', 'change', renderAdminAttendanceTab);
-    safeAddListener('admin-prod-filter-date', 'change', renderAdminProductivityTab);
-    safeAddListener('admin-prod-filter-task', 'change', renderAdminProductivityTab);
+
 
     // Manager filter changes listener
-    safeAddListener('manager-prod-filter-emp', 'change', renderManagerProductivityTab);
-    safeAddListener('manager-prod-filter-status', 'change', renderManagerProductivityTab);
+
     safeAddListener('manager-attendance-filter-date', 'change', renderManagerAttendanceTab);
 
     // Add manager select toggle to employee addition role change
@@ -4338,8 +3909,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Init productivity form multiselect dropdown logic
-    initMultiSelect();
 
     // Sub-tab switching handler for employee management view
     document.querySelectorAll('.btn-sub-tab').forEach(btn => {
