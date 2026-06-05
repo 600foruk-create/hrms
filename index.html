@@ -1873,44 +1873,60 @@
                     <div id="manager-tab-productivity" class="tab-view">
                         <div class="view-header">
                             <div>
-                                <h1>Team Productivity Overview</h1>
-                                <p class="text-secondary">View daily productivity logs submitted by your team members</p>
+                                <h1>Tasks & Productivity</h1>
+                                <p class="text-secondary">Manage assigned practices and monitor team productivity</p>
                             </div>
                         </div>
 
-                        <div class="section-card bg-glass" style="margin-bottom: 20px;">
-                            <div class="header-with-actions" style="margin-bottom:15px;">
-                                <h3>My Assigned Practices</h3>
-                            </div>
-                            <div class="table-container">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Practice Code</th>
-                                            <th>Practice Name</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="manager-assigned-practices-body">
-                                    </tbody>
-                                </table>
+                        <!-- Sub-tab Navigation -->
+                        <div class="sub-tab-nav">
+                            <button class="btn-sub-tab active" data-subtab="manager-prod-assigned">
+                                <i class="fa-solid fa-briefcase"></i> My Assigned Practices
+                            </button>
+                            <button class="btn-sub-tab" data-subtab="manager-prod-team">
+                                <i class="fa-solid fa-users"></i> Team Productivity
+                            </button>
+                        </div>
+
+                        <!-- Sub-tab: Assigned Practices -->
+                        <div id="subtab-content-manager-prod-assigned" class="sub-tab-content">
+                            <div class="section-card bg-glass">
+                                <div class="header-with-actions" style="margin-bottom:15px;">
+                                    <h3>Practices Assigned to Me</h3>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Practice Code</th>
+                                                <th>Practice Name</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="manager-assigned-practices-body">
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="section-card bg-glass">
-                            <div class="table-container">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Employee</th>
-                                            <th>Practice</th>
-                                            <th>Total Work</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="manager-team-prod-body">
-                                    </tbody>
-                                </table>
+                        <!-- Sub-tab: Team Productivity -->
+                        <div id="subtab-content-manager-prod-team" class="sub-tab-content hidden">
+                            <div class="section-card bg-glass">
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Employee</th>
+                                                <th>Practice</th>
+                                                <th>Total Work</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="manager-team-prod-body">
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
