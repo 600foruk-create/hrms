@@ -50,6 +50,22 @@ try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS `payroll_history` (`id` TEXT PRIMARY KEY, `batchId` TEXT, `userId` TEXT, `startDate` TEXT, `endDate` TEXT, `netFixed` REAL, `absencyDeduction` REAL, `loanDeduction` REAL, `bonus` REAL, `otherDeduction` REAL, `netPay` REAL, `processedAt` TEXT)");
     } catch (Exception $e2) {}
 }
+
+// Ensure EPT tables exist
+try {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `practices` (`id` varchar(50) NOT NULL, `practice_name` varchar(150) NOT NULL, `practice_code` varchar(50) NOT NULL, PRIMARY KEY (`id`))");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `manager_practices` (`id` varchar(50) NOT NULL, `manager_id` varchar(50) NOT NULL, `practice_id` varchar(50) NOT NULL, PRIMARY KEY (`id`))");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `productivity_logs` (`id` varchar(50) NOT NULL, `employee_id` varchar(50) NOT NULL, `practice_id` varchar(50) NOT NULL, `log_date` date NOT NULL, `created_at` varchar(50) NOT NULL, PRIMARY KEY (`id`))");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `productivity_tasks` (`id` varchar(50) NOT NULL, `log_id` varchar(50) NOT NULL, `task_type` varchar(100) NOT NULL, `total_count` int(11) NOT NULL DEFAULT '0', `time_minutes` int(11) NOT NULL DEFAULT '0', `extra_data` json DEFAULT NULL, `notes` text DEFAULT NULL, `status` enum('Pending','Approved','Flagged') NOT NULL DEFAULT 'Pending', `comments` text DEFAULT NULL, PRIMARY KEY (`id`))");
+} catch (Exception $e) {
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `practices` (`id` TEXT PRIMARY KEY, `practice_name` TEXT, `practice_code` TEXT)");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `manager_practices` (`id` TEXT PRIMARY KEY, `manager_id` TEXT, `practice_id` TEXT)");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `productivity_logs` (`id` TEXT PRIMARY KEY, `employee_id` TEXT, `practice_id` TEXT, `log_date` TEXT, `created_at` TEXT)");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `productivity_tasks` (`id` TEXT PRIMARY KEY, `log_id` TEXT, `task_type` TEXT, `total_count` INTEGER DEFAULT 0, `time_minutes` INTEGER DEFAULT 0, `extra_data` TEXT, `notes` TEXT, `status` TEXT DEFAULT 'Pending', `comments` TEXT)");
+    } catch (Exception $e2) {}
+}
+
 // Auto-add new columns if they are missing
 $new_columns = [
     "ADD COLUMN `bloodGroup` varchar(10) DEFAULT NULL",
