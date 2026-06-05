@@ -65,24 +65,23 @@
                 print-color-adjust: exact !important;
             }
 
-            html, body {
-                width: 100% !important;
-                height: auto !important;
+            html {
                 min-height: 0 !important;
-                max-height: none !important;
+                height: max-content !important;
+                max-height: max-content !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 overflow: visible !important;
             }
 
-            /* Nuclear reset for print to destroy ANY residual 100vh or 100% heights */
-            @media print {
-                .modal, .modal-body, .modal-backdrop, .main-layout, .content-body {
-                    height: auto !important;
-                    min-height: 0 !important;
-                    max-height: none !important;
-                    position: static !important;
-                }
+            body {
+                min-height: 0 !important;
+                height: max-content !important;
+                max-height: max-content !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+                background: white !important;
             }
 
             /* Hide ALL direct children of body by default */
@@ -100,7 +99,7 @@
                 transform: none !important;
                 width: 100% !important;
                 max-width: 100% !important;
-                height: auto !important;
+                height: max-content !important;
                 max-height: none !important;
                 background: white !important;
                 color: black !important;
@@ -118,18 +117,14 @@
                 width: 100% !important;
                 overflow: visible !important;
                 max-height: none !important;
-                height: auto !important;
+                height: max-content !important;
                 background: white !important;
                 color: black !important;
-                padding: 0 !important;
+                padding: 5mm 10mm !important;
                 margin: 0 !important;
                 border: none !important;
                 border-radius: 0 !important;
                 box-sizing: border-box;
-            }
-
-            table, tr, td, th {
-                page-break-inside: avoid !important;
             }
 
             /* Kill all modal flex/scroll behavior in print */
