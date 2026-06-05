@@ -289,7 +289,10 @@ window.openPayslipModal = function(recordId) {
     const company = db.companyProfile || {};
     
     const cName = company.name || 'Company Name';
-    const cAddress = company.address || '';
+    const cAddress = company.address || 'Company Address';
+    const cPhone = company.phone || 'Phone Number';
+    const cEmail = company.email || 'Email Address';
+    const cLogo = company.logoBase64 || '';
     
     // Reconstruct allowances/deductions for the payslip print view
     const basicSalary = parseInt(user?.salary) || 0;
@@ -338,60 +341,89 @@ window.openPayslipModal = function(recordId) {
 
     const printArea = document.getElementById('payslip-print-area');
     printArea.innerHTML = `
-        <div class="payslip-header">
-            <div>
-                <div class="payslip-title">${cName}</div>
-                <div class="payslip-period">${cAddress}</div>
-            </div>
-            <div style="text-align: right;">
-                <div style="font-size: 20px; font-weight: 800; color: #374151;">PAYSLIP</div>
-                <div class="payslip-period">${new Date(record.startDate).toLocaleDateString()} to ${new Date(record.endDate).toLocaleDateString()}</div>
-                <div style="font-size: 11px; color: #9ca3af; margin-top: 5px;">Ref: ${record.batchId}</div>
-            </div>
-        </div>
-        
-        <div class="payslip-info-grid">
-            <div class="payslip-info-item">
-                <span class="payslip-info-label">Employee Name</span>
-                <span class="payslip-info-value">${user ? user.name : 'Unknown'}</span>
-            </div>
-            <div class="payslip-info-item">
-                <span class="payslip-info-label">Employee ID</span>
-                <span class="payslip-info-value">${user?.displayId || record.userId}</span>
-            </div>
-            <div class="payslip-info-item">
-                <span class="payslip-info-label">Designation</span>
-                <span class="payslip-info-value">${user && user.designation ? user.designation : 'N/A'}</span>
-            </div>
-            <div class="payslip-info-item">
-                <span class="payslip-info-label">Processed Date</span>
-                <span class="payslip-info-value">${new Date(record.processedAt).toLocaleDateString()}</span>
-            </div>
-        </div>
-        
-        <div class="payslip-table-grid">
-            <div class="payslip-section">
-                <div class="payslip-section-title">Earnings</div>
-                ${allowHtml}
-                <div class="payslip-row payslip-total">
-                    <span>Total Earnings</span>
-                    <span>Rs ${Math.round(totalAllow).toLocaleString()}</span>
+        <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 30px; background: #ffffff;">
+            <!-- Header -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #3b82f6; padding-bottom: 20px; margin-bottom: 20px;">
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    ${cLogo ? `<img src="${cLogo}" alt="Company Logo" style="max-height: 70px; max-width: 150px; object-fit: contain;">` : `<div style="width: 70px; height: 70px; background: #eff6ff; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #3b82f6;">LOGO</div>`}
+                    <div>
+                        <h2 style="margin: 0; font-size: 22px; font-weight: 800; color: #1e293b;">${cName}</h2>
+                        <div style="font-size: 12px; color: #64748b; margin-top: 4px; max-width: 300px; line-height: 1.4;">${cAddress}</div>
+                        <div style="font-size: 12px; color: #64748b; margin-top: 4px;"><i class="fa-solid fa-phone" style="font-size: 10px; margin-right: 4px;"></i> ${cPhone} &nbsp;|&nbsp; <i class="fa-solid fa-envelope" style="font-size: 10px; margin-right: 4px;"></i> ${cEmail}</div>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <h1 style="margin: 0; font-size: 28px; font-weight: 900; color: #3b82f6; text-transform: uppercase; letter-spacing: 1px;">PAYSLIP</h1>
+                    <div style="font-size: 14px; font-weight: 600; color: #475569; margin-top: 5px; background: #eff6ff; padding: 4px 10px; border-radius: 4px; display: inline-block;">${new Date(record.startDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</div>
+                    <div style="font-size: 11px; color: #94a3b8; margin-top: 6px;">Ref: ${record.batchId}</div>
+                    <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Processed: ${new Date(record.processedAt).toLocaleDateString()}</div>
                 </div>
             </div>
-            <div class="payslip-section">
-                <div class="payslip-section-title">Deductions</div>
-                ${dedHtml || '<div class="payslip-row"><span style="color:#9ca3af; font-style:italic;">No Deductions</span></div>'}
-                <div class="payslip-row payslip-total">
-                    <span>Total Deductions</span>
-                    <span>Rs ${Math.round(totalDed).toLocaleString()}</span>
+            
+            <!-- Employee Details -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px 20px; margin-bottom: 25px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                        <span style="color: #64748b; font-weight: 500;">Employee Name:</span>
+                        <span style="color: #1e293b; font-weight: 700;">${user ? user.name : 'Unknown'}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                        <span style="color: #64748b; font-weight: 500;">Employee ID:</span>
+                        <span style="color: #1e293b; font-weight: 700;">${user?.displayId || record.userId}</span>
+                    </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                        <span style="color: #64748b; font-weight: 500;">Designation:</span>
+                        <span style="color: #1e293b; font-weight: 700;">${user && user.designation ? user.designation : 'N/A'}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                        <span style="color: #64748b; font-weight: 500;">Pay Period:</span>
+                        <span style="color: #1e293b; font-weight: 700;">${new Date(record.startDate).toLocaleDateString()} - ${new Date(record.endDate).toLocaleDateString()}</span>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="payslip-grand-total">
-            <div class="grand-total-box">
-                <div class="grand-total-label">Net Payable Salary</div>
-                <div class="grand-total-value">Rs ${Math.round(record.netPay).toLocaleString()}</div>
+            
+            <!-- Salary Details Table -->
+            <div style="display: flex; gap: 20px; margin-bottom: 25px;">
+                <!-- Earnings -->
+                <div style="flex: 1; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden;">
+                    <div style="background: #f1f5f9; padding: 10px 15px; font-weight: 700; color: #334155; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">Earnings</div>
+                    <div style="padding: 0;">
+                        ${allowHtml}
+                    </div>
+                    <div style="background: #f8fafc; padding: 12px 15px; display: flex; justify-content: space-between; font-weight: 700; color: #0f172a; border-top: 1px solid #e2e8f0; font-size: 13px;">
+                        <span>Gross Earnings</span>
+                        <span>Rs ${Math.round(totalAllow).toLocaleString()}</span>
+                    </div>
+                </div>
+                
+                <!-- Deductions -->
+                <div style="flex: 1; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden;">
+                    <div style="background: #f1f5f9; padding: 10px 15px; font-weight: 700; color: #334155; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">Deductions</div>
+                    <div style="padding: 0;">
+                        ${dedHtml || '<div style="padding: 10px 15px; color:#9ca3af; font-style:italic; font-size: 13px;">No Deductions</div>'}
+                    </div>
+                    <div style="background: #f8fafc; padding: 12px 15px; display: flex; justify-content: space-between; font-weight: 700; color: #0f172a; border-top: 1px solid #e2e8f0; font-size: 13px;">
+                        <span>Total Deductions</span>
+                        <span>Rs ${Math.round(totalDed).toLocaleString()}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Net Pay Box -->
+            <div style="background: #f0fdfa; border: 1px solid #14b8a6; border-radius: 8px; padding: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <div>
+                    <div style="font-size: 14px; color: #0f766e; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Net Payable Salary</div>
+                    <div style="font-size: 12px; color: #134e4a; margin-top: 4px; opacity: 0.8;">(Gross Earnings - Total Deductions)</div>
+                </div>
+                <div style="font-size: 28px; font-weight: 900; color: #0f766e;">Rs ${Math.round(record.netPay).toLocaleString()}</div>
+            </div>
+            
+            <!-- Disclaimer -->
+            <div style="border-top: 1px dashed #cbd5e1; padding-top: 20px; text-align: center;">
+                <div style="font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px;">DISCLAIMER</div>
+                <div style="font-size: 11px; color: #94a3b8; font-style: italic;">This is a computer-generated document. No signature is required.</div>
             </div>
         </div>
     `;
@@ -968,6 +1000,49 @@ window.confirmAndProcessPayroll = function() {
     
     // Auto-switch to history tab (Phase 3)
     if (window.switchPayrollSubTab) window.switchPayrollSubTab('history');
+};
+
+// --- 4. Employee/Manager My Payslips ---
+window.renderMyPayslips = function() {
+    const db = getDb();
+    if (!db || !window.currentUser) return;
+
+    let targetTbody;
+    if (window.currentUser.role === 'Manager') {
+        targetTbody = document.getElementById('manager-mypayslips-tbody');
+    } else {
+        targetTbody = document.getElementById('employee-mypayslips-tbody');
+    }
+    
+    if (!targetTbody) return;
+    targetTbody.innerHTML = '';
+
+    const history = (db.payrollHistory || []).filter(r => r.userId === window.currentUser.id);
+    history.sort((a, b) => new Date(b.processedAt) - new Date(a.processedAt));
+
+    if (history.length === 0) {
+        targetTbody.innerHTML = `<tr><td colspan="4" class="empty-state">No processed salary slips found yet.</td></tr>`;
+        return;
+    }
+
+    history.forEach(record => {
+        const d = new Date(record.endDate || record.processedAt || new Date());
+        const monthName = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+        const netPay = Math.round(record.netPay).toLocaleString();
+        
+        targetTbody.innerHTML += `
+            <tr>
+                <td>${monthName}</td>
+                <td><span class="badge-role approved">Processed</span></td>
+                <td style="font-weight: 700;">Rs ${netPay}</td>
+                <td>
+                    <button class="btn btn-outline" style="padding: 4px 10px; font-size: 12px;" onclick="window.openPayslipModal('${record.id}')">
+                        <i class="fa-solid fa-file-invoice"></i> View Slip
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
 };
 
 // Hook into existing switchTab

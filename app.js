@@ -541,6 +541,7 @@ function renderSidebar() {
             <a class="sidebar-link" data-tab="productivity"><i class="fa-solid fa-bolt"></i> Productivity Review</a>
             <a class="sidebar-link" data-tab="leave"><i class="fa-solid fa-code-pull-request"></i> Leave Requests</a>
             <a class="sidebar-link" data-tab="reports"><i class="fa-solid fa-file-invoice-dollar"></i> Team Reports</a>
+            <a class="sidebar-link" data-tab="mypayslips"><i class="fa-solid fa-file-invoice"></i> My Salary Slips</a>
         `;
     } else { // Employee
         menuHTML = `
@@ -548,6 +549,7 @@ function renderSidebar() {
             <a class="sidebar-link" data-tab="attendance"><i class="fa-solid fa-calendar-days"></i> My Attendance</a>
             <a class="sidebar-link" data-tab="productivity"><i class="fa-solid fa-bolt"></i> My Productivity</a>
             <a class="sidebar-link" data-tab="leave"><i class="fa-solid fa-umbrella-beach"></i> Leave Request</a>
+            <a class="sidebar-link" data-tab="mypayslips"><i class="fa-solid fa-file-invoice"></i> My Salary Slips</a>
         `;
     }
 
@@ -628,11 +630,13 @@ function refreshTabContent(tabId) {
         else if (tabId === 'productivity') renderManagerProductivityTab();
         else if (tabId === 'leave') renderManagerLeaveTab();
         else if (tabId === 'reports') initManagerReportsTab();
+        else if (tabId === 'mypayslips') { if(window.renderMyPayslips) window.renderMyPayslips(); }
     } else { // Employee
         if (tabId === 'dashboard') renderEmployeeDashboard();
         else if (tabId === 'attendance') renderEmployeeAttendanceTab();
         else if (tabId === 'productivity') renderEmployeeProductivityTab();
         else if (tabId === 'leave') renderEmployeeLeaveTab();
+        else if (tabId === 'mypayslips') { if(window.renderMyPayslips) window.renderMyPayslips(); }
     }
 }
 
