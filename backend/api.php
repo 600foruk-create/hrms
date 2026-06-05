@@ -200,24 +200,16 @@ if ($action === 'load_all') {
         $stmt = $pdo->query("SELECT * FROM leaves");
         $dbState['leaves'] = $stmt->fetchAll();
 
-        // Fetch EPT Tables
-        $stmt = $pdo->query("SELECT * FROM practices");
-        $dbState['practices'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $stmt = $pdo->query("SELECT * FROM manager_practices");
-        $dbState['manager_practices'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $stmt = $pdo->query("SELECT * FROM productivity_logs");
-        $dbState['productivity_logs'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $stmt = $pdo->query("SELECT * FROM productivity_tasks");
-        $taskRecords = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        foreach ($taskRecords as &$t) {
-            $t['total_count'] = (int)$t['total_count'];
-            $t['time_minutes'] = (int)$t['time_minutes'];
-            $t['extra_data'] = json_decode($t['extra_data'], true) ?: null;
+        // Fetch Productivity
+        $stmt = $pdo->query("SELECT * FROM productivity");
+        $prodRecords = $stmt->fetchAll();
+        foreach ($prodRecords as &$p) {
+            $p['tasks'] = json_decode($p['tasks'], true) ?: [];
+            $p['subcategories'] = json_decode($p['subcategories'], true) ?: [];
+            $p['counts'] = json_decode($p['counts'], true) ?: [];
+            $p['score'] = (float)$p['score'];
         }
-        $dbState['productivity_tasks'] = $taskRecords;
+        $dbState['productivity'] = $prodRecords;
 
         // Fetch Attendance
         $stmt = $pdo->query("SELECT * FROM attendance");
@@ -369,39 +361,15 @@ elseif ($action === 'save_all') {
             }
         }
 
-        // 4. Sync EPT Tables
-        $pdo->exec("DELETE FROM practices");
-        if (!empty($data['practices'])) {
-            $stmt = $pdo->prepare("INSERT INTO practices (id, practice_name, practice_code) VALUES (?, ?, ?)");
-            foreach ($data['practices'] as $p) {
-                $stmt->execute([$p['id'], $p['practice_name'], $p['practice_code']]);
-            }
-        }
-
-        $pdo->exec("DELETE FROM manager_practices");
-        if (!empty($data['manager_practices'])) {
-            $stmt = $pdo->prepare("INSERT INTO manager_practices (id, manager_id, practice_id) VALUES (?, ?, ?)");
-            foreach ($data['manager_practices'] as $mp) {
-                $stmt->execute([$mp['id'], $mp['manager_id'], $mp['practice_id']]);
-            }
-        }
-
-        $pdo->exec("DELETE FROM productivity_logs");
-        if (!empty($data['productivity_logs'])) {
-            $stmt = $pdo->prepare("INSERT INTO productivity_logs (id, employee_id, practice_id, log_date, created_at) VALUES (?, ?, ?, ?, ?)");
-            foreach ($data['productivity_logs'] as $pl) {
-                $stmt->execute([$pl['id'], $pl['employee_id'], $pl['practice_id'], $pl['log_date'], $pl['created_at'] ?? date('Y-m-d H:i:s')]);
-            }
-        }
-
-        $pdo->exec("DELETE FROM productivity_tasks");
-        if (!empty($data['productivity_tasks'])) {
-            $stmt = $pdo->prepare("INSERT INTO productivity_tasks (id, log_id, task_type, total_count, time_minutes, extra_data, notes, status, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            foreach ($data['productivity_tasks'] as $pt) {
+        // 4. Sync Productivity
+        $pdo->exec("DELETE FROM productivity");
+        if (!empty($data['productivity'])) {
+            $stmt = $pdo->prepare("INSERT INTO productivity (id, employeeId, employeeName, date, tasks, subcategories, counts, notes, score, status, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            foreach ($data['productivity'] as $p) {
                 $stmt->execute([
-                    $pt['id'], $pt['log_id'], $pt['task_type'], $pt['total_count'], $pt['time_minutes'],
-                    !empty($pt['extra_data']) ? json_encode($pt['extra_data']) : null,
-                    $pt['notes'] ?? '', $pt['status'], $pt['comments'] ?? ''
+                    $p['id'], $p['employeeId'], $p['employeeName'], $p['date'],
+                    json_encode($p['tasks']), json_encode($p['subcategories']), json_encode($p['counts']),
+                    $p['notes'], $p['score'], $p['status'], $p['comments'] ?? ''
                 ]);
             }
         }

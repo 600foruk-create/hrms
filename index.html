@@ -1475,28 +1475,25 @@
                     </div>
 
                     <!-- Admin Productivity Tab -->
-                    <!-- Admin Productivity Tab (EPT) -->
                     <div id="admin-tab-productivity" class="tab-view">
                         <div class="view-header">
                             <div>
                                 <h1>Company Productivity</h1>
-                                <p class="text-secondary">Manage practices and view company-wide productivity reports</p>
-                            </div>
-                            <div class="header-actions">
-                                <button class="btn btn-primary" onclick="openPracticeManagerModal()"><i class="fa-solid fa-building"></i> Manage Practices</button>
+                                <p class="text-secondary">Review all task metrics and score breakdowns</p>
                             </div>
                         </div>
-
                         <div class="section-card bg-glass">
                             <div class="section-card-header">
-                                <h3>Productivity Logs</h3>
+                                <h3>Submissions History</h3>
                                 <div class="header-filters">
-                                    <input type="date" id="admin-ept-filter-date" class="form-control">
-                                    <select id="admin-ept-filter-manager" class="form-control">
-                                        <option value="">All Managers</option>
-                                    </select>
-                                    <select id="admin-ept-filter-practice" class="form-control">
-                                        <option value="">All Practices</option>
+                                    <input type="date" id="admin-prod-filter-date" class="form-control">
+                                    <select id="admin-prod-filter-task" class="form-control">
+                                        <option value="">All Tasks</option>
+                                        <option value="Billing">Billing</option>
+                                        <option value="Follow-up">Follow-up</option>
+                                        <option value="Payment Posting">Payment Posting</option>
+                                        <option value="Eligibility Check">Eligibility Check</option>
+                                        <option value="Report Preparation">Report Preparation</option>
                                     </select>
                                 </div>
                             </div>
@@ -1505,15 +1502,17 @@
                                     <thead>
                                         <tr>
                                             <th>Date</th>
-                                            <th>Employee</th>
-                                            <th>Manager</th>
-                                            <th>Practice</th>
-                                            <th>Tasks Completed</th>
-                                            <th>Total Time (m)</th>
-                                            <th>Actions</th>
+                                            <th>Employee ID</th>
+                                            <th>Employee Name</th>
+                                            <th>Tasks</th>
+                                            <th>Sub-Categories</th>
+                                            <th>Count</th>
+                                            <th>Score</th>
+                                            <th>Status</th>
+                                            <th>Comments</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="admin-ept-table-body">
+                                    <tbody id="admin-prod-table-body">
                                         <!-- Dynamic Rows -->
                                     </tbody>
                                 </table>
@@ -1871,30 +1870,26 @@
                     </div>
 
                     <!-- Manager Productivity Tab -->
-                    <!-- Manager Productivity Tab (EPT) -->
                     <div id="manager-tab-productivity" class="tab-view">
                         <div class="view-header">
                             <div>
                                 <h1>Productivity Review Center</h1>
-                                <p class="text-secondary">Review and manage productivity entries submitted by your team</p>
+                                <p class="text-secondary">Approve and adjust productivity scores submitted by team
+                                    members</p>
                             </div>
                         </div>
                         <div class="section-card bg-glass">
                             <div class="section-card-header">
                                 <h3>Team Submissions</h3>
                                 <div class="header-filters">
-                                    <input type="date" id="manager-ept-filter-date" class="form-control">
-                                    <select id="manager-ept-filter-emp" class="form-control">
+                                    <select id="manager-prod-filter-emp" class="form-control">
                                         <option value="">All Team Members</option>
                                     </select>
-                                    <select id="manager-ept-filter-practice" class="form-control">
-                                        <option value="">All Practices</option>
-                                    </select>
-                                    <select id="manager-ept-filter-status" class="form-control">
-                                        <option value="">All Statuses</option>
-                                        <option value="Pending">Pending</option>
+                                    <select id="manager-prod-filter-status" class="form-control">
+                                        <option value="">All Submissions</option>
+                                        <option value="Pending">Pending Review</option>
                                         <option value="Approved">Approved</option>
-                                        <option value="Flagged">Flagged</option>
+                                        <option value="Rejected">Rejected</option>
                                     </select>
                                 </div>
                             </div>
@@ -1903,15 +1898,18 @@
                                     <thead>
                                         <tr>
                                             <th>Date</th>
-                                            <th>Employee</th>
-                                            <th>Practice</th>
-                                            <th>Task Types</th>
-                                            <th>Total Time (m)</th>
+                                            <th>Employee ID</th>
+                                            <th>Employee Name</th>
+                                            <th>Tasks</th>
+                                            <th>Details</th>
+                                            <th>Count</th>
+                                            <th>Calculated Score</th>
+                                            <th>Final Score</th>
                                             <th>Status</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="manager-ept-table-body">
+                                    <tbody id="manager-prod-table-body">
                                         <!-- Dynamic Rows -->
                                     </tbody>
                                 </table>
@@ -2156,15 +2154,15 @@
                     </div>
 
                     <!-- Employee Productivity Tab -->
-                    <!-- Employee Productivity Tab (EPT) -->
                     <div id="employee-tab-productivity" class="tab-view">
                         <div class="view-header">
                             <div>
                                 <h1>My Productivity Log</h1>
-                                <p class="text-secondary">Log your daily work output and track performance</p>
+                                <p class="text-secondary">Historical log of all task submissions</p>
                             </div>
                             <div class="actions">
-                                <button class="btn btn-primary" onclick="openEmployeeProductivityModal()"><i class="fa-solid fa-circle-plus"></i> Log Work</button>
+                                <button class="btn btn-primary" id="btn-employee-add-prod-tab"><i
+                                        class="fa-solid fa-circle-plus"></i> Submit Log</button>
                             </div>
                         </div>
                         <div class="section-card bg-glass">
@@ -2173,14 +2171,16 @@
                                     <thead>
                                         <tr>
                                             <th>Date</th>
-                                            <th>Practice</th>
-                                            <th>Task Types</th>
-                                            <th>Total Time (m)</th>
+                                            <th>Tasks</th>
+                                            <th>Sub-Categories</th>
+                                            <th>Notes</th>
+                                            <th>Count</th>
+                                            <th>Score</th>
                                             <th>Status</th>
                                             <th>Approver Comments</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="employee-ept-table-body">
+                                    <tbody id="employee-tab-productivity-table">
                                         <!-- Dynamic Rows -->
                                     </tbody>
                                 </table>
@@ -2442,79 +2442,78 @@
         </form>
     </div>
 
-    <!-- EPT: Practice Management Modal (Admin) -->
-    <div id="modal-ept-practice" class="modal hidden">
+    <!-- 2. Update Productivity Modal (Employee Form) -->
+    <div id="modal-productivity-form" class="modal hidden">
         <div class="modal-header">
-            <h3>Manage Practice</h3>
+            <h3>Update Daily Productivity</h3>
             <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <form id="ept-practice-form">
+        <form id="productivity-submission-form">
             <div class="modal-body">
-                <input type="hidden" id="ept-practice-id">
+                <!-- Date (Auto-filled but visible) -->
                 <div class="form-group">
-                    <label>Practice Name <span class="required">*</span></label>
-                    <input type="text" id="ept-practice-name" class="form-control" required placeholder="e.g. Oakwood Medical">
+                    <label>Submission Date</label>
+                    <input type="text" id="prod-form-date" class="form-control" readonly>
                 </div>
+
+                <!-- Custom Multi-select for Tasks -->
                 <div class="form-group">
-                    <label>Practice Code <span class="required">*</span></label>
-                    <input type="text" id="ept-practice-code" class="form-control" required placeholder="e.g. OAK-01">
-                </div>
-                <div class="form-group">
-                    <label>Assign to Managers</label>
-                    <div class="custom-multiselect" id="ept-practice-managers">
+                    <label>Task / Practice <span class="required">*</span></label>
+                    <div class="custom-multiselect" id="tasks-multiselect">
                         <div class="multiselect-select-box">
-                            <span class="selected-text">Select Managers</span>
+                            <span class="selected-text">Select Tasks</span>
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
-                        <div class="multiselect-options-container hidden" id="ept-practice-manager-list">
-                            <!-- Dynamic Managers -->
+                        <div class="multiselect-options-container hidden">
+                            <label><input type="checkbox" value="Billing" data-text="Billing"> Billing</label>
+                            <label><input type="checkbox" value="Follow-up" data-text="Follow-up"> Follow-up</label>
+                            <label><input type="checkbox" value="Payment Posting" data-text="Payment Posting"> Payment
+                                Posting</label>
+                            <label><input type="checkbox" value="Eligibility Check" data-text="Eligibility Check">
+                                Eligibility Check</label>
+                            <label><input type="checkbox" value="Report Preparation" data-text="Report Preparation">
+                                Report Preparation</label>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline modal-close">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save Practice</button>
-            </div>
-        </form>
-    </div>
 
-    <!-- EPT: Log Work Modal (Employee) -->
-    <div id="modal-ept-log" class="modal hidden" style="max-width: 800px;">
-        <div class="modal-header">
-            <h3>Log Daily Productivity</h3>
-            <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <form id="ept-log-form">
-            <div class="modal-body">
-                <div class="form-row">
-                    <div class="form-group col">
-                        <label>Date <span class="required">*</span></label>
-                        <input type="date" id="ept-log-date" class="form-control" required>
-                    </div>
-                    <div class="form-group col">
-                        <label>Practice <span class="required">*</span></label>
-                        <select id="ept-log-practice" class="form-control" required>
-                            <option value="">Select Practice</option>
-                        </select>
+                <!-- Custom Multi-select for Sub-categories -->
+                <div class="form-group">
+                    <label>Sub-Category <span class="required">*</span></label>
+                    <div class="custom-multiselect" id="subcats-multiselect">
+                        <div class="multiselect-select-box">
+                            <span class="selected-text">Select Subcategories</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="multiselect-options-container hidden" id="subcats-options-list">
+                            <div class="placeholder-msg">Select a task first</div>
+                        </div>
                     </div>
                 </div>
-                
-                <hr>
-                <h4 style="margin-bottom: 10px;">Tasks</h4>
-                
-                <!-- Task Entry Accordion / Tabs container -->
-                <div id="ept-tasks-container">
-                    <!-- Task blocks will be added here dynamically -->
+
+                <!-- Count (numeric only) -->
+                <div class="form-group">
+                    <label for="prod-count">Count / Quantity <span class="required">*</span></label>
+                    <input type="number" id="prod-count" min="1" class="form-control" required
+                        placeholder="Enter numeric count">
                 </div>
-                
-                <button type="button" class="btn btn-outline btn-sm mt-3" id="btn-ept-add-task">
-                    <i class="fa-solid fa-plus"></i> Add Another Task
-                </button>
+
+                <!-- Detail Notes -->
+                <div class="form-group">
+                    <label for="prod-notes">Detail Notes <span class="required">*</span></label>
+                    <textarea id="prod-notes" rows="3" class="form-control" required
+                        placeholder="Describe task details, case IDs, or issues..."></textarea>
+                </div>
+
+                <!-- Live Score Preview -->
+                <div class="live-score-preview bg-glass">
+                    <span>Estimated Productivity Score:</span>
+                    <strong id="prod-score-live">0</strong>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline modal-close">Cancel</button>
-                <button type="submit" class="btn btn-primary">Submit Log</button>
+                <button type="submit" class="btn btn-primary">Submit Productivity</button>
             </div>
         </form>
     </div>
@@ -2587,33 +2586,45 @@
         </div>
     </div>
 
-    <!-- EPT: Review Log Modal (Manager) -->
-    <div id="modal-ept-review" class="modal hidden" style="max-width: 800px;">
+    <!-- 5. Review Productivity Modal (Manager View) -->
+    <div id="modal-productivity-review" class="modal hidden">
         <div class="modal-header">
-            <h3>Review Productivity Log</h3>
+            <h3>Review Productivity Submission</h3>
             <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="modal-body">
             <div class="review-details">
-                <div class="detail-row"><span>Employee:</span> <strong id="ept-review-emp"></strong></div>
-                <div class="detail-row"><span>Practice:</span> <strong id="ept-review-practice"></strong></div>
-                <div class="detail-row"><span>Date:</span> <strong id="ept-review-date"></strong></div>
-            </div>
-            <hr>
-            <h4>Logged Tasks</h4>
-            <div id="ept-review-tasks-container" style="margin-top:15px; max-height:300px; overflow-y:auto;">
-                <!-- Task details injected here -->
+                <div class="detail-row"><span>Employee:</span> <strong id="prod-review-emp">Emma</strong></div>
+                <div class="detail-row"><span>Date:</span> <strong id="prod-review-date">2026-05-23</strong></div>
+                <div class="detail-row"><span>Tasks:</span> <strong id="prod-review-tasks">Billing, Follow-up</strong>
+                </div>
+                <div class="detail-row"><span>Sub-categories:</span> <strong id="prod-review-subcats">Accounts
+                        Receivable</strong></div>
+                <div class="detail-row"><span>Count / Quantity:</span> <strong id="prod-review-count">20</strong></div>
+                <div class="detail-row"><span>Calculated Score:</span> <strong id="prod-review-calc-score"
+                        class="text-info">40</strong></div>
+                <div class="detail-row"><span>Submitted Notes:</span>
+                    <p id="prod-review-notes" class="text-secondary italic">Completed 20 bills for client A</p>
+                </div>
             </div>
             <hr>
             <div class="form-group mt-3">
-                <label>Reviewer Comments</label>
-                <textarea id="ept-review-comment" class="form-control" placeholder="Add approval remarks or instructions..."></textarea>
+                <label for="prod-review-adjust-score">Adjust Score (Optional)</label>
+                <input type="number" step="0.5" id="prod-review-adjust-score" class="form-control"
+                    placeholder="Enter custom score to override">
+                <small class="text-secondary">Leave blank to use the calculated score of <span
+                        id="prod-review-calc-score-hint">40</span>.</small>
+            </div>
+            <div class="form-group">
+                <label for="prod-review-comment">Reviewer Comments</label>
+                <textarea id="prod-review-comment" class="form-control"
+                    placeholder="Add approval remarks or instructions..."></textarea>
             </div>
         </div>
         <div class="modal-footer">
-            <input type="hidden" id="ept-review-id">
-            <button type="button" class="btn btn-warning" id="btn-ept-flag">Flag for Review</button>
-            <button type="button" class="btn btn-success" id="btn-ept-approve">Approve</button>
+            <input type="hidden" id="prod-review-id">
+            <button type="button" class="btn btn-danger" id="btn-prod-reject">Reject Submission</button>
+            <button type="button" class="btn btn-success" id="btn-prod-approve">Approve & Save</button>
         </div>
     </div>
 
@@ -2992,9 +3003,8 @@
     <!-- Main JS Application scripts (Dynamic Cache-Busting) -->
     <script>
         var cacheBuster = new Date().getTime();
-        document.write('<script src="app.js?v=' + cacheBuster + '"><\\/script>');
-        document.write('<script src="payroll.js?v=' + cacheBuster + '"><\\/script>');
-        document.write('<script src="productivity.js?v=' + cacheBuster + '"><\\/script>');
+        document.write('<script src="app.js?v=' + cacheBuster + '"><\/script>');
+        document.write('<script src="payroll.js?v=' + cacheBuster + '"><\/script>');
     </script>
 </body>
 
