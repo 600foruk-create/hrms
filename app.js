@@ -1484,12 +1484,15 @@ window.saveIndividualLeaveBalances = function () {
     leaveTypes.forEach(lt => {
         const input = document.getElementById(`modal-leave-bal-${lt.id}`);
         if (input) {
-            const newBal = parseInt(input.value) || 0;
+            const newTotal = parseInt(input.value) || 0;
             const existing = user.leaveBalances.find(b => b.id === lt.id);
             if (existing) {
-                existing.balance = newBal;
+                const oldTotal = existing.total !== undefined ? existing.total : (existing.balance !== undefined ? existing.balance : 0);
+                const diff = newTotal - oldTotal;
+                existing.total = newTotal;
+                existing.balance = Math.max(0, (existing.balance || 0) + diff);
             } else {
-                user.leaveBalances.push({ id: lt.id, name: lt.name, balance: newBal });
+                user.leaveBalances.push({ id: lt.id, name: lt.name, total: newTotal, balance: newTotal });
             }
         }
     });
@@ -2496,13 +2499,15 @@ window.openEditEmployeeModal = function (userId, isViewOnly = false) {
                     leaveTableBody.innerHTML = `<tr><td colspan="3" class="empty-state">No leave balances found for this employee.</td></tr>`;
                 } else {
                     balances.forEach(b => {
+                        const globalType = (db.companyProfile?.leaveTypes || []).find(lt => lt.id === b.id || lt.name === b.name);
+                        const total = b.total !== undefined ? b.total : (globalType ? globalType.days : b.balance);
                         leaveTableBody.innerHTML += `
                         <tr>
                             <td class="bold">${b.name}</td>
-                            <td>${b.balance} days</td>
+                            <td><span class="text-secondary" style="font-size:12px;">Rem:</span> ${b.balance} / <span class="text-secondary" style="font-size:12px;">Tot:</span> ${total}</td>
                             <td>
                                 <div style="display:flex; gap:5px; align-items:center;">
-                                    <input type="number" id="leave-bal-${b.id}" class="form-control" style="width:70px; padding:4px;" value="${b.balance}">
+                                    <input type="number" id="leave-bal-${b.id}" class="form-control" style="width:70px; padding:4px;" value="${total}" title="Edit Total Days">
                                     <button type="button" class="btn btn-sm btn-primary" onclick="updateEmployeeLeaveBalance('${user.id}', '${b.id}')">Save</button>
                                 </div>
                             </td>
@@ -2522,6 +2527,29 @@ window.openEditEmployeeModal = function (userId, isViewOnly = false) {
         alert("Error opening modal: " + e.message + "\nLine: " + e.lineNumber);
         console.error(e);
     }
+};
+
+window.updateEmployeeLeaveBalance = function(empId, leaveId) {
+    const db = getDb();
+    const user = db.users.find(u => u.id === empId);
+    if (!user) return;
+    
+    const input = document.getElementById(`leave-bal-${leaveId}`);
+    if (!input) return;
+    
+    const newTotal = parseInt(input.value) || 0;
+    const existing = user.leaveBalances.find(b => b.id === leaveId);
+    
+    if (existing) {
+        const oldTotal = existing.total !== undefined ? existing.total : existing.balance;
+        const diff = newTotal - oldTotal;
+        existing.total = newTotal;
+        existing.balance = Math.max(0, existing.balance + diff);
+    }
+    
+    saveDb(db);
+    showToast("Success", "Leave balance updated successfully.");
+    openEmployeeModal(empId); // Refresh modal
 };
 
 function toggleManagerGroup() {
