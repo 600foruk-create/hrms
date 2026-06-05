@@ -527,11 +527,14 @@ window.printIndividualPayslip = function() {
     if (window.currentPayslipFilename) {
         document.title = window.currentPayslipFilename;
     }
-    window.print();
-    // Use setTimeout to ensure the title reverts after the print dialog resolves
-    setTimeout(() => {
+    
+    // Restore title after print dialog closes
+    window.onafterprint = function() {
         document.title = originalTitle;
-    }, 100);
+        window.onafterprint = null; // Clean up
+    };
+    
+    window.print();
 };
 
 // --- 1. Salary Profiles Management ---
