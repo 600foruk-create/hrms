@@ -21,7 +21,7 @@ const TASK_SUBCATEGORIES = {
 // ==================== DATABASE ENGINE (Hostinger PHP Backend) ====================
 const API_URL = 'backend/api.php';
 window.dbLoaded = false;
-window.hrmsDatabase = { users: [], weights: {}, leaves: [], productivity: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [], globalSalarySettings: { allowances: [], deductions: [] } };
+window.hrmsDatabase = { users: [], weights: {}, leaves: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [], globalSalarySettings: { allowances: [], deductions: [] }, practices: [], manager_practices: [], productivity_logs: [], productivity_tasks: [] };
 
 async function syncServer() {
     let success = false;
@@ -50,7 +50,7 @@ async function syncServer() {
             };
             
             result.data.leaves = cleanList(result.data.leaves, 'employeeId');
-            result.data.productivity = cleanList(result.data.productivity, 'employeeId');
+
             result.data.attendance = cleanList(result.data.attendance, 'employeeId');
             result.data.payrollHistory = cleanList(result.data.payrollHistory, 'userId');
             
@@ -641,18 +641,7 @@ function refreshTabContent(tabId) {
 }
 
 // ==================== RENDERING: ADMIN VIEWS ====================
-window.quickApproveTask = function (id, status) {
-    const db = getDb();
-    const sub = db.productivity.find(p => p.id === id);
-    if (sub) {
-        sub.status = status;
-        saveDb(db);
-        showToast("Review Complete", `Productivity log has been marked as ${status}.`);
-        logAudit(`Productivity log for ${sub.employeeName} reviewed: ${status} (Final Score: ${sub.score}).`);
-        addNotification(sub.employeeId, `Your productivity log for ${sub.date} has been ${status}.`);
-        refreshTabContent(activeTab);
-    }
-};
+
 
 function renderAdminDashboard() {
     const db = getDb();
@@ -667,7 +656,7 @@ function renderAdminDashboard() {
     const employees = db.users.filter(u => u.role === 'User');
     const managers = db.users.filter(u => u.role === 'Manager');
     const pendingLeaves = db.leaves.filter(l => l.status === 'Pending').length;
-    const pendingProductivity = db.productivity.filter(p => p.status === 'Pending').length;
+    const pendingProductivity = db.productivity_tasks.filter(p => p.status === 'Pending').length;
     const totalPendingApprovals = pendingLeaves + pendingProductivity;
 
     // Attendance % Today
@@ -680,8 +669,8 @@ function renderAdminDashboard() {
     const attendancePct = totalEmpCount > 0 ? Math.round((presentTodayCount / totalEmpCount) * 100) : 0;
 
     // Tasks Submitted / Completed
-    const tasksSubmitted = db.productivity.length;
-    const tasksCompleted = db.productivity.filter(p => p.status === 'Approved').length;
+    const tasksSubmitted = db.productivity_tasks.length;
+    const tasksCompleted = db.productivity_tasks.filter(p => p.status === 'Approved').length;
     const completionRate = tasksSubmitted > 0 ? Math.round((tasksCompleted / tasksSubmitted) * 100) : 0;
 
     // Apply Metrics to Cards
@@ -742,8 +731,14 @@ function renderAdminDashboard() {
         d.setDate(d.getDate() - i);
         last7Days.push(d.toISOString().split('T')[0]);
     }
-    const dailySubmitted = last7Days.map(day => db.productivity.filter(p => p.date === day).length);
-    const dailyCompleted = last7Days.map(day => db.productivity.filter(p => p.date === day && p.status === 'Approved').length);
+    const dailySubmitted = last7Days.map(day => {
+        const logs = db.productivity_logs.filter(l => l.log_date === day).map(l => l.id);
+        return db.productivity_tasks.filter(t => logs.includes(t.log_id)).length;
+    });
+    const dailyCompleted = last7Days.map(day => {
+        const logs = db.productivity_logs.filter(l => l.log_date === day).map(l => l.id);
+        return db.productivity_tasks.filter(t => logs.includes(t.log_id) && t.status === 'Approved').length;
+    });
 
     const maxVal = Math.max(5, ...dailySubmitted, ...dailyCompleted);
     const getSvgY = (val) => 95 - (val / maxVal) * 80;
@@ -1203,41 +1198,7 @@ function renderAdminAttendanceTab() {
     }
 }
 
-function renderAdminProductivityTab() {
-    const db = getDb();
-    const filterDate = document.getElementById('admin-prod-filter-date').value;
-    const filterTask = document.getElementById('admin-prod-filter-task').value;
 
-    const tableBody = document.getElementById('admin-prod-table-body');
-    tableBody.innerHTML = '';
-
-    let submissions = db.productivity;
-    if (filterDate) submissions = submissions.filter(s => s.date === filterDate);
-    if (filterTask) submissions = submissions.filter(s => s.tasks.includes(filterTask));
-
-    // Sort date desc
-    submissions.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    if (submissions.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="8" class="empty-state">No productivity logs found.</td></tr>`;
-    } else {
-        submissions.forEach(sub => {
-            const statusClass = sub.status === 'Approved' ? 'approved' : (sub.status === 'Rejected' ? 'rejected' : 'pending');
-            tableBody.innerHTML += `
-                <tr>
-                    <td>${sub.date}</td>
-                    <td class="text-secondary">${(db.users.find(u => u.id === sub.employeeId) || {}).displayId || sub.employeeId}</td><td class="bold">${sub.employeeName}</td>
-                    <td>${sub.tasks.join(', ')}</td>
-                    <td>${sub.subcategories.join(', ')}</td>
-                    <td>${Object.values(sub.counts).reduce((s, c) => s + c, 0)}</td>
-                    <td><strong class="text-info">${sub.score}</strong></td>
-                    <td><span class="badge-status ${statusClass}">${sub.status}</span></td>
-                    <td><span class="text-muted italic">${sub.comments || 'No comment'}</span></td>
-                </tr>
-            `;
-        });
-    }
-}
 
 function renderAdminLeaveTab() {
     renderLeaveTypes();
@@ -1792,58 +1753,7 @@ function renderManagerAttendanceTab() {
     }
 }
 
-function renderManagerProductivityTab() {
-    const db = getDb();
-    const team = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
-    const teamEmails = team.map(t => t.id);
 
-    // Fill employee filter select options
-    const empSelect = document.getElementById('manager-prod-filter-emp');
-    const selectedEmp = empSelect.value;
-    empSelect.innerHTML = '<option value="">All Team Members</option>';
-    team.forEach(e => {
-        empSelect.innerHTML += `<option value="${e.id}" ${selectedEmp === e.id ? 'selected' : ''}>${e.name}</option>`;
-    });
-
-    const filterStatus = document.getElementById('manager-prod-filter-status').value;
-
-    const tableBody = document.getElementById('manager-prod-table-body');
-    tableBody.innerHTML = '';
-
-    let submissions = db.productivity.filter(p => teamEmails.includes(p.employeeId));
-    if (selectedEmp) submissions = submissions.filter(s => s.employeeId === selectedEmp);
-    if (filterStatus) submissions = submissions.filter(s => s.status === filterStatus);
-
-    submissions.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    if (submissions.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="9" class="empty-state">No productivity logs found.</td></tr>`;
-    } else {
-        submissions.forEach(sub => {
-            const statusClass = sub.status === 'Approved' ? 'approved' : (sub.status === 'Rejected' ? 'rejected' : 'pending');
-            let actionsHTML = '';
-            if (sub.status === 'Pending') {
-                actionsHTML = `<button class="btn btn-sm btn-outline" onclick="reviewProductivitySubmission('${sub.id}')">Review</button>`;
-            } else {
-                actionsHTML = `<span class="text-muted italic">${sub.comments || 'Reviewed'}</span>`;
-            }
-
-            tableBody.innerHTML += `
-                <tr>
-                    <td>${sub.date}</td>
-                    <td class="text-secondary">${(db.users.find(u => u.id === sub.employeeId) || {}).displayId || sub.employeeId}</td><td class="bold">${sub.employeeName}</td>
-                    <td>${sub.tasks.join(', ')}</td>
-                    <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${sub.notes}">${sub.notes}</td>
-                    <td>${Object.values(sub.counts).reduce((s, c) => s + c, 0)}</td>
-                    <td>${sub.score}</td>
-                    <td><strong class="text-info">${sub.score}</strong></td>
-                    <td><span class="badge-status ${statusClass}">${sub.status}</span></td>
-                    <td>${actionsHTML}</td>
-                </tr>
-            `;
-        });
-    }
-}
 
 function renderManagerLeaveTab() {
     const db = getDb();
@@ -2044,34 +1954,7 @@ function renderEmployeeAttendanceTab() {
     }
 }
 
-function renderEmployeeProductivityTab() {
-    const db = getDb();
-    const tableBody = document.getElementById('employee-tab-productivity-table');
-    tableBody.innerHTML = '';
 
-    const myProd = db.productivity.filter(p => p.employeeId === currentUser.id);
-    myProd.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    if (myProd.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="8" class="empty-state">No productivity entries recorded.</td></tr>`;
-    } else {
-        myProd.forEach(p => {
-            const statusClass = p.status === 'Approved' ? 'approved' : (p.status === 'Rejected' ? 'rejected' : 'pending');
-            tableBody.innerHTML += `
-                <tr>
-                    <td>${p.date}</td>
-                    <td class="bold">${p.tasks.join(', ')}</td>
-                    <td>${p.subcategories.join(', ')}</td>
-                    <td title="${p.notes}" style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.notes}</td>
-                    <td>${Object.values(p.counts).reduce((s, c) => s + c, 0)}</td>
-                    <td><strong class="text-info">${p.score}</strong></td>
-                    <td><span class="badge-status ${statusClass}">${p.status}</span></td>
-                    <td><span class="text-muted italic">${p.comments || 'â€”'}</span></td>
-                </tr>
-            `;
-        });
-    }
-}
 
 function renderEmployeeLeaveTab() {
     const db = getDb();
@@ -2885,65 +2768,7 @@ document.getElementById('leave-request-form').addEventListener('submit', (e) => 
     refreshTabContent(activeTab);
 });
 
-// 5. Review Productivity Submissions Modal (Manager view)
-window.reviewProductivitySubmission = function (prodId) {
-    const db = getDb();
-    const sub = db.productivity.find(p => p.id === prodId);
-    if (!sub) return;
 
-    document.getElementById('prod-review-id').value = sub.id;
-    document.getElementById('prod-review-emp').textContent = sub.employeeName;
-    document.getElementById('prod-review-date').textContent = sub.date;
-    document.getElementById('prod-review-tasks').textContent = sub.tasks.join(', ');
-    document.getElementById('prod-review-subcats').textContent = sub.subcategories.join(', ');
-
-    // Calculate total count
-    const totalCount = Object.values(sub.counts).reduce((s, c) => s + c, 0);
-    document.getElementById('prod-review-count').textContent = totalCount;
-    document.getElementById('prod-review-calc-score').textContent = sub.score;
-    document.getElementById('prod-review-calc-score-hint').textContent = sub.score;
-    document.getElementById('prod-review-notes').textContent = `"${sub.notes}"`;
-    document.getElementById('prod-review-adjust-score').value = "";
-    document.getElementById('prod-review-comment').value = sub.comments || "";
-
-    openModal('modal-productivity-review');
-};
-
-document.getElementById('btn-prod-approve').addEventListener('click', () => {
-    processProductivityReview('Approved');
-});
-
-document.getElementById('btn-prod-reject').addEventListener('click', () => {
-    processProductivityReview('Rejected');
-});
-
-function processProductivityReview(status) {
-    const db = getDb();
-    const id = document.getElementById('prod-review-id').value;
-    const adjustScoreVal = document.getElementById('prod-review-adjust-score').value;
-    const comments = document.getElementById('prod-review-comment').value.trim();
-
-    const sub = db.productivity.find(p => p.id === id);
-    if (sub) {
-        sub.status = status;
-        sub.comments = comments;
-        if (status === 'Approved' && adjustScoreVal) {
-            const finalScore = parseFloat(adjustScoreVal);
-            if (!isNaN(finalScore)) {
-                sub.score = finalScore;
-            }
-        }
-
-        saveDb(db);
-
-        showToast("Review Complete", `Productivity log has been marked as ${status}.`);
-        logAudit(`Productivity log for ${sub.employeeName} reviewed: ${status} (Final Score: ${sub.score}).`);
-        addNotification(sub.employeeId, `Your productivity log for ${sub.date} has been ${status}. Review Remarks: ${comments || 'None'}`);
-    }
-
-    closeAllModals();
-    refreshTabContent(activeTab);
-}
 
 // 6. Manual Attendance Logger Form
 window.openManualAttendanceModal = function () {
