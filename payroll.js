@@ -525,7 +525,11 @@ window.openPayslipModal = function(recordId) {
         </div>
     `;
     
-    document.getElementById('modal-view-payslip').classList.remove('hidden');
+    const payslipModal = document.getElementById('modal-view-payslip');
+    payslipModal.style.maxWidth = '900px';
+    payslipModal.style.width = '95%';
+    payslipModal.classList.remove('hidden');
+    
     document.getElementById('modal-overlay').classList.remove('hidden');
     
     // Set title for PDF saving
