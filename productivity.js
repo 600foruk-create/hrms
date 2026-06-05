@@ -115,6 +115,28 @@ window.renderAdminProductivityTab = function() {
 
 window.renderManagerProductivityTab = function() {
     const db = getDb();
+
+    // Populate Manager's Assigned Practices Table
+    const assignedBody = document.getElementById('manager-assigned-practices-body');
+    if (assignedBody) {
+        assignedBody.innerHTML = '';
+        const myPracticeIds = db.manager_practices ? db.manager_practices.filter(mp => mp.manager_id === currentUser.id).map(mp => mp.practice_id) : [];
+        const myPractices = db.practices ? db.practices.filter(p => myPracticeIds.includes(p.id)) : [];
+        
+        if (myPractices.length === 0) {
+            assignedBody.innerHTML = `<tr><td colspan="2" class="empty-state">No practices assigned to you yet.</td></tr>`;
+        } else {
+            myPractices.forEach(p => {
+                assignedBody.innerHTML += `
+                    <tr>
+                        <td>${p.practice_code}</td>
+                        <td class="bold">${p.practice_name}</td>
+                    </tr>
+                `;
+            });
+        }
+    }
+
     const tableBody = document.getElementById('manager-team-prod-body');
     if (!tableBody) return;
     
