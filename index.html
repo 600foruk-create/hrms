@@ -65,23 +65,13 @@
                 print-color-adjust: exact !important;
             }
 
-            html {
+            html, body {
+                height: auto !important;
                 min-height: 0 !important;
-                height: max-content !important;
-                max-height: max-content !important;
+                max-height: none !important;
                 margin: 0 !important;
                 padding: 0 !important;
-                overflow: visible !important;
-            }
-
-            body {
-                min-height: 0 !important;
-                height: max-content !important;
-                max-height: max-content !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                overflow: visible !important;
-                background: white !important;
+                overflow-x: hidden !important;
             }
 
             /* Hide ALL direct children of body by default */
@@ -99,13 +89,13 @@
                 transform: none !important;
                 width: 100% !important;
                 max-width: 100% !important;
-                height: max-content !important;
+                height: auto !important;
                 max-height: none !important;
                 background: white !important;
                 color: black !important;
                 box-shadow: none !important;
                 border: none !important;
-                overflow: visible !important;
+                overflow: hidden !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 page-break-after: auto !important;
@@ -115,12 +105,12 @@
             #summary-print-area, #payslip-print-area {
                 display: block !important;
                 width: 100% !important;
-                overflow: visible !important;
+                overflow: hidden !important;
                 max-height: none !important;
-                height: max-content !important;
+                height: auto !important;
                 background: white !important;
                 color: black !important;
-                padding: 5mm 10mm !important;
+                padding: 0 !important;
                 margin: 0 !important;
                 border: none !important;
                 border-radius: 0 !important;
