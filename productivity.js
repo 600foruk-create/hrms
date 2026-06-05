@@ -66,6 +66,27 @@ window.renderAdminProductivityTab = function() {
         }
     }
 
+    // Populate Manager Dropdown
+    const managerSelect = document.getElementById('assign-manager-select');
+    if (managerSelect) {
+        managerSelect.innerHTML = '<option value="">Select Manager...</option>';
+        const managers = db.users.filter(u => u.role === 'Manager' || u.role === 'Admin');
+        managers.forEach(m => {
+            managerSelect.innerHTML += `<option value="${m.id}">${m.name} (${m.role})</option>`;
+        });
+    }
+
+    // Populate Practice Dropdown
+    const practiceSelect = document.getElementById('assign-practice-select');
+    if (practiceSelect) {
+        practiceSelect.innerHTML = '<option value="">Select Practice...</option>';
+        if (db.practices) {
+            db.practices.forEach(p => {
+                practiceSelect.innerHTML += `<option value="${p.id}">${p.practice_name} (${p.practice_code})</option>`;
+            });
+        }
+    }
+
     // Fill Practice Assignments
     const assignBody = document.getElementById('admin-assignment-table-body');
     if (assignBody) {
