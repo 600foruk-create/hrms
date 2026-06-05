@@ -1482,40 +1482,58 @@
                                 <p class="text-secondary">Manage practices and their assignments to managers.</p>
                             </div>
                         </div>
-                        <div class="section-card bg-glass mb-4">
-                            <div class="section-card-header">
-                                <h3>Practices</h3>
-                            </div>
-                            <div class="form-group row" style="padding:15px; border-bottom:1px solid var(--border-color); display:flex; gap:10px;">
-                                <input type="text" id="new-practice-name" placeholder="Practice Name" class="form-control" style="flex:1;">
-                                <input type="text" id="new-practice-code" placeholder="Practice Code" class="form-control" style="width:150px;">
-                                <button class="btn btn-primary" id="btn-add-practice">Add Practice</button>
-                            </div>
-                            <div class="table-container">
-                                <table class="data-table">
-                                    <thead><tr><th>Code</th><th>Name</th><th>Action</th></tr></thead>
-                                    <tbody id="admin-practice-table-body"></tbody>
-                                </table>
+
+                        <!-- Sub-tab Navigation -->
+                        <div class="sub-tab-nav">
+                            <button class="btn-sub-tab active" data-subtab="admin-prod-practices">
+                                <i class="fa-solid fa-list-check"></i> Practices
+                            </button>
+                            <button class="btn-sub-tab" data-subtab="admin-prod-assignments">
+                                <i class="fa-solid fa-user-tie"></i> Manager Assignments
+                            </button>
+                        </div>
+
+                        <!-- Sub-tab: Practices -->
+                        <div id="subtab-content-admin-prod-practices" class="sub-tab-content">
+                            <div class="section-card bg-glass">
+                                <div class="section-card-header">
+                                    <h3>Practices</h3>
+                                </div>
+                                <div class="form-group row" style="padding:15px; border-bottom:1px solid var(--border-color); display:flex; gap:10px;">
+                                    <input type="text" id="new-practice-name" placeholder="Practice Name" class="form-control" style="flex:1;">
+                                    <input type="text" id="new-practice-code" placeholder="Practice Code" class="form-control" style="width:150px;">
+                                    <button class="btn btn-primary" id="btn-add-practice">Add Practice</button>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead><tr><th>Code</th><th>Name</th><th>Action</th></tr></thead>
+                                        <tbody id="admin-practice-table-body"></tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
-                        <div class="section-card bg-glass">
-                            <div class="section-card-header">
-                                <h3>Manager Assignments</h3>
-                            </div>
-                            <div class="form-group row" style="padding:15px; border-bottom:1px solid var(--border-color); display:flex; gap:10px;">
-                                <select id="assign-manager-select" class="form-control" style="flex:1;">
-                                    <option value="">Select Manager...</option>
-                                </select>
-                                <select id="assign-practice-select" class="form-control" style="flex:1;">
-                                    <option value="">Select Practice...</option>
-                                </select>
-                                <button class="btn btn-primary" id="btn-assign-practice">Assign</button>
-                            </div>
-                            <div class="table-container">
-                                <table class="data-table">
-                                    <thead><tr><th>Manager</th><th>Practice</th><th>Action</th></tr></thead>
-                                    <tbody id="admin-assignment-table-body"></tbody>
-                                </table>
+
+                        <!-- Sub-tab: Manager Assignments -->
+                        <div id="subtab-content-admin-prod-assignments" class="sub-tab-content hidden">
+                            <div class="section-card bg-glass">
+                                <div class="section-card-header">
+                                    <h3>Manager Assignments</h3>
+                                </div>
+                                <div class="form-group row" style="padding:15px; border-bottom:1px solid var(--border-color); display:flex; gap:10px;">
+                                    <select id="assign-manager-select" class="form-control" style="flex:1;">
+                                        <option value="">Select Manager...</option>
+                                    </select>
+                                    <select id="assign-practice-select" class="form-control" style="flex:1;">
+                                        <option value="">Select Practice...</option>
+                                    </select>
+                                    <button class="btn btn-primary" id="btn-assign-practice">Assign</button>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead><tr><th>Manager</th><th>Practice</th><th>Action</th></tr></thead>
+                                        <tbody id="admin-assignment-table-body"></tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
