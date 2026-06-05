@@ -301,20 +301,31 @@ window.openPayslipModal = function(recordId) {
     let allowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
     let deductions = profile && profile.isCustomSlab ? (profile.deductions || []) : (globalSlab.deductions || []);
     
-    let allowHtml = `<div class="payslip-row"><span>Basic Salary</span><span>Rs ${basicSalary.toLocaleString()}</span></div>`;
+    let allowHtml = `<div class="payslip-row" style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; font-size: 13px; color: #475569;"><span>Basic Salary</span><span style="font-weight: 600;">Rs ${basicSalary.toLocaleString()}</span></div>`;
     let totalAllow = basicSalary;
     
     allowances.forEach(a => {
         const val = parseFloat(a.value) || 0;
         const computed = (a.type === 'percentage') ? (basicSalary * val) / 100 : val;
-        allowHtml += `<div class="payslip-row"><span>${a.name}</span><span>Rs ${Math.round(computed).toLocaleString()}</span></div>`;
+        allowHtml += `<div class="payslip-row" style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; font-size: 13px; color: #475569;"><span>${a.name}</span><span style="font-weight: 600;">Rs ${Math.round(computed).toLocaleString()}</span></div>`;
         totalAllow += computed;
     });
     
     if (record.bonus > 0) {
-        allowHtml += `<div class="payslip-row"><span>Bonus / Arrears</span><span>Rs ${Math.round(record.bonus).toLocaleString()}</span></div>`;
+        allowHtml += `<div class="payslip-row" style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; font-size: 13px; color: #475569;"><span>Bonus / Arrears</span><span style="font-weight: 600;">Rs ${Math.round(record.bonus).toLocaleString()}</span></div>`;
         totalAllow += record.bonus;
     }
+    
+    // Days Calculation
+    const startDateObj = new Date(record.startDate);
+    const endDateObj = new Date(record.endDate);
+    const diffTime = Math.abs(endDateObj - startDateObj);
+    const daysInMonth = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    
+    // If absencyDeduction > 0, calculate absent days based on (Basic / daysInMonth)
+    const perDaySalary = basicSalary / daysInMonth;
+    const absentDays = record.absencyDeduction > 0 && perDaySalary > 0 ? Math.round(record.absencyDeduction / perDaySalary) : 0;
+    const presentDays = daysInMonth - absentDays;
     
     let dedHtml = ``;
     let totalDed = 0;
@@ -322,22 +333,29 @@ window.openPayslipModal = function(recordId) {
     deductions.forEach(d => {
         const val = parseFloat(d.value) || 0;
         const computed = (d.type === 'percentage') ? (basicSalary * val) / 100 : val;
-        dedHtml += `<div class="payslip-row"><span>${d.name}</span><span>Rs ${Math.round(computed).toLocaleString()}</span></div>`;
+        dedHtml += `<div class="payslip-row" style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; font-size: 13px; color: #475569;"><span>${d.name}</span><span style="font-weight: 600;">Rs ${Math.round(computed).toLocaleString()}</span></div>`;
         totalDed += computed;
     });
     
     if (record.absencyDeduction > 0) {
-        dedHtml += `<div class="payslip-row"><span>Absents / Lates</span><span>Rs ${Math.round(record.absencyDeduction).toLocaleString()}</span></div>`;
+        dedHtml += `<div class="payslip-row" style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; font-size: 13px; color: #475569;">
+            <span>Absents (${absentDays} Days) <span style="font-size: 10px; color: #94a3b8;"><br/>(Basic / ${daysInMonth} * ${absentDays})</span></span>
+            <span style="font-weight: 600;">Rs ${Math.round(record.absencyDeduction).toLocaleString()}</span>
+        </div>`;
         totalDed += record.absencyDeduction;
     }
     if (record.loanDeduction > 0) {
-        dedHtml += `<div class="payslip-row"><span>Loan Installment</span><span>Rs ${Math.round(record.loanDeduction).toLocaleString()}</span></div>`;
+        dedHtml += `<div class="payslip-row" style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; font-size: 13px; color: #475569;"><span>Loan Installment</span><span style="font-weight: 600;">Rs ${Math.round(record.loanDeduction).toLocaleString()}</span></div>`;
         totalDed += record.loanDeduction;
     }
     if (record.otherDeduction > 0) {
-        dedHtml += `<div class="payslip-row"><span>Other Deductions</span><span>Rs ${Math.round(record.otherDeduction).toLocaleString()}</span></div>`;
+        dedHtml += `<div class="payslip-row" style="padding: 10px 15px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; font-size: 13px; color: #475569;"><span>Other Deductions</span><span style="font-weight: 600;">Rs ${Math.round(record.otherDeduction).toLocaleString()}</span></div>`;
         totalDed += record.otherDeduction;
     }
+
+    const empStatus = user?.status || 'Active';
+    const empDept = user?.department || 'N/A';
+    const doj = user?.startDate ? new Date(user.startDate).toLocaleDateString() : 'N/A';
 
     const printArea = document.getElementById('payslip-print-area');
     printArea.innerHTML = `
@@ -361,34 +379,71 @@ window.openPayslipModal = function(recordId) {
             </div>
             
             <!-- Employee Details -->
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px 20px; margin-bottom: 25px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px 20px; margin-bottom: 25px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
                 <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <div style="display: flex; justify-content: space-between; font-size: 13px;">
-                        <span style="color: #64748b; font-weight: 500;">Employee Name:</span>
-                        <span style="color: #1e293b; font-weight: 700;">${user ? user.name : 'Unknown'}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px;">
                         <span style="color: #64748b; font-weight: 500;">Employee ID:</span>
                         <span style="color: #1e293b; font-weight: 700;">${user?.displayId || record.userId}</span>
                     </div>
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                        <span style="color: #64748b; font-weight: 500;">Employee Name:</span>
+                        <span style="color: #1e293b; font-weight: 700;">${user ? user.name : 'Unknown'}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                        <span style="color: #64748b; font-weight: 500;">Employee Status:</span>
+                        <span style="color: #1e293b; font-weight: 700;">${empStatus}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 12px;">
                         <span style="color: #64748b; font-weight: 500;">Designation:</span>
                         <span style="color: #1e293b; font-weight: 700;">${user && user.designation ? user.designation : 'N/A'}</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 13px;">
-                        <span style="color: #64748b; font-weight: 500;">Pay Period:</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                        <span style="color: #64748b; font-weight: 500;">Department:</span>
+                        <span style="color: #1e293b; font-weight: 700;">${empDept}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                        <span style="color: #64748b; font-weight: 500;">Date of Joining:</span>
+                        <span style="color: #1e293b; font-weight: 700;">${doj}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                        <span style="color: #64748b; font-weight: 500;">Date:</span>
+                        <span style="color: #1e293b; font-weight: 700;">${new Date(record.processedAt).toLocaleDateString()}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                        <span style="color: #64748b; font-weight: 500;">Month:</span>
+                        <span style="color: #1e293b; font-weight: 700;">${new Date(record.startDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+                    </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                        <span style="color: #64748b; font-weight: 500;">Period:</span>
                         <span style="color: #1e293b; font-weight: 700;">${new Date(record.startDate).toLocaleDateString()} - ${new Date(record.endDate).toLocaleDateString()}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                        <span style="color: #64748b; font-weight: 500;">Days in Month:</span>
+                        <span style="color: #1e293b; font-weight: 700;">${daysInMonth}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                        <span style="color: #64748b; font-weight: 500;">Days Present:</span>
+                        <span style="color: #1e293b; font-weight: 700;">${presentDays}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                        <span style="color: #64748b; font-weight: 500;">Days Absent:</span>
+                        <span style="color: #1e293b; font-weight: 700;">${absentDays}</span>
                     </div>
                 </div>
             </div>
             
             <!-- Salary Details Table -->
             <div style="display: flex; gap: 20px; margin-bottom: 25px;">
-                <!-- Earnings -->
+                <!-- Allowances -->
                 <div style="flex: 1; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden;">
-                    <div style="background: #f1f5f9; padding: 10px 15px; font-weight: 700; color: #334155; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">Earnings</div>
+                    <div style="background: #f1f5f9; padding: 10px 15px; font-weight: 700; color: #334155; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; display: flex; justify-content: space-between;">
+                        <span>Allowances</span>
+                        <span>Amount(Rs.)</span>
+                    </div>
                     <div style="padding: 0;">
                         ${allowHtml}
                     </div>
@@ -400,7 +455,10 @@ window.openPayslipModal = function(recordId) {
                 
                 <!-- Deductions -->
                 <div style="flex: 1; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden;">
-                    <div style="background: #f1f5f9; padding: 10px 15px; font-weight: 700; color: #334155; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">Deductions</div>
+                    <div style="background: #f1f5f9; padding: 10px 15px; font-weight: 700; color: #334155; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; display: flex; justify-content: space-between;">
+                        <span>Deductions</span>
+                        <span>Amount(Rs.)</span>
+                    </div>
                     <div style="padding: 0;">
                         ${dedHtml || '<div style="padding: 10px 15px; color:#9ca3af; font-style:italic; font-size: 13px;">No Deductions</div>'}
                     </div>
