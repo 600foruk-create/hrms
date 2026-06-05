@@ -58,6 +58,7 @@ window.renderAdminProductivityTab = function() {
                         <td>${p.practice_code}</td>
                         <td class="bold">${p.practice_name}</td>
                         <td>
+                            <button class="btn btn-sm btn-outline text-primary" onclick="editPractice('${p.id}')" style="margin-right: 5px;"><i class="fa-solid fa-pen"></i></button>
                             <button class="btn btn-sm btn-outline text-danger" onclick="deletePractice('${p.id}')"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>
@@ -254,22 +255,60 @@ window.onEptTaskTypeChange = function() {
 };
 
 window.addPractice = function() {
-    const name = document.getElementById('new-practice-name').value;
-    const code = document.getElementById('new-practice-code').value;
+    const nameInput = document.getElementById('new-practice-name');
+    const codeInput = document.getElementById('new-practice-code');
+    const btn = document.getElementById('btn-add-practice');
+
+    const name = nameInput.value.trim();
+    const code = codeInput.value.trim();
     if (!name || !code) return showToast("Error", "Please fill all fields", "error");
 
     const db = getDb();
     if(!db.practices) db.practices = [];
-    db.practices.push({
-        id: 'PRC_' + Date.now(),
-        practice_name: name,
-        practice_code: code
-    });
+
+    const editId = btn.getAttribute('data-edit-id');
+    if (editId) {
+        // Update existing practice
+        const p = db.practices.find(p => p.id === editId);
+        if (p) {
+            p.practice_name = name;
+            p.practice_code = code;
+            showToast("Success", "Practice updated successfully");
+        }
+        btn.removeAttribute('data-edit-id');
+        btn.textContent = "Add Practice";
+    } else {
+        // Add new practice
+        db.practices.push({
+            id: 'PRC_' + Date.now(),
+            practice_name: name,
+            practice_code: code
+        });
+        showToast("Success", "Practice added successfully");
+    }
+
     saveDb(db);
-    document.getElementById('new-practice-name').value = '';
-    document.getElementById('new-practice-code').value = '';
+    nameInput.value = '';
+    codeInput.value = '';
     renderAdminProductivityTab();
-    showToast("Success", "Practice added successfully");
+};
+
+window.editPractice = function(id) {
+    const db = getDb();
+    const practice = db.practices.find(p => p.id === id);
+    if (!practice) return;
+
+    const nameInput = document.getElementById('new-practice-name');
+    const codeInput = document.getElementById('new-practice-code');
+    const btn = document.getElementById('btn-add-practice');
+
+    if (nameInput && codeInput && btn) {
+        nameInput.value = practice.practice_name;
+        codeInput.value = practice.practice_code;
+        btn.textContent = "Update Practice";
+        btn.setAttribute('data-edit-id', practice.id);
+        nameInput.focus();
+    }
 };
 
 window.assignPractice = function() {
