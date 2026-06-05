@@ -301,27 +301,27 @@ window.openPayslipModal = function(recordId) {
     let allowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
     let deductions = profile && profile.isCustomSlab ? (profile.deductions || []) : (globalSlab.deductions || []);
     
-    let allowHtml = `<div class="payslip-row" style="border-bottom: 1px solid #f1f5f9; display: flex; font-size: 13px; color: #475569;">
-        <span style="flex: 1; padding: 10px 15px; border-right: 1px solid #e2e8f0; box-sizing: border-box;">Basic Salary</span>
-        <span style="flex: 0 0 130px; padding: 10px 15px; font-weight: 600; text-align: right; box-sizing: border-box;">Rs ${basicSalary.toLocaleString()}</span>
-    </div>`;
+    let allowHtml = `<tr style="border-bottom: 1px solid #f1f5f9;">
+        <td style="padding: 5px 15px; border-right: 1px solid #e2e8f0;">Basic Salary</td>
+        <td style="padding: 5px 15px; font-weight: 600; text-align: right; width: 130px;">Rs ${basicSalary.toLocaleString()}</td>
+    </tr>`;
     let totalAllow = basicSalary;
     
     allowances.forEach(a => {
         const val = parseFloat(a.value) || 0;
         const computed = (a.type === 'percentage') ? (basicSalary * val) / 100 : val;
-        allowHtml += `<div class="payslip-row" style="border-bottom: 1px solid #f1f5f9; display: flex; font-size: 13px; color: #475569;">
-            <span style="flex: 1; padding: 10px 15px; border-right: 1px solid #e2e8f0; box-sizing: border-box;">${a.name}</span>
-            <span style="flex: 0 0 130px; padding: 10px 15px; font-weight: 600; text-align: right; box-sizing: border-box;">Rs ${Math.round(computed).toLocaleString()}</span>
-        </div>`;
+        allowHtml += `<tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 5px 15px; border-right: 1px solid #e2e8f0;">${a.name}</td>
+            <td style="padding: 5px 15px; font-weight: 600; text-align: right; width: 130px;">Rs ${Math.round(computed).toLocaleString()}</td>
+        </tr>`;
         totalAllow += computed;
     });
     
     if (record.bonus > 0) {
-        allowHtml += `<div class="payslip-row" style="border-bottom: 1px solid #f1f5f9; display: flex; font-size: 13px; color: #475569;">
-            <span style="flex: 1; padding: 10px 15px; border-right: 1px solid #e2e8f0; box-sizing: border-box;">Bonus / Arrears</span>
-            <span style="flex: 0 0 130px; padding: 10px 15px; font-weight: 600; text-align: right; box-sizing: border-box;">Rs ${Math.round(record.bonus).toLocaleString()}</span>
-        </div>`;
+        allowHtml += `<tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 5px 15px; border-right: 1px solid #e2e8f0;">Bonus / Arrears</td>
+            <td style="padding: 5px 15px; font-weight: 600; text-align: right; width: 130px;">Rs ${Math.round(record.bonus).toLocaleString()}</td>
+        </tr>`;
         totalAllow += record.bonus;
     }
     
@@ -342,32 +342,32 @@ window.openPayslipModal = function(recordId) {
     deductions.forEach(d => {
         const val = parseFloat(d.value) || 0;
         const computed = (d.type === 'percentage') ? (basicSalary * val) / 100 : val;
-        dedHtml += `<div class="payslip-row" style="border-bottom: 1px solid #f1f5f9; display: flex; font-size: 13px; color: #475569;">
-            <span style="flex: 1; padding: 10px 15px; border-right: 1px solid #e2e8f0; box-sizing: border-box;">${d.name}</span>
-            <span style="flex: 0 0 130px; padding: 10px 15px; font-weight: 600; text-align: right; box-sizing: border-box;">Rs ${Math.round(computed).toLocaleString()}</span>
-        </div>`;
+        dedHtml += `<tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 5px 15px; border-right: 1px solid #e2e8f0;">${d.name}</td>
+            <td style="padding: 5px 15px; font-weight: 600; text-align: right; width: 130px;">Rs ${Math.round(computed).toLocaleString()}</td>
+        </tr>`;
         totalDed += computed;
     });
     
     if (record.absencyDeduction > 0) {
-        dedHtml += `<div class="payslip-row" style="border-bottom: 1px solid #f1f5f9; display: flex; font-size: 13px; color: #475569;">
-            <span style="flex: 1; padding: 10px 15px; border-right: 1px solid #e2e8f0; box-sizing: border-box;">Absents (${absentDays} Days) <span style="font-size: 10px; color: #94a3b8;"><br/>(Basic / ${daysInMonth} * ${absentDays})</span></span>
-            <span style="flex: 0 0 130px; padding: 10px 15px; font-weight: 600; text-align: right; box-sizing: border-box;">Rs ${Math.round(record.absencyDeduction).toLocaleString()}</span>
-        </div>`;
+        dedHtml += `<tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 5px 15px; border-right: 1px solid #e2e8f0;">Absents (${absentDays} Days) <span style="font-size: 10px; color: #94a3b8;"><br/>(Basic / ${daysInMonth} * ${absentDays})</span></td>
+            <td style="padding: 5px 15px; font-weight: 600; text-align: right; width: 130px;">Rs ${Math.round(record.absencyDeduction).toLocaleString()}</td>
+        </tr>`;
         totalDed += record.absencyDeduction;
     }
     if (record.loanDeduction > 0) {
-        dedHtml += `<div class="payslip-row" style="border-bottom: 1px solid #f1f5f9; display: flex; font-size: 13px; color: #475569;">
-            <span style="flex: 1; padding: 10px 15px; border-right: 1px solid #e2e8f0; box-sizing: border-box;">Loan Installment</span>
-            <span style="flex: 0 0 130px; padding: 10px 15px; font-weight: 600; text-align: right; box-sizing: border-box;">Rs ${Math.round(record.loanDeduction).toLocaleString()}</span>
-        </div>`;
+        dedHtml += `<tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 5px 15px; border-right: 1px solid #e2e8f0;">Loan Installment</td>
+            <td style="padding: 5px 15px; font-weight: 600; text-align: right; width: 130px;">Rs ${Math.round(record.loanDeduction).toLocaleString()}</td>
+        </tr>`;
         totalDed += record.loanDeduction;
     }
     if (record.otherDeduction > 0) {
-        dedHtml += `<div class="payslip-row" style="border-bottom: 1px solid #f1f5f9; display: flex; font-size: 13px; color: #475569;">
-            <span style="flex: 1; padding: 10px 15px; border-right: 1px solid #e2e8f0; box-sizing: border-box;">Other Deductions</span>
-            <span style="flex: 0 0 130px; padding: 10px 15px; font-weight: 600; text-align: right; box-sizing: border-box;">Rs ${Math.round(record.otherDeduction).toLocaleString()}</span>
-        </div>`;
+        dedHtml += `<tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 5px 15px; border-right: 1px solid #e2e8f0;">Other Deductions</td>
+            <td style="padding: 5px 15px; font-weight: 600; text-align: right; width: 130px;">Rs ${Math.round(record.otherDeduction).toLocaleString()}</td>
+        </tr>`;
         totalDed += record.otherDeduction;
     }
 
@@ -456,32 +456,44 @@ window.openPayslipModal = function(recordId) {
             <div style="display: flex; gap: 20px; margin-bottom: 25px;">
                 <!-- Allowances -->
                 <div style="flex: 1; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden;">
-                    <div style="background: #f1f5f9; font-weight: 700; color: #334155; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; display: flex;">
-                        <span style="flex: 1; padding: 10px 15px; border-right: 1px solid #e2e8f0; box-sizing: border-box;">Allowances</span>
-                        <span style="flex: 0 0 130px; padding: 10px 15px; text-align: right; box-sizing: border-box;">Amount(Rs.)</span>
-                    </div>
-                    <div style="padding: 0;">
-                        ${allowHtml}
-                    </div>
-                    <div style="background: #f8fafc; display: flex; font-weight: 700; color: #0f172a; border-top: 1px solid #e2e8f0; font-size: 13px;">
-                        <span style="flex: 1; padding: 12px 15px; border-right: 1px solid #e2e8f0; box-sizing: border-box;">Gross Earnings</span>
-                        <span style="flex: 0 0 130px; padding: 12px 15px; text-align: right; box-sizing: border-box;">Rs ${Math.round(totalAllow).toLocaleString()}</span>
-                    </div>
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; color: #475569;">
+                        <thead>
+                            <tr style="background: #f1f5f9; font-weight: 700; color: #334155; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">
+                                <th style="padding: 8px 15px; border-right: 1px solid #e2e8f0; font-weight: 700;">Allowances</th>
+                                <th style="padding: 8px 15px; text-align: right; width: 130px; font-weight: 700;">Amount(Rs.)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${allowHtml}
+                        </tbody>
+                        <tfoot>
+                            <tr style="background: #f8fafc; border-top: 1px solid #e2e8f0; font-weight: 700; color: #0f172a;">
+                                <td style="padding: 10px 15px; border-right: 1px solid #e2e8f0;">Gross Earnings</td>
+                                <td style="padding: 10px 15px; text-align: right;">Rs ${Math.round(totalAllow).toLocaleString()}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
                 
                 <!-- Deductions -->
                 <div style="flex: 1; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden;">
-                    <div style="background: #f1f5f9; font-weight: 700; color: #334155; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; display: flex;">
-                        <span style="flex: 1; padding: 10px 15px; border-right: 1px solid #e2e8f0; box-sizing: border-box;">Deductions</span>
-                        <span style="flex: 0 0 130px; padding: 10px 15px; text-align: right; box-sizing: border-box;">Amount(Rs.)</span>
-                    </div>
-                    <div style="padding: 0;">
-                        ${dedHtml || '<div style="padding: 10px 15px; color:#9ca3af; font-style:italic; font-size: 13px;">No Deductions</div>'}
-                    </div>
-                    <div style="background: #f8fafc; display: flex; font-weight: 700; color: #0f172a; border-top: 1px solid #e2e8f0; font-size: 13px;">
-                        <span style="flex: 1; padding: 12px 15px; border-right: 1px solid #e2e8f0; box-sizing: border-box;">Total Deductions</span>
-                        <span style="flex: 0 0 130px; padding: 12px 15px; text-align: right; box-sizing: border-box;">Rs ${Math.round(totalDed).toLocaleString()}</span>
-                    </div>
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; color: #475569;">
+                        <thead>
+                            <tr style="background: #f1f5f9; font-weight: 700; color: #334155; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">
+                                <th style="padding: 8px 15px; border-right: 1px solid #e2e8f0; font-weight: 700;">Deductions</th>
+                                <th style="padding: 8px 15px; text-align: right; width: 130px; font-weight: 700;">Amount(Rs.)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${dedHtml || '<tr><td colspan="2" style="padding: 10px 15px; color:#9ca3af; font-style:italic; text-align: center;">No Deductions</td></tr>'}
+                        </tbody>
+                        <tfoot>
+                            <tr style="background: #f8fafc; border-top: 1px solid #e2e8f0; font-weight: 700; color: #0f172a;">
+                                <td style="padding: 10px 15px; border-right: 1px solid #e2e8f0;">Total Deductions</td>
+                                <td style="padding: 10px 15px; text-align: right;">Rs ${Math.round(totalDed).toLocaleString()}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
             </div>
             
