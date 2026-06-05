@@ -26,7 +26,7 @@ window.hrmsDatabase = { users: [], weights: {}, leaves: [], practices: [], manag
 async function syncServer() {
     let success = false;
     try {
-        const response = await fetch(API_URL + '?action=load_all');
+        const response = await fetch(API_URL + '?action=load_all&t=' + new Date().getTime(), { cache: 'no-store' });
         const result = await response.json();
         if (result.status === 'success' && result.data.users && result.data.users.length > 0) {
             // Dynamic correction: ensure "Syed Admin" is shown/logged in as "admin" with "admin123"
