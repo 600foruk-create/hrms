@@ -66,12 +66,23 @@
             }
 
             html, body {
+                width: 100% !important;
                 height: auto !important;
                 min-height: 0 !important;
                 max-height: none !important;
                 margin: 0 !important;
                 padding: 0 !important;
-                overflow-x: hidden !important;
+                overflow: visible !important;
+            }
+
+            /* Nuclear reset for print to destroy ANY residual 100vh or 100% heights */
+            @media print {
+                .modal, .modal-body, .modal-backdrop, .main-layout, .content-body {
+                    height: auto !important;
+                    min-height: 0 !important;
+                    max-height: none !important;
+                    position: static !important;
+                }
             }
 
             /* Hide ALL direct children of body by default */
@@ -95,7 +106,7 @@
                 color: black !important;
                 box-shadow: none !important;
                 border: none !important;
-                overflow: hidden !important;
+                overflow: visible !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 page-break-after: auto !important;
@@ -105,7 +116,7 @@
             #summary-print-area, #payslip-print-area {
                 display: block !important;
                 width: 100% !important;
-                overflow: hidden !important;
+                overflow: visible !important;
                 max-height: none !important;
                 height: auto !important;
                 background: white !important;
@@ -115,6 +126,10 @@
                 border: none !important;
                 border-radius: 0 !important;
                 box-sizing: border-box;
+            }
+
+            table, tr, td, th {
+                page-break-inside: avoid !important;
             }
 
             /* Kill all modal flex/scroll behavior in print */
