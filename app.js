@@ -121,7 +121,7 @@ async function saveDb(data) {
 }
 
 // Log audit events
-function logAudit(details) {
+function logAudit(details, autoSave = true) {
     const db = getDb();
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
     db.auditLogs.unshift({
@@ -130,11 +130,11 @@ function logAudit(details) {
         userName: currentUser ? currentUser.name : "System",
         details
     });
-    saveDb(db);
+    if (autoSave) saveDb(db);
 }
 
 // Add user notification
-function addNotification(userId, message) {
+function addNotification(userId, message, autoSave = true) {
     const db = getDb();
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
     db.notifications.unshift({
@@ -144,7 +144,7 @@ function addNotification(userId, message) {
         read: false,
         time: timestamp
     });
-    saveDb(db);
+    if (autoSave) saveDb(db);
 
     // If the active user matches, refresh notifications
     if (currentUser && currentUser.id === userId) {
@@ -646,10 +646,10 @@ window.quickApproveTask = function (id, status) {
     const sub = (db.productivity_logs || []).find(p => p.id === id);
     if (sub) {
         sub.status = status;
-        saveDb(db);
         showToast("Review Complete", `Productivity log has been marked as ${status}.`);
-        logAudit(`Productivity log for ${sub.employeeName} reviewed: ${status} (Final Score: ${sub.score}).`);
-        addNotification(sub.employeeId, `Your productivity log for ${sub.date} has been ${status}.`);
+        logAudit(`Productivity log for ${sub.employeeName} reviewed: ${status} (Final Score: ${sub.score}).`, false);
+        addNotification(sub.employeeId, `Your productivity log for ${sub.date} has been ${status}.`, false);
+        saveDb(db);
         refreshTabContent(activeTab);
     }
 };
@@ -1844,15 +1844,27 @@ function renderManagerLeaveTab() {
         if (balancesBody) {
             balancesBody.innerHTML = '';
             const userRec = db.users.find(u => u.id === currentUser.id);
-            const balances = userRec?.leaveBalances || [];
+            
+            let balances = userRec?.leaveBalances || [];
+            if (balances.length === 0 && db.companyProfile?.leaveTypes) {
+                balances = db.companyProfile.leaveTypes.map(lt => ({ id: lt.id, name: lt.name, balance: lt.days }));
+                if (userRec) {
+                    userRec.leaveBalances = balances;
+                    saveDb(db);
+                }
+            }
+
             if (balances.length === 0) {
-                balancesBody.innerHTML = `<tr><td colspan="2" class="empty-state">No balances set.</td></tr>`;
+                balancesBody.innerHTML = `<tr><td colspan="3" class="empty-state">No balances set.</td></tr>`;
             } else {
                 balances.forEach(b => {
+                    const globalType = (db.companyProfile?.leaveTypes || []).find(lt => lt.id === b.id || lt.name === b.name);
+                    const total = globalType ? globalType.days : b.balance;
                     balancesBody.innerHTML += `
                         <tr>
                             <td class="bold">${b.name}</td>
-                            <td style="text-align:right"><span class="badge-status" style="background:var(--bg-glass); color:var(--text-main); border:1px solid var(--border-color);">${b.balance} days</span></td>
+                            <td style="text-align:right">${total}</td>
+                            <td style="text-align:right"><span class="badge-status" style="background:var(--bg-glass); color:var(--text-main); border:1px solid var(--border-color);">${b.balance}</span></td>
                         </tr>
                     `;
                 });
@@ -2056,15 +2068,27 @@ function renderEmployeeLeaveTab() {
     if (balancesBody) {
         balancesBody.innerHTML = '';
         const userRec = db.users.find(u => u.id === currentUser.id);
-        const balances = userRec?.leaveBalances || [];
+        
+        let balances = userRec?.leaveBalances || [];
+        if (balances.length === 0 && db.companyProfile?.leaveTypes) {
+            balances = db.companyProfile.leaveTypes.map(lt => ({ id: lt.id, name: lt.name, balance: lt.days }));
+            if (userRec) {
+                userRec.leaveBalances = balances;
+                saveDb(db);
+            }
+        }
+
         if (balances.length === 0) {
-            balancesBody.innerHTML = `<tr><td colspan="2" class="empty-state">No balances set.</td></tr>`;
+            balancesBody.innerHTML = `<tr><td colspan="3" class="empty-state">No balances set.</td></tr>`;
         } else {
             balances.forEach(b => {
+                const globalType = (db.companyProfile?.leaveTypes || []).find(lt => lt.id === b.id || lt.name === b.name);
+                const total = globalType ? globalType.days : b.balance;
                 balancesBody.innerHTML += `
                     <tr>
                         <td class="bold">${b.name}</td>
-                        <td style="text-align:right"><span class="badge-status" style="background:var(--bg-glass); color:var(--text-main); border:1px solid var(--border-color);">${b.balance} days</span></td>
+                        <td style="text-align:right">${total}</td>
+                        <td style="text-align:right"><span class="badge-status" style="background:var(--bg-glass); color:var(--text-main); border:1px solid var(--border-color);">${b.balance}</span></td>
                     </tr>
                 `;
             });
@@ -2755,11 +2779,9 @@ function processLeaveReview(status) {
         leave.status = status;
         leave.comments = comments;
 
-        saveDb(db);
-
         showToast("Leave Evaluation", `Leave request marked as ${status}.`);
-        logAudit(`Leave request (${leave.type}) for ${leave.employeeName} marked as ${status}.`);
-        addNotification(leave.employeeId, `Your leave request for ${leave.startDate} has been ${status}. Manager Remarks: ${comments || 'None'}`);
+        logAudit(`Leave request (${leave.type}) for ${leave.employeeName} marked as ${status}.`, false);
+        addNotification(leave.employeeId, `Your leave request for ${leave.startDate} has been ${status}. Manager Remarks: ${comments || 'None'}`, false);
 
         // If approved, update attendance register as Leave for those dates
         if (status === 'Approved') {
@@ -2774,10 +2796,11 @@ function processLeaveReview(status) {
                     const end = new Date(leave.endDate);
                     const days = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
                     bal.balance = Math.max(0, bal.balance - days);
-                    saveDb(db);
                 }
             }
         }
+        
+        saveDb(db);
     }
 
     closeAllModals();
@@ -2847,16 +2870,16 @@ document.getElementById('leave-request-form').addEventListener('submit', (e) => 
     };
 
     db.leaves.push(newLeave);
-    saveDb(db);
 
     showToast("Submitted", "Leave application submitted to your manager.");
-    logAudit(`Submitted leave request (${type}) from ${startStr} to ${endStr}.`);
+    logAudit(`Submitted leave request (${type}) from ${startStr} to ${endStr}.`, false);
 
     // Notify manager if manager exists
     if (currentUser.managerId) {
-        addNotification(currentUser.managerId, `${currentUser.name} has submitted a leave application for your review.`);
+        addNotification(currentUser.managerId, `${currentUser.name} has submitted a leave application for your review.`, false);
     }
 
+    saveDb(db);
     closeAllModals();
     refreshTabContent(activeTab);
 });
