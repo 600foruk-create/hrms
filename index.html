@@ -1856,24 +1856,34 @@
                                     your direct reports</p>
                             </div>
                         </div>
-                        <div class="section-card bg-glass">
-                            <div class="table-container">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Employee ID</th>
-                                            <th>Employee Name</th>
-                                            <th>Email</th>
-                                            <th>Today Attendance</th>
-                                            <th>Overall Prod Score</th>
-                                            <th>Status</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="manager-tab-team-table-body">
-                                        <!-- Dynamic rows -->
-                                    </tbody>
-                                </table>
+
+                        <!-- Sub-tab Navigation -->
+                        <div class="sub-tab-nav">
+                            <button class="btn-sub-tab active" data-subtab="team-members">
+                                <i class="fa-solid fa-users"></i> All Members
+                            </button>
+                        </div>
+
+                        <div class="sub-tab-content active" id="sub-manager-team-members">
+                            <div class="section-card bg-glass">
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Employee ID</th>
+                                                <th>Employee Name</th>
+                                                <th>Email</th>
+                                                <th>Assigned Manager</th>
+                                                <th>Role</th>
+                                                <th>Status</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="manager-tab-team-table-body">
+                                            <!-- Dynamic rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>

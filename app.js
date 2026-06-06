@@ -1773,27 +1773,28 @@ function renderManagerTeamTab() {
     const today = new Date().toISOString().split('T')[0];
 
     if (teamMembers.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="6" class="empty-state">No assigned team members.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="7" class="empty-state">No assigned team members.</td></tr>`;
     } else {
         teamMembers.forEach(emp => {
-            // Attendance today status
-            const attToday = db.attendance.find(a => a.employeeId === emp.id && a.date === today);
-            const attStatus = attToday ? attToday.status : 'Absent';
-
-            // Score
-            const totalScore = (db.productivity_logs || []).filter(p => p.employeeId === emp.id && p.status === 'Approved').reduce((s, p) => s + p.score, 0);
             const statusClass = emp.status === 'Active' ? 'badge-active' : 'badge-inactive';
-            const attClass = attStatus === 'Present' ? 'approved' : 'rejected';
+            
+            let mgrName = 'N/A';
+            if (emp.managerId) {
+                const mgr = db.users.find(u => u.id === emp.managerId || u.email === emp.managerId);
+                if (mgr) mgrName = mgr.name;
+                else mgrName = emp.managerId; // fallback
+            }
 
             tableBody.innerHTML += `
                 <tr>
-                    <td class="text-secondary">${emp.displayId || emp.id}</td><td class="bold">${emp.name}</td>
+                    <td class="text-secondary">${emp.displayId || emp.id}</td>
+                    <td class="bold">${emp.name}</td>
                     <td>${emp.email}</td>
-                    <td><span class="badge-status ${attClass}">${attStatus}</span></td>
-                    <td><strong class="text-info">${totalScore}</strong></td>
-                    <td><span class="${statusClass}">${emp.status}</span></td>
+                    <td>${mgrName}</td>
+                    <td>${emp.role || 'User'}</td>
+                    <td><span class="${statusClass}">${emp.status || 'Active'}</span></td>
                     <td>
-                        <button class="btn btn-action-circle" onclick="viewUserProfile('${emp.id}')" tooltip="View Profile"><i class="fa-regular fa-eye"></i></button>
+                        <button class="btn-action view" onclick="viewUserProfile('${emp.id}')" title="View Profile"><i class="fa-solid fa-eye"></i></button>
                     </td>
                 </tr>
             `;
