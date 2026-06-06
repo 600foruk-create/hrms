@@ -2204,19 +2204,90 @@
                             </div>
                         </div>
 
-                        <!-- Main Content 2-Column Grid -->
-                        <div class="dashboard-grid">
-                            <div class="main-column">
-                                <!-- Charts Section -->
-                                <div class="section-card bg-glass">
-                                    <div class="section-card-header">
-                                        <h3>Personal Productivity Trend</h3>
+                        <!-- Dashboard Split Row (Monthly Attendance, Tasks Overview) -->
+                        <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+                            <!-- Widget 1: Monthly Attendance Summary -->
+                            <div class="section-card bg-glass"
+                                style="display: flex; flex-direction: column; justify-content: space-between;">
+                                <div class="section-card-header" style="justify-content: space-between; display: flex;">
+                                    <h3 style="font-size: 14px; font-weight: 700; margin: 0;">Monthly Attendance Summary</h3>
+                                    <a href="#" onclick="window.switchTab ? window.switchTab('attendance') : null"
+                                        class="text-primary"
+                                        style="font-size: 11.5px; font-weight: 600; text-decoration: none;">View Details
+                                        <i class="fa-solid fa-chevron-right" style="font-size: 9px; margin-left: 2px;"></i></a>
+                                </div>
+                                <div class="attendance-summary-wrapper">
+                                    <div class="doughnut-chart-container">
+                                        <div class="doughnut-chart" id="employee-attendance-doughnut-chart"
+                                            style="background: conic-gradient(var(--success) 0% 0%, var(--danger) 0% 0%, var(--warning) 0% 0%, var(--primary) 0% 100%);">
+                                            <div class="doughnut-center">
+                                                <span class="label">Total</span>
+                                                <span class="value" id="employee-attendance-doughnut-total">0</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="chart-container">
-                                        <svg viewBox="0 0 300 120" class="svg-chart" id="employee-prod-chart">
-                                            <!-- Path inserted via JS -->
-                                        </svg>
-                                        <div class="chart-xaxis-labels" id="employee-prod-xaxis"></div>
+                                    <div class="attendance-legend">
+                                        <div class="legend-item">
+                                            <div class="legend-label-group">
+                                                <span class="legend-dot present"></span>
+                                                <span>Present</span>
+                                            </div>
+                                            <span class="legend-value" id="employee-legend-present-val">0 (0%)</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <div class="legend-label-group">
+                                                <span class="legend-dot absent"></span>
+                                                <span>Absent</span>
+                                            </div>
+                                            <span class="legend-value" id="employee-legend-absent-val">0 (0%)</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <div class="legend-label-group">
+                                                <span class="legend-dot late"></span>
+                                                <span>Late</span>
+                                            </div>
+                                            <span class="legend-value" id="employee-legend-late-val">0 (0%)</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <div class="legend-label-group">
+                                                <span class="legend-dot leave"></span>
+                                                <span>On Leave</span>
+                                            </div>
+                                            <span class="legend-value" id="employee-legend-leave-val">0 (0%)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Widget 2: Tasks Overview -->
+                            <div class="section-card bg-glass">
+                                <div class="section-card-header" style="justify-content: space-between; display: flex;">
+                                    <h3 style="font-size: 14px; font-weight: 700; margin: 0;">My Tasks Overview</h3>
+                                    <div
+                                        style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-secondary); font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                                        <span>This Week</span> <i class="fa-solid fa-chevron-down" style="font-size: 9px;"></i>
+                                    </div>
+                                </div>
+                                <div class="chart-legend-top">
+                                    <div class="chart-legend-item">
+                                        <span class="chart-legend-dot submitted"></span>
+                                        <span>Submitted</span>
+                                    </div>
+                                    <div class="chart-legend-item">
+                                        <span class="chart-legend-dot completed"></span>
+                                        <span>Approved</span>
+                                    </div>
+                                    <div class="chart-legend-item">
+                                        <span class="chart-legend-dot" style="background: var(--danger)"></span>
+                                        <span>Rejected</span>
+                                    </div>
+                                </div>
+                                <div class="tasks-overview-wrapper">
+                                    <svg viewBox="0 0 300 110" style="width: 100%; height: 100%; display: block; overflow: visible;" id="employee-tasks-overview-svg">
+                                        <!-- Path inserted via JS -->
+                                    </svg>
+                                    <div class="chart-xaxis-labels" id="employee-tasks-overview-xaxis">
+                                        <!-- Labels inserted via JS -->
                                     </div>
                                 </div>
                             </div>
