@@ -1767,15 +1767,19 @@ function renderManagerDashboard() {
 function renderManagerTeamTab() {
     const db = getDb();
     const teamMembers = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
+    
+    // Include manager at the top
+    const allMembers = [currentUser, ...teamMembers];
+
     const tableBody = document.getElementById('manager-tab-team-table-body');
     tableBody.innerHTML = '';
 
     const today = new Date().toISOString().split('T')[0];
 
-    if (teamMembers.length === 0) {
+    if (allMembers.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="7" class="empty-state">No assigned team members.</td></tr>`;
     } else {
-        teamMembers.forEach(emp => {
+        allMembers.forEach(emp => {
             const statusClass = emp.status === 'Active' ? 'badge-active' : 'badge-inactive';
             
             let mgrName = 'N/A';
@@ -1785,16 +1789,21 @@ function renderManagerTeamTab() {
                 else mgrName = emp.managerId; // fallback
             }
 
+            let displayRole = (emp.id === currentUser.id) ? 'Team Leader' : 'Team Member';
+            let roleClass = (emp.id === currentUser.id) ? 'manager' : 'user';
+
             tableBody.innerHTML += `
                 <tr>
                     <td class="text-secondary">${emp.displayId || emp.id}</td>
                     <td class="bold">${emp.name}</td>
                     <td>${emp.email}</td>
                     <td>${mgrName}</td>
-                    <td>${emp.role || 'User'}</td>
+                    <td><span class="badge-role ${roleClass}">${displayRole}</span></td>
                     <td><span class="${statusClass}">${emp.status || 'Active'}</span></td>
                     <td>
-                        <button class="btn-action view" onclick="viewUserProfile('${emp.id}')" title="View Profile"><i class="fa-solid fa-eye"></i></button>
+                        <div class="btn-action-group">
+                            <button class="btn-action-circle" onclick="viewUserProfile('${emp.id}')" tooltip="View Profile"><i class="fa-regular fa-eye"></i></button>
+                        </div>
                     </td>
                 </tr>
             `;
