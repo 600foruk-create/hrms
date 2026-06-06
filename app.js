@@ -1608,38 +1608,103 @@ function renderManagerDashboard() {
     document.getElementById('manager-metric-today-absent').textContent = absentCount;
     document.getElementById('manager-metric-pending-approvals').textContent = totalPending;
 
-    // Team Productivity Chart
-    const prodChart = document.getElementById('manager-team-prod-chart');
-    const prodXaxis = document.getElementById('manager-team-prod-xaxis');
-    if (prodChart && prodXaxis) {
-        let pathD = "M 0 100 ";
-        let labelsHTML = "";
-        let maxScore = 50;
+    // 1. Manager Team Daily Attendance Doughnut Chart
+    const lateCount = db.attendance.filter(a => a.date === today && a.status === 'Late' && teamEmails.includes(a.employeeId)).length;
+    const leaveCount = db.attendance.filter(a => a.date === today && a.status === 'On Leave' && teamEmails.includes(a.employeeId)).length;
+    const trueAbsentCount = teamSize - presentCount - lateCount - leaveCount;
 
-        // Generate last 7 days chart
-        for (let i = 6; i >= 0; i--) {
-            let d = new Date();
-            d.setDate(d.getDate() - i);
-            let dateStr = d.toISOString().split('T')[0];
-            let displayDate = dateStr.slice(5).replace('-', '/');
+    let present = presentCount;
+    let absent = Math.max(0, trueAbsentCount);
+    let late = lateCount;
+    let leave = leaveCount;
+    let total = present + absent + late + leave;
+    if (total === 0) {
+        present = 0; absent = teamSize; late = 0; leave = 0; total = teamSize;
+    }
 
-            let dailyTeamProd = (db.productivity_logs || []).filter(p => p.date === dateStr && teamEmails.includes(p.employeeId) && p.status === 'Approved');
-            let dailyScore = dailyTeamProd.length > 0 ? dailyTeamProd.reduce((sum, p) => sum + p.score, 0) / dailyTeamProd.length : 0;
+    let presentPct = total > 0 ? Math.round((present / total) * 100) : 0;
+    let absentPct = total > 0 ? Math.round((absent / total) * 100) : 0;
+    let latePct = total > 0 ? Math.round((late / total) * 100) : 0;
+    let leavePct = total > 0 ? Math.round((leave / total) * 100) : 0;
 
-            let x = (6 - i) * 50;
-            let y = 100 - (dailyScore / maxScore) * 80;
-            if (y < 10) y = 10;
+    const absStart = presentPct;
+    const lateStart = absStart + absentPct;
+    const leaveStart = lateStart + latePct;
 
-            pathD += `L ${x} ${y} `;
-            labelsHTML += `<span>${displayDate}</span>`;
+    const doughnutEl = document.getElementById('manager-attendance-doughnut-chart');
+    if (doughnutEl) {
+        doughnutEl.style.background = `conic-gradient(var(--success) 0% ${absStart}%, var(--danger) ${absStart}% ${lateStart}%, var(--warning) ${lateStart}% ${leaveStart}%, var(--primary) ${leaveStart}% 100%)`;
+    }
 
-            prodChart.innerHTML += `<circle cx="${x}" cy="${y}" r="4" class="svg-chart-dot completed" />`;
+    const doughnutTotalEl = document.getElementById('manager-attendance-doughnut-total');
+    if (doughnutTotalEl) doughnutTotalEl.textContent = teamSize;
+
+    const lPres = document.getElementById('manager-legend-present-val');
+    const lAbs = document.getElementById('manager-legend-absent-val');
+    const lLate = document.getElementById('manager-legend-late-val');
+    const lLeave = document.getElementById('manager-legend-leave-val');
+    if (lPres) lPres.textContent = `${present} (${presentPct}%)`;
+    if (lAbs) lAbs.textContent = `${absent} (${absentPct}%)`;
+    if (lLate) lLate.textContent = `${late} (${latePct}%)`;
+    if (lLeave) lLeave.textContent = `${leave} (${leavePct}%)`;
+
+    // 2. Tasks Overview SVG Line Chart
+    const last7Days = [];
+    const xaxisLabels = [];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        last7Days.push(d.toISOString().split('T')[0]);
+        let displayDate = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getDay()];
+        xaxisLabels.push(`<span>${displayDate}</span>`);
+    }
+
+    const dailySub = last7Days.map(day => (db.productivity_logs || []).filter(p => p.date === day && teamEmails.includes(p.employeeId)).length);
+    const dailyComp = last7Days.map(day => (db.productivity_logs || []).filter(p => p.date === day && p.status === 'Approved' && teamEmails.includes(p.employeeId)).length);
+
+    const maxVal = Math.max(5, ...dailySub, ...dailyComp);
+    const getSvgY = (val) => 95 - (val / maxVal) * 80;
+
+    const subCoords = dailySub.map((val, idx) => ({ x: idx * 50, y: getSvgY(val) }));
+    const compCoords = dailyComp.map((val, idx) => ({ x: idx * 50, y: getSvgY(val) }));
+
+    const buildPath = (coords) => {
+        if (coords.length === 0) return '';
+        let path = `M ${coords[0].x} ${coords[0].y}`;
+        for (let i = 1; i < coords.length; i++) {
+            const cpX = coords[i - 1].x + 25;
+            path += ` C ${cpX} ${coords[i-1].y}, ${cpX} ${coords[i].y}, ${coords[i].x} ${coords[i].y}`;
         }
+        return path;
+    };
 
-        const existingPath = prodChart.querySelector('path');
-        if (existingPath) existingPath.remove();
-        prodChart.innerHTML += `<path d="${pathD}" class="svg-chart-path completed" fill="none" />`;
-        prodXaxis.innerHTML = labelsHTML;
+    const buildAreaPath = (coords, linePath) => linePath ? `${linePath} L 300 100 L 0 100 Z` : '';
+
+    const managerSvg = document.getElementById('manager-tasks-overview-svg');
+    if (managerSvg) {
+        let svgContent = `
+            <!-- Y Axis grid lines -->
+            <line x1="0" y1="20" x2="300" y2="20" class="svg-chart-grid" />
+            <line x1="0" y1="50" x2="300" y2="50" class="svg-chart-grid" />
+            <line x1="0" y1="80" x2="300" y2="80" class="svg-chart-grid" />
+            <line x1="0" y1="100" x2="300" y2="100" class="svg-chart-grid" style="stroke: rgba(255,255,255,0.06);" />
+        `;
+
+        svgContent += `<path d="${buildAreaPath(subCoords, buildPath(subCoords))}" class="svg-chart-area submitted" />`;
+        svgContent += `<path d="${buildPath(subCoords)}" class="svg-chart-line submitted" />`;
+
+        svgContent += `<path d="${buildAreaPath(compCoords, buildPath(compCoords))}" class="svg-chart-area completed" />`;
+        svgContent += `<path d="${buildPath(compCoords)}" class="svg-chart-line completed" />`;
+
+        subCoords.forEach(c => { svgContent += `<circle cx="${c.x}" cy="${c.y}" r="3.5" class="svg-chart-dot submitted" />`; });
+        compCoords.forEach(c => { svgContent += `<circle cx="${c.x}" cy="${c.y}" r="3.5" class="svg-chart-dot completed" />`; });
+
+        managerSvg.innerHTML = svgContent;
+    }
+
+    const managerXaxis = document.getElementById('manager-tasks-overview-xaxis');
+    if (managerXaxis) {
+        managerXaxis.innerHTML = xaxisLabels.join('');
     }
 
     // Manager Personal Stats
