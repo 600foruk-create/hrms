@@ -1814,36 +1814,63 @@ function renderManagerTeamTab() {
 function renderManagerAttendanceTab() {
     const db = getDb();
     const team = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
-    const teamEmails = team.map(t => t.id);
+    
+    // Include manager themselves
+    const teamEmails = [currentUser.id, ...team.map(t => t.id)];
+    
     const filterDate = document.getElementById('manager-attendance-filter-date').value;
 
     const tableBody = document.getElementById('manager-attendance-table-body');
-    tableBody.innerHTML = '';
+    if (tableBody) tableBody.innerHTML = '';
 
     let logs = db.attendance.filter(a => teamEmails.includes(a.employeeId));
     if (filterDate) logs = logs.filter(l => l.date === filterDate);
 
     logs.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    if (logs.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="4" class="empty-state">No team attendance logs found.</td></tr>`;
-    } else {
-        logs.forEach(log => {
-            const cleanTimeIn = (log.timeIn && log.timeIn.includes(':')) ? log.timeIn : '-';
-            const cleanTimeOut = (log.timeOut && log.timeOut.includes(':')) ? log.timeOut : '-';
-            const cleanMarkedBy = (log.markedBy && log.markedBy.trim() !== '') ? log.markedBy : 'System';
+    if (tableBody) {
+        if (logs.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="5" class="empty-state">No team attendance logs found.</td></tr>`;
+        } else {
+            logs.forEach(log => {
+                const cleanMarkedBy = (log.markedBy && log.markedBy.trim() !== '') ? log.markedBy : 'System';
+                let empName = log.employeeName;
+                if (log.employeeId === currentUser.id) empName += " (Me)";
 
-            tableBody.innerHTML += `
-                <tr>
-                    <td>${log.date}</td>
-                    <td class="text-secondary">${(db.users.find(u => u.id === log.employeeId) || {}).displayId || log.employeeId}</td><td class="bold">${log.employeeName}</td>
-                    <td><span class="badge-status ${log.status === 'Present' ? 'approved' : 'rejected'}">${log.status}</span></td>
-                    <td class="text-center">${cleanTimeIn}</td>
-                    <td class="text-center">${cleanTimeOut}</td>
-                    <td class="text-center">${cleanMarkedBy}</td>
-                </tr>
-            `;
-        });
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${log.date}</td>
+                        <td class="text-secondary">${(db.users.find(u => u.id === log.employeeId) || {}).displayId || log.employeeId}</td>
+                        <td class="bold">${empName}</td>
+                        <td><span class="badge-status ${log.status === 'Present' ? 'approved' : 'rejected'}">${log.status}</span></td>
+                        <td>${cleanMarkedBy}</td>
+                    </tr>
+                `;
+            });
+        }
+    }
+
+    // Personal Attendance Tab
+    const personalTableBody = document.getElementById('manager-personal-attendance-table-body');
+    if (personalTableBody) {
+        personalTableBody.innerHTML = '';
+        let myLogs = db.attendance.filter(a => a.employeeId === currentUser.id);
+        myLogs.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        if (myLogs.length === 0) {
+            personalTableBody.innerHTML = `<tr><td colspan="3" class="empty-state">No personal attendance logs found.</td></tr>`;
+        } else {
+            myLogs.forEach(log => {
+                const cleanMarkedBy = (log.markedBy && log.markedBy.trim() !== '') ? log.markedBy : 'System';
+                personalTableBody.innerHTML += `
+                    <tr>
+                        <td>${log.date}</td>
+                        <td><span class="badge-status ${log.status === 'Present' ? 'approved' : 'rejected'}">${log.status}</span></td>
+                        <td>${cleanMarkedBy}</td>
+                    </tr>
+                `;
+            });
+        }
     }
 }
 

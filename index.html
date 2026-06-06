@@ -1900,28 +1900,62 @@
                                         class="fa-solid fa-user-check"></i> Manual Log Attendance</button>
                             </div>
                         </div>
-                        <div class="section-card bg-glass">
-                            <div class="section-card-header">
-                                <h3>Attendance Register</h3>
-                                <div class="header-filters">
-                                    <input type="date" id="manager-attendance-filter-date" class="form-control">
+
+                        <!-- Sub-tab Navigation -->
+                        <div class="sub-tab-nav">
+                            <button class="btn-sub-tab active" data-subtab="manager-attendance-log">
+                                <i class="fa-solid fa-calendar-days"></i> Attendance Log
+                            </button>
+                            <button class="btn-sub-tab" data-subtab="manager-personal-attendance">
+                                <i class="fa-solid fa-user-clock"></i> My Personal Attendance
+                            </button>
+                        </div>
+
+                        <!-- Sub-tab Content: Attendance Log -->
+                        <div class="sub-tab-content active" id="subtab-content-manager-attendance-log">
+                            <div class="section-card bg-glass">
+                                <div class="section-card-header">
+                                    <h3>Attendance Register</h3>
+                                    <div class="header-filters">
+                                        <input type="date" id="manager-attendance-filter-date" class="form-control" onchange="renderManagerAttendanceTab()">
+                                    </div>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Employee ID</th>
+                                                <th>Employee Name</th>
+                                                <th>Status</th>
+                                                <th>Marked By</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="manager-attendance-table-body">
+                                            <!-- Dynamic Rows -->
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
-                            <div class="table-container">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Employee ID</th>
-                                            <th>Employee Name</th>
-                                            <th>Status</th>
-                                            <th>Marked By</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="manager-attendance-table-body">
-                                        <!-- Dynamic Rows -->
-                                    </tbody>
-                                </table>
+                        </div>
+
+                        <!-- Sub-tab Content: My Personal Attendance -->
+                        <div class="sub-tab-content" id="subtab-content-manager-personal-attendance">
+                            <div class="section-card bg-glass">
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Status</th>
+                                                <th>Marked By</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="manager-personal-attendance-table-body">
+                                            <!-- Dynamic Rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
