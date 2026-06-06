@@ -1648,9 +1648,15 @@ function renderManagerDashboard() {
     const myProdSubmissions = (db.productivity_logs || []).filter(p => p.employeeId === currentUser.id && p.status === 'Approved');
     const myTotalScore = myProdSubmissions.length > 0 ? Math.round(myProdSubmissions.reduce((sum, p) => sum + p.score, 0) / myProdSubmissions.length) : 0;
 
-    document.getElementById('manager-personal-attendance').textContent = myAttStatus;
-    document.getElementById('manager-personal-attendance').style.color = myAttStatus === 'Present' ? 'var(--success)' : 'var(--danger)';
-    document.getElementById('manager-personal-prod').textContent = myTotalScore;
+    const elAtt = document.getElementById('manager-personal-attendance');
+    if (elAtt) {
+        elAtt.textContent = myAttStatus;
+        elAtt.style.color = myAttStatus === 'Present' ? 'var(--success)' : 'var(--danger)';
+    }
+    const elProd = document.getElementById('manager-personal-prod');
+    if (elProd) {
+        elProd.textContent = myTotalScore;
+    }
 
     // Quick Approvals Panel
     const approvalsList = document.getElementById('manager-dash-pending-list');
