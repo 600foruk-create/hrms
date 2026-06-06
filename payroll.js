@@ -1132,7 +1132,7 @@ window.renderMyPayslips = function() {
     if (!targetTbody) return;
     targetTbody.innerHTML = '';
 
-    const history = (db.payrollHistory || []).filter(r => r.userId === window.currentUser.id);
+    const history = (db.payrollHistory || []).filter(r => String(r.userId) === String(window.currentUser.id));
     history.sort((a, b) => new Date(b.processedAt) - new Date(a.processedAt));
 
     if (history.length === 0) {

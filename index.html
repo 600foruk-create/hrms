@@ -2090,24 +2090,37 @@
                     <div id="manager-tab-mypayslips" class="tab-view">
                         <div class="view-header">
                             <div>
-                                <h1>My Salary Slips</h1>
+                                <h1>Payroll</h1>
                                 <p class="text-secondary">View and print your processed salary slips</p>
                             </div>
                         </div>
-                        <div class="table-container">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Month/Year</th>
-                                        <th>Status</th>
-                                        <th>Net Payable</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="manager-mypayslips-tbody">
-                                    <!-- Dynamic Rows -->
-                                </tbody>
-                            </table>
+
+                        <!-- Sub-tab Navigation -->
+                        <div class="sub-tab-nav">
+                            <button class="btn-sub-tab active" data-subtab="manager-payslips-my">
+                                <i class="fa-solid fa-file-invoice"></i> My Payslips
+                            </button>
+                        </div>
+
+                        <!-- Sub-tab Content: My Payslips -->
+                        <div id="subtab-content-manager-payslips-my" class="sub-tab-content">
+                            <div class="section-card bg-glass">
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Month/Year</th>
+                                                <th>Status</th>
+                                                <th>Net Payable</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="manager-mypayslips-tbody">
+                                            <!-- Dynamic Rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2365,24 +2378,37 @@
                     <div id="employee-tab-mypayslips" class="tab-view">
                         <div class="view-header">
                             <div>
-                                <h1>My Salary Slips</h1>
+                                <h1>Payroll</h1>
                                 <p class="text-secondary">View and print your processed salary slips</p>
                             </div>
                         </div>
-                        <div class="table-container">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Month/Year</th>
-                                        <th>Status</th>
-                                        <th>Net Payable</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="employee-mypayslips-tbody">
-                                    <!-- Dynamic Rows -->
-                                </tbody>
-                            </table>
+
+                        <!-- Sub-tab Navigation -->
+                        <div class="sub-tab-nav">
+                            <button class="btn-sub-tab active" data-subtab="employee-payslips-my">
+                                <i class="fa-solid fa-file-invoice"></i> My Payslips
+                            </button>
+                        </div>
+
+                        <!-- Sub-tab Content: My Payslips -->
+                        <div id="subtab-content-employee-payslips-my" class="sub-tab-content">
+                            <div class="section-card bg-glass">
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Month/Year</th>
+                                                <th>Status</th>
+                                                <th>Net Payable</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="employee-mypayslips-tbody">
+                                            <!-- Dynamic Rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
