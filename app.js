@@ -1830,20 +1830,37 @@ function renderManagerAttendanceTab() {
 
     if (tableBody) {
         if (logs.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="5" class="empty-state">No team attendance logs found.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="9" class="empty-state">No team attendance logs found.</td></tr>`;
         } else {
             logs.forEach(log => {
+                const cleanTimeIn = (log.timeIn && log.timeIn.includes(':')) ? log.timeIn : '-';
+                const cleanTimeOut = (log.timeOut && log.timeOut.includes(':')) ? log.timeOut : '-';
                 const cleanMarkedBy = (log.markedBy && log.markedBy.trim() !== '') ? log.markedBy : 'System';
                 let empName = log.employeeName;
                 if (log.employeeId === currentUser.id) empName += " (Me)";
 
+                const empUser = db.users.find(u => u.id === log.employeeId) || {};
+                let displayRole = (empUser.id === currentUser.id) ? 'Team Leader' : 'Team Member';
+                let roleClass = (empUser.id === currentUser.id) ? 'manager' : 'user';
+
+                let mgrName = 'N/A';
+                if (empUser.managerId) {
+                    const mgr = db.users.find(u => u.id === empUser.managerId || u.email === empUser.managerId);
+                    if (mgr) mgrName = mgr.name;
+                    else mgrName = empUser.managerId;
+                }
+
                 tableBody.innerHTML += `
                     <tr>
                         <td>${log.date}</td>
-                        <td class="text-secondary">${(db.users.find(u => u.id === log.employeeId) || {}).displayId || log.employeeId}</td>
+                        <td class="text-secondary">${empUser.displayId || log.employeeId}</td>
                         <td class="bold">${empName}</td>
+                        <td><span class="badge-role ${roleClass}">${displayRole}</span></td>
+                        <td>${mgrName}</td>
                         <td><span class="badge-status ${log.status === 'Present' ? 'approved' : 'rejected'}">${log.status}</span></td>
-                        <td>${cleanMarkedBy}</td>
+                        <td class="text-center">${cleanTimeIn}</td>
+                        <td class="text-center">${cleanTimeOut}</td>
+                        <td class="text-center">${cleanMarkedBy}</td>
                     </tr>
                 `;
             });
