@@ -664,7 +664,7 @@ function renderAdminDashboard() {
     }
 
     // Aggregate calculations
-    const employees = db.users.filter(u => u.role === 'User');
+    const employees = db.users.filter(u => u.role === 'User' || u.role === 'Employee');
     const managers = db.users.filter(u => u.role === 'Manager');
     const pendingLeaves = db.leaves.filter(l => l.status === 'Pending').length;
     const pendingProductivity = (db.productivity_logs || []).filter(p => p.status === 'Pending').length;
@@ -910,7 +910,7 @@ function renderAdminDashboard() {
         ];
 
         depts.forEach(d => {
-            const deptUsers = db.users.filter(u => u.role === 'User' && (d.managerId ? u.managerId === d.managerId : (!u.managerId || u.managerId === 'U1')));
+            const deptUsers = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (d.managerId ? u.managerId === d.managerId : (!u.managerId || u.managerId === 'U1')));
             const deptUserIds = deptUsers.map(u => u.id);
             const deptTasks = (db.productivity_logs || []).filter(p => deptUserIds.includes(p.employeeId));
 
@@ -1160,7 +1160,7 @@ function renderAdminAttendanceTab() {
     const empSelect = document.getElementById('admin-attendance-filter-employee');
     const prevEmpVal = empSelect.value;
     empSelect.innerHTML = '<option value="">All Employees</option>';
-    db.users.filter(u => u.role === 'User').forEach(e => {
+    db.users.filter(u => u.role === 'User' || u.role === 'Employee').forEach(e => {
         empSelect.innerHTML += `<option value="${e.id}" ${prevEmpVal === e.id ? 'selected' : ''}>${e.name}</option>`;
     });
 
@@ -2197,6 +2197,17 @@ function renderEmployeeDashboard() {
             };
 
             db.leaves.push(newLeave);
+
+            // Notify manager if manager exists
+            if (currentUser.managerId) {
+                addNotification(currentUser.managerId, `${currentUser.name} has submitted a leave application for your review.`, false);
+            } else if (currentUser.role === 'Manager') {
+                const admins = db.users.filter(u => u.role === 'Admin');
+                admins.forEach(admin => {
+                    addNotification(admin.id, `${currentUser.name} has submitted a leave application for your review.`, false);
+                });
+            }
+
             saveDb(db);
             alert('Leave request submitted successfully.');
             quickLeaveForm.reset();
@@ -2754,7 +2765,7 @@ window.updateEmployeeLeaveBalance = function(empId, leaveId) {
 function toggleManagerGroup() {
     const role = document.getElementById('emp-role').value;
     const mgrGroup = document.getElementById('emp-manager-group');
-    if (role === 'User') {
+    if (role === 'User' || role === 'Employee') {
         mgrGroup.style.display = 'block';
     } else {
         mgrGroup.style.display = 'none';
@@ -3104,6 +3115,12 @@ document.getElementById('leave-request-form').addEventListener('submit', (e) => 
     // Notify manager if manager exists
     if (currentUser.managerId) {
         addNotification(currentUser.managerId, `${currentUser.name} has submitted a leave application for your review.`, false);
+    } else if (currentUser.role === 'Manager') {
+        // Route to admin if submitted by a Manager
+        const admins = db.users.filter(u => u.role === 'Admin');
+        admins.forEach(admin => {
+            addNotification(admin.id, `${currentUser.name} has submitted a leave application for your review.`, false);
+        });
     }
 
     saveDb(db);
@@ -3433,7 +3450,7 @@ function initAdminReportsTab() {
     // Fill Employee Filter Options
     const empSelect = document.getElementById('admin-report-employee');
     empSelect.innerHTML = '<option value="">All Employees</option>';
-    db.users.filter(u => u.role === 'User').forEach(e => {
+    db.users.filter(u => u.role === 'User' || u.role === 'Employee').forEach(e => {
         empSelect.innerHTML += `<option value="${e.id}">${e.name}</option>`;
     });
 
