@@ -606,6 +606,7 @@ body.light-mode .user-profile-badge {
 }
 body.light-mode .sidebar-link:hover {
     background: rgba(0, 0, 0, 0.04);
+    color: #0f172a !important;
 }
 .sidebar-link:hover i {
     color: var(--primary);
@@ -851,6 +852,7 @@ hr {
 }
 body.light-mode .dropdown-item:hover {
     background: rgba(0, 0, 0, 0.05);
+    color: #0f172a !important;
 }
 .dropdown-item.text-danger:hover {
     background: var(--danger-light);
