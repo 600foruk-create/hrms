@@ -4724,7 +4724,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (targetContent) {
                 targetContent.classList.remove('hidden');
                 // Trigger any necessary re-renders if a specific tab is opened
-                if(subtab === 'system-settings') {
+                if(subtab === 'general-settings') {
                     renderAdminAuditLogs();
                 }
             }
