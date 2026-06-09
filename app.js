@@ -113,10 +113,13 @@ async function saveDb(data) {
         if (result.status !== 'success') {
             console.error("Sync Error:", result.message);
             showToast("Server Sync Error", "Failed to backup data to server: " + result.message, "error");
+            return false;
         }
+        return true;
     } catch (error) {
         console.error("Network Error:", error);
         showToast("Server Sync Error", "Could not connect to database server.", "error");
+        return false;
     }
 }
 
@@ -2834,7 +2837,7 @@ function toggleManagerGroup() {
 }
 
 // Submit user save Form
-document.getElementById('employee-form').addEventListener('submit', (e) => {
+document.getElementById('employee-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const db = getDb();
 
@@ -2972,9 +2975,14 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
             user.profilePic = window.tempProfilePic;
             user.documents = window.tempDocuments;
 
-            saveDb(db);
-            showToast("Success", `Profile updated successfully for ${name}.`);
-            logAudit(`Updated profile details for employee: ${name} (${role}).`);
+            const saved = await saveDb(db);
+            if(saved) {
+                showToast("Success", `Profile updated successfully for ${name}.`);
+                logAudit(`Updated profile details for employee: ${name} (${role}).`);
+                closeAllModals();
+                if (typeof refreshTabContent === 'function' && typeof activeTab !== 'undefined') refreshTabContent(activeTab);
+                else if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
+            }
         }
     } else {
         // Create Mode — use the admin-entered Employee ID as the actual primary ID
@@ -3015,13 +3023,15 @@ document.getElementById('employee-form').addEventListener('submit', (e) => {
             leaveBalances: (db.companyProfile?.leaveTypes || []).map(lt => ({ id: lt.id, name: lt.name, balance: lt.days }))
         });
 
-        saveDb(db);
-        showToast("Created", `New user profile created for ${name} (ID: ${actualId}).`);
-        logAudit(`Created new employee profile: ${name} (${role}, ID: ${actualId}).`);
+        const saved = await saveDb(db);
+        if(saved) {
+            showToast("Created", `New user profile created for ${name} (ID: ${actualId}).`);
+            logAudit(`Created new employee profile: ${name} (${role}, ID: ${actualId}).`);
+            closeAllModals();
+            if (typeof refreshTabContent === 'function' && typeof activeTab !== 'undefined') refreshTabContent(activeTab);
+            else if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
+        }
     }
-
-    closeAllModals();
-    refreshTabContent(activeTab);
 });
 
 // Delete Employee Profile
