@@ -26,7 +26,7 @@ window.hrmsDatabase = { users: [], weights: {}, leaves: [], practices: [], manag
 async function syncServer() {
     let success = false;
     try {
-        const response = await fetch(API_URL + '?action=load_all');
+        const response = await fetch(API_URL + '?action=load_all&_t=' + new Date().getTime());
         const result = await response.json();
         if (result.status === 'success' && result.data.users && result.data.users.length > 0) {
             // Dynamic correction: ensure "Syed Admin" is shown/logged in as "admin" with "admin123"
@@ -1163,6 +1163,8 @@ window.reactivateEmployee = function(userId) {
         saveDb(db);
         showToast("Employee Reactivated", `${user.name} has been marked as active.`, "success");
         renderAdminDashboard();
+        const empBtn = document.querySelector('.btn-sub-tab[data-subtab="employees"]');
+        if (empBtn) empBtn.click();
     }
 };
 
