@@ -3708,9 +3708,9 @@ document.addEventListener('click', async (e) => {
         const db = getDb();
         const userIndex = db.users.findIndex(u => u.id === currentUser.id);
         if (userIndex > -1) {
-            db.users[userIndex].themeColor = defaultTheme;
+            delete db.users[userIndex].themeColor;
             await saveDb(db);
-            currentUser.themeColor = defaultTheme;
+            delete currentUser.themeColor;
             sessionStorage.setItem('current_user', JSON.stringify(currentUser));
             document.documentElement.style.setProperty('--primary', defaultTheme);
             showToast("Theme Reset", "Color has been reset to default.");
