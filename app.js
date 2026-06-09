@@ -2733,6 +2733,8 @@ function initSignaturePad() {
             }
         }
         
+        closeAllModals();
+        
         const db = getDb();
         const cp = (!db.companyProfile || Array.isArray(db.companyProfile)) ? {} : db.companyProfile;
         cp.signatureBase64 = dataURL;
@@ -2740,7 +2742,6 @@ function initSignaturePad() {
         await saveDb(db);
         applyCompanyProfile(db);
         
-        closeAllModals();
         showToast("Signature Saved", "Signature has been saved successfully.");
     };
 }
