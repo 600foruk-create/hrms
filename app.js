@@ -3138,14 +3138,13 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
             user.profilePic = window.tempProfilePic;
             user.documents = window.tempDocuments;
 
-            const saved = await saveDb(db);
-            if(saved) {
-                showToast("Success", `Profile updated successfully for ${name}.`);
-                logAudit(`Updated profile details for employee: ${name} (${role}).`);
-                closeAllModals();
-                if (typeof refreshTabContent === 'function' && typeof activeTab !== 'undefined') refreshTabContent(activeTab);
-                else if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
-            }
+            showToast("Success", `Profile updated successfully for ${name}.`);
+            logAudit(`Updated profile details for employee: ${name} (${role}).`);
+            closeAllModals();
+            if (typeof refreshTabContent === 'function' && typeof activeTab !== 'undefined') refreshTabContent(activeTab);
+            else if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
+            
+            await saveDb(db);
         }
     } else {
         // Create Mode — use the admin-entered Employee ID as the actual primary ID
