@@ -1919,11 +1919,9 @@ body.light-mode .report-preview-container {
     /* Make the active modal with ID Card visible for printing */
     #modal-id-card:not(.hidden) {
         display: block !important;
-        position: absolute !important;
-        left: 0 !important;
-        top: 0 !important;
+        position: relative !important;
         width: 100% !important;
-        height: 100% !important;
+        height: auto !important;
         background: white !important;
         margin: 0 !important;
         padding: 0 !important;
