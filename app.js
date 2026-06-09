@@ -2705,7 +2705,7 @@ function initSignaturePad() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     };
 
-    document.getElementById('btn-save-drawn-signature').onclick = () => {
+    document.getElementById('btn-save-drawn-signature').onclick = async () => {
         // Check if canvas is blank
         const blank = document.createElement('canvas');
         blank.width = canvas.width;
@@ -2733,8 +2733,15 @@ function initSignaturePad() {
             }
         }
         
-        closeModal('modal-draw-signature');
-        showToast("Signature Saved", "Your drawn signature is ready to be saved.");
+        const db = getDb();
+        const cp = (!db.companyProfile || Array.isArray(db.companyProfile)) ? {} : db.companyProfile;
+        cp.signatureBase64 = dataURL;
+        db.companyProfile = cp;
+        await saveDb(db);
+        applyCompanyProfile(db);
+        
+        closeAllModals();
+        showToast("Signature Saved", "Signature has been saved successfully.");
     };
 }
 
