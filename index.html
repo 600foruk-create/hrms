@@ -414,11 +414,13 @@
         <header class="topbar" style="position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; background: var(--bg-surface); border-bottom: 1px solid var(--border-color); backdrop-filter: blur(16px);">
             <div class="topbar-left" style="display: flex; align-items: center; gap: 15px;">
                 <div id="btn-company-profile" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-                    <div class="logo-icon" id="sidebar-company-icon" style="display: flex; align-items: center;">
-                        <img src="assets/images/my_logo.png" style="max-height: 28px; object-fit: contain;" alt="Logo">
+                    <div class="logo-icon" style="display: flex; align-items: center;">
+                        <img src="assets/images/my_logo.png" style="max-height: 28px; object-fit: contain;" alt="Softifyx Logo">
                     </div>
-                    <span class="d-none d-md-inline" style="font-size: 15px; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.3px; white-space: nowrap;">HRMS Software by Softifyx licensed to</span>
-                    <strong id="sidebar-company-name" style="font-size: 18px; font-weight: 900; color: var(--primary); font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;">Softifyx</strong>
+                    <div style="display: flex; align-items: baseline; gap: 6px;">
+                        <strong style="font-size: 22px; font-weight: 900; color: var(--primary); font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.5px;">Softifyx</strong>
+                        <span style="font-size: 13px; font-weight: 600; color: var(--text-secondary); letter-spacing: 1px;">HRMS</span>
+                    </div>
                 </div>
                 <button class="sidebar-toggle" id="btn-sidebar-toggle" style="margin-left: 10px;"><i class="fa-solid fa-bars"></i></button>
             </div>
