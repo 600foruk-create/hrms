@@ -3593,23 +3593,104 @@ document.getElementById('settings-weights-form').addEventListener('submit', (e) 
     refreshTabContent(activeTab);
 });
 
-// Grid Theme Form
-document.addEventListener('click', async (e) => {
-    // Grid Theme Form
-    if (e.target && e.target.closest('#btn-save-theme')) {
-        const themeColor = document.getElementById('theme-color').value;
-        const db = getDb();
-        const userIndex = db.users.findIndex(u => u.id === currentUser.id);
-        if (userIndex > -1) {
-            db.users[userIndex].themeColor = themeColor;
+// Settings Event Delegation (Form Submissions)
+document.addEventListener('submit', async (e) => {
+    if (!e.target || !e.target.id) return;
+    const formId = e.target.id;
+    const settingsForms = ['company-profile-form', 'settings-theme-form', 'settings-email-form', 'settings-whatsapp-form', 'settings-biometric-form', 'settings-manager-rights-form'];
+    
+    if (settingsForms.includes(formId)) {
+        e.preventDefault();
+        
+        if (formId === 'settings-theme-form') {
+            const themeColor = document.getElementById('theme-color').value;
+            const db = getDb();
+            const userIndex = db.users.findIndex(u => u.id === currentUser.id);
+            if (userIndex > -1) {
+                db.users[userIndex].themeColor = themeColor;
+                await saveDb(db);
+                currentUser.themeColor = themeColor;
+                sessionStorage.setItem('current_user', JSON.stringify(currentUser));
+                document.documentElement.style.setProperty('--primary', themeColor);
+                showToast("Theme Saved", "Your primary color has been updated.");
+            }
+        }
+        else if (formId === 'settings-email-form') {
+            const db = getDb();
+            if (!db.settings) db.settings = {};
+            db.settings.emailApi = {
+                provider: document.getElementById('email-api-provider').value,
+                key: document.getElementById('email-api-key').value,
+                sender: document.getElementById('email-api-sender').value
+            };
             await saveDb(db);
-            currentUser.themeColor = themeColor;
-            sessionStorage.setItem('current_user', JSON.stringify(currentUser));
-            document.documentElement.style.setProperty('--primary', themeColor);
-            showToast("Theme Saved", "Your primary color has been updated.");
+            showToast("Email API Saved", "Email API configuration has been updated.");
+        }
+        else if (formId === 'settings-whatsapp-form') {
+            const db = getDb();
+            if (!db.settings) db.settings = {};
+            db.settings.whatsappApi = {
+                url: document.getElementById('wa-api-url').value,
+                token: document.getElementById('wa-api-token').value,
+                phoneId: document.getElementById('wa-api-phone').value
+            };
+            await saveDb(db);
+            showToast("WhatsApp API Saved", "WhatsApp API configuration has been updated.");
+        }
+        else if (formId === 'settings-biometric-form') {
+            const db = getDb();
+            if (!db.settings) db.settings = {};
+            db.settings.biometric = {
+                ip: document.getElementById('bio-ip').value,
+                port: document.getElementById('bio-port').value,
+                autoSync: document.getElementById('bio-auto-sync').checked
+            };
+            await saveDb(db);
+            showToast("Biometric Config Saved", "Machine settings have been updated.");
+        }
+        else if (formId === 'settings-manager-rights-form') {
+            const db = getDb();
+            if (!db.settings) db.settings = {};
+            db.settings.managerRights = {
+                approveAttendance: document.getElementById('mgr-right-attendance').checked,
+                approveLeaves: document.getElementById('mgr-right-leaves').checked,
+                manageAssets: document.getElementById('mgr-right-assets').checked
+            };
+            await saveDb(db);
+            showToast("Manager Rights Saved", "Global permissions for Managers have been updated.");
+        }
+        else if (formId === 'company-profile-form') {
+            const db = getDb();
+            const cp = (!db.companyProfile || Array.isArray(db.companyProfile)) ? {} : db.companyProfile;
+
+            cp.name = document.getElementById('comp-name').value;
+            cp.email = document.getElementById('comp-email').value;
+            cp.phone = document.getElementById('comp-phone').value;
+            cp.website = document.getElementById('comp-website').value;
+            cp.address = document.getElementById('comp-address').value;
+            cp.reg = document.getElementById('comp-reg').value;
+            cp.slogan = document.getElementById('comp-slogan').value;
+            cp.industry = document.getElementById('comp-industry').value;
+            cp.size = document.getElementById('comp-size').value;
+            cp.type = document.getElementById('comp-type').value;
+
+            const cpForm = document.getElementById('company-profile-form');
+            if (cpForm) {
+                if (cpForm.dataset.logoBase64) cp.logoBase64 = cpForm.dataset.logoBase64;
+                if (cpForm.dataset.letterheadBase64) cp.letterheadBase64 = cpForm.dataset.letterheadBase64;
+                if (cpForm.dataset.signatureBase64) cp.signatureBase64 = cpForm.dataset.signatureBase64;
+            }
+
+            db.companyProfile = cp;
+            await saveDb(db);
+            applyCompanyProfile(db);
+            showToast("Company Profile", "Company profile updated successfully.");
         }
     }
-    
+});
+
+// Settings Event Delegation (Click actions like Reset/Test)
+document.addEventListener('click', async (e) => {
     // Reset Theme Button
     if (e.target && e.target.closest('#btn-reset-theme')) {
         const defaultTheme = '#0f3484';
@@ -3628,45 +3709,6 @@ document.addEventListener('click', async (e) => {
         }
     }
 
-    // Email API Form
-    if (e.target && e.target.closest('#btn-save-email')) {
-        const db = getDb();
-        if (!db.settings) db.settings = {};
-        db.settings.emailApi = {
-            provider: document.getElementById('email-api-provider').value,
-            key: document.getElementById('email-api-key').value,
-            sender: document.getElementById('email-api-sender').value
-        };
-        await saveDb(db);
-        showToast("Email API Saved", "Email API configuration has been updated.");
-    }
-
-    // WhatsApp API Form
-    if (e.target && e.target.closest('#btn-save-whatsapp')) {
-        const db = getDb();
-        if (!db.settings) db.settings = {};
-        db.settings.whatsappApi = {
-            url: document.getElementById('wa-api-url').value,
-            token: document.getElementById('wa-api-token').value,
-            phoneId: document.getElementById('wa-api-phone').value
-        };
-        await saveDb(db);
-        showToast("WhatsApp API Saved", "WhatsApp API configuration has been updated.");
-    }
-
-    // Biometric Machine Form
-    if (e.target && e.target.closest('#btn-save-biometric')) {
-        const db = getDb();
-        if (!db.settings) db.settings = {};
-        db.settings.biometric = {
-            ip: document.getElementById('bio-ip').value,
-            port: document.getElementById('bio-port').value,
-            autoSync: document.getElementById('bio-auto-sync').checked
-        };
-        await saveDb(db);
-        showToast("Biometric Config Saved", "Machine settings have been updated.");
-    }
-
     // Biometric Test Button
     if (e.target && e.target.closest('#btn-test-biometric')) {
         const ip = document.getElementById('bio-ip').value;
@@ -3676,48 +3718,6 @@ document.addEventListener('click', async (e) => {
         setTimeout(() => {
             showToast("Connection Failed", "Unable to reach the machine. Check IP and network connection.", "error");
         }, 2000);
-    }
-
-    // Manager Rights Form
-    if (e.target && e.target.closest('#btn-save-manager-rights')) {
-        const db = getDb();
-        if (!db.settings) db.settings = {};
-        db.settings.managerRights = {
-            approveAttendance: document.getElementById('mgr-right-attendance').checked,
-            approveLeaves: document.getElementById('mgr-right-leaves').checked,
-            manageAssets: document.getElementById('mgr-right-assets').checked
-        };
-        await saveDb(db);
-        showToast("Manager Rights Saved", "Global permissions for Managers have been updated.");
-    }
-
-    // Save Company Profile form
-    if (e.target && e.target.closest('#btn-save-company-profile')) {
-        const db = getDb();
-        const cp = (!db.companyProfile || Array.isArray(db.companyProfile)) ? {} : db.companyProfile;
-
-        cp.name = document.getElementById('comp-name').value;
-        cp.email = document.getElementById('comp-email').value;
-        cp.phone = document.getElementById('comp-phone').value;
-        cp.website = document.getElementById('comp-website').value;
-        cp.address = document.getElementById('comp-address').value;
-        cp.reg = document.getElementById('comp-reg').value;
-        cp.slogan = document.getElementById('comp-slogan').value;
-        cp.industry = document.getElementById('comp-industry').value;
-        cp.size = document.getElementById('comp-size').value;
-        cp.type = document.getElementById('comp-type').value;
-
-        const cpForm = document.getElementById('company-profile-form');
-        if (cpForm) {
-            if (cpForm.dataset.logoBase64) cp.logoBase64 = cpForm.dataset.logoBase64;
-            if (cpForm.dataset.letterheadBase64) cp.letterheadBase64 = cpForm.dataset.letterheadBase64;
-            if (cpForm.dataset.signatureBase64) cp.signatureBase64 = cpForm.dataset.signatureBase64;
-        }
-
-        db.companyProfile = cp;
-        await saveDb(db);
-        applyCompanyProfile(db);
-        showToast("Company Profile", "Company profile updated successfully.");
     }
 });
 
