@@ -336,7 +336,7 @@ function handleLogin(usernameOrEmail, password) {
         if (user.themeColor) {
             document.documentElement.style.setProperty('--primary', user.themeColor);
         } else {
-            document.documentElement.style.setProperty('--primary', '#0f3484'); // Default
+            document.documentElement.style.setProperty('--primary', '#5f3bf6'); // Default
         }
 
         // Reset Navigation
@@ -3701,7 +3701,7 @@ document.addEventListener('submit', async (e) => {
 document.addEventListener('click', async (e) => {
     // Reset Theme Button
     if (e.target && e.target.closest('#btn-reset-theme')) {
-        const defaultTheme = '#0f3484';
+        const defaultTheme = '#5f3bf6';
         document.getElementById('theme-color').value = defaultTheme;
         document.getElementById('theme-color-hex').textContent = defaultTheme;
         
@@ -4868,7 +4868,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (currentUser.themeColor) {
             document.documentElement.style.setProperty('--primary', currentUser.themeColor);
         } else {
-            document.documentElement.style.setProperty('--primary', '#0f3484'); // Default
+            document.documentElement.style.setProperty('--primary', '#5f3bf6'); // Default
         }
         
         const authPanel = document.getElementById('auth-panel');
