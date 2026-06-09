@@ -1804,7 +1804,7 @@ body.light-mode .report-preview-container {
 [tooltip]::after {
     content: attr(tooltip);
     position: absolute;
-    bottom: calc(100% + 8px);
+    top: calc(100% + 8px);
     left: 50%;
     transform: translateX(-50%) scale(0.9);
     background: rgba(15, 17, 26, 0.95);
