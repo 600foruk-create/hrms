@@ -1426,7 +1426,7 @@ body.light-mode .report-preview-container {
     height: 100vh;
     background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(4px);
-    z-index: 999;
+    z-index: 9999;
     animation: fadeIn 0.3s;
 }
 .modal {
@@ -1441,7 +1441,7 @@ body.light-mode .report-preview-container {
     backdrop-filter: blur(20px);
     width: 100%;
     max-width: 500px;
-    z-index: 1000;
+    z-index: 10000;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
