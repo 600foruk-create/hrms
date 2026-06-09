@@ -1720,34 +1720,7 @@ window.saveLeaveType = function (id) {
     }
 };
 
-function renderAuditLogs() {
-    const db = getDb();
-    const logList = document.getElementById('admin-audit-log-list');
-    logList.innerHTML = '';
 
-    if (db.auditLogs.length === 0) {
-        logList.innerHTML = `<div class="empty-state">No system logs recorded.</div>`;
-    } else {
-        db.auditLogs.slice(0, 100).forEach(log => {
-            let logIcon = '<i class="fa-solid fa-circle-info text-info"></i>';
-            if (log.details.includes('Logged in')) logIcon = '<i class="fa-solid fa-arrow-right-to-bracket text-success"></i>';
-            if (log.details.includes('Logged out')) logIcon = '<i class="fa-solid fa-arrow-right-from-bracket text-muted"></i>';
-            if (log.details.includes('Approved') || log.details.includes('Save')) logIcon = '<i class="fa-solid fa-circle-check text-success"></i>';
-            if (log.details.includes('Rejected') || log.details.includes('Delete')) logIcon = '<i class="fa-solid fa-triangle-exclamation text-danger"></i>';
-            if (log.details.includes('weights') || log.details.includes('configuration')) logIcon = '<i class="fa-solid fa-sliders text-warning"></i>';
-
-            logList.innerHTML += `
-                <div class="audit-log-item">
-                    ${logIcon}
-                    <span class="time">${log.timestamp.substring(11, 19)}</span>
-                    <div class="details">
-                        <strong>${log.userName}</strong>: ${log.details}
-                    </div>
-                </div>
-            `;
-        });
-    }
-}
 
 // ==================== RENDERING: MANAGER VIEWS ====================
 function renderManagerDashboard() {
@@ -3653,35 +3626,7 @@ window.deleteEmployee = function (userId) {
     }
 };
 
-// 8. Settings Weights Modification Form
-document.getElementById('settings-weights-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const db = getDb();
 
-    const wBilling = parseFloat(document.getElementById('weight-billing').value);
-    const wFollowup = parseFloat(document.getElementById('weight-followup').value);
-    const wPosting = parseFloat(document.getElementById('weight-posting').value);
-    const wEligibility = parseFloat(document.getElementById('weight-eligibility').value);
-    const wReporting = parseFloat(document.getElementById('weight-reporting').value);
-
-    if (isNaN(wBilling) || isNaN(wFollowup) || isNaN(wPosting) || isNaN(wEligibility) || isNaN(wReporting)) {
-        showToast("Calculation Error", "Weights must be valid numeric values.", "error");
-        return;
-    }
-
-    db.weights["Billing"] = wBilling;
-    db.weights["Follow-up"] = wFollowup;
-    db.weights["Payment Posting"] = wPosting;
-    db.weights["Eligibility Check"] = wEligibility;
-    db.weights["Report Preparation"] = wReporting;
-
-    saveDb(db);
-
-    showToast("Weights Configured", "Evaluating formula weights saved successfully.");
-    logAudit(`Modified task evaluation weights configuration.`);
-
-    refreshTabContent(activeTab);
-});
 
 // Settings Event Delegation (Form Submissions)
 document.addEventListener('submit', async (e) => {
@@ -3877,16 +3822,7 @@ window.enableAddNewLeaveType = function () {
     if (btnSubmit) btnSubmit.style.display = 'inline-block';
 };
 
-document.getElementById('btn-admin-clear-audit-logs').addEventListener('click', () => {
-    if (confirm("Reset system audit logs? All past events data will be cleared.")) {
-        const db = getDb();
-        db.auditLogs = [];
-        saveDb(db);
-        logAudit("Cleared all system logs history.");
-        showToast("Reset Complete", "Audit trail logs cleared.");
-        refreshTabContent(activeTab);
-    }
-});
+
 
 // Old productivity multi-select form logic removed — now handled by productivity.js
 
@@ -4723,10 +4659,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const targetContent = document.getElementById(`settings-content-${subtab}`);
             if (targetContent) {
                 targetContent.classList.remove('hidden');
-                // Trigger any necessary re-renders if a specific tab is opened
-                if(subtab === 'general-settings') {
-                    renderAdminAuditLogs();
-                }
             }
         });
     });
