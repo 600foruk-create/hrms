@@ -2386,10 +2386,12 @@ window.viewEmployeeCard = function(userId) {
 
     // Populate ID Card Fields
     document.getElementById('id-card-name').textContent = user.name;
-    document.getElementById('id-card-role').textContent = user.role;
+    document.getElementById('id-card-role').textContent = user.designation || user.role;
     document.getElementById('id-card-id').textContent = user.displayId || user.id;
+    document.getElementById('id-card-dob').textContent = user.dob || 'N/A';
     document.getElementById('id-card-blood').textContent = user.bloodGroup || 'N/A';
-    document.getElementById('id-card-issue').textContent = new Date().getFullYear();
+    document.getElementById('id-card-phone').textContent = user.phone || 'N/A';
+    document.getElementById('id-card-email').textContent = user.email || 'N/A';
 
     // Populate Avatar
     const avatarImg = document.getElementById('id-card-avatar');
