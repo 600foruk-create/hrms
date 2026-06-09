@@ -3275,8 +3275,9 @@
         document.write('<script src="productivity.js?v=' + cacheBuster + '"><\/script>');
     </script>
     <!-- Employee ID Card Modal -->
+    <!-- Employee ID Card Modal -->
     <div id="modal-id-card" class="modal hidden">
-        <div class="modal-content" style="max-width: 600px; padding: 2rem;">
+        <div class="modal-content" style="max-width: 850px; padding: 2rem;">
             <div class="modal-header" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
                 <h2>Employee ID Card</h2>
                 <div style="display: flex; gap: 10px;">
@@ -3284,120 +3285,103 @@
                     <button type="button" class="modal-close" style="position: relative; right: 0; top: 0;"><i class="fa-solid fa-xmark"></i></button>
                 </div>
             </div>
-            <div class="modal-body print-container" style="display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; background: var(--bg-body); padding: 30px; border-radius: var(--radius-md);">
+            <div class="modal-body print-container" style="display: flex; justify-content: center; gap: 40px; flex-wrap: nowrap; overflow-x: auto; padding: 20px 10px; border-radius: var(--radius-md);">
                 
-                <!-- FRONT SIDE -->
-                <div class="id-card id-card-front" style="width: 230px; height: 350px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; position: relative; color: #1e293b; display: flex; flex-direction: column; align-items: center; border: 1px solid #e2e8f0; font-family: 'Inter', sans-serif;">
+                <!-- FRONT SIDE (Modern Design) -->
+                <div class="id-card id-card-front" style="width: 250px; height: 380px; flex-shrink: 0; background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%); border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); overflow: hidden; position: relative; color: #1e293b; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.8); font-family: 'Inter', sans-serif;">
                     
-                    <!-- Top Geometric Header -->
-                    <div style="background: var(--primary); width: 100%; height: 80px; position: absolute; top: 0; left: 0;">
-                        <!-- Curved cutout at the bottom center for avatar -->
-                        <div style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); width: 90px; height: 90px; background: white; border-radius: 50%;"></div>
+                    <!-- Modern Header Accent -->
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 120px; background: linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%); clip-path: polygon(0 0, 100% 0, 100% 70%, 0 100%);"></div>
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 130px; background: linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%); opacity: 0.3; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 70%);"></div>
+
+                    <!-- Logo -->
+                    <div style="position: relative; z-index: 2; margin-top: 15px; width: 100%; display: flex; justify-content: space-between; padding: 0 20px;">
+                        <img src="assets/images/my_logo.png" style="height: 25px; object-fit: contain; filter: brightness(0) invert(1);" alt="Logo">
                     </div>
-                    
-                    <!-- Decorative Top Stripes -->
-                    <div style="position: absolute; top: 15px; left: 0; width: 100%; height: 3px; background: rgba(255,255,255,0.3);"></div>
-                    <div style="position: absolute; top: 20px; left: 0; width: 100%; height: 1px; background: rgba(255,255,255,0.2);"></div>
 
                     <!-- Avatar -->
-                    <div style="position: relative; z-index: 2; margin-top: 35px; width: 84px; height: 84px; border-radius: 50%; border: 4px solid white; background: #e2e8f0; display: flex; justify-content: center; align-items: center; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <div style="position: relative; z-index: 2; margin-top: 15px; width: 90px; height: 90px; border-radius: 50%; border: 4px solid white; background: #e2e8f0; display: flex; justify-content: center; align-items: center; overflow: hidden; box-shadow: 0 8px 16px rgba(0,0,0,0.1);">
                         <img id="id-card-avatar" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
                         <i id="id-card-avatar-placeholder" class="fa-solid fa-user" style="font-size: 40px; color: white;"></i>
                     </div>
 
                     <!-- Name and Role -->
-                    <div style="position: relative; z-index: 2; margin-top: 8px; text-align: center; padding: 0 10px; width: 100%;">
-                        <h3 id="id-card-name" style="margin: 0; font-size: 16px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2;">NAME HERE</h3>
-                        <p id="id-card-role" style="margin: 2px 0 0 0; font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">GRAPHIC DESIGNER</p>
+                    <div style="position: relative; z-index: 2; margin-top: 15px; text-align: center; padding: 0 15px; width: 100%;">
+                        <h3 id="id-card-name" style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a; text-transform: capitalize; letter-spacing: -0.5px; line-height: 1.2;">Name Here</h3>
+                        <p id="id-card-role" style="margin: 4px 0 0 0; font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1px;">Graphic Designer</p>
                     </div>
 
                     <!-- Details Grid -->
-                    <div style="position: relative; z-index: 2; margin-top: 15px; width: 100%; padding: 0 15px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px;">
-                        <div style="display: flex; justify-content: flex-start; align-items: center; font-size: 9px;">
-                            <span style="font-weight: 700; color: #475569; width: 55px; text-transform: uppercase;">ID NO</span>
-                            <span style="color: #475569; margin-right: 5px;">:</span>
-                            <span id="id-card-id" style="font-weight: 600; color: #0f172a;">00 1234 56789</span>
+                    <div style="position: relative; z-index: 2; margin-top: 20px; width: 100%; padding: 0 25px; box-sizing: border-box; display: flex; flex-direction: column; gap: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 4px;">
+                            <span style="font-weight: 600; color: #64748b;">ID NO</span>
+                            <span id="id-card-id" style="font-weight: 700; color: #0f172a;">00 1234 56789</span>
                         </div>
-                        <div style="display: flex; justify-content: flex-start; align-items: center; font-size: 9px;">
-                            <span style="font-weight: 700; color: #475569; width: 55px; text-transform: uppercase;">D.O.B</span>
-                            <span style="color: #475569; margin-right: 5px;">:</span>
-                            <span id="id-card-dob" style="font-weight: 600; color: #0f172a;">07-09-2001</span>
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 4px;">
+                            <span style="font-weight: 600; color: #64748b;">D.O.B</span>
+                            <span id="id-card-dob" style="font-weight: 700; color: #0f172a;">07-09-2001</span>
                         </div>
-                        <div style="display: flex; justify-content: flex-start; align-items: center; font-size: 9px;">
-                            <span style="font-weight: 700; color: #475569; width: 55px; text-transform: uppercase;">B.GROUP</span>
-                            <span style="color: #475569; margin-right: 5px;">:</span>
-                            <span id="id-card-blood" style="font-weight: 600; color: #0f172a;">A+</span>
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 4px;">
+                            <span style="font-weight: 600; color: #64748b;">B.GROUP</span>
+                            <span id="id-card-blood" style="font-weight: 700; color: #0f172a;">A+</span>
                         </div>
-                        <div style="display: flex; justify-content: flex-start; align-items: center; font-size: 9px;">
-                            <span style="font-weight: 700; color: #475569; width: 55px; text-transform: uppercase;">PHONE</span>
-                            <span style="color: #475569; margin-right: 5px;">:</span>
-                            <span id="id-card-phone" style="font-weight: 600; color: #0f172a;">+00 1234 5678</span>
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 4px;">
+                            <span style="font-weight: 600; color: #64748b;">PHONE</span>
+                            <span id="id-card-phone" style="font-weight: 700; color: #0f172a;">+00 1234 5678</span>
                         </div>
-                        <div style="display: flex; justify-content: flex-start; align-items: center; font-size: 9px;">
-                            <span style="font-weight: 700; color: #475569; width: 55px; text-transform: uppercase;">E-MAIL</span>
-                            <span style="color: #475569; margin-right: 5px;">:</span>
-                            <span id="id-card-email" style="font-weight: 600; color: #0f172a; word-break: break-all;">email@example.com</span>
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px;">
+                            <span style="font-weight: 600; color: #64748b;">E-MAIL</span>
+                            <span id="id-card-email" style="font-weight: 700; color: #0f172a; max-width: 110px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">email@example.com</span>
                         </div>
                     </div>
 
-                    <!-- Barcode -->
-                    <div style="margin-top: auto; padding-bottom: 30px; display: flex; justify-content: center; align-items: center; color: #334155; font-size: 28px; line-height: 1;">
+                    <!-- Footer Barcode -->
+                    <div style="margin-top: auto; padding-bottom: 15px; display: flex; justify-content: center; align-items: center; color: #334155; font-size: 28px; line-height: 1;">
                         <i class="fa-solid fa-barcode"></i> <i class="fa-solid fa-barcode"></i>
                     </div>
-
-                    <!-- Footer Geometric -->
-                    <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 20px; background: var(--primary);"></div>
-                    <div style="position: absolute; bottom: 22px; left: 0; width: 100%; height: 2px; background: var(--primary);"></div>
                 </div>
 
-                <!-- BACK SIDE -->
-                <div class="id-card id-card-back" style="width: 230px; height: 350px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; position: relative; color: #1e293b; display: flex; flex-direction: column; align-items: center; border: 1px solid #e2e8f0; font-family: 'Inter', sans-serif;">
+                <!-- BACK SIDE (Modern Design) -->
+                <div class="id-card id-card-back" style="width: 250px; height: 380px; flex-shrink: 0; background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%); border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); overflow: hidden; position: relative; color: #1e293b; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.8); font-family: 'Inter', sans-serif;">
                     
-                    <!-- Top Geometric Header -->
-                    <div style="background: var(--primary); width: 100%; height: 50px; position: absolute; top: 0; left: 0;">
-                        <!-- Inverted Curve -->
-                        <div style="position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%); width: 100px; height: 60px; background: white; border-radius: 50%;"></div>
-                    </div>
-                    
-                    <!-- Decorative Top Stripes -->
-                    <div style="position: absolute; top: 15px; left: 0; width: 100%; height: 2px; background: rgba(255,255,255,0.3);"></div>
+                    <!-- Top Accent -->
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: linear-gradient(90deg, var(--primary) 0%, #3b82f6 100%);"></div>
 
                     <!-- Logo & Company Name -->
-                    <div style="position: relative; z-index: 2; margin-top: 35px; text-align: center; width: 100%;">
-                        <img src="assets/images/my_logo.png" style="height: 35px; object-fit: contain;" alt="Logo">
-                        <h3 style="margin: 5px 0 0 0; font-size: 14px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px;">SOFTIFYX</h3>
-                        <p style="margin: 0; font-size: 8px; color: #64748b; font-weight: 500; letter-spacing: 0.5px;">Your Tagline Here</p>
+                    <div style="position: relative; z-index: 2; margin-top: 30px; text-align: center; width: 100%;">
+                        <img src="assets/images/my_logo.png" style="height: 40px; object-fit: contain;" alt="Logo">
+                        <h3 style="margin: 10px 0 0 0; font-size: 16px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 1px;">SOFTIFYX</h3>
+                        <p style="margin: 0; font-size: 9px; color: var(--primary); font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;">Employee Identity Card</p>
                     </div>
 
                     <!-- Terms & Conditions -->
-                    <div style="position: relative; z-index: 2; margin-top: 20px; width: 100%; padding: 0 15px; box-sizing: border-box; text-align: left;">
-                        <h4 style="margin: 0 0 8px 0; font-size: 10px; font-weight: 700; color: #0f172a;">Terms & Conditions:</h4>
-                        <ul style="margin: 0; padding: 0; list-style-type: none; display: flex; flex-direction: column; gap: 8px;">
-                            <li style="font-size: 7.5px; color: #475569; line-height: 1.3; position: relative; padding-left: 12px;">
-                                <i class="fa-solid fa-circle-dot" style="position: absolute; left: 0; top: 1px; font-size: 7px; color: #334155;"></i>
-                                This card is the property of Softifyx. It must be returned upon request or termination.
+                    <div style="position: relative; z-index: 2; margin-top: 30px; width: 100%; padding: 0 20px; box-sizing: border-box; text-align: left; background: rgba(255,255,255,0.5); padding-top: 15px; padding-bottom: 15px; border-radius: 8px;">
+                        <h4 style="margin: 0 0 10px 0; font-size: 11px; font-weight: 800; color: #0f172a;">Terms & Conditions</h4>
+                        <ul style="margin: 0; padding: 0; list-style-type: none; display: flex; flex-direction: column; gap: 10px;">
+                            <li style="font-size: 8px; color: #475569; line-height: 1.4; position: relative; padding-left: 14px;">
+                                <i class="fa-solid fa-check" style="position: absolute; left: 0; top: 2px; font-size: 8px; color: var(--primary);"></i>
+                                This card remains the property of Softifyx and must be surrendered upon termination.
                             </li>
-                            <li style="font-size: 7.5px; color: #475569; line-height: 1.3; position: relative; padding-left: 12px;">
-                                <i class="fa-solid fa-circle-dot" style="position: absolute; left: 0; top: 1px; font-size: 7px; color: #334155;"></i>
-                                This card is non-transferable and must be worn at all times while on company premises.
+                            <li style="font-size: 8px; color: #475569; line-height: 1.4; position: relative; padding-left: 14px;">
+                                <i class="fa-solid fa-check" style="position: absolute; left: 0; top: 2px; font-size: 8px; color: var(--primary);"></i>
+                                Non-transferable and must be visible while on company premises.
                             </li>
-                            <li style="font-size: 7.5px; color: #475569; line-height: 1.3; position: relative; padding-left: 12px;">
-                                <i class="fa-solid fa-circle-dot" style="position: absolute; left: 0; top: 1px; font-size: 7px; color: #334155;"></i>
-                                If found, please return to the company address listed below.
+                            <li style="font-size: 8px; color: #475569; line-height: 1.4; position: relative; padding-left: 14px;">
+                                <i class="fa-solid fa-check" style="position: absolute; left: 0; top: 2px; font-size: 8px; color: var(--primary);"></i>
+                                If found, please return to the authorized personnel at the address below.
                             </li>
                         </ul>
                     </div>
 
                     <!-- Signature -->
-                    <div style="position: relative; z-index: 2; margin-top: auto; padding-bottom: 35px; text-align: center; width: 100%;">
-                        <div style="font-family: 'Brush Script MT', cursive, sans-serif; font-size: 18px; color: #0f172a; margin-bottom: 2px;">Authorized Sign</div>
-                        <div style="width: 100px; height: 1px; background: #94a3b8; margin: 0 auto 4px auto;"></div>
-                        <div style="font-size: 8px; color: #475569; font-weight: 600;">Authorized Signature</div>
+                    <div style="position: relative; z-index: 2; margin-top: auto; padding-bottom: 30px; text-align: center; width: 100%;">
+                        <div style="font-family: 'Brush Script MT', cursive, sans-serif; font-size: 22px; color: var(--primary); margin-bottom: 2px;">Authorized Sign</div>
+                        <div style="width: 120px; height: 1px; background: #cbd5e1; margin: 0 auto 5px auto;"></div>
+                        <div style="font-size: 9px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Issuing Authority</div>
                     </div>
 
-                    <!-- Footer Geometric -->
-                    <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 20px; background: var(--primary);"></div>
-                    <div style="position: absolute; bottom: 22px; left: 0; width: 100%; height: 2px; background: var(--primary);"></div>
+                    <!-- Bottom Accent -->
+                    <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: linear-gradient(90deg, var(--primary) 0%, #3b82f6 100%);"></div>
                 </div>
 
             </div>
