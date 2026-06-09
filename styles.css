@@ -1915,7 +1915,7 @@ body.light-mode .report-preview-container {
     [tooltip]::after {
         display: none !important;
     }
-    body.printing-modal .main-content {
+    body.printing-modal .main-layout {
         display: none !important;
     }
     body.printing-modal {
