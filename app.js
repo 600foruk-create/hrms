@@ -1445,12 +1445,7 @@ function renderAdminSettingsTab() {
         document.getElementById('bio-auto-sync').checked = !!settings.biometric.autoSync;
     }
 
-    // Manager Rights
-    if (settings.managerRights) {
-        document.getElementById('mgr-right-attendance').checked = !!settings.managerRights.approveAttendance;
-        document.getElementById('mgr-right-leaves').checked = !!settings.managerRights.approveLeaves;
-        document.getElementById('mgr-right-assets').checked = !!settings.managerRights.manageAssets;
-    }
+
 
     // Grid Setting (Theme)
     const currentUser = JSON.parse(sessionStorage.getItem('current_user') || '{}');
@@ -3683,17 +3678,7 @@ document.addEventListener('submit', async (e) => {
             showToast("Biometric Config Saved", "Machine settings have been updated.");
             await saveDb(db);
         }
-        else if (formId === 'settings-manager-rights-form') {
-            const db = getDb();
-            if (!db.settings) db.settings = {};
-            db.settings.managerRights = {
-                approveAttendance: document.getElementById('mgr-right-attendance').checked,
-                approveLeaves: document.getElementById('mgr-right-leaves').checked,
-                manageAssets: document.getElementById('mgr-right-assets').checked
-            };
-            showToast("Manager Rights Saved", "Global permissions for Managers have been updated.");
-            await saveDb(db);
-        }
+
         else if (formId === 'company-profile-form') {
             const db = getDb();
             const cp = (!db.companyProfile || Array.isArray(db.companyProfile)) ? {} : db.companyProfile;
