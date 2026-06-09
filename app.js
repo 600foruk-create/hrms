@@ -1260,19 +1260,19 @@ function renderAdminMyAttendance() {
     logs.sort((a, b) => new Date(b.date) - new Date(a.date));
     
     if (logs.length === 0) {
-        tableBody.innerHTML = <tr><td colspan="4" class="empty-state">No attendance records found.</td></tr>;
+        tableBody.innerHTML = `<tr><td colspan="4" class="empty-state">No attendance records found.</td></tr>`;
     } else {
         logs.forEach(log => {
             const cleanTimeIn = (log.timeIn && log.timeIn.includes(':')) ? log.timeIn : '-';
             const cleanTimeOut = (log.timeOut && log.timeOut.includes(':')) ? log.timeOut : '-';
-            tableBody.innerHTML += 
+            tableBody.innerHTML += `
                 <tr>
-                    <td></td>
-                    <td><span class="badge-status "></span></td>
-                    <td class="text-center"></td>
-                    <td class="text-center"></td>
+                    <td>${log.date}</td>
+                    <td><span class="badge-status ${log.status === 'Present' ? 'approved' : 'rejected'}">${log.status}</span></td>
+                    <td class="text-center">${cleanTimeIn}</td>
+                    <td class="text-center">${cleanTimeOut}</td>
                 </tr>
-            ;
+            `;
         });
     }
 }
@@ -1312,18 +1312,18 @@ function renderAdminAttendanceSlab() {
     });
     
     if (defaulters.length === 0) {
-        tableBody.innerHTML = <tr><td colspan="5" class="empty-state">No defaulters found for this date.</td></tr>;
+        tableBody.innerHTML = `<tr><td colspan="5" class="empty-state">No defaulters found for this date.</td></tr>`;
     } else {
         defaulters.forEach(d => {
-            tableBody.innerHTML += 
+            tableBody.innerHTML += `
                 <tr>
-                    <td class="text-secondary"></td>
-                    <td class="bold"></td>
-                    <td><span class="badge-role "></span></td>
-                    <td><span class="badge-status rejected"></span></td>
-                    <td class="italic"></td>
+                    <td class="text-secondary">${d.employeeId}</td>
+                    <td class="bold">${d.employeeName}</td>
+                    <td><span class="badge-role ${d.role.toLowerCase()}">${d.role}</span></td>
+                    <td><span class="badge-status rejected">${d.status}</span></td>
+                    <td class="italic">${d.contact}</td>
                 </tr>
-            ;
+            `;
         });
     }
 }
@@ -1335,7 +1335,8 @@ function renderAdminLeaveTab() {
         window.renderAdminLeaveBalancesList();
     }
 
-    const tableBody = document.getElementById('admin-leave-table-body');
+    const tableBody = document.getElementById('admin-leave-requests-table-body');
+    if (!tableBody) return;
     tableBody.innerHTML = '';
 
     // Sort leaves status: pending first, then by date
@@ -1357,15 +1358,19 @@ function renderAdminLeaveTab() {
             } else {
                 actionBtnHTML = `<span class="text-muted">Reviewed</span>`;
             }
+            
+            const emp = db.users.find(u => u.id === l.employeeId);
+            const empRole = emp ? emp.role : 'Employee';
 
             tableBody.innerHTML += `
                 <tr>
+                    <td class="text-secondary">${l.dateSubmitted || l.startDate}</td>
                     <td class="bold">${l.employeeName}</td>
-                    <td><span class="badge-role employee">${l.type}</span></td>
+                    <td><span class="badge-role ${empRole.toLowerCase()}">${empRole}</span></td>
+                    <td><span class="badge-role" style="background:var(--primary-light); color:var(--primary);">${l.type}</span></td>
                     <td>${l.startDate} to ${l.endDate}</td>
                     <td class="italic">"${l.reason}"</td>
                     <td><span class="badge-status ${statusClass}">${l.status}</span></td>
-                    <td><span class="text-muted italic">${l.comments || 'â€”'}</span></td>
                     <td>${actionBtnHTML}</td>
                 </tr>
             `;
