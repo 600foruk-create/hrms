@@ -4385,25 +4385,55 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const onProfilePicSelected = (zone, files) => {
         const file = files[0];
+        if (!file.type.match(/image.*/)) return;
+
         const reader = new FileReader();
         reader.onload = (ev) => {
-            zone.innerHTML = `
-                <div style="position:relative; display:inline-block;">
-                    <img src="${ev.target.result}" alt="Profile Preview"
-                         style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--primary);">
-                    <button type="button" class="delete-doc-btn" onclick="window.deleteTempProfilePic('${zone.id}')" style="position:absolute;top:-5px;right:-10px;background:var(--danger);color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                <div style="font-weight:600;font-size:12px;">${file.name}</div>
-                <div style="font-size:11px;color:var(--text-muted);">Click to change</div>
-                <input type="file" id="emp-profile-pic-input" accept="image/*" style="display:none;">
-            `;
-            const newInput = zone.querySelector('#emp-profile-pic-input');
-            if (newInput) {
-                newInput.addEventListener('change', () => {
-                    if (newInput.files.length) onProfilePicSelected(zone, newInput.files);
-                });
-            }
-            window.tempProfilePic = ev.target.result;
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 400;
+                const MAX_HEIGHT = 400;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                } else {
+                    if (height > MAX_HEIGHT) {
+                        width *= MAX_HEIGHT / height;
+                        height = MAX_HEIGHT;
+                    }
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                window.tempProfilePic = dataUrl;
+
+                zone.innerHTML = `
+                    <div style="position:relative; display:inline-block;">
+                        <img src="${dataUrl}" alt="Profile Preview"
+                             style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--primary);">
+                        <button type="button" class="delete-doc-btn" onclick="window.deleteTempProfilePic('${zone.id}')" style="position:absolute;top:-5px;right:-10px;background:var(--danger);color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div style="font-weight:600;font-size:12px;">${file.name}</div>
+                    <div style="font-size:11px;color:var(--text-muted);">Click to change</div>
+                    <input type="file" id="emp-profile-pic-input" accept="image/*" style="display:none;">
+                `;
+                const newInput = zone.querySelector('#emp-profile-pic-input');
+                if (newInput) {
+                    newInput.addEventListener('change', () => {
+                        if (newInput.files.length) onProfilePicSelected(zone, newInput.files);
+                    });
+                }
+            };
+            img.src = ev.target.result;
         };
         reader.readAsDataURL(file);
     };
