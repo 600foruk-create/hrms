@@ -542,7 +542,7 @@ function renderSidebar() {
             <a class="sidebar-link" data-tab="recruitment"><i class="fa-solid fa-user-plus"></i> Recruitment</a>
             <a class="sidebar-link" data-tab="employees"><i class="fa-solid fa-users"></i> Employees</a>
             <a class="sidebar-link" data-tab="attendance"><i class="fa-solid fa-calendar-days"></i> Attendance</a>
-            <a class="sidebar-link" data-tab="leave"><i class="fa-solid fa-umbrella-beach"></i> Leave</a>
+            <a class="sidebar-link" data-tab="leave"><i class="fa-solid fa-umbrella-beach"></i> Leave Management</a>
             <a class="sidebar-link" data-tab="payroll"><i class="fa-solid fa-money-check-dollar"></i> Payroll</a>
             <a class="sidebar-link" data-tab="productivity"><i class="fa-solid fa-bolt"></i> Tasks/Productivity</a>
             <a class="sidebar-link" data-tab="assets"><i class="fa-solid fa-laptop"></i> Assets</a>
