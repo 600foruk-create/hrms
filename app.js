@@ -2557,10 +2557,10 @@ window.openCompanyProfileModal = function () {
             // Re-attach listener
             const newInput = dropzone.querySelector('#comp-logo-input');
             if (newInput) {
-                newInput.addEventListener('change', () => {
+                newInput.onchange = () => {
                     if (newInput.files.length) window.onCompLogoSelected(dropzone, newInput.files);
-                });
-                dropzone.addEventListener('click', () => newInput.click(), { once: true });
+                };
+                dropzone.onclick = () => newInput.click();
             }
         } else {
             dropzone.innerHTML = `
@@ -2571,10 +2571,10 @@ window.openCompanyProfileModal = function () {
             `;
             const newInput = dropzone.querySelector('#comp-logo-input');
             if (newInput) {
-                newInput.addEventListener('change', () => {
+                newInput.onchange = () => {
                     if (newInput.files.length) window.onCompLogoSelected(dropzone, newInput.files);
-                });
-                dropzone.addEventListener('click', () => newInput.click(), { once: true });
+                };
+                dropzone.onclick = () => newInput.click();
             }
         }
 
@@ -2589,10 +2589,10 @@ window.openCompanyProfileModal = function () {
                 `;
                 const newInput = letterheadDropzone.querySelector('#comp-letterhead-input');
                 if (newInput) {
-                    newInput.addEventListener('change', () => {
+                    newInput.onchange = () => {
                         if (newInput.files.length) window.onCompLetterheadSelected(letterheadDropzone, newInput.files);
-                    });
-                    letterheadDropzone.addEventListener('click', () => newInput.click(), { once: true });
+                    };
+                    letterheadDropzone.onclick = () => newInput.click();
                 }
             } else {
                 letterheadDropzone.innerHTML = `
@@ -2603,10 +2603,10 @@ window.openCompanyProfileModal = function () {
                 `;
                 const newInput = letterheadDropzone.querySelector('#comp-letterhead-input');
                 if (newInput) {
-                    newInput.addEventListener('change', () => {
+                    newInput.onchange = () => {
                         if (newInput.files.length) window.onCompLetterheadSelected(letterheadDropzone, newInput.files);
-                    });
-                    letterheadDropzone.addEventListener('click', () => newInput.click(), { once: true });
+                    };
+                    letterheadDropzone.onclick = () => newInput.click();
                 }
             }
         }
@@ -2622,10 +2622,10 @@ window.openCompanyProfileModal = function () {
                 `;
                 const newInput = signatureDropzone.querySelector('#comp-signature-input');
                 if (newInput) {
-                    newInput.addEventListener('change', () => {
+                    newInput.onchange = () => {
                         if (newInput.files.length) window.onCompSignatureSelected(signatureDropzone, newInput.files);
-                    });
-                    signatureDropzone.addEventListener('click', () => newInput.click(), { once: true });
+                    };
+                    signatureDropzone.onclick = () => newInput.click();
                 }
             } else {
                 signatureDropzone.innerHTML = `
@@ -2636,15 +2636,107 @@ window.openCompanyProfileModal = function () {
                 `;
                 const newInput = signatureDropzone.querySelector('#comp-signature-input');
                 if (newInput) {
-                    newInput.addEventListener('change', () => {
+                    newInput.onchange = () => {
                         if (newInput.files.length) window.onCompSignatureSelected(signatureDropzone, newInput.files);
-                    });
-                    signatureDropzone.addEventListener('click', () => newInput.click(), { once: true });
+                    };
+                    signatureDropzone.onclick = () => newInput.click();
                 }
             }
         }
+
+        // Draw Signature logic
+        const btnDrawSignature = document.getElementById('btn-draw-signature');
+        if (btnDrawSignature) {
+            btnDrawSignature.onclick = () => {
+                openModal('modal-draw-signature');
+                initSignaturePad();
+            };
+        }
     }
 };
+
+let isDrawing = false;
+let ctx = null;
+
+function initSignaturePad() {
+    const canvas = document.getElementById('signature-pad');
+    if (!canvas) return;
+    
+    // Reset canvas context
+    ctx = canvas.getContext('2d');
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#0f3484';
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const getPos = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+            x: clientX - rect.left,
+            y: clientY - rect.top
+        };
+    };
+
+    canvas.onmousedown = canvas.ontouchstart = (e) => {
+        e.preventDefault();
+        isDrawing = true;
+        const pos = getPos(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+    };
+
+    canvas.onmousemove = canvas.ontouchmove = (e) => {
+        e.preventDefault();
+        if (!isDrawing) return;
+        const pos = getPos(e);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+    };
+
+    canvas.onmouseup = canvas.onmouseout = canvas.ontouchend = () => {
+        isDrawing = false;
+    };
+
+    document.getElementById('btn-clear-signature').onclick = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+
+    document.getElementById('btn-save-drawn-signature').onclick = () => {
+        // Check if canvas is blank
+        const blank = document.createElement('canvas');
+        blank.width = canvas.width;
+        blank.height = canvas.height;
+        if (canvas.toDataURL() === blank.toDataURL()) {
+            return showToast("Error", "Please draw a signature first.", "error");
+        }
+
+        const dataURL = canvas.toDataURL('image/png');
+        
+        document.getElementById('company-profile-form').dataset.signatureBase64 = dataURL;
+        const signatureDropzone = document.getElementById('dropzone-company-signature');
+        if (signatureDropzone) {
+            signatureDropzone.innerHTML = `
+                <img src="${dataURL}" alt="Signature" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                <div style="font-size: 11px; color: var(--text-muted);">Click to change signature</div>
+                <input type="file" id="comp-signature-input" accept="image/*" style="display:none;">
+            `;
+            const newInput = signatureDropzone.querySelector('#comp-signature-input');
+            if (newInput) {
+                newInput.onchange = () => {
+                    if (newInput.files.length) window.onCompSignatureSelected(signatureDropzone, newInput.files);
+                };
+                signatureDropzone.onclick = () => newInput.click();
+            }
+        }
+        
+        closeModal('modal-draw-signature');
+        showToast("Signature Saved", "Your drawn signature is ready to be saved.");
+    };
+}
 
 // 2. Add / Edit Employees Form (Admin & Manager)
 window.tempProfilePic = null;
@@ -4867,8 +4959,21 @@ window.openIdCardModal = function (userId) {
     const frontLogo = document.getElementById('id-card-front-logo');
     const backLogo = document.getElementById('id-card-back-logo');
     if (cp.logoBase64) {
-        if(frontLogo) frontLogo.src = cp.logoBase64;
-        if(backLogo) backLogo.src = cp.logoBase64;
+        if(frontLogo) { frontLogo.src = cp.logoBase64; frontLogo.style.display = 'block'; }
+        if(backLogo) { backLogo.src = cp.logoBase64; backLogo.style.display = 'block'; }
+    } else {
+        if(frontLogo) frontLogo.style.display = 'none';
+        if(backLogo) backLogo.style.display = 'none';
+    }
+
+    const frontCompanyName = document.getElementById('id-card-front-company-name');
+    if (frontCompanyName) {
+        if (cp.name) {
+            frontCompanyName.textContent = cp.name;
+            frontCompanyName.style.display = 'block';
+        } else {
+            frontCompanyName.style.display = 'none';
+        }
     }
 
     const avatarImg = document.getElementById('id-card-avatar');
