@@ -354,6 +354,10 @@ function handleLogout() {
     sessionStorage.removeItem('current_user');
     clearTimeout(inactivityTimeout);
 
+    if (typeof closeAllModals === 'function') {
+        closeAllModals();
+    }
+
     // Reset views
     const authPanel = document.getElementById('auth-panel');
     const appShell = document.getElementById('app-shell');
