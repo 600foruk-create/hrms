@@ -2581,6 +2581,39 @@ window.openCompanyProfileModal = function () {
                 }
             }
         }
+
+        const signatureDropzone = document.getElementById('dropzone-company-signature');
+        if (signatureDropzone) {
+            if (cp.signatureBase64) {
+                document.getElementById('company-profile-form').dataset.signatureBase64 = cp.signatureBase64;
+                signatureDropzone.innerHTML = `
+                    <img src="${cp.signatureBase64}" alt="Signature" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                    <div style="font-size: 11px; color: var(--text-muted);">Click to change signature</div>
+                    <input type="file" id="comp-signature-input" accept="image/*" style="display:none;">
+                `;
+                const newInput = signatureDropzone.querySelector('#comp-signature-input');
+                if (newInput) {
+                    newInput.addEventListener('change', () => {
+                        if (newInput.files.length) window.onCompSignatureSelected(signatureDropzone, newInput.files);
+                    });
+                    signatureDropzone.addEventListener('click', () => newInput.click(), { once: true });
+                }
+            } else {
+                signatureDropzone.innerHTML = `
+                    <i class="fa-solid fa-signature" style="font-size: 24px; color: var(--primary);"></i>
+                    <div style="font-weight: 600;">Upload ID Card Signature</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">Signature of Authority (Transparent PNG)</div>
+                    <input type="file" id="comp-signature-input" accept="image/*" style="display:none;">
+                `;
+                const newInput = signatureDropzone.querySelector('#comp-signature-input');
+                if (newInput) {
+                    newInput.addEventListener('change', () => {
+                        if (newInput.files.length) window.onCompSignatureSelected(signatureDropzone, newInput.files);
+                    });
+                    signatureDropzone.addEventListener('click', () => newInput.click(), { once: true });
+                }
+            }
+        }
     }
 
     openModal('modal-company-profile');
@@ -4288,6 +4321,49 @@ document.addEventListener('DOMContentLoaded', async () => {
         reader.readAsDataURL(file);
     };
 
+    window.onCompSignatureSelected = function (dropzone, files) {
+        if (!files.length) return;
+        const file = files[0];
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const img = new Image();
+            img.onload = function () {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                const maxWidth = 600; // max width for signature
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Use PNG for signatures to preserve transparency
+                const dataURL = canvas.toDataURL('image/png');
+                
+                dropzone.innerHTML = `
+                    <img src="${dataURL}" alt="Signature" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                    <div style="font-size: 11px; color: var(--text-muted);">Click to change signature</div>
+                    <input type="file" id="comp-signature-input" accept="image/*" style="display:none;">
+                `;
+                document.getElementById('company-profile-form').dataset.signatureBase64 = dataURL;
+
+                const newInput = dropzone.querySelector('#comp-signature-input');
+                if (newInput) {
+                    newInput.addEventListener('change', () => {
+                        if (newInput.files.length) window.onCompSignatureSelected(dropzone, newInput.files);
+                    });
+                    dropzone.addEventListener('click', () => newInput.click(), { once: true });
+                }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
+
     // Save Company Profile form
     const cpForm = document.getElementById('company-profile-form');
     if (cpForm) {
@@ -4312,6 +4388,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             if (cpForm.dataset.letterheadBase64) {
                 cp.letterheadBase64 = cpForm.dataset.letterheadBase64;
+            }
+            if (cpForm.dataset.signatureBase64) {
+                cp.signatureBase64 = cpForm.dataset.signatureBase64;
             }
 
             db.companyProfile = cp;
@@ -4608,35 +4687,37 @@ window.openIdCardModal = function (userId) {
     if (!user) return;
     const cp = (!db.companyProfile || Array.isArray(db.companyProfile)) ? {} : db.companyProfile;
 
-    const frontBg = document.getElementById('id-card-front-bg');
-    if (cp.idCardFrontBase64) {
-        frontBg.src = cp.idCardFrontBase64;
-        frontBg.style.display = 'block';
-    } else {
-        frontBg.style.display = 'none';
+    const frontLogo = document.getElementById('id-card-front-logo');
+    const backLogo = document.getElementById('id-card-back-logo');
+    if (cp.logoBase64) {
+        if(frontLogo) frontLogo.src = cp.logoBase64;
+        if(backLogo) backLogo.src = cp.logoBase64;
     }
 
-    const backBg = document.getElementById('id-card-back-bg');
-    if (cp.idCardBackBase64) {
-        backBg.src = cp.idCardBackBase64;
-        backBg.style.display = 'block';
-    } else {
-        backBg.style.display = 'none';
-    }
-
-    const photoContainer = document.getElementById('id-card-photo-container');
-    const photoImg = document.getElementById('id-card-photo');
+    const avatarImg = document.getElementById('id-card-avatar');
+    const avatarPlaceholder = document.getElementById('id-card-avatar-placeholder');
     if (user.profilePic) {
-        photoImg.src = user.profilePic;
-        photoContainer.style.display = 'block';
+        if(avatarImg) { avatarImg.src = user.profilePic; avatarImg.style.display = 'block'; }
+        if(avatarPlaceholder) avatarPlaceholder.style.display = 'none';
     } else {
-        photoContainer.style.display = 'none';
+        if(avatarImg) avatarImg.style.display = 'none';
+        if(avatarPlaceholder) avatarPlaceholder.style.display = 'block';
+    }
+
+    const signatureImg = document.getElementById('id-card-signature');
+    const signaturePlaceholder = document.getElementById('id-card-signature-placeholder');
+    if (cp.signatureBase64) {
+        if(signatureImg) { signatureImg.src = cp.signatureBase64; signatureImg.style.display = 'block'; }
+        if(signaturePlaceholder) signaturePlaceholder.style.display = 'none';
+    } else {
+        if(signatureImg) signatureImg.style.display = 'none';
+        if(signaturePlaceholder) signaturePlaceholder.style.display = 'block';
     }
 
     document.getElementById('id-card-name').textContent = user.name || '';
     document.getElementById('id-card-designation').textContent = user.designation || '';
     document.getElementById('id-card-id').textContent = user.displayId || user.id || '';
-    document.getElementById('id-card-dept').textContent = user.department || '';
+    document.getElementById('id-card-dept').textContent = user.department || 'Operations';
 
     document.getElementById('id-card-guardian').textContent = user.fatherName || '';
     document.getElementById('id-card-cnic').textContent = user.cnic || '';
@@ -4651,6 +4732,10 @@ window.openIdCardModal = function (userId) {
         }
     }
     document.getElementById('id-card-join').textContent = joinDate;
+
+    document.getElementById('id-card-address').textContent = cp.address || '';
+    document.getElementById('id-card-company-phone').textContent = cp.phone || '';
+    document.getElementById('id-card-website').textContent = cp.website || '';
 
     openModal('modal-id-card');
 };
