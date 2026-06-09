@@ -1915,6 +1915,12 @@ body.light-mode .report-preview-container {
     [tooltip]::after {
         display: none !important;
     }
+    body.printing-modal .main-content {
+        display: none !important;
+    }
+    body.printing-modal {
+        overflow: visible !important;
+    }
     
     /* Make the active modal with ID Card visible for printing */
     #modal-id-card:not(.hidden) {
