@@ -1375,6 +1375,11 @@ function renderAdminSettingsTab() {
         document.getElementById('theme-color').value = currentUser.themeColor;
         document.getElementById('theme-color-hex').textContent = currentUser.themeColor;
     }
+
+    // Populate Company Profile Inline Form
+    if (typeof window.openCompanyProfileModal === 'function') {
+        window.openCompanyProfileModal();
+    }
 }
 
 function renderLeaveTypes() {
@@ -2639,8 +2644,6 @@ window.openCompanyProfileModal = function () {
             }
         }
     }
-
-    openModal('modal-company-profile');
 };
 
 // 2. Add / Edit Employees Form (Admin & Manager)
