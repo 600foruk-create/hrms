@@ -413,25 +413,7 @@
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="logo" id="btn-company-profile" style="gap: 8px; cursor: pointer; transition: opacity 0.2s;"
-                    onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-                    <!-- ============================================== -->
-                    <!-- 🛑 COMPANY LOGO: REPLACE THE SVG BELOW WITH YOUR LOGO -->
-                    <!-- Example: <img src="assets/images/my_logo.png" style="max-height: 28px; object-fit: contain;"> -->
-                    <!-- ============================================== -->
-                    <div class="logo-icon" id="sidebar-company-icon"
-                        style="background: transparent; box-shadow: none; padding: 0; width: auto; height: auto;">
-                        <img src="assets/images/my_logo.png" style="max-height: 28px; object-fit: contain;" alt="Softifyx Logo">
-                    </div>
-                    <!-- ============================================== -->
-                    
-                    <div style="display: flex; align-items: center; line-height: 1.1;">
-                        <!-- 🛑 COMPANY NAME: HARDCODED HERE -->
-                        <h3 id="sidebar-company-name"
-                            style="font-family: var(--font-heading); font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0; letter-spacing: -0.3px;">
-                            Softifyx</h3>
-                    </div>
-                </div>
+                <div style="width: 100%;"></div>
                 <button class="sidebar-close-mobile" id="btn-sidebar-close"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
@@ -455,8 +437,12 @@
         <div class="main-layout">
             <!-- Top Bar -->
             <header class="topbar">
-                <div class="topbar-left">
+                <div class="topbar-left" style="display: flex; align-items: center; gap: 15px;">
                     <button class="sidebar-toggle" id="btn-sidebar-toggle"><i class="fa-solid fa-bars"></i></button>
+                    <div id="btn-company-profile" style="cursor: pointer; display: flex; align-items: center; gap: 6px;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                        <span style="font-size: 14px; font-weight: 500; color: var(--text-secondary); white-space: nowrap;">HRMS Software by Softifyx licensed to</span>
+                        <strong id="sidebar-company-name" style="font-size: 15px; font-weight: 800; color: var(--primary);">Softifyx</strong>
+                    </div>
                 </div>
                 <div class="topbar-right" style="gap: 12px; align-items: center; display: flex;">
                     <!-- Attendance Punch Button -->

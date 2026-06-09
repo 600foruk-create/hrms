@@ -481,7 +481,6 @@ body.light-mode .auth-card {
 .sidebar {
     width: 260px;
     background: var(--bg-sidebar);
-    border-right: 1px solid var(--border-color);
     backdrop-filter: blur(20px);
     display: flex;
     flex-direction: column;

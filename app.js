@@ -240,24 +240,10 @@ function applyCompanyProfile(db) {
     const companyName = cp.name || (db.weights && db.weights['company_name']) || 'OceanStack';
     const companyLogo = cp.logoBase64 || (db.weights && db.weights['company_logo']) || '';
 
-    /* === HARDCODED LOGO & NAME ===
-       Dynamic sidebar update is disabled so that the hardcoded 'Softifyx' 
-       and logo in index.html are not overwritten.
-    
-    document.getElementById('sidebar-company-name').innerHTML = `${companyName}`;
-    const logoIcon = document.getElementById('sidebar-company-icon');
-    if (companyLogo) {
-        logoIcon.innerHTML = `<img src="${companyLogo}" alt="Logo" style="max-height:28px; max-width:100%; object-fit:contain;">`;
-    } else {
-        logoIcon.innerHTML = `
-            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4 8C10 4 22 4 28 8C22 12 10 12 4 8Z" fill="#00e5ff" opacity="0.8"/>
-                <path d="M4 14C10 10 22 10 28 14C22 18 10 18 4 14Z" fill="#00b0ff" opacity="0.9"/>
-                <path d="M4 20C10 16 22 16 28 20C22 24 10 24 4 20Z" fill="#2979ff"/>
-            </svg>
-        `;
+    const companyNameEl = document.getElementById('sidebar-company-name');
+    if (companyNameEl) {
+        companyNameEl.innerHTML = `${companyName}`;
     }
-    */
 }
 
 function populateLoginDropdown() {
