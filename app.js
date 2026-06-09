@@ -3614,11 +3614,11 @@ document.addEventListener('submit', async (e) => {
             const userIndex = db.users.findIndex(u => u.id === currentUser.id);
             if (userIndex > -1) {
                 db.users[userIndex].themeColor = themeColor;
-                await saveDb(db);
                 currentUser.themeColor = themeColor;
                 sessionStorage.setItem('current_user', JSON.stringify(currentUser));
                 document.documentElement.style.setProperty('--primary', themeColor);
                 showToast("Theme Saved", "Your primary color has been updated.");
+                await saveDb(db);
             }
         }
         else if (formId === 'settings-email-form') {
@@ -3629,8 +3629,8 @@ document.addEventListener('submit', async (e) => {
                 key: document.getElementById('email-api-key').value,
                 sender: document.getElementById('email-api-sender').value
             };
-            await saveDb(db);
             showToast("Email API Saved", "Email API configuration has been updated.");
+            await saveDb(db);
         }
         else if (formId === 'settings-whatsapp-form') {
             const db = getDb();
@@ -3640,8 +3640,8 @@ document.addEventListener('submit', async (e) => {
                 token: document.getElementById('wa-api-token').value,
                 phoneId: document.getElementById('wa-api-phone').value
             };
-            await saveDb(db);
             showToast("WhatsApp API Saved", "WhatsApp API configuration has been updated.");
+            await saveDb(db);
         }
         else if (formId === 'settings-biometric-form') {
             const db = getDb();
@@ -3651,8 +3651,8 @@ document.addEventListener('submit', async (e) => {
                 port: document.getElementById('bio-port').value,
                 autoSync: document.getElementById('bio-auto-sync').checked
             };
-            await saveDb(db);
             showToast("Biometric Config Saved", "Machine settings have been updated.");
+            await saveDb(db);
         }
         else if (formId === 'settings-manager-rights-form') {
             const db = getDb();
@@ -3662,8 +3662,8 @@ document.addEventListener('submit', async (e) => {
                 approveLeaves: document.getElementById('mgr-right-leaves').checked,
                 manageAssets: document.getElementById('mgr-right-assets').checked
             };
-            await saveDb(db);
             showToast("Manager Rights Saved", "Global permissions for Managers have been updated.");
+            await saveDb(db);
         }
         else if (formId === 'company-profile-form') {
             const db = getDb();
@@ -3688,9 +3688,9 @@ document.addEventListener('submit', async (e) => {
             }
 
             db.companyProfile = cp;
-            await saveDb(db);
             applyCompanyProfile(db);
             showToast("Company Profile", "Company profile updated successfully.");
+            await saveDb(db);
         }
     }
 });
