@@ -1907,7 +1907,7 @@ body.light-mode .report-preview-container {
     .topbar,
     .toast-container,
     .modal-backdrop,
-    .modal.hidden,
+    .modal,
     .view-header .actions,
     .sidebar-toggle,
     .report-generator-grid .filter-panel,
@@ -1915,35 +1915,46 @@ body.light-mode .report-preview-container {
     [tooltip]::after {
         display: none !important;
     }
-    .main-layout {
-        margin-left: 0 !important;
-        padding: 0 !important;
-    }
-    .content-body {
-        padding: 0 !important;
-    }
-    .tab-view {
-        display: none !important;
-    }
-    .tab-view#admin-tab-reports,
-    .tab-view#manager-tab-reports {
+    
+    /* Make the active modal with ID Card visible for printing */
+    #modal-id-card:not(.hidden) {
         display: block !important;
-    }
-    .report-generator-grid {
-        display: block !important;
-    }
-    .preview-panel {
-        background: transparent !important;
-        border: none !important;
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        background: white !important;
+        margin: 0 !important;
         padding: 0 !important;
         box-shadow: none !important;
-        backdrop-filter: none !important;
     }
-    .report-preview-container {
-        background: transparent !important;
-        border: none !important;
+    #modal-id-card .modal-content {
+        box-shadow: none !important;
         padding: 0 !important;
-        min-height: auto !important;
+        border: none !important;
+        background: transparent !important;
+    }
+    #modal-id-card .modal-header {
+        display: none !important;
+    }
+    #modal-id-card .print-container {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        gap: 20px !important;
+        padding: 0 !important;
+        background: white !important;
+    }
+    
+    .id-card {
+        page-break-inside: avoid;
+        box-shadow: none !important;
+        border: 1px solid #000 !important;
+    }
+
+    .main-layout {
+        display: none !important;
     }
     .report-print-sheet {
         color: #000000 !important;

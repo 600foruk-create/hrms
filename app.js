@@ -1055,6 +1055,7 @@ function renderAdminEmployeesTab() {
                         <td>
                             <div class="btn-action-group">
                                 <button class="btn-action-circle" onclick="viewUserProfile('${user.id}')" tooltip="View Profile"><i class="fa-regular fa-eye"></i></button>
+                                <button class="btn-action-circle" onclick="viewEmployeeCard('${user.id}')" tooltip="ID Card" style="color: var(--info);"><i class="fa-solid fa-id-card-clip"></i></button>
                                 <button class="btn-action-circle" onclick="openEditEmployeeModal('${user.id}')" tooltip="Edit"><i class="fa-regular fa-pen-to-square"></i></button>
                                 <button class="btn-action-circle btn-delete" onclick="deleteEmployee('${user.id}')" tooltip="Delete" style="color: var(--danger);"><i class="fa-regular fa-trash-can"></i></button>
                             </div>
@@ -2376,6 +2377,39 @@ function openModal(modalId) {
     document.getElementById('modal-backdrop').classList.remove('hidden');
     document.getElementById(modalId).classList.remove('hidden');
 }
+
+// ==================== ID CARD LOGIC ====================
+window.viewEmployeeCard = function(userId) {
+    const db = getDb();
+    const user = db.users.find(u => u.id === userId);
+    if (!user) return;
+
+    // Populate ID Card Fields
+    document.getElementById('id-card-name').textContent = user.name;
+    document.getElementById('id-card-role').textContent = user.role;
+    document.getElementById('id-card-id').textContent = user.displayId || user.id;
+    document.getElementById('id-card-blood').textContent = user.bloodGroup || 'N/A';
+    document.getElementById('id-card-issue').textContent = new Date().getFullYear();
+
+    // Populate Avatar
+    const avatarImg = document.getElementById('id-card-avatar');
+    const avatarPlaceholder = document.getElementById('id-card-avatar-placeholder');
+    if (user.avatarBase64) {
+        avatarImg.src = user.avatarBase64;
+        avatarImg.style.display = 'block';
+        avatarPlaceholder.style.display = 'none';
+    } else {
+        avatarImg.style.display = 'none';
+        avatarPlaceholder.style.display = 'block';
+    }
+
+    // Open Modal
+    openModal('modal-id-card');
+};
+
+window.printIdCard = function() {
+    window.print();
+};
 
 // 1. Employee Profiles Modal
 window.viewUserProfile = function (userId) {
