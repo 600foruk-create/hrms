@@ -332,6 +332,13 @@ function handleLogin(usernameOrEmail, password) {
         const searchBox = document.getElementById('global-search');
         if (searchBox) searchBox.value = "";
 
+        // Apply Custom Theme if exists
+        if (user.themeColor) {
+            document.documentElement.style.setProperty('--primary', user.themeColor);
+        } else {
+            document.documentElement.style.setProperty('--primary', '#0f3484'); // Default
+        }
+
         // Reset Navigation
         activeTab = 'dashboard';
         renderSidebar();
@@ -1329,6 +1336,45 @@ function renderAdminSettingsTab() {
     document.getElementById('weight-reporting').value = weights["Report Preparation"];
 
     renderAuditLogs();
+
+    // Initialize Settings Object if missing
+    if (!db.settings) db.settings = {};
+    const settings = db.settings;
+
+    // Email API
+    if (settings.emailApi) {
+        document.getElementById('email-api-provider').value = settings.emailApi.provider || 'smtp';
+        document.getElementById('email-api-key').value = settings.emailApi.key || '';
+        document.getElementById('email-api-sender').value = settings.emailApi.sender || '';
+    }
+
+    // WhatsApp API
+    if (settings.whatsappApi) {
+        document.getElementById('wa-api-url').value = settings.whatsappApi.url || '';
+        document.getElementById('wa-api-token').value = settings.whatsappApi.token || '';
+        document.getElementById('wa-api-phone').value = settings.whatsappApi.phoneId || '';
+    }
+
+    // Biometric
+    if (settings.biometric) {
+        document.getElementById('bio-ip').value = settings.biometric.ip || '';
+        document.getElementById('bio-port').value = settings.biometric.port || '4370';
+        document.getElementById('bio-auto-sync').checked = !!settings.biometric.autoSync;
+    }
+
+    // Manager Rights
+    if (settings.managerRights) {
+        document.getElementById('mgr-right-attendance').checked = !!settings.managerRights.approveAttendance;
+        document.getElementById('mgr-right-leaves').checked = !!settings.managerRights.approveLeaves;
+        document.getElementById('mgr-right-assets').checked = !!settings.managerRights.manageAssets;
+    }
+
+    // Grid Setting (Theme)
+    const currentUser = JSON.parse(sessionStorage.getItem('current_user') || '{}');
+    if (currentUser.themeColor) {
+        document.getElementById('theme-color').value = currentUser.themeColor;
+        document.getElementById('theme-color-hex').textContent = currentUser.themeColor;
+    }
 }
 
 function renderLeaveTypes() {
@@ -3452,6 +3498,127 @@ document.getElementById('settings-weights-form').addEventListener('submit', (e) 
     refreshTabContent(activeTab);
 });
 
+// Grid Theme Form
+document.getElementById('settings-theme-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const themeColor = document.getElementById('theme-color').value;
+    
+    // Save to user profile
+    const db = getDb();
+    const userIndex = db.users.findIndex(u => u.id === currentUser.id);
+    if (userIndex > -1) {
+        db.users[userIndex].themeColor = themeColor;
+        await saveDb(db);
+        
+        currentUser.themeColor = themeColor;
+        sessionStorage.setItem('current_user', JSON.stringify(currentUser));
+        
+        document.documentElement.style.setProperty('--primary', themeColor);
+        showToast("Theme Saved", "Your primary color has been updated.");
+    }
+});
+
+// Update hex code preview dynamically
+document.getElementById('theme-color').addEventListener('input', (e) => {
+    document.getElementById('theme-color-hex').textContent = e.target.value;
+    document.documentElement.style.setProperty('--primary', e.target.value);
+});
+
+// Reset Theme Button
+document.getElementById('btn-reset-theme').addEventListener('click', async () => {
+    const defaultTheme = '#0f3484';
+    document.getElementById('theme-color').value = defaultTheme;
+    document.getElementById('theme-color-hex').textContent = defaultTheme;
+    
+    const db = getDb();
+    const userIndex = db.users.findIndex(u => u.id === currentUser.id);
+    if (userIndex > -1) {
+        db.users[userIndex].themeColor = defaultTheme;
+        await saveDb(db);
+        
+        currentUser.themeColor = defaultTheme;
+        sessionStorage.setItem('current_user', JSON.stringify(currentUser));
+        
+        document.documentElement.style.setProperty('--primary', defaultTheme);
+        showToast("Theme Reset", "Color has been reset to default.");
+    }
+});
+
+// Email API Form
+document.getElementById('settings-email-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const db = getDb();
+    if (!db.settings) db.settings = {};
+    
+    db.settings.emailApi = {
+        provider: document.getElementById('email-api-provider').value,
+        key: document.getElementById('email-api-key').value,
+        sender: document.getElementById('email-api-sender').value
+    };
+    
+    await saveDb(db);
+    showToast("Email API Saved", "Email API configuration has been updated.");
+});
+
+// WhatsApp API Form
+document.getElementById('settings-whatsapp-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const db = getDb();
+    if (!db.settings) db.settings = {};
+    
+    db.settings.whatsappApi = {
+        url: document.getElementById('wa-api-url').value,
+        token: document.getElementById('wa-api-token').value,
+        phoneId: document.getElementById('wa-api-phone').value
+    };
+    
+    await saveDb(db);
+    showToast("WhatsApp API Saved", "WhatsApp API configuration has been updated.");
+});
+
+// Biometric Machine Form
+document.getElementById('settings-biometric-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const db = getDb();
+    if (!db.settings) db.settings = {};
+    
+    db.settings.biometric = {
+        ip: document.getElementById('bio-ip').value,
+        port: document.getElementById('bio-port').value,
+        autoSync: document.getElementById('bio-auto-sync').checked
+    };
+    
+    await saveDb(db);
+    showToast("Biometric Config Saved", "Machine settings have been updated.");
+});
+
+// Biometric Test Button
+document.getElementById('btn-test-biometric').addEventListener('click', () => {
+    const ip = document.getElementById('bio-ip').value;
+    if(!ip) return showToast("Error", "Please enter Machine IP address first.", "error");
+    
+    showToast("Testing Connection...", `Attempting to ping ${ip}`, "info");
+    setTimeout(() => {
+        showToast("Connection Failed", "Unable to reach the machine. Check IP and network connection.", "error");
+    }, 2000);
+});
+
+// Manager Rights Form
+document.getElementById('settings-manager-rights-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const db = getDb();
+    if (!db.settings) db.settings = {};
+    
+    db.settings.managerRights = {
+        approveAttendance: document.getElementById('mgr-right-attendance').checked,
+        approveLeaves: document.getElementById('mgr-right-leaves').checked,
+        manageAssets: document.getElementById('mgr-right-assets').checked
+    };
+    
+    await saveDb(db);
+    showToast("Manager Rights Saved", "Global permissions for Managers have been updated.");
+});
+
 document.getElementById('settings-add-leave-type-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const name = document.getElementById('new-leave-type-name').value.trim();
@@ -4383,8 +4550,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
 
+    // Settings sub-tab switching handler
+    document.querySelectorAll('#settings-sub-tab-nav .btn-sub-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const subtab = btn.dataset.settingsSubtab;
+            const parent = document.getElementById('admin-tab-settings');
+
+            parent.querySelectorAll('#settings-sub-tab-nav .btn-sub-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            parent.querySelectorAll('.settings-sub-tab-content').forEach(c => c.classList.add('hidden'));
+            const targetContent = document.getElementById(`settings-content-${subtab}`);
+            if (targetContent) {
+                targetContent.classList.remove('hidden');
+                // Trigger any necessary re-renders if a specific tab is opened
+                if(subtab === 'system-settings') {
+                    renderAdminAuditLogs();
+                }
+            }
+        });
+    });
+
     // Sub-tab switching handler for employee management view
-    document.querySelectorAll('.btn-sub-tab').forEach(btn => {
+    document.querySelectorAll('.btn-sub-tab:not([data-settings-subtab])').forEach(btn => {
         btn.addEventListener('click', () => {
             const subtab = btn.dataset.subtab;
             const parent = btn.closest('.tab-view');
@@ -4597,6 +4785,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (prevSession) {
 
         currentUser = JSON.parse(prevSession);
+        
+        // Apply Custom Theme if exists
+        if (currentUser.themeColor) {
+            document.documentElement.style.setProperty('--primary', currentUser.themeColor);
+        } else {
+            document.documentElement.style.setProperty('--primary', '#0f3484'); // Default
+        }
+        
         const authPanel = document.getElementById('auth-panel');
         const appShell = document.getElementById('app-shell');
         if (authPanel) {

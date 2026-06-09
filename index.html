@@ -1608,70 +1608,247 @@
                         <div class="view-header">
                             <div>
                                 <h1>System Configuration</h1>
-                                <p class="text-secondary">Customize evaluation rules, weights, and attendance parameters
+                                <p class="text-secondary">Manage company profile, API integrations, rights, and system settings.
                                 </p>
                             </div>
                         </div>
-                        <div class="settings-grid-layout">
-                            <!-- Task Weights Config -->
-                            <div class="section-card bg-glass">
-                                <h3>Productivity Task Weights</h3>
-                                <p class="text-secondary mb-3">Modify weights used for calculating employee productivity
-                                    scores.</p>
-                                <form id="settings-weights-form">
-                                    <div class="form-group">
-                                        <label for="weight-billing">Billing (Base: 2)</label>
-                                        <input type="number" step="0.1" id="weight-billing" class="form-control"
-                                            required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="weight-followup">Follow-up (Base: 1)</label>
-                                        <input type="number" step="0.1" id="weight-followup" class="form-control"
-                                            required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="weight-posting">Payment Posting (Base: 1.5)</label>
-                                        <input type="number" step="0.1" id="weight-posting" class="form-control"
-                                            required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="weight-eligibility">Eligibility Check (Base: 1)</label>
-                                        <input type="number" step="0.1" id="weight-eligibility" class="form-control"
-                                            required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="weight-reporting">Report Preparation (Base: 2)</label>
-                                        <input type="number" step="0.1" id="weight-reporting" class="form-control"
-                                            required>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary"><i
-                                            class="fa-solid fa-floppy-disk"></i> Save Weights</button>
-                                </form>
-                            </div>
 
-                            <!-- Company Profile Config -->
-                            <div class="section-card bg-glass">
+                        <!-- Sub-tab Navigation for Settings -->
+                        <div class="sub-tab-nav" id="settings-sub-tab-nav">
+                            <button class="btn-sub-tab active" data-settings-subtab="company-profile">
+                                <i class="fa-solid fa-building"></i> Company Profile
+                            </button>
+                            <button class="btn-sub-tab" data-settings-subtab="grid-setting">
+                                <i class="fa-solid fa-palette"></i> Grid Setting
+                            </button>
+                            <button class="btn-sub-tab" data-settings-subtab="admin-rights">
+                                <i class="fa-solid fa-user-shield"></i> Admin Rights
+                            </button>
+                            <button class="btn-sub-tab" data-settings-subtab="email-api">
+                                <i class="fa-solid fa-envelope"></i> Email API
+                            </button>
+                            <button class="btn-sub-tab" data-settings-subtab="whatsapp-api">
+                                <i class="fa-brands fa-whatsapp"></i> Whatsapp API
+                            </button>
+                            <button class="btn-sub-tab" data-settings-subtab="biometric">
+                                <i class="fa-solid fa-fingerprint"></i> Bio Metric Machine
+                            </button>
+                            <button class="btn-sub-tab" data-settings-subtab="manager-rights">
+                                <i class="fa-solid fa-user-tie"></i> Manager Rights
+                            </button>
+                            <button class="btn-sub-tab" data-settings-subtab="system-settings">
+                                <i class="fa-solid fa-gear"></i> System Settings
+                            </button>
+                        </div>
+
+                        <!-- 1. Company Profile -->
+                        <div id="settings-content-company-profile" class="settings-sub-tab-content active">
+                            <div class="section-card bg-glass" style="max-width: 600px; margin: 0 auto;">
                                 <h3>Company Profile</h3>
-                                <p class="text-secondary mb-3">Update your company details, logo, letterhead, and ID card signature.
-                                </p>
-                                <div style="display: flex; align-items: center; justify-content: center; padding: 20px; border: 1px dashed var(--border-color); border-radius: var(--radius-md); background: rgba(255,255,255,0.02);">
-                                    <button type="button" class="btn btn-primary" onclick="window.openCompanyProfileModal()">
-                                        <i class="fa-solid fa-building"></i> Edit Company Profile
+                                <p class="text-secondary mb-3">Update your company details, logo, letterhead, and ID card signature.</p>
+                                <div style="display: flex; align-items: center; justify-content: center; padding: 30px; border: 1px dashed var(--border-color); border-radius: var(--radius-md); background: rgba(255,255,255,0.02);">
+                                    <button type="button" class="btn btn-primary btn-lg" onclick="window.openCompanyProfileModal()">
+                                        <i class="fa-solid fa-building"></i> Open Company Profile Settings
                                     </button>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Leave Rules and Logs Config -->
-                            <div class="sections-column">
-                                <div class="section-card bg-glass">
-                                    <h3>System Audit Trail</h3>
-                                    <p class="text-secondary mb-3">View recent actions performed across the entire
-                                        system.</p>
-                                    <div class="audit-log-container scrollable-section" id="admin-audit-log-list">
-                                        <!-- Log elements dynamic -->
+                        <!-- 2. Grid Setting -->
+                        <div id="settings-content-grid-setting" class="settings-sub-tab-content hidden">
+                            <div class="section-card bg-glass" style="max-width: 600px; margin: 0 auto;">
+                                <h3>Grid Setting (Theme Colors)</h3>
+                                <p class="text-secondary mb-3">Customize your dashboard's primary color. This is saved to your personal profile.</p>
+                                <form id="settings-theme-form">
+                                    <div class="form-group">
+                                        <label for="theme-color">Primary Color</label>
+                                        <div style="display: flex; gap: 10px; align-items: center;">
+                                            <input type="color" id="theme-color" class="form-control" style="width: 60px; height: 40px; padding: 2px;" value="#0f3484">
+                                            <span id="theme-color-hex" style="font-family: monospace; color: var(--text-muted);">#0f3484</span>
+                                        </div>
                                     </div>
-                                    <button class="btn btn-sm btn-outline mt-3" id="btn-admin-clear-audit-logs"><i
-                                            class="fa-solid fa-trash-can"></i> Clear Logs</button>
+                                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-palette"></i> Save Theme</button>
+                                    <button type="button" id="btn-reset-theme" class="btn btn-outline" style="margin-left: 10px;"><i class="fa-solid fa-rotate-left"></i> Reset Default</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- 3. Admin Rights -->
+                        <div id="settings-content-admin-rights" class="settings-sub-tab-content hidden">
+                            <div class="section-card bg-glass" style="max-width: 800px; margin: 0 auto;">
+                                <h3>Admin Rights Management</h3>
+                                <p class="text-secondary mb-3">Configure access levels for secondary administrators.</p>
+                                <div class="empty-state">
+                                    <i class="fa-solid fa-user-shield text-muted" style="font-size: 40px; margin-bottom: 15px;"></i>
+                                    <p>Select an admin user to configure their rights (Coming Soon)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. Email API -->
+                        <div id="settings-content-email-api" class="settings-sub-tab-content hidden">
+                            <div class="section-card bg-glass" style="max-width: 600px; margin: 0 auto;">
+                                <h3>Email API Configuration</h3>
+                                <p class="text-secondary mb-3">Link your Email API to send automated notifications.</p>
+                                <form id="settings-email-form">
+                                    <div class="form-group">
+                                        <label for="email-api-provider">API Provider</label>
+                                        <select id="email-api-provider" class="form-control">
+                                            <option value="smtp">Custom SMTP</option>
+                                            <option value="sendgrid">SendGrid</option>
+                                            <option value="mailgun">Mailgun</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="email-api-key">API Key / Password</label>
+                                        <input type="password" id="email-api-key" class="form-control" placeholder="Enter API Key">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="email-api-sender">Sender Email Address</label>
+                                        <input type="email" id="email-api-sender" class="form-control" placeholder="noreply@yourcompany.com">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-link"></i> Save Email API</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- 5. Whatsapp API -->
+                        <div id="settings-content-whatsapp-api" class="settings-sub-tab-content hidden">
+                            <div class="section-card bg-glass" style="max-width: 600px; margin: 0 auto;">
+                                <h3>WhatsApp API Configuration</h3>
+                                <p class="text-secondary mb-3">Link your WhatsApp Business API for instant messaging.</p>
+                                <form id="settings-whatsapp-form">
+                                    <div class="form-group">
+                                        <label for="wa-api-url">API Endpoint URL</label>
+                                        <input type="url" id="wa-api-url" class="form-control" placeholder="https://api.whatsapp.com/v1/">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="wa-api-token">Access Token</label>
+                                        <input type="password" id="wa-api-token" class="form-control" placeholder="Enter Bearer Token">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="wa-api-phone">Business Phone ID</label>
+                                        <input type="text" id="wa-api-phone" class="form-control" placeholder="e.g. 1234567890">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary"><i class="fa-brands fa-whatsapp"></i> Save WhatsApp API</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- 6. Bio Metric Machine -->
+                        <div id="settings-content-biometric" class="settings-sub-tab-content hidden">
+                            <div class="section-card bg-glass" style="max-width: 600px; margin: 0 auto;">
+                                <h3>Biometric Machine Integration</h3>
+                                <p class="text-secondary mb-3">Configure local or remote biometric attendance devices.</p>
+                                <form id="settings-biometric-form">
+                                    <div class="form-group">
+                                        <label for="bio-ip">Machine IP Address</label>
+                                        <input type="text" id="bio-ip" class="form-control" placeholder="192.168.1.200">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="bio-port">Port Number</label>
+                                        <input type="number" id="bio-port" class="form-control" placeholder="4370" value="4370">
+                                    </div>
+                                    <div class="form-group" style="display: flex; align-items: center; justify-content: space-between;">
+                                        <label for="bio-auto-sync" style="margin: 0;">Auto-sync Attendance Logs</label>
+                                        <label class="switch">
+                                            <input type="checkbox" id="bio-auto-sync">
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary mt-3"><i class="fa-solid fa-fingerprint"></i> Save Configuration</button>
+                                    <button type="button" id="btn-test-biometric" class="btn btn-outline mt-3" style="margin-left: 10px;"><i class="fa-solid fa-network-wired"></i> Test Connection</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- 7. Manager Rights -->
+                        <div id="settings-content-manager-rights" class="settings-sub-tab-content hidden">
+                            <div class="section-card bg-glass" style="max-width: 600px; margin: 0 auto;">
+                                <h3>Global Manager Rights</h3>
+                                <p class="text-secondary mb-3">Toggle permissions available to users with the Manager role across the system.</p>
+                                <form id="settings-manager-rights-form">
+                                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-card);">
+                                            <div>
+                                                <h4 style="margin: 0 0 5px 0; font-size: 14px;">Approve Attendance</h4>
+                                                <p style="margin: 0; font-size: 11px; color: var(--text-muted);">Can managers approve/reject attendance records for their team?</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="mgr-right-attendance">
+                                                <span class="slider round"></span>
+                                            </label>
+                                        </div>
+
+                                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-card);">
+                                            <div>
+                                                <h4 style="margin: 0 0 5px 0; font-size: 14px;">Approve Live Requests / Leaves</h4>
+                                                <p style="margin: 0; font-size: 11px; color: var(--text-muted);">Can managers process leave applications and remote work requests?</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="mgr-right-leaves">
+                                                <span class="slider round"></span>
+                                            </label>
+                                        </div>
+
+                                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-card);">
+                                            <div>
+                                                <h4 style="margin: 0 0 5px 0; font-size: 14px;">Manage Assets</h4>
+                                                <p style="margin: 0; font-size: 11px; color: var(--text-muted);">Can managers assign and track company assets for their team?</p>
+                                            </div>
+                                            <label class="switch">
+                                                <input type="checkbox" id="mgr-right-assets">
+                                                <span class="slider round"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary mt-4"><i class="fa-solid fa-shield-halved"></i> Save Manager Rights</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- 8. System Settings (Task Weights & Audit Log) -->
+                        <div id="settings-content-system-settings" class="settings-sub-tab-content hidden">
+                            <div class="settings-grid-layout">
+                                <!-- Task Weights Config -->
+                                <div class="section-card bg-glass">
+                                    <h3>Productivity Task Weights</h3>
+                                    <p class="text-secondary mb-3">Modify weights used for calculating employee productivity scores.</p>
+                                    <form id="settings-weights-form">
+                                        <div class="form-group">
+                                            <label for="weight-billing">Billing (Base: 2)</label>
+                                            <input type="number" step="0.1" id="weight-billing" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="weight-followup">Follow-up (Base: 1)</label>
+                                            <input type="number" step="0.1" id="weight-followup" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="weight-posting">Payment Posting (Base: 1.5)</label>
+                                            <input type="number" step="0.1" id="weight-posting" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="weight-eligibility">Eligibility Check (Base: 1)</label>
+                                            <input type="number" step="0.1" id="weight-eligibility" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="weight-reporting">Report Preparation (Base: 2)</label>
+                                            <input type="number" step="0.1" id="weight-reporting" class="form-control" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Weights</button>
+                                    </form>
+                                </div>
+
+                                <!-- Leave Rules and Logs Config -->
+                                <div class="sections-column">
+                                    <div class="section-card bg-glass">
+                                        <h3>System Audit Trail</h3>
+                                        <p class="text-secondary mb-3">View recent actions performed across the entire system.</p>
+                                        <div class="audit-log-container scrollable-section" id="admin-audit-log-list">
+                                            <!-- Log elements dynamic -->
+                                        </div>
+                                        <button class="btn btn-sm btn-outline mt-3" id="btn-admin-clear-audit-logs"><i class="fa-solid fa-trash-can"></i> Clear Logs</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
