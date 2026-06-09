@@ -1029,8 +1029,8 @@
                     <div id="admin-tab-attendance" class="tab-view">
                         <div class="view-header">
                             <div>
-                                <h1>Attendance & Leave Management</h1>
-                                <p class="text-secondary">View attendance records and configure leave policies.</p>
+                                <h1>Attendance Management</h1>
+                                <p class="text-secondary">View attendance records and monitor productivity slabs.</p>
                             </div>
                             <div class="actions">
                                 <button class="btn btn-outline" id="btn-admin-mark-attendance"><i
@@ -1043,8 +1043,11 @@
                             <button class="btn-sub-tab active" data-subtab="attendance-log">
                                 <i class="fa-solid fa-calendar-days"></i> Attendance Log
                             </button>
-                            <button class="btn-sub-tab" data-subtab="leave-management">
-                                <i class="fa-solid fa-umbrella-beach"></i> Leave Management
+                            <button class="btn-sub-tab" data-subtab="attendance-my">
+                                <i class="fa-solid fa-user-check"></i> My Attendance
+                            </button>
+                            <button class="btn-sub-tab" data-subtab="attendance-slab">
+                                <i class="fa-solid fa-chart-pie"></i> Attendance Slab
                             </button>
                         </div>
 
@@ -1085,9 +1088,86 @@
                             </div>
                         </div>
 
-                        <!-- Sub-tab Content: Leave Management -->
-                        <div class="sub-tab-content hidden" id="subtab-content-leave-management">
-                            <!-- Leave Policy Config -->
+                        <!-- Sub-tab Content: My Attendance -->
+                        <div class="sub-tab-content hidden" id="subtab-content-attendance-my">
+                            <div class="section-card bg-glass">
+                                <div class="section-card-header">
+                                    <h3>My Attendance</h3>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Status</th>
+                                                <th class="text-center">Time In</th>
+                                                <th class="text-center">Time Out</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-my-attendance-table-body">
+                                            <!-- Dynamic Rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sub-tab Content: Attendance Slab -->
+                        <div class="sub-tab-content hidden" id="subtab-content-attendance-slab">
+                            <div class="section-card bg-glass">
+                                <div class="section-card-header">
+                                    <h3>Attendance Slab (Defaulters)</h3>
+                                    <div class="header-filters">
+                                        <input type="date" id="admin-slab-filter-date" class="form-control"
+                                            onchange="renderAdminAttendanceSlab()">
+                                    </div>
+                                </div>
+                                <p class="text-secondary mb-3">Showing employees marked as Late, Half Day, or Absent for the selected date.</p>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Employee ID</th>
+                                                <th>Employee Name</th>
+                                                <th>Role</th>
+                                                <th>Status</th>
+                                                <th>Contact</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-attendance-slab-table-body">
+                                            <!-- Dynamic Rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin Leave Tab -->
+                    <div id="admin-tab-leave" class="tab-view hidden">
+                        <div class="view-header">
+                            <div>
+                                <h1>Leave Management</h1>
+                                <p class="text-secondary">Configure leave policies, review employee balances, and approve requests.</p>
+                            </div>
+                        </div>
+
+                        <!-- Sub-tab Navigation -->
+                        <div class="sub-tab-nav">
+                            <button class="btn-sub-tab active" data-subtab="leave-policy">
+                                <i class="fa-solid fa-gear"></i> Leave Policy Configuration
+                            </button>
+                            <button class="btn-sub-tab" data-subtab="leave-balances">
+                                <i class="fa-solid fa-scale-balanced"></i> Employee Leave Balances
+                            </button>
+                            <button class="btn-sub-tab" data-subtab="leave-requests">
+                                <i class="fa-solid fa-envelope-open-text"></i> Leave Requests
+                            </button>
+                        </div>
+
+                        <!-- Sub-tab Content: Leave Policy Configuration -->
+                        <div class="sub-tab-content" id="subtab-content-leave-policy">
+<!-- Leave Policy Config -->
                             <div class="section-card bg-glass mb-4">
                                 <h3>Leave Policy Configuration</h3>
                                 <p class="text-secondary mb-3">Define company leave types and their default yearly
@@ -1148,7 +1228,11 @@
                                 </form>
                             </div>
 
-                            <!-- Employee Leave Balances Config -->
+                                                    </div>
+
+                        <!-- Sub-tab Content: Employee Leave Balances -->
+                        <div class="sub-tab-content hidden" id="subtab-content-leave-balances">
+<!-- Employee Leave Balances Config -->
                             <div class="section-card bg-glass mb-4">
                                 <div
                                     style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;">
@@ -1180,6 +1264,35 @@
                                 <button id="btn-toggle-emp-leave-balances" class="btn btn-outline hidden"
                                     style="margin-top: 15px; width: 100%;">Show More Employees <i
                                         class="fa-solid fa-chevron-down"></i></button>
+                            </div>
+                                                </div>
+
+                        <!-- Sub-tab Content: Leave Requests -->
+                        <div class="sub-tab-content hidden" id="subtab-content-leave-requests">
+                            <div class="section-card bg-glass">
+                                <div class="section-card-header">
+                                    <h3>Global Leave Requests</h3>
+                                </div>
+                                <p class="text-secondary mb-3">Review and approve leave requests from all employees and managers.</p>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date Submitted</th>
+                                                <th>Employee</th>
+                                                <th>Role</th>
+                                                <th>Leave Type</th>
+                                                <th>Duration</th>
+                                                <th>Reason</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-leave-requests-table-body">
+                                            <!-- Dynamic Rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>

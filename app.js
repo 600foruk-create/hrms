@@ -541,7 +541,8 @@ function renderSidebar() {
             <a class="sidebar-link active" data-tab="dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
             <a class="sidebar-link" data-tab="recruitment"><i class="fa-solid fa-user-plus"></i> Recruitment</a>
             <a class="sidebar-link" data-tab="employees"><i class="fa-solid fa-users"></i> Employees</a>
-            <a class="sidebar-link" data-tab="attendance"><i class="fa-solid fa-calendar-days"></i> Attendance/Leave</a>
+            <a class="sidebar-link" data-tab="attendance"><i class="fa-solid fa-calendar-days"></i> Attendance</a>
+            <a class="sidebar-link" data-tab="leave"><i class="fa-solid fa-umbrella-beach"></i> Leave</a>
             <a class="sidebar-link" data-tab="payroll"><i class="fa-solid fa-money-check-dollar"></i> Payroll</a>
             <a class="sidebar-link" data-tab="productivity"><i class="fa-solid fa-bolt"></i> Tasks/Productivity</a>
             <a class="sidebar-link" data-tab="assets"><i class="fa-solid fa-laptop"></i> Assets</a>
@@ -591,7 +592,7 @@ function switchTab(tabId) {
     // Update Sidebar Selection active state
     document.querySelectorAll('.sidebar-link').forEach(link => {
         const dataTab = link.getAttribute('data-tab');
-        if (dataTab === tabId || (dataTab === 'attendance' && tabId === 'leave' && currentUser.role === 'Admin')) {
+        if (dataTab === tabId) {
             link.classList.add('active');
         } else {
             link.classList.remove('active');
@@ -1182,7 +1183,6 @@ window.reactivateEmployee = async function(userId) {
 };
 
 function renderAdminAttendanceTab() {
-    renderLeaveTypes();
     const db = getDb();
 
     const dateInput = document.getElementById('admin-attendance-filter-date');
@@ -1238,6 +1238,9 @@ function renderAdminAttendanceTab() {
             `;
         });
     }
+    
+    renderAdminMyAttendance();
+    renderAdminAttendanceSlab();
 }
 
 function renderAdminProductivityTab() {
@@ -1247,6 +1250,83 @@ function renderAdminProductivityTab() {
     // Populated by productivity.js
 }
 
+
+function renderAdminMyAttendance() {
+    const db = getDb();
+    const tableBody = document.getElementById('admin-my-attendance-table-body');
+    tableBody.innerHTML = '';
+    
+    let logs = db.attendance.filter(l => l.employeeId === currentUser.id);
+    logs.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    if (logs.length === 0) {
+        tableBody.innerHTML = <tr><td colspan="4" class="empty-state">No attendance records found.</td></tr>;
+    } else {
+        logs.forEach(log => {
+            const cleanTimeIn = (log.timeIn && log.timeIn.includes(':')) ? log.timeIn : '-';
+            const cleanTimeOut = (log.timeOut && log.timeOut.includes(':')) ? log.timeOut : '-';
+            tableBody.innerHTML += 
+                <tr>
+                    <td></td>
+                    <td><span class="badge-status "></span></td>
+                    <td class="text-center"></td>
+                    <td class="text-center"></td>
+                </tr>
+            ;
+        });
+    }
+}
+
+function renderAdminAttendanceSlab() {
+    const db = getDb();
+    const dateInput = document.getElementById('admin-slab-filter-date');
+    if (!dateInput.value) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+    }
+    const filterDate = dateInput.value;
+    
+    const tableBody = document.getElementById('admin-attendance-slab-table-body');
+    tableBody.innerHTML = '';
+    
+    // Get all users except admin (or include admin too, but usually employees)
+    const users = db.users.filter(u => u.status !== 'Inactive');
+    
+    let defaulters = [];
+    
+    users.forEach(u => {
+        const log = db.attendance.find(l => l.employeeId === u.id && l.date === filterDate);
+        let status = 'Absent';
+        if (log) {
+            status = log.status;
+        }
+        
+        if (status === 'Absent' || status === 'Half Day' || status === 'Late') {
+            defaulters.push({
+                employeeId: u.displayId || u.id,
+                employeeName: u.name,
+                role: u.role,
+                status: status,
+                contact: u.phone || u.email
+            });
+        }
+    });
+    
+    if (defaulters.length === 0) {
+        tableBody.innerHTML = <tr><td colspan="5" class="empty-state">No defaulters found for this date.</td></tr>;
+    } else {
+        defaulters.forEach(d => {
+            tableBody.innerHTML += 
+                <tr>
+                    <td class="text-secondary"></td>
+                    <td class="bold"></td>
+                    <td><span class="badge-role "></span></td>
+                    <td><span class="badge-status rejected"></span></td>
+                    <td class="italic"></td>
+                </tr>
+            ;
+        });
+    }
+}
 function renderAdminLeaveTab() {
     renderLeaveTypes();
     const db = getDb();
