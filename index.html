@@ -1652,33 +1652,13 @@
                             <!-- Company Profile Config -->
                             <div class="section-card bg-glass">
                                 <h3>Company Profile</h3>
-                                <p class="text-secondary mb-3">Update your company details and logo for the dashboard.
+                                <p class="text-secondary mb-3">Update your company details, logo, letterhead, and ID card signature.
                                 </p>
-                                <form id="settings-company-form">
-                                    <div class="form-group">
-                                        <label for="company-name">Company Name</label>
-                                        <input type="text" id="company-name" class="form-control" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="company-address">Address</label>
-                                        <input type="text" id="company-address" class="form-control" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="company-contact">Contact Number</label>
-                                        <input type="text" id="company-contact" class="form-control" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="company-fax">Fax</label>
-                                        <input type="text" id="company-fax" class="form-control">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="company-logo">Logo URL (Optional)</label>
-                                        <input type="text" id="company-logo" class="form-control"
-                                            placeholder="https://example.com/logo.png">
-                                    </div>
-                                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-building"></i>
-                                        Save Profile</button>
-                                </form>
+                                <div style="display: flex; align-items: center; justify-content: center; padding: 20px; border: 1px dashed var(--border-color); border-radius: var(--radius-md); background: rgba(255,255,255,0.02);">
+                                    <button type="button" class="btn btn-primary" onclick="window.openCompanyProfileModal()">
+                                        <i class="fa-solid fa-building"></i> Edit Company Profile
+                                    </button>
+                                </div>
                             </div>
 
                             <!-- Leave Rules and Logs Config -->
