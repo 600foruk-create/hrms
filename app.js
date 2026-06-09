@@ -237,6 +237,10 @@ function applyCompanyProfile(db) {
     const companyName = cp.name || (db.weights && db.weights['company_name']) || 'OceanStack';
     const companyLogo = cp.logoBase64 || (db.weights && db.weights['company_logo']) || '';
 
+    /* === HARDCODED LOGO & NAME ===
+       Dynamic sidebar update is disabled so that the hardcoded 'Softifyx' 
+       and logo in index.html are not overwritten.
+    
     document.getElementById('sidebar-company-name').innerHTML = `${companyName}`;
     const logoIcon = document.getElementById('sidebar-company-icon');
     if (companyLogo) {
@@ -250,6 +254,7 @@ function applyCompanyProfile(db) {
             </svg>
         `;
     }
+    */
 }
 
 function populateLoginDropdown() {
