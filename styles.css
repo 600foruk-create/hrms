@@ -484,11 +484,11 @@ body.light-mode .auth-card {
     backdrop-filter: blur(20px);
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: calc(100vh - 70px);
     position: fixed;
-    top: 0;
+    top: 70px;
     left: 0;
-    z-index: 100;
+    z-index: 990;
     transition: var(--transition);
 }
 .sidebar-header {
@@ -655,9 +655,11 @@ body.light-mode .sidebar-link:hover {
     background: var(--bg-surface);
     border-bottom: 1px solid var(--border-color);
     backdrop-filter: blur(16px);
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 90;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
 }
 .topbar-left {
     display: flex;

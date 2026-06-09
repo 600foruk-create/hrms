@@ -410,42 +410,18 @@
 
     <!-- ==================== MAIN DASHBOARD SHELL ==================== -->
     <div id="app-shell" class="app-shell hidden">
-        <!-- Sidebar Navigation -->
-        <aside class="sidebar" style="border-right: none;">
-            <div class="sidebar-header" style="overflow: visible; position: relative; background: var(--bg-surface); border-bottom: 1px solid var(--border-color); border-right: none; height: 70px;">
-                <div id="btn-company-profile" style="cursor: pointer; display: flex; align-items: center; gap: 10px; z-index: 100;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+        <!-- Top Bar (Full Width) -->
+        <header class="topbar" style="position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; background: var(--bg-surface); border-bottom: 1px solid var(--border-color); backdrop-filter: blur(16px);">
+            <div class="topbar-left" style="display: flex; align-items: center; gap: 15px;">
+                <div id="btn-company-profile" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
                     <div class="logo-icon" id="sidebar-company-icon" style="display: flex; align-items: center;">
                         <img src="assets/images/my_logo.png" style="max-height: 28px; object-fit: contain;" alt="Logo">
                     </div>
                     <span class="d-none d-md-inline" style="font-size: 15px; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.3px; white-space: nowrap;">HRMS Software by Softifyx licensed to</span>
                     <strong id="sidebar-company-name" style="font-size: 18px; font-weight: 900; color: var(--primary); font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;">Softifyx</strong>
                 </div>
-                <button class="sidebar-close-mobile" id="btn-sidebar-close" style="position: absolute; right: 15px; top: 22px;"><i class="fa-solid fa-xmark"></i></button>
+                <button class="sidebar-toggle" id="btn-sidebar-toggle" style="margin-left: 10px;"><i class="fa-solid fa-bars"></i></button>
             </div>
-
-            <!-- Dynamic Sidebar Menu -->
-            <nav class="sidebar-menu" id="sidebar-menu" style="padding-top: 15px;">
-                <!-- Links will be populated dynamically based on active user role -->
-            </nav>
-
-
-
-            <div class="sidebar-footer"
-                style="margin-top: auto; border-top: 1px solid var(--border-color); padding: 1rem 1.25rem;">
-                <button class="btn-block" id="btn-logout"
-                    style="background: transparent; border: none; color: #ff7675; font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 12px; width: 100%; transition: var(--transition); border-radius: var(--radius-sm); text-align: left; justify-content: flex-start; align-content: center;">
-                    <i class="fa-solid fa-power-off"></i> <span>Logout</span>
-                </button>
-            </div>
-        </aside>
-
-        <!-- Main Content Area -->
-        <div class="main-layout">
-            <!-- Top Bar -->
-            <header class="topbar">
-                <div class="topbar-left" style="display: flex; align-items: center; gap: 15px;">
-                    <button class="sidebar-toggle" id="btn-sidebar-toggle"><i class="fa-solid fa-bars"></i></button>
-                </div>
                 <div class="topbar-right" style="gap: 12px; align-items: center; display: flex;">
                     <!-- Attendance Punch Button -->
                     <button class="topbar-btn" id="btn-punch-attendance"
@@ -518,6 +494,26 @@
                 </div>
             </header>
 
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <button class="sidebar-close-mobile" id="btn-sidebar-close" style="position: absolute; right: 15px; top: 15px;"><i class="fa-solid fa-xmark"></i></button>
+
+            <!-- Dynamic Sidebar Menu -->
+            <nav class="sidebar-menu" id="sidebar-menu" style="padding-top: 15px;">
+                <!-- Links will be populated dynamically based on active user role -->
+            </nav>
+
+            <div class="sidebar-footer"
+                style="margin-top: auto; border-top: 1px solid var(--border-color); padding: 1rem 1.25rem;">
+                <button class="btn-block" id="btn-logout"
+                    style="background: transparent; border: none; color: #ff7675; font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 12px; width: 100%; transition: var(--transition); border-radius: var(--radius-sm); text-align: left; justify-content: flex-start; align-content: center;">
+                    <i class="fa-solid fa-power-off"></i> <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="main-layout" style="margin-top: 70px;">
             <main class="content-body">
                 <!-- ==================== ADMIN VIEW ==================== -->
                 <div id="admin-view" class="role-view">
