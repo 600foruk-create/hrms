@@ -244,6 +244,14 @@ function applyCompanyProfile(db) {
     if (companyNameEl) {
         companyNameEl.innerHTML = `${companyName}`;
     }
+    const logoIcon = document.getElementById('sidebar-company-icon');
+    if (logoIcon) {
+        if (companyLogo) {
+            logoIcon.innerHTML = `<img src="${companyLogo}" alt="Logo" style="max-height:28px; max-width:100%; object-fit:contain;">`;
+        } else {
+            logoIcon.innerHTML = `<img src="assets/images/my_logo.png" alt="Softifyx Logo" style="max-height:28px; object-fit:contain;">`;
+        }
+    }
 }
 
 function populateLoginDropdown() {

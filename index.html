@@ -439,9 +439,12 @@
             <header class="topbar">
                 <div class="topbar-left" style="display: flex; align-items: center; gap: 15px;">
                     <button class="sidebar-toggle" id="btn-sidebar-toggle"><i class="fa-solid fa-bars"></i></button>
-                    <div id="btn-company-profile" style="cursor: pointer; display: flex; align-items: center; gap: 6px;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-                        <span style="font-size: 14px; font-weight: 500; color: var(--text-secondary); white-space: nowrap;">HRMS Software by Softifyx licensed to</span>
-                        <strong id="sidebar-company-name" style="font-size: 15px; font-weight: 800; color: var(--primary);">Softifyx</strong>
+                    <div id="btn-company-profile" style="cursor: pointer; display: flex; align-items: center; gap: 10px;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                        <div class="logo-icon" id="sidebar-company-icon" style="display: flex; align-items: center;">
+                            <img src="assets/images/my_logo.png" style="max-height: 28px; object-fit: contain;" alt="Logo">
+                        </div>
+                        <span style="font-size: 15px; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.3px; white-space: nowrap;">HRMS Software by Softifyx licensed to</span>
+                        <strong id="sidebar-company-name" style="font-size: 18px; font-weight: 900; color: var(--primary); font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 0.5px;">Softifyx</strong>
                     </div>
                 </div>
                 <div class="topbar-right" style="gap: 12px; align-items: center; display: flex;">
