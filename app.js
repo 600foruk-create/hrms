@@ -1409,16 +1409,8 @@ function renderAdminAnnouncementsTab() {
 
 function renderAdminSettingsTab() {
     const db = getDb();
-    const weights = db.weights;
 
-    // Fill Weights form fields
-    document.getElementById('weight-billing').value = weights["Billing"];
-    document.getElementById('weight-followup').value = weights["Follow-up"];
-    document.getElementById('weight-posting').value = weights["Payment Posting"];
-    document.getElementById('weight-eligibility').value = weights["Eligibility Check"];
-    document.getElementById('weight-reporting').value = weights["Report Preparation"];
 
-    renderAuditLogs();
 
     // Initialize Settings Object if missing
     if (!db.settings) db.settings = {};
