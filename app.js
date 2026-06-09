@@ -113,12 +113,14 @@ async function saveDb(data) {
         if (result.status !== 'success') {
             console.error("Sync Error:", result.message);
             showToast("Server Sync Error", "Failed to backup data to server: " + result.message, "error");
+            alert("SERVER ERROR: " + result.message);
             return false;
         }
         return true;
     } catch (error) {
         console.error("Network Error:", error);
         showToast("Server Sync Error", "Could not connect to database server.", "error");
+        alert("NETWORK/JSON ERROR: " + error.message);
         return false;
     }
 }
