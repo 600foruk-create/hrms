@@ -1147,7 +1147,7 @@ function renderAdminEmployeesTab() {
                         <td>${user.startDate || '-'}</td>
                         <td class="text-danger bold">${user.endDate || '-'}</td>
                         <td style="text-align: center;">
-                            <button class="btn-action-circle" onclick="window.reactivateEmployee('${user.id}')" tooltip="Reactivate" style="color: var(--success);"><i class="fa-solid fa-user-check"></i></button>
+                            <button class="btn-action-circle" onclick="window.reactivateEmployee('${user.id}')" tooltip="Re-Active" style="color: var(--success);"><i class="fa-solid fa-user-check"></i></button>
                         </td>
                     </tr>
                 `;
@@ -1156,18 +1156,21 @@ function renderAdminEmployeesTab() {
     }
 }
 
-window.reactivateEmployee = function(userId) {
+window.reactivateEmployee = async function(userId) {
     if (!confirm("Are you sure you want to reactivate this employee?")) return;
     const db = getDb();
     const user = db.users.find(u => u.id === userId);
     if (user) {
         user.status = 'Active';
         user.endDate = null;
-        saveDb(db);
-        showToast("Employee Reactivated", `${user.name} has been marked as active.`, "success");
-        renderAdminDashboard();
-        const empBtn = document.querySelector('.btn-sub-tab[data-subtab="employees"]');
-        if (empBtn) empBtn.click();
+        
+        const saved = await saveDb(db);
+        if(saved) {
+            showToast("Employee Reactivated", `${user.name} has been marked as active.`, "success");
+            renderAdminDashboard();
+            const empBtn = document.querySelector('.btn-sub-tab[data-subtab="employees"]');
+            if (empBtn) empBtn.click();
+        }
     }
 };
 
