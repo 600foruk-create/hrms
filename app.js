@@ -111,16 +111,14 @@ async function saveDb(data) {
         });
         const result = await response.json();
         if (result.status !== 'success') {
-            console.error("Sync Error:", result.message);
-            showToast("Server Sync Error", "Failed to backup data to server: " + result.message, "error");
-            alert("SERVER ERROR: " + result.message);
+            console.warn("Sync Warning: Failed to backup data to server: " + result.message);
+            // We rely on localStorage fallback, so no alert/toast is shown to disrupt user
             return false;
         }
         return true;
     } catch (error) {
-        console.error("Network Error:", error);
-        showToast("Server Sync Error", "Could not connect to database server.", "error");
-        alert("NETWORK/JSON ERROR: " + error.message);
+        console.warn("Network Warning: Could not connect to database server. Using local storage.", error);
+        // Silently fail network sync so user only sees the success toast of their action
         return false;
     }
 }
