@@ -2396,8 +2396,8 @@ window.viewEmployeeCard = function(userId) {
     // Populate Avatar
     const avatarImg = document.getElementById('id-card-avatar');
     const avatarPlaceholder = document.getElementById('id-card-avatar-placeholder');
-    if (user.avatarBase64) {
-        avatarImg.src = user.avatarBase64;
+    if (user.profilePic) {
+        avatarImg.src = user.profilePic;
         avatarImg.style.display = 'block';
         avatarPlaceholder.style.display = 'none';
     } else {
@@ -2435,7 +2435,7 @@ window.viewUserProfile = function (userId) {
 
     const avatarEl = document.getElementById('profile-avatar');
     if (user.profilePic) {
-        avatarEl.innerHTML = `<a href="${user.profilePic}" target="_blank" title="Click to view full image"><img src="${user.profilePic}" style="width:100%;height:100%;object-fit:cover;" alt="Profile Picture"></a>`;
+        avatarEl.innerHTML = `<img src="${user.profilePic}" style="width:100%;height:100%;object-fit:cover;" alt="Profile Picture">`;
     } else {
         avatarEl.textContent = user.name.charAt(0).toUpperCase();
     }
