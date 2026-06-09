@@ -2521,7 +2521,7 @@ body.light-mode .btn-sub-tab:hover {
     margin: 0;
     font-size: 14px;
     font-weight: 700;
-    color: #fff;
+    color: var(--text-primary);
 }
 .team-leader-info span {
     font-size: 10px;
@@ -2556,8 +2556,9 @@ body.light-mode .btn-sub-tab:hover {
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.05);
-    color: #fff;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2572,7 +2573,7 @@ body.light-mode .btn-sub-tab:hover {
 .team-member-name {
     font-size: 12.5px;
     font-weight: 600;
-    color: #fff;
+    color: var(--text-primary);
 }
 .team-member-email {
     font-size: 10.5px;
