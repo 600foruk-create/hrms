@@ -77,8 +77,20 @@ window.renderPayrollHistory = function() {
         visibleCount++;
         
         const basic = parseInt(user?.salary) || 0;
-        const fixedDed = record.fixedDeductions !== undefined ? record.fixedDeductions : 0;
-        const fixedAll = record.fixedAllowances !== undefined ? record.fixedAllowances : ((record.netFixed - basic) > 0 ? (record.netFixed - basic) : 0);
+        let fixedDed = record.fixedDeductions;
+        let fixedAll = record.fixedAllowances;
+        
+        if (fixedDed === undefined || fixedAll === undefined) {
+            const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
+            let profile = db.salaryProfiles?.find(p => p.userId === record.userId);
+            let allowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
+            let deductions = profile && profile.isCustomSlab ? (profile.deductions || []) : (globalSlab.deductions || []);
+            
+            fixedAll = 0;
+            allowances.forEach(a => { fixedAll += (a.type === 'percentage') ? (basic * (parseFloat(a.value)||0)) / 100 : (parseFloat(a.value)||0); });
+            fixedDed = 0;
+            deductions.forEach(d => { fixedDed += (d.type === 'percentage') ? (basic * (parseFloat(d.value)||0)) / 100 : (parseFloat(d.value)||0); });
+        }
 
         const totalDed = fixedDed + (record.absencyDeduction || 0) + (record.loanDeduction || 0) + (record.otherDeduction || 0);
         const totalAdd = fixedAll + (record.bonus || 0);
@@ -159,9 +171,20 @@ window.openMonthlySummaryModal = function() {
         
         const basic = parseInt(user?.salary) || 0;
         
-        // Calculate correctly using explicit stored fixed portions if available
-        const fixedDed = record.fixedDeductions !== undefined ? record.fixedDeductions : 0;
-        const fixedAll = record.fixedAllowances !== undefined ? record.fixedAllowances : ((record.netFixed - basic) > 0 ? (record.netFixed - basic) : 0);
+        let fixedDed = record.fixedDeductions;
+        let fixedAll = record.fixedAllowances;
+        
+        if (fixedDed === undefined || fixedAll === undefined) {
+            const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
+            let profile = db.salaryProfiles?.find(p => p.userId === record.userId);
+            let allowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
+            let deductions = profile && profile.isCustomSlab ? (profile.deductions || []) : (globalSlab.deductions || []);
+            
+            fixedAll = 0;
+            allowances.forEach(a => { fixedAll += (a.type === 'percentage') ? (basic * (parseFloat(a.value)||0)) / 100 : (parseFloat(a.value)||0); });
+            fixedDed = 0;
+            deductions.forEach(d => { fixedDed += (d.type === 'percentage') ? (basic * (parseFloat(d.value)||0)) / 100 : (parseFloat(d.value)||0); });
+        }
 
         const totalDed = fixedDed + (record.absencyDeduction || 0) + (record.loanDeduction || 0) + (record.otherDeduction || 0);
         const totalAdd = fixedAll + (record.bonus || 0); 
