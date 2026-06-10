@@ -2584,17 +2584,18 @@ window.openCompanyProfileModal = function () {
     document.getElementById('comp-industry').value = cp.industry || '';
     document.getElementById('comp-size').value = cp.size || '';
     document.getElementById('comp-type').value = cp.type || '';
-    
-    document.getElementById('bp-bank-name').value = cp.bankName || '';
-    document.getElementById('bp-branch-code').value = cp.bankBranchCode || '';
-    document.getElementById('bp-account-no').value = cp.bankAccountNo || '';
-    document.getElementById('bp-signatory').value = cp.signatory || '';
+    const bp = (!db.bankProfile || Array.isArray(db.bankProfile)) ? {} : db.bankProfile;
+    document.getElementById('bp-bank-name').value = bp.bankName || '';
+    document.getElementById('bp-branch-code').value = bp.bankBranchCode || '';
+    document.getElementById('bp-account-no').value = bp.bankAccountNo || '';
+    document.getElementById('bp-signatory').value = bp.signatory || '';
     if (document.getElementById('bp-signatory-designation')) {
-        document.getElementById('bp-signatory-designation').value = cp.signatoryDesignation || '';
+        document.getElementById('bp-signatory-designation').value = bp.signatoryDesignation || '';
     }
     
-    document.getElementById('bp-letter-header').value = cp.bankLetterHeader || 'We, M/s [COMPANY_NAME], kindly request you to transfer the monthly salaries from our company account No. [ACCOUNT_NO] to the individual accounts of our employees as per the details mentioned below:';
-    document.getElementById('bp-letter-footer').value = cp.bankLetterFooter || 'We authorize the bank to debit our Company Account No. [ACCOUNT_NO] for the total salary disbursement and transfer the respective net amounts into the employees\' individual bank accounts mentioned above.\nIf any further information or documentation is required, please let us know.\nThank you for your cooperation.\nSincerely,';
+    let bankProfile = (!db.bankProfile || Array.isArray(db.bankProfile)) ? {} : db.bankProfile;
+    document.getElementById('bp-letter-header').value = bankProfile.bankLetterHeader || 'We, M/s [COMPANY_NAME], kindly request you to transfer the monthly salaries from our company account No. [ACCOUNT_NO] to the individual accounts of our employees as per the details mentioned below:';
+    document.getElementById('bp-letter-footer').value = bankProfile.bankLetterFooter || 'We authorize the bank to debit our Company Account No. [ACCOUNT_NO] for the total salary disbursement and transfer the respective net amounts into the employees\' individual bank accounts mentioned above.\nIf any further information or documentation is required, please let us know.\nThank you for your cooperation.\nSincerely,';
 
     if (document.getElementById('payroll-lock-enabled')) {
         document.getElementById('payroll-lock-enabled').checked = !!cp.payrollLockEnabled;
@@ -3722,21 +3723,21 @@ window.saveBankProfile = async function() {
     const db = getDb();
     if (!db) return;
     
-    if (!db.companyProfile || Array.isArray(db.companyProfile)) {
-        db.companyProfile = {};
+    if (!db.bankProfile || Array.isArray(db.bankProfile)) {
+        db.bankProfile = {};
     }
-    const cp = db.companyProfile;
+    const bp = db.bankProfile;
     
-    cp.bankName = document.getElementById('bp-bank-name').value;
-    cp.bankBranchCode = document.getElementById('bp-branch-code').value;
-    cp.bankAccountNo = document.getElementById('bp-account-no').value;
-    cp.signatory = document.getElementById('bp-signatory').value;
+    bp.bankName = document.getElementById('bp-bank-name').value;
+    bp.bankBranchCode = document.getElementById('bp-branch-code').value;
+    bp.bankAccountNo = document.getElementById('bp-account-no').value;
+    bp.signatory = document.getElementById('bp-signatory').value;
     if (document.getElementById('bp-signatory-designation')) {
-        cp.signatoryDesignation = document.getElementById('bp-signatory-designation').value;
+        bp.signatoryDesignation = document.getElementById('bp-signatory-designation').value;
     }
     
-    cp.bankLetterHeader = document.getElementById('bp-letter-header').value;
-    cp.bankLetterFooter = document.getElementById('bp-letter-footer').value;
+    bp.bankLetterHeader = document.getElementById('bp-letter-header').value;
+    bp.bankLetterFooter = document.getElementById('bp-letter-footer').value;
     
     showToast("Bank Profile", "Bank settings and letter text saved successfully.");
     saveDb(db); // Background sync

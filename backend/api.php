@@ -136,14 +136,20 @@ try {
     try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `letterheadBase64` longtext DEFAULT NULL"); } catch (Exception $ex) {}
     try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `signatureBase64` longtext DEFAULT NULL"); } catch (Exception $ex) {}
     
-    // Add Bank & Payroll columns
-    try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `bankName` varchar(150) DEFAULT NULL"); } catch (Exception $ex) {}
-    try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `bankBranchCode` varchar(50) DEFAULT NULL"); } catch (Exception $ex) {}
-    try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `bankAccountNo` varchar(100) DEFAULT NULL"); } catch (Exception $ex) {}
-    try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `signatory` varchar(150) DEFAULT NULL"); } catch (Exception $ex) {}
-    try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `signatoryDesignation` varchar(150) DEFAULT NULL"); } catch (Exception $ex) {}
-    try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `bankLetterHeader` longtext DEFAULT NULL"); } catch (Exception $ex) {}
-    try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `bankLetterFooter` longtext DEFAULT NULL"); } catch (Exception $ex) {}
+    // Ensure bank_profile table exists
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `bank_profile` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `bankName` varchar(150) DEFAULT NULL,
+        `bankBranchCode` varchar(50) DEFAULT NULL,
+        `bankAccountNo` varchar(100) DEFAULT NULL,
+        `signatory` varchar(150) DEFAULT NULL,
+        `signatoryDesignation` varchar(150) DEFAULT NULL,
+        `bankLetterHeader` longtext DEFAULT NULL,
+        `bankLetterFooter` longtext DEFAULT NULL,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    
+    // Add Payroll columns to company_profile
     try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockEnabled` tinyint(1) DEFAULT 0"); } catch (Exception $ex) {}
     try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockDate` int(11) DEFAULT 1"); } catch (Exception $ex) {}
     try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockStartDate` varchar(50) DEFAULT NULL"); } catch (Exception $ex) {}
@@ -167,28 +173,17 @@ try {
             `letterheadBase64` TEXT,
             `signatureBase64` TEXT,
             `leaveTypes` TEXT,
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `bank_profile` (
+            `id` INTEGER PRIMARY KEY AUTOINCREMENT,
             `bankName` TEXT,
             `bankBranchCode` TEXT,
             `bankAccountNo` TEXT,
             `signatory` TEXT,
             `signatoryDesignation` TEXT,
             `bankLetterHeader` TEXT,
-            `bankLetterFooter` TEXT,
-            `payrollLockEnabled` INTEGER DEFAULT 0,
-            `payrollLockDate` INTEGER DEFAULT 1,
-            `payrollLockStartDate` TEXT,
-            `payrollLockEndDate` TEXT
+            `bankLetterFooter` TEXT
         )");
-        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `leaveTypes` TEXT"); } catch (Exception $ex) {}
-        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `letterheadBase64` TEXT"); } catch (Exception $ex) {}
-        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `signatureBase64` TEXT"); } catch (Exception $ex) {}
-        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `bankName` TEXT"); } catch (Exception $ex) {}
-        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `bankBranchCode` TEXT"); } catch (Exception $ex) {}
-        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `bankAccountNo` TEXT"); } catch (Exception $ex) {}
-        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `signatory` TEXT"); } catch (Exception $ex) {}
-        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `signatoryDesignation` TEXT"); } catch (Exception $ex) {}
-        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `bankLetterHeader` TEXT"); } catch (Exception $ex) {}
-        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `bankLetterFooter` TEXT"); } catch (Exception $ex) {}
+        
         try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockEnabled` INTEGER DEFAULT 0"); } catch (Exception $ex) {}
         try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockDate` INTEGER DEFAULT 1"); } catch (Exception $ex) {}
         try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockStartDate` TEXT"); } catch (Exception $ex) {}
@@ -315,6 +310,15 @@ if ($action === 'load_all') {
         } else {
             $dbState['companyProfile'] = new stdClass();
             $dbState['companyProfile']->leaveTypes = [];
+        }
+
+        // Fetch Bank Profile
+        $stmt = $pdo->query("SELECT * FROM bank_profile LIMIT 1");
+        $bpRow = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($bpRow) {
+            $dbState['bankProfile'] = $bpRow;
+        } else {
+            $dbState['bankProfile'] = new stdClass();
         }
 
         // Fetch Payroll & Salary Data
@@ -506,20 +510,29 @@ elseif ($action === 'save_all') {
         $pdo->exec("DELETE FROM company_profile");
         if (!empty($data['companyProfile'])) {
             $cp = $data['companyProfile'];
-            $stmt = $pdo->prepare("INSERT INTO company_profile (name, email, phone, website, address, reg, slogan, industry, size, type, logoBase64, letterheadBase64, signatureBase64, leaveTypes, bankName, bankBranchCode, bankAccountNo, signatory, signatoryDesignation, bankLetterHeader, bankLetterFooter, payrollLockEnabled, payrollLockDate, payrollLockStartDate, payrollLockEndDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO company_profile (name, email, phone, website, address, reg, slogan, industry, size, type, logoBase64, letterheadBase64, signatureBase64, leaveTypes, payrollLockEnabled, payrollLockDate, payrollLockStartDate, payrollLockEndDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $cp['name'] ?? '', $cp['email'] ?? '', $cp['phone'] ?? '', $cp['website'] ?? '',
                 $cp['address'] ?? '', $cp['reg'] ?? '', $cp['slogan'] ?? '', $cp['industry'] ?? '',
                 $cp['size'] ?? '', $cp['type'] ?? '', $cp['logoBase64'] ?? '', $cp['letterheadBase64'] ?? '',
                 $cp['signatureBase64'] ?? '',
                 !empty($cp['leaveTypes']) ? json_encode($cp['leaveTypes']) : null,
-                $cp['bankName'] ?? '', $cp['bankBranchCode'] ?? '', $cp['bankAccountNo'] ?? '',
-                $cp['signatory'] ?? '', $cp['signatoryDesignation'] ?? '',
-                $cp['bankLetterHeader'] ?? '', $cp['bankLetterFooter'] ?? '',
                 !empty($cp['payrollLockEnabled']) ? 1 : 0, 
                 $cp['payrollLockDate'] ?? 1,
                 $cp['payrollLockStartDate'] ?? '', 
                 $cp['payrollLockEndDate'] ?? ''
+            ]);
+        }
+        
+        // 9.5 Sync Bank Profile
+        $pdo->exec("DELETE FROM bank_profile");
+        if (!empty($data['bankProfile'])) {
+            $bp = $data['bankProfile'];
+            $stmt = $pdo->prepare("INSERT INTO bank_profile (bankName, bankBranchCode, bankAccountNo, signatory, signatoryDesignation, bankLetterHeader, bankLetterFooter) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $bp['bankName'] ?? '', $bp['bankBranchCode'] ?? '', $bp['bankAccountNo'] ?? '',
+                $bp['signatory'] ?? '', $bp['signatoryDesignation'] ?? '',
+                $bp['bankLetterHeader'] ?? '', $bp['bankLetterFooter'] ?? ''
             ]);
         }
 
