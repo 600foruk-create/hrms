@@ -1878,8 +1878,12 @@
                                             <input type="text" id="bp-account-no" class="form-control" placeholder="e.g. PK14ABPA0010115923650010">
                                         </div>
                                         <div class="form-group">
-                                            <label for="bp-signatory">Signatory Name & Title</label>
-                                            <input type="text" id="bp-signatory" class="form-control" placeholder="e.g. Laal Muhammad - Managing Partner">
+                                            <label for="bp-signatory">Signatory Name</label>
+                                            <input type="text" id="bp-signatory" class="form-control" placeholder="e.g. Laal Muhammad">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="bp-signatory-designation">Signatory Designation</label>
+                                            <input type="text" id="bp-signatory-designation" class="form-control" placeholder="e.g. Managing Partner">
                                         </div>
                                     </div>
 
@@ -3638,6 +3642,30 @@
         </div>
     </div>
     
+    <!-- Bank Letter Cheque Data Pre-Modal -->
+    <div id="modal-bank-letter-pre" class="modal hidden" style="max-width: 500px; width: 95%;">
+        <div class="modal-header">
+            <h3>Bank Letter Details</h3>
+            <div class="modal-header-controls">
+                <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        <div class="modal-body" style="padding: 20px;">
+            <div class="form-group mb-3">
+                <label>Cheque Number</label>
+                <input type="text" id="bank-letter-cheque-no" class="form-control" placeholder="e.g. O4637594">
+            </div>
+            <div class="form-group mb-4">
+                <label>Cheque Date</label>
+                <input type="date" id="bank-letter-date" class="form-control">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="btn btn-outline" onclick="document.getElementById('modal-bank-letter-pre').classList.add('hidden'); document.getElementById('modal-overlay').classList.add('hidden');">Close</button>
+                <button class="btn btn-primary" onclick="if(window.generateBankLetter) window.generateBankLetter()">Next <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Print Bank Letter Modal -->
     <div id="modal-bank-letter" class="modal hidden" style="max-width: 900px; width: 95%;">
         <div class="modal-header no-print">
@@ -3647,17 +3675,6 @@
                 <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
             </div>
         </div>
-        <div class="modal-body no-print" style="padding: 20px; border-bottom: 1px solid var(--border-color);">
-            <div class="form-grid-2">
-                <div class="form-group">
-                    <label>Cheque Number</label>
-                    <input type="text" id="bank-letter-cheque-no" class="form-control" placeholder="e.g. O4637594" oninput="updateBankLetterPreview()">
-                </div>
-                <div class="form-group">
-                    <label>Cheque Date</label>
-                    <input type="date" id="bank-letter-date" class="form-control" onchange="updateBankLetterPreview()">
-                </div>
-            </div>
         </div>
         <div class="modal-body" id="bank-letter-print-area" style="background: white; color: black; border-radius: 0 0 8px 8px; padding: 30px; font-family: 'Inter', sans-serif;">
             <!-- Content injected via JS -->

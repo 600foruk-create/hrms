@@ -2589,6 +2589,9 @@ window.openCompanyProfileModal = function () {
     document.getElementById('bp-branch-code').value = cp.bankBranchCode || '';
     document.getElementById('bp-account-no').value = cp.bankAccountNo || '';
     document.getElementById('bp-signatory').value = cp.signatory || '';
+    if (document.getElementById('bp-signatory-designation')) {
+        document.getElementById('bp-signatory-designation').value = cp.signatoryDesignation || '';
+    }
     
     document.getElementById('bp-letter-header').value = cp.bankLetterHeader || 'We, M/s [COMPANY_NAME], kindly request you to transfer the monthly salaries from our company account No. [ACCOUNT_NO] to the individual accounts of our employees as per the details mentioned below:';
     document.getElementById('bp-letter-footer').value = cp.bankLetterFooter || 'We authorize the bank to debit our Company Account No. [ACCOUNT_NO] for the total salary disbursement and transfer the respective net amounts into the employees\' individual bank accounts mentioned above.\nIf any further information or documentation is required, please let us know.\nThank you for your cooperation.\nSincerely,';
@@ -3721,6 +3724,9 @@ window.saveBankProfile = async function() {
     cp.bankBranchCode = document.getElementById('bp-branch-code').value;
     cp.bankAccountNo = document.getElementById('bp-account-no').value;
     cp.signatory = document.getElementById('bp-signatory').value;
+    if (document.getElementById('bp-signatory-designation')) {
+        cp.signatoryDesignation = document.getElementById('bp-signatory-designation').value;
+    }
     
     cp.bankLetterHeader = document.getElementById('bp-letter-header').value;
     cp.bankLetterFooter = document.getElementById('bp-letter-footer').value;

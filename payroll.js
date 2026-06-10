@@ -585,6 +585,32 @@ window.printIndividualPayslip = function() {
 
 window.openBankLetterModal = function() {
     try {
+        const modalPre = document.getElementById('modal-bank-letter-pre');
+        const overlay = document.getElementById('modal-overlay');
+        
+        if (!modalPre) {
+            alert("Modal element 'modal-bank-letter-pre' not found in HTML!");
+            return;
+        }
+
+        // Reset inputs
+        const chequeNoInput = document.getElementById('bank-letter-cheque-no');
+        if (chequeNoInput) chequeNoInput.value = '';
+        
+        const dateInput = document.getElementById('bank-letter-date');
+        const today = new Date();
+        if (dateInput) dateInput.value = today.toISOString().split('T')[0];
+
+        modalPre.classList.remove('hidden');
+        overlay.classList.remove('hidden');
+        
+    } catch (err) {
+        alert("Error opening modal: " + err.message + "\n" + err.stack);
+    }
+};
+
+window.generateBankLetter = function() {
+    try {
         const db = getDb();
         if (!db) {
             alert("Database not found");
@@ -616,37 +642,17 @@ window.openBankLetterModal = function() {
         // Store the filtered history for the preview update
         window.currentBankLetterHistory = history;
 
-        // Reset inputs
-        const chequeNoInput = document.getElementById('bank-letter-cheque-no');
-        if (chequeNoInput) chequeNoInput.value = '';
-        
-        const dateInput = document.getElementById('bank-letter-date');
-        const today = new Date();
-        if (dateInput) dateInput.value = today.toISOString().split('T')[0];
-
         window.updateBankLetterPreview();
 
-        const modal = document.getElementById('modal-bank-letter');
-        const overlay = document.getElementById('modal-overlay');
-        
-        if (!modal) {
-            alert("Modal element 'modal-bank-letter' not found in HTML!");
-            return;
-        }
-        if (!overlay) {
-            alert("Overlay element 'modal-overlay' not found in HTML!");
-            return;
-        }
-
-        modal.classList.remove('hidden');
-        overlay.classList.remove('hidden');
+        document.getElementById('modal-bank-letter-pre').classList.add('hidden');
+        document.getElementById('modal-bank-letter').classList.remove('hidden');
         
         if (!window.originalDocumentTitle) {
             window.originalDocumentTitle = document.title;
         }
         document.title = `Bank_Letter_${monthFilter}_${yearFilter}`;
     } catch (err) {
-        alert("Error opening modal: " + err.message + "\n" + err.stack);
+        alert("Error generating letter: " + err.message + "\n" + err.stack);
     }
 };
 
@@ -667,7 +673,8 @@ window.updateBankLetterPreview = function() {
     const bankName = cp.bankName || '[Bank Name]';
     const branchCode = cp.bankBranchCode || '[Branch Code]';
     const companyAccount = cp.bankAccountNo || '[Company Account No]';
-    const signatory = cp.signatory || '[Signatory Name & Title]';
+    const signatory = cp.signatory || '[Signatory Name]';
+    const signatoryDesignation = cp.signatoryDesignation || '[Designation]';
 
     let customHeader = cp.bankLetterHeader || 'We, M/s [COMPANY_NAME], kindly request you to transfer the monthly salaries from our company account No. [ACCOUNT_NO] to the individual accounts of our employees as per the details mentioned below:';
     let customFooter = cp.bankLetterFooter || 'We authorize the bank to debit our Company Account No. [ACCOUNT_NO] for the total salary disbursement and transfer the respective net amounts into the employees\' individual bank accounts mentioned above.\nIf any further information or documentation is required, please let us know.\nThank you for your cooperation.\nSincerely,';
@@ -678,71 +685,46 @@ window.updateBankLetterPreview = function() {
 
     let tableRows = '';
     let sno = 1;
-    let grandGross = 0;
+    let grandBasic = 0;
+    let grandAllowances = 0;
     let grandDeduction = 0;
     let grandNet = 0;
 
     history.forEach(h => {
-        const employees = db.employees || [];
-        const emp = employees.find(e => e.id === h.empId) || {};
+        const users = db.users || [];
+        const user = users.find(u => u.id === h.userId) || {};
         
-        let basic = h.netFixedPay || 0;
-        let additions = 0;
-        if (h.allowances) additions += Object.values(h.allowances).reduce((sum, v) => sum + v, 0);
-        if (h.bonus) additions += h.bonus;
-        
-        if (typeof h.fixedAllowancesTotal === 'undefined') {
-            const slab = db.globalSalarySlab || { allowances: [], deductions: [] };
-            const fixedAllow = slab.allowances.reduce((sum, item) => {
-                if (item.type === 'Percentage') return sum + (basic * (item.amount / 100));
-                return sum + item.amount;
-            }, 0);
-            additions += fixedAllow;
-        } else {
-            additions += h.fixedAllowancesTotal || 0;
-        }
+        let basic = h.netFixed || 0;
+        let allowances = (h.fixedAllowances || 0) + (h.bonus || 0);
+        let deductions = (h.fixedDeductions || 0) + (h.absencyDeduction || 0) + (h.loanDeduction || 0) + (h.otherDeduction || 0);
+        let netSalary = h.netPay || 0;
 
-        let grossSalary = basic + additions;
-        
-        let deductions = 0;
-        if (h.deductions) deductions += Object.values(h.deductions).reduce((sum, v) => sum + v, 0);
-        if (h.loanEmi) deductions += h.loanEmi;
-        if (typeof h.fixedDeductionsTotal === 'undefined') {
-            const slab = db.globalSalarySlab || { allowances: [], deductions: [] };
-            const fixedDeduct = slab.deductions.reduce((sum, item) => {
-                if (item.type === 'Percentage') return sum + (basic * (item.amount / 100));
-                return sum + item.amount;
-            }, 0);
-            deductions += fixedDeduct;
-        } else {
-            deductions += h.fixedDeductionsTotal || 0;
-        }
-
-        let netSalary = h.finalNetPay;
-
-        grandGross += grossSalary;
+        grandBasic += basic;
+        grandAllowances += allowances;
         grandDeduction += deductions;
         grandNet += netSalary;
 
-        const empName = emp.name || h.empName;
-        const fatherName = emp.fatherName ? `<br><small style="color: #555;">S/O ${emp.fatherName}</small>` : '';
-        const cnic = emp.cnic || 'N/A';
-        const dobStr = emp.startDate ? new Date(emp.startDate).toLocaleDateString('en-GB').replace(/\//g, '-') : 'N/A';
-        const accountNo = emp.accountNumber || 'N/A';
+        const userName = user.name || 'Unknown';
+        const fatherName = user.fatherName || '';
+        const fatherNameHtml = fatherName ? `<br><small style="color: #555;">S/O ${fatherName}</small>` : '';
+        const userAccount = user.accountNumber || 'N/A';
 
         tableRows += `
             <tr style="border-bottom: 1px solid #000;">
                 <td style="padding: 6px 4px; text-align: center;">${sno++}</td>
-                <td style="padding: 6px 4px;">${empName}${fatherName}</td>
-                <td style="padding: 6px 4px; text-align: center;">${cnic}</td>
-                <td style="padding: 6px 4px; text-align: center;">${dobStr}</td>
-                <td style="padding: 6px 4px; text-align: right;">${Math.round(grossSalary)}</td>
+                <td style="padding: 6px 4px; text-align: left;">${userName}${fatherNameHtml}</td>
+                <td style="padding: 6px 4px; text-align: right;">${Math.round(basic)}</td>
+                <td style="padding: 6px 4px; text-align: right;">${Math.round(allowances)}</td>
                 <td style="padding: 6px 4px; text-align: right;">${Math.round(deductions)}</td>
                 <td style="padding: 6px 4px; text-align: right;">${Math.round(netSalary)}</td>
-                <td style="padding: 6px 4px; text-align: center;">${accountNo}</td>
+                <td style="padding: 6px 4px; text-align: center;">${userAccount}</td>
             </tr>
         `;
     });
+
+    if (history.length === 0) {
+        tableRows = `<tr><td colspan="7" style="padding: 20px; text-align: center;">No salary records found for the selected period.</td></tr>`;
+    }
 
     const html = `
         <div class="report-print-sheet" style="color: black !important; font-size: 13px !important; font-family: Arial, sans-serif;">
@@ -777,12 +759,11 @@ window.updateBankLetterPreview = function() {
                     <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000;">
                         <th style="padding: 8px 4px; text-align: center;">S.No.</th>
                         <th style="padding: 8px 4px; text-align: left;">Employee Name<br><small>Father Name</small></th>
-                        <th style="padding: 8px 4px; text-align: center;">CNIC</th>
-                        <th style="padding: 8px 4px; text-align: center;">Date of<br>Appointment</th>
-                        <th style="padding: 8px 4px; text-align: right;">Gross<br>Salary</th>
+                        <th style="padding: 8px 4px; text-align: right;">Basic Salary</th>
+                        <th style="padding: 8px 4px; text-align: right;">Allowances</th>
                         <th style="padding: 8px 4px; text-align: right;">Deductions</th>
-                        <th style="padding: 8px 4px; text-align: right;">Net Salary<br>Paid</th>
-                        <th style="padding: 8px 4px; text-align: center;">Employee A/C Number</th>
+                        <th style="padding: 8px 4px; text-align: right;">Net Salary</th>
+                        <th style="padding: 8px 4px; text-align: center;">Account Number</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -790,8 +771,9 @@ window.updateBankLetterPreview = function() {
                 </tbody>
                 <tfoot>
                     <tr style="border-top: 2px solid #000; border-bottom: 2px solid #000; font-weight: bold;">
-                        <td colspan="4" style="padding: 10px 4px; text-align: right;">Total :-</td>
-                        <td style="padding: 10px 4px; text-align: right;">${Math.round(grandGross)}</td>
+                        <td colspan="2" style="padding: 10px 4px; text-align: right;">Total :-</td>
+                        <td style="padding: 10px 4px; text-align: right;">${Math.round(grandBasic)}</td>
+                        <td style="padding: 10px 4px; text-align: right;">${Math.round(grandAllowances)}</td>
                         <td style="padding: 10px 4px; text-align: right;">${Math.round(grandDeduction)}</td>
                         <td style="padding: 10px 4px; text-align: right;">${Math.round(grandNet)}</td>
                         <td></td>
@@ -804,8 +786,8 @@ window.updateBankLetterPreview = function() {
             </p>
 
             <div style="margin-top: 50px;">
-                <p style="font-weight: bold; margin: 0;">${signatory.split('-')[0]?.trim() || '[Name]'}</p>
-                <p style="margin: 0;">${signatory.split('-')[1]?.trim() || '[Designation]'}</p>
+                <p style="font-weight: bold; margin: 0;">${signatory}</p>
+                <p style="margin: 0;">${signatoryDesignation}</p>
                 <p style="margin: 0;">M/s ${cp.name || 'Company'}</p>
             </div>
         </div>
