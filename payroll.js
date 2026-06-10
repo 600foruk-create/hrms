@@ -694,22 +694,25 @@ window.updateBankLetterPreview = function() {
         const users = db.users || [];
         const user = users.find(u => u.id === h.userId) || {};
         
-        let basic = h.netFixedPay !== undefined ? h.netFixedPay : (parseFloat(user.salary) || 0);
+        let basic = parseInt(user?.salary) || 0;
         
-        let allowances = h.bonus || 0;
-        if (h.allowances) {
-            allowances += Object.values(h.allowances).reduce((sum, v) => sum + v, 0);
-        } else {
-            allowances += (h.fixedAllowances || 0);
+        let fixedDed = h.fixedDeductions;
+        let fixedAll = h.fixedAllowances;
+        
+        if (fixedDed === undefined || fixedAll === undefined) {
+            const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
+            let profile = db.salaryProfiles?.find(p => p.userId === h.userId);
+            let pAllowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
+            let pDeductions = profile && profile.isCustomSlab ? (profile.deductions || []) : (globalSlab.deductions || []);
+            
+            fixedAll = 0;
+            pAllowances.forEach(a => { fixedAll += (a.type === 'percentage') ? (basic * (parseFloat(a.value)||0)) / 100 : (parseFloat(a.value)||0); });
+            fixedDed = 0;
+            pDeductions.forEach(d => { fixedDed += (d.type === 'percentage') ? (basic * (parseFloat(d.value)||0)) / 100 : (parseFloat(d.value)||0); });
         }
 
-        let deductions = (h.absencyDeduction || 0) + (h.loanDeduction || h.loanEmi || 0) + (h.otherDeduction || 0);
-        if (h.deductions) {
-            deductions += Object.values(h.deductions).reduce((sum, v) => sum + v, 0);
-        } else {
-            deductions += (h.fixedDeductions || 0);
-        }
-
+        let allowances = fixedAll + (h.bonus || 0);
+        let deductions = fixedDed + (h.absencyDeduction || 0) + (h.loanDeduction || h.loanEmi || 0) + (h.otherDeduction || 0);
         let netSalary = h.netPay || h.finalNetPay || 0;
 
         grandBasic += basic;
@@ -718,14 +721,12 @@ window.updateBankLetterPreview = function() {
         grandNet += netSalary;
 
         const userName = user.name || 'Unknown';
-        const fatherName = user.fatherName || '';
-        const fatherNameHtml = fatherName ? `<br><small style="color: #555;">S/O ${fatherName}</small>` : '';
         const userAccount = user.accountNumber || 'N/A';
 
         tableRows += `
             <tr style="border-bottom: 1px solid #000;">
                 <td style="padding: 6px 4px; text-align: center;">${sno++}</td>
-                <td style="padding: 6px 4px; text-align: left;">${userName}${fatherNameHtml}</td>
+                <td style="padding: 6px 4px; text-align: left;">${userName}</td>
                 <td style="padding: 6px 4px; text-align: right;">${Math.round(basic)}</td>
                 <td style="padding: 6px 4px; text-align: right;">${Math.round(allowances)}</td>
                 <td style="padding: 6px 4px; text-align: right;">${Math.round(deductions)}</td>
@@ -771,7 +772,7 @@ window.updateBankLetterPreview = function() {
                     <thead>
                         <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000;">
                             <th style="padding: 8px 4px; text-align: center;">S.No.</th>
-                            <th style="padding: 8px 4px; text-align: left;">Employee Name<br><small>Father Name</small></th>
+                            <th style="padding: 8px 4px; text-align: left;">Employee Name</th>
                             <th style="padding: 8px 4px; text-align: right;">Basic Salary</th>
                             <th style="padding: 8px 4px; text-align: right;">Allowances</th>
                             <th style="padding: 8px 4px; text-align: right;">Deductions</th>
