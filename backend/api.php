@@ -102,6 +102,7 @@ foreach ($new_columns as $col) {
 try { $pdo->exec("ALTER TABLE users DROP COLUMN `documents`"); } catch (Exception $e) {}
 try { $pdo->exec("ALTER TABLE users DROP COLUMN `leaveBalances`"); } catch (Exception $e) {}
 try { $pdo->exec("ALTER TABLE company_profile DROP COLUMN `leaveTypes`"); } catch (Exception $e) {}
+try { $pdo->exec("DROP TABLE IF EXISTS `settings`"); } catch (Exception $e) {}
 
 // Auto-migrate role enum and update existing 'Employee' roles to 'User'
 try {
@@ -304,14 +305,8 @@ if ($action === 'load_all') {
         }
         $dbState['users'] = $usersRecords;
 
-        // Fetch Settings (Weights)
-        $stmt = $pdo->query("SELECT * FROM settings");
-        $settings = $stmt->fetchAll();
-        $weights = [];
-        foreach ($settings as $row) {
-            $weights[$row['key_name']] = (float)$row['value_data'];
-        }
-        $dbState['weights'] = $weights;
+        // Legacy Settings (Weights) removed
+        $dbState['weights'] = [];
 
         // Fetch Leaves
         $stmt = $pdo->query("SELECT * FROM leaves");
