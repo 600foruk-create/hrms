@@ -309,8 +309,10 @@ if ($action === 'load_all') {
         $dbState['weights'] = [];
 
         // Fetch Leaves
-        $stmt = $pdo->query("SELECT * FROM leaves");
-        $dbState['leaves'] = $stmt->fetchAll();
+        try {
+            $stmt = $pdo->query("SELECT * FROM leaves");
+            $dbState['leaves'] = $stmt->fetchAll();
+        } catch (Exception $e) { $dbState['leaves'] = []; }
 
         // Fetch Productivity Data (Safe queries to prevent login breaks if tables missing)
         try {
@@ -340,93 +342,118 @@ if ($action === 'load_all') {
         } catch (Exception $e) { $dbState['productivity_tasks'] = []; }
 
         // Fetch Attendance
-        $stmt = $pdo->query("SELECT * FROM attendance");
-        $dbState['attendance'] = $stmt->fetchAll();
+        try {
+            $stmt = $pdo->query("SELECT * FROM attendance");
+            $dbState['attendance'] = $stmt->fetchAll();
+        } catch (Exception $e) { $dbState['attendance'] = []; }
 
         // Fetch Announcements
-        $stmt = $pdo->query("SELECT * FROM announcements");
-        $dbState['announcements'] = $stmt->fetchAll();
+        try {
+            $stmt = $pdo->query("SELECT * FROM announcements");
+            $dbState['announcements'] = $stmt->fetchAll();
+        } catch (Exception $e) { $dbState['announcements'] = []; }
 
         // Fetch Audit Logs
-        $stmt = $pdo->query("SELECT * FROM audit_logs ORDER BY timestamp DESC");
-        $dbState['auditLogs'] = $stmt->fetchAll();
+        try {
+            $stmt = $pdo->query("SELECT * FROM audit_logs ORDER BY timestamp DESC");
+            $dbState['auditLogs'] = $stmt->fetchAll();
+        } catch (Exception $e) { $dbState['auditLogs'] = []; }
 
         // Fetch Notifications
-        $stmt = $pdo->query("SELECT * FROM notifications ORDER BY time DESC");
-        $notifs = $stmt->fetchAll();
-        foreach ($notifs as &$n) {
-            $n['read'] = $n['read_status'] == 1 ? true : false;
-            unset($n['read_status']);
-        }
-        $dbState['notifications'] = $notifs;
+        try {
+            $stmt = $pdo->query("SELECT * FROM notifications ORDER BY time DESC");
+            $notifs = $stmt->fetchAll();
+            foreach ($notifs as &$n) {
+                $n['read'] = $n['read_status'] == 1 ? true : false;
+                unset($n['read_status']);
+            }
+            $dbState['notifications'] = $notifs;
+        } catch (Exception $e) { $dbState['notifications'] = []; }
 
         // Fetch Company Profile
-        $stmt = $pdo->query("SELECT * FROM company_profile LIMIT 1");
-        $cpRow = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($cpRow) {
-            $origLeaveTypes = $cpRow['leaveTypes'] ?? '';
-            
-            $cltStmt = $pdo->query("SELECT type_id as id, name, allowance FROM company_leave_types");
-            $cpRow['leaveTypes'] = $cltStmt->fetchAll();
-            foreach ($cpRow['leaveTypes'] as &$lt) { $lt['allowance'] = (int)$lt['allowance']; }
-            
-            if (empty($cpRow['leaveTypes']) && !empty($origLeaveTypes)) {
-                $cpRow['leaveTypes'] = json_decode($origLeaveTypes, true) ?: [];
+        try {
+            $stmt = $pdo->query("SELECT * FROM company_profile LIMIT 1");
+            $cpRow = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($cpRow) {
+                $origLeaveTypes = $cpRow['leaveTypes'] ?? '';
+                
+                try {
+                    $cltStmt = $pdo->query("SELECT type_id as id, name, allowance FROM company_leave_types");
+                    $cpRow['leaveTypes'] = $cltStmt->fetchAll();
+                    foreach ($cpRow['leaveTypes'] as &$lt) { $lt['allowance'] = (int)$lt['allowance']; }
+                } catch (Exception $e) { $cpRow['leaveTypes'] = []; }
+                
+                if (empty($cpRow['leaveTypes']) && !empty($origLeaveTypes)) {
+                    $cpRow['leaveTypes'] = json_decode($origLeaveTypes, true) ?: [];
+                }
+                $dbState['companyProfile'] = $cpRow;
+            } else {
+                $dbState['companyProfile'] = new stdClass();
+                $dbState['companyProfile']->leaveTypes = [];
             }
-            $dbState['companyProfile'] = $cpRow;
-        } else {
+        } catch (Exception $e) { 
             $dbState['companyProfile'] = new stdClass();
             $dbState['companyProfile']->leaveTypes = [];
         }
 
         // Fetch Bank Profile
-        $stmt = $pdo->query("SELECT * FROM bank_profile LIMIT 1");
-        $bpRow = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($bpRow) {
-            $dbState['bankProfile'] = $bpRow;
-        } else {
-            $dbState['bankProfile'] = new stdClass();
-        }
+        try {
+            $stmt = $pdo->query("SELECT * FROM bank_profile LIMIT 1");
+            $bpRow = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($bpRow) {
+                $dbState['bankProfile'] = $bpRow;
+            } else {
+                $dbState['bankProfile'] = new stdClass();
+            }
+        } catch (Exception $e) { $dbState['bankProfile'] = new stdClass(); }
 
         // Fetch Payroll & Salary Data
-        $stmt = $pdo->query("SELECT * FROM global_salary_settings LIMIT 1");
-        $gRow = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($gRow) {
-            $dbState['globalSalarySettings'] = [
-                'allowances' => json_decode($gRow['allowances'] ?: '[]', true),
-                'deductions' => json_decode($gRow['deductions'] ?: '[]', true)
-            ];
-        } else {
-            $dbState['globalSalarySettings'] = ['allowances' => [], 'deductions' => []];
-        }
+        try {
+            $stmt = $pdo->query("SELECT * FROM global_salary_settings LIMIT 1");
+            $gRow = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($gRow) {
+                $dbState['globalSalarySettings'] = [
+                    'allowances' => json_decode($gRow['allowances'] ?: '[]', true),
+                    'deductions' => json_decode($gRow['deductions'] ?: '[]', true)
+                ];
+            } else {
+                $dbState['globalSalarySettings'] = ['allowances' => [], 'deductions' => []];
+            }
+        } catch (Exception $e) { $dbState['globalSalarySettings'] = ['allowances' => [], 'deductions' => []]; }
 
-        $stmt = $pdo->query("SELECT * FROM salary_profiles");
-        $profiles = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        foreach ($profiles as &$prof) {
-            $prof['isCustomSlab'] = (bool)$prof['isCustomSlab'];
-            $prof['allowances'] = json_decode($prof['allowances'] ?: '[]', true);
-            $prof['deductions'] = json_decode($prof['deductions'] ?: '[]', true);
-        }
-        $dbState['salaryProfiles'] = $profiles;
+        try {
+            $stmt = $pdo->query("SELECT * FROM salary_profiles");
+            $profiles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($profiles as &$prof) {
+                $prof['isCustomSlab'] = (bool)$prof['isCustomSlab'];
+                $prof['allowances'] = json_decode($prof['allowances'] ?: '[]', true);
+                $prof['deductions'] = json_decode($prof['deductions'] ?: '[]', true);
+            }
+            $dbState['salaryProfiles'] = $profiles;
+        } catch (Exception $e) { $dbState['salaryProfiles'] = []; }
 
-        $stmt = $pdo->query("SELECT * FROM loans");
-        $dbState['loans'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        foreach ($dbState['loans'] as &$l) {
-            $l['totalAmount'] = (float)$l['totalAmount'];
-            $l['monthlyInstallment'] = (float)$l['monthlyInstallment'];
-            $l['remainingAmount'] = (float)$l['remainingAmount'];
-        }
+        try {
+            $stmt = $pdo->query("SELECT * FROM loans");
+            $dbState['loans'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($dbState['loans'] as &$l) {
+                $l['totalAmount'] = (float)$l['totalAmount'];
+                $l['monthlyInstallment'] = (float)$l['monthlyInstallment'];
+                $l['remainingAmount'] = (float)$l['remainingAmount'];
+            }
+        } catch (Exception $e) { $dbState['loans'] = []; }
 
-        $stmt = $pdo->query("SELECT * FROM payroll_history");
-        $dbState['payrollHistory'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        foreach ($dbState['payrollHistory'] as &$ph) {
-            $ph['netFixed'] = (float)$ph['netFixed'];
-            $ph['absencyDeduction'] = (float)$ph['absencyDeduction'];
-            $ph['loanDeduction'] = (float)$ph['loanDeduction'];
-            $ph['bonus'] = (float)$ph['bonus'];
-            $ph['otherDeduction'] = (float)$ph['otherDeduction'];
-            $ph['netPay'] = (float)$ph['netPay'];
-        }
+        try {
+            $stmt = $pdo->query("SELECT * FROM payroll_history");
+            $dbState['payrollHistory'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($dbState['payrollHistory'] as &$ph) {
+                $ph['netFixed'] = (float)$ph['netFixed'];
+                $ph['absencyDeduction'] = (float)$ph['absencyDeduction'];
+                $ph['loanDeduction'] = (float)$ph['loanDeduction'];
+                $ph['allowances'] = json_decode($ph['allowances'] ?: '[]', true);
+                $ph['deductions'] = json_decode($ph['deductions'] ?: '[]', true);
+                $ph['netSalary'] = (float)$ph['netSalary'];
+            }
+        } catch (Exception $e) { $dbState['payrollHistory'] = []; }
 
         echo json_encode(["status" => "success", "data" => $dbState]);
     } catch (Exception $e) {
