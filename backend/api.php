@@ -88,7 +88,8 @@ $new_columns = [
     "ADD COLUMN `accountTitle` varchar(100) DEFAULT NULL",
     "ADD COLUMN `accountNumber` varchar(100) DEFAULT NULL",
     "ADD COLUMN `iban` varchar(100) DEFAULT NULL",
-    "ADD COLUMN `branchCode` varchar(50) DEFAULT NULL"
+    "ADD COLUMN `branchCode` varchar(50) DEFAULT NULL",
+    "ADD COLUMN `themeColor` varchar(50) DEFAULT NULL"
 ];
 
 foreach ($new_columns as $col) {
@@ -377,7 +378,7 @@ elseif ($action === 'save_all') {
         // 1. Sync Users
         $pdo->exec("DELETE FROM users");
         if (!empty($data['users'])) {
-            $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, documents, bloodGroup, designation, leaveBalances, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, documents, bloodGroup, designation, leaveBalances, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode, themeColor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             foreach ($data['users'] as $u) {
                 $stmt->execute([
                     $u['id'], 
@@ -407,7 +408,8 @@ elseif ($action === 'save_all') {
                     $u['accountTitle'] ?? null,
                     $u['accountNumber'] ?? null,
                     $u['iban'] ?? null,
-                    $u['branchCode'] ?? null
+                    $u['branchCode'] ?? null,
+                    $u['themeColor'] ?? null
                 ]);
             }
         }
