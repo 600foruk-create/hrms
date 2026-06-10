@@ -694,10 +694,23 @@ window.updateBankLetterPreview = function() {
         const users = db.users || [];
         const user = users.find(u => u.id === h.userId) || {};
         
-        let basic = h.netFixed || 0;
-        let allowances = (h.fixedAllowances || 0) + (h.bonus || 0);
-        let deductions = (h.fixedDeductions || 0) + (h.absencyDeduction || 0) + (h.loanDeduction || 0) + (h.otherDeduction || 0);
-        let netSalary = h.netPay || 0;
+        let basic = h.netFixedPay !== undefined ? h.netFixedPay : (parseFloat(user.salary) || 0);
+        
+        let allowances = h.bonus || 0;
+        if (h.allowances) {
+            allowances += Object.values(h.allowances).reduce((sum, v) => sum + v, 0);
+        } else {
+            allowances += (h.fixedAllowances || 0);
+        }
+
+        let deductions = (h.absencyDeduction || 0) + (h.loanDeduction || h.loanEmi || 0) + (h.otherDeduction || 0);
+        if (h.deductions) {
+            deductions += Object.values(h.deductions).reduce((sum, v) => sum + v, 0);
+        } else {
+            deductions += (h.fixedDeductions || 0);
+        }
+
+        let netSalary = h.netPay || h.finalNetPay || 0;
 
         grandBasic += basic;
         grandAllowances += allowances;
@@ -728,67 +741,68 @@ window.updateBankLetterPreview = function() {
 
     const html = `
         <div class="report-print-sheet" style="color: black !important; font-size: 13px !important; font-family: Arial, sans-serif;">
-            ${cp.letterheadBase64 ? `<img src="${cp.letterheadBase64}" style="width: 100%; max-height: 150px; object-fit: contain; margin-bottom: 20px;">` : `
-            <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 20px;">
-                ${cp.logoBase64 ? `<img src="${cp.logoBase64}" style="max-height: 80px; margin-bottom: 10px;">` : ''}
-                <h1 style="margin: 0; font-size: 24px; text-transform: uppercase;">${cp.name || 'COMPANY NAME'}</h1>
-                <p style="margin: 5px 0 0 0; font-size: 14px;">${cp.address || ''} | ${cp.email || ''} | ${cp.phone || ''}</p>
+            ${cp.letterheadBase64 ? `<img src="${cp.letterheadBase64}" style="width: calc(100% + 60px); margin: -30px -30px 20px -30px; max-height: 150px; object-fit: cover;">` : `
+            <div style="text-align: center; border-bottom: 2px solid #000; margin: -30px -30px 20px -30px; padding: 30px;">
+                <h2 style="margin: 0; font-size: 24px; text-transform: uppercase;">${compName}</h2>
+                <p style="margin: 5px 0 0 0; font-size: 14px;">Bank Transfer Letter</p>
             </div>`}
-
-            <div style="margin-bottom: 20px;">
-                <p style="margin: 0;">The Manager</p>
-                <p style="margin: 0;">${bankName}</p>
-                <p style="margin: 0;">Branch Code: ${branchCode}</p>
-            </div>
-
-            <p style="font-weight: bold; margin-bottom: 10px;">Subject: Request for Transfer of Salaries to Employees' Individual Accounts For ${periodText}</p>
             
-            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                <div>Cheque No. <span style="font-weight: bold;">${chequeNo}</span></div>
-                <div>Dated: <span style="font-weight: bold;">${chequeDate}</span></div>
-                <div>for Rs. <span style="font-weight: bold;">${Math.round(grandNet)}</span></div>
-            </div>
+            <div style="padding: 0;">
+                <div style="margin-bottom: 20px;">
+                    <p style="margin: 0;">The Manager</p>
+                    <p style="margin: 0;">${bankName}</p>
+                    <p style="margin: 0;">Branch Code: ${branchCode}</p>
+                </div>
 
-            <p style="margin-bottom: 15px;">Dear Sir,</p>
-            <p style="margin-bottom: 20px; text-align: justify; line-height: 1.5;">
-                ${customHeader}
-            </p>
+                <p style="font-weight: bold; margin-bottom: 10px;">Subject: Request for Transfer of Salaries to Employees' Individual Accounts For ${periodText}</p>
+                
+                <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                    <div>Cheque No. <span style="font-weight: bold;">${chequeNo}</span></div>
+                    <div>Dated: <span style="font-weight: bold;">${chequeDate}</span></div>
+                    <div>for Rs. <span style="font-weight: bold;">${Math.round(grandNet)}</span></div>
+                </div>
 
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px;">
-                <thead>
-                    <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000;">
-                        <th style="padding: 8px 4px; text-align: center;">S.No.</th>
-                        <th style="padding: 8px 4px; text-align: left;">Employee Name<br><small>Father Name</small></th>
-                        <th style="padding: 8px 4px; text-align: right;">Basic Salary</th>
-                        <th style="padding: 8px 4px; text-align: right;">Allowances</th>
-                        <th style="padding: 8px 4px; text-align: right;">Deductions</th>
-                        <th style="padding: 8px 4px; text-align: right;">Net Salary</th>
-                        <th style="padding: 8px 4px; text-align: center;">Account Number</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${tableRows}
-                </tbody>
-                <tfoot>
-                    <tr style="border-top: 2px solid #000; border-bottom: 2px solid #000; font-weight: bold;">
-                        <td colspan="2" style="padding: 10px 4px; text-align: right;">Total :-</td>
-                        <td style="padding: 10px 4px; text-align: right;">${Math.round(grandBasic)}</td>
-                        <td style="padding: 10px 4px; text-align: right;">${Math.round(grandAllowances)}</td>
-                        <td style="padding: 10px 4px; text-align: right;">${Math.round(grandDeduction)}</td>
-                        <td style="padding: 10px 4px; text-align: right;">${Math.round(grandNet)}</td>
-                        <td></td>
-                    </tr>
-                </tfoot>
-            </table>
+                <p style="margin-bottom: 15px;">Dear Sir,</p>
+                <p style="margin-bottom: 20px; text-align: justify; line-height: 1.5;">
+                    ${customHeader}
+                </p>
 
-            <p style="margin-bottom: 30px; text-align: justify; line-height: 1.5;">
-                ${customFooter}
-            </p>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px;">
+                    <thead>
+                        <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000;">
+                            <th style="padding: 8px 4px; text-align: center;">S.No.</th>
+                            <th style="padding: 8px 4px; text-align: left;">Employee Name<br><small>Father Name</small></th>
+                            <th style="padding: 8px 4px; text-align: right;">Basic Salary</th>
+                            <th style="padding: 8px 4px; text-align: right;">Allowances</th>
+                            <th style="padding: 8px 4px; text-align: right;">Deductions</th>
+                            <th style="padding: 8px 4px; text-align: right;">Net Salary</th>
+                            <th style="padding: 8px 4px; text-align: center;">Account Number</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                    <tfoot>
+                        <tr style="border-top: 2px solid #000; border-bottom: 2px solid #000; font-weight: bold;">
+                            <td colspan="2" style="padding: 10px 4px; text-align: right;">Total :-</td>
+                            <td style="padding: 10px 4px; text-align: right;">${Math.round(grandBasic)}</td>
+                            <td style="padding: 10px 4px; text-align: right;">${Math.round(grandAllowances)}</td>
+                            <td style="padding: 10px 4px; text-align: right;">${Math.round(grandDeduction)}</td>
+                            <td style="padding: 10px 4px; text-align: right;">${Math.round(grandNet)}</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
 
-            <div style="margin-top: 50px;">
-                <p style="font-weight: bold; margin: 0;">${signatory}</p>
-                <p style="margin: 0;">${signatoryDesignation}</p>
-                <p style="margin: 0;">M/s ${cp.name || 'Company'}</p>
+                <p style="margin-bottom: 30px; text-align: justify; line-height: 1.5;">
+                    ${customFooter}
+                </p>
+
+                <div style="margin-top: 50px;">
+                    <p style="font-weight: bold; margin: 0;">${signatory}</p>
+                    <p style="margin: 0;">${signatoryDesignation}</p>
+                    <p style="margin: 0;">M/s ${cp.name || 'Company'}</p>
+                </div>
             </div>
         </div>
     `;
