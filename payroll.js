@@ -742,13 +742,13 @@ window.updateBankLetterPreview = function() {
 
     const html = `
         <div class="report-print-sheet" style="color: black !important; font-size: 13px !important; font-family: Arial, sans-serif;">
-            ${cp.letterheadBase64 ? `<img src="${cp.letterheadBase64}" style="width: calc(100% + 60px); margin: -30px -30px 20px -30px; max-height: 150px; object-fit: cover;">` : `
-            <div style="text-align: center; border-bottom: 2px solid #000; margin: -30px -30px 20px -30px; padding: 30px;">
+            ${cp.letterheadBase64 ? `<img src="${cp.letterheadBase64}" style="width: 100%; max-height: 150px; object-fit: cover;">` : `
+            <div style="text-align: center; border-bottom: 2px solid #000; padding: 30px;">
                 <h2 style="margin: 0; font-size: 24px; text-transform: uppercase;">${compName}</h2>
                 <p style="margin: 5px 0 0 0; font-size: 14px;">Bank Transfer Letter</p>
             </div>`}
             
-            <div style="padding: 0;">
+            <div style="padding: 20px 30px 30px 30px;">
                 <div style="margin-bottom: 20px;">
                     <p style="margin: 0;">The Manager</p>
                     <p style="margin: 0;">${bankName}</p>
