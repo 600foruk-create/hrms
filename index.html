@@ -91,7 +91,8 @@
 
             /* Specifically display ONLY the open modal being printed */
             body > #modal-view-payslip:not(.hidden),
-            body > #modal-view-summary:not(.hidden) {
+            body > #modal-view-summary:not(.hidden),
+            body > #modal-bank-letter:not(.hidden) {
                 display: block !important;
                 position: relative !important;
                 top: auto !important;
@@ -112,7 +113,7 @@
                 page-break-before: auto !important;
             }
 
-            #summary-print-area, #payslip-print-area {
+            #summary-print-area, #payslip-print-area, #bank-letter-print-area {
                 display: block !important;
                 width: 100% !important;
                 overflow: visible !important;
@@ -129,7 +130,8 @@
 
             /* Kill all modal flex/scroll behavior in print */
             #modal-view-payslip:not(.hidden),
-            #modal-view-summary:not(.hidden) {
+            #modal-view-summary:not(.hidden),
+            #modal-bank-letter:not(.hidden) {
                 display: block !important;
                 flex-direction: unset !important;
             }
