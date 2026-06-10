@@ -1045,7 +1045,7 @@ function renderAdminEmployeesTab() {
         activeUsers.sort((a, b) => (roleOrder[a.role] || 99) - (roleOrder[b.role] || 99));
 
         if (activeUsers.length === 0) {
-            empTableBody.innerHTML = `<tr><td colspan="6" class="empty-state">No active employees found.</td></tr>`;
+            empTableBody.innerHTML = `<tr><td colspan="7" class="empty-state">No active employees found.</td></tr>`;
         } else {
             activeUsers.forEach(user => {
                 const mgr = db.users.find(u => u.id === user.managerId || u.name === user.managerId || u.email === user.managerId);
@@ -1141,7 +1141,7 @@ function renderAdminEmployeesTab() {
         let inactiveUsers = db.users.filter(user => user.status === 'Inactive');
 
         if (inactiveUsers.length === 0) {
-            inactiveTableBody.innerHTML = `<tr><td colspan="4" class="empty-state">No inactive staff.</td></tr>`;
+            inactiveTableBody.innerHTML = `<tr><td colspan="6" class="empty-state">No inactive staff.</td></tr>`;
         } else {
             inactiveUsers.forEach(user => {
                 const roleClass = user.role.toLowerCase();
@@ -1210,7 +1210,7 @@ function renderAdminAttendanceTab() {
     logs.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     if (logs.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="6" class="empty-state">No attendance records found.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="9" class="empty-state">No attendance records found.</td></tr>`;
     } else {
         logs.forEach(log => {
             const emp = db.users.find(u => u.id === log.employeeId);
