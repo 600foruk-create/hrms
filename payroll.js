@@ -76,8 +76,12 @@ window.renderPayrollHistory = function() {
         
         visibleCount++;
         
-        const totalDed = (record.absencyDeduction || 0) + (record.loanDeduction || 0) + (record.otherDeduction || 0);
-        const totalAdd = (record.bonus || 0);
+        const basic = parseInt(user?.salary) || 0;
+        const fixedDed = record.fixedDeductions !== undefined ? record.fixedDeductions : 0;
+        const fixedAll = record.fixedAllowances !== undefined ? record.fixedAllowances : ((record.netFixed - basic) > 0 ? (record.netFixed - basic) : 0);
+
+        const totalDed = fixedDed + (record.absencyDeduction || 0) + (record.loanDeduction || 0) + (record.otherDeduction || 0);
+        const totalAdd = fixedAll + (record.bonus || 0);
         
         const processedDate = new Date(record.processedAt).toLocaleDateString();
 
@@ -86,7 +90,7 @@ window.renderPayrollHistory = function() {
                 <td class="text-secondary" style="font-size: 11px;">${record.batchId}</td>
                 <td class="bold">${name} <br><span class="text-secondary" style="font-size:10px;">${user?.displayId || record.userId}</span></td>
                 <td>${record.startDate} to ${record.endDate}</td>
-                <td>Rs ${Math.round(record.netFixed).toLocaleString()}</td>
+                <td>Rs ${Math.round(basic).toLocaleString()}</td>
                 <td class="text-danger">-Rs ${Math.round(totalDed).toLocaleString()}</td>
                 <td class="text-success">+Rs ${Math.round(totalAdd).toLocaleString()}</td>
                 <td class="text-primary bold">Rs ${Math.round(record.netPay).toLocaleString()}</td>
