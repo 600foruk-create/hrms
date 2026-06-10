@@ -134,6 +134,19 @@ try {
     try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `leaveTypes` longtext DEFAULT NULL"); } catch (Exception $ex) {}
     try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `letterheadBase64` longtext DEFAULT NULL"); } catch (Exception $ex) {}
     try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `signatureBase64` longtext DEFAULT NULL"); } catch (Exception $ex) {}
+    
+    // Add Bank & Payroll columns
+    try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `bankName` varchar(150) DEFAULT NULL"); } catch (Exception $ex) {}
+    try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `bankBranchCode` varchar(50) DEFAULT NULL"); } catch (Exception $ex) {}
+    try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `bankAccountNo` varchar(100) DEFAULT NULL"); } catch (Exception $ex) {}
+    try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `signatory` varchar(150) DEFAULT NULL"); } catch (Exception $ex) {}
+    try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `signatoryDesignation` varchar(150) DEFAULT NULL"); } catch (Exception $ex) {}
+    try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `bankLetterHeader` longtext DEFAULT NULL"); } catch (Exception $ex) {}
+    try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `bankLetterFooter` longtext DEFAULT NULL"); } catch (Exception $ex) {}
+    try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockEnabled` tinyint(1) DEFAULT 0"); } catch (Exception $ex) {}
+    try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockDate` int(11) DEFAULT 1"); } catch (Exception $ex) {}
+    try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockStartDate` varchar(50) DEFAULT NULL"); } catch (Exception $ex) {}
+    try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockEndDate` varchar(50) DEFAULT NULL"); } catch (Exception $ex) {}
 } catch (Exception $e) {
     // Ignore if unsupported (e.g. SQLite doesn't support ENGINE=InnoDB)
     try {
@@ -151,11 +164,34 @@ try {
             `type` TEXT,
             `logoBase64` TEXT,
             `letterheadBase64` TEXT,
-            `leaveTypes` TEXT
-        );");
+            `signatureBase64` TEXT,
+            `leaveTypes` TEXT,
+            `bankName` TEXT,
+            `bankBranchCode` TEXT,
+            `bankAccountNo` TEXT,
+            `signatory` TEXT,
+            `signatoryDesignation` TEXT,
+            `bankLetterHeader` TEXT,
+            `bankLetterFooter` TEXT,
+            `payrollLockEnabled` INTEGER DEFAULT 0,
+            `payrollLockDate` INTEGER DEFAULT 1,
+            `payrollLockStartDate` TEXT,
+            `payrollLockEndDate` TEXT
+        )");
         try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `leaveTypes` TEXT"); } catch (Exception $ex) {}
         try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `letterheadBase64` TEXT"); } catch (Exception $ex) {}
         try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `signatureBase64` TEXT"); } catch (Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `bankName` TEXT"); } catch (Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `bankBranchCode` TEXT"); } catch (Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `bankAccountNo` TEXT"); } catch (Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `signatory` TEXT"); } catch (Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `signatoryDesignation` TEXT"); } catch (Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `bankLetterHeader` TEXT"); } catch (Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `bankLetterFooter` TEXT"); } catch (Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockEnabled` INTEGER DEFAULT 0"); } catch (Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockDate` INTEGER DEFAULT 1"); } catch (Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockStartDate` TEXT"); } catch (Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockEndDate` TEXT"); } catch (Exception $ex) {}
     } catch (Exception $e2) {
         error_log("Failed to create company_profile table: " . $e2->getMessage());
     }
@@ -468,13 +504,20 @@ elseif ($action === 'save_all') {
         $pdo->exec("DELETE FROM company_profile");
         if (!empty($data['companyProfile'])) {
             $cp = $data['companyProfile'];
-            $stmt = $pdo->prepare("INSERT INTO company_profile (name, email, phone, website, address, reg, slogan, industry, size, type, logoBase64, letterheadBase64, signatureBase64, leaveTypes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO company_profile (name, email, phone, website, address, reg, slogan, industry, size, type, logoBase64, letterheadBase64, signatureBase64, leaveTypes, bankName, bankBranchCode, bankAccountNo, signatory, signatoryDesignation, bankLetterHeader, bankLetterFooter, payrollLockEnabled, payrollLockDate, payrollLockStartDate, payrollLockEndDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $cp['name'] ?? '', $cp['email'] ?? '', $cp['phone'] ?? '', $cp['website'] ?? '',
                 $cp['address'] ?? '', $cp['reg'] ?? '', $cp['slogan'] ?? '', $cp['industry'] ?? '',
                 $cp['size'] ?? '', $cp['type'] ?? '', $cp['logoBase64'] ?? '', $cp['letterheadBase64'] ?? '',
                 $cp['signatureBase64'] ?? '',
-                !empty($cp['leaveTypes']) ? json_encode($cp['leaveTypes']) : null
+                !empty($cp['leaveTypes']) ? json_encode($cp['leaveTypes']) : null,
+                $cp['bankName'] ?? '', $cp['bankBranchCode'] ?? '', $cp['bankAccountNo'] ?? '',
+                $cp['signatory'] ?? '', $cp['signatoryDesignation'] ?? '',
+                $cp['bankLetterHeader'] ?? '', $cp['bankLetterFooter'] ?? '',
+                !empty($cp['payrollLockEnabled']) ? 1 : 0, 
+                $cp['payrollLockDate'] ?? 1,
+                $cp['payrollLockStartDate'] ?? '', 
+                $cp['payrollLockEndDate'] ?? ''
             ]);
         }
 

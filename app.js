@@ -3713,7 +3713,7 @@ document.addEventListener('submit', async (e) => {
             db.companyProfile = cp;
             applyCompanyProfile(db);
             showToast("Company Profile", "Company profile updated successfully.");
-            await saveDb(db);
+            saveDb(db);
         }
     }
 });
@@ -3738,8 +3738,8 @@ window.saveBankProfile = async function() {
     cp.bankLetterHeader = document.getElementById('bp-letter-header').value;
     cp.bankLetterFooter = document.getElementById('bp-letter-footer').value;
     
-    await saveDb(db);
     showToast("Bank Profile", "Bank settings and letter text saved successfully.");
+    saveDb(db); // Background sync
 };
 
 window.savePayrollLockSettings = async function() {
@@ -3756,8 +3756,8 @@ window.savePayrollLockSettings = async function() {
     cp.payrollLockStartDate = document.getElementById('payroll-lock-start-date').value;
     cp.payrollLockEndDate = document.getElementById('payroll-lock-end-date').value;
     
-    await saveDb(db);
     showToast("Payroll Restrictions", "Strict payroll limits saved successfully.");
+    saveDb(db); // Background sync
 };
 
 // Settings Event Delegation (Click actions like Reset/Test)
