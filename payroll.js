@@ -6,6 +6,19 @@
 // --- Navigation & Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     // We attach rendering to the global switchTab function dynamically by hooking into the tab click
+    
+    // Set default payroll history filters to current month and year
+    const mFilter = document.getElementById('history-filter-month');
+    const yFilter = document.getElementById('history-filter-year');
+    const now = new Date();
+    if (mFilter) mFilter.value = String(now.getMonth() + 1).padStart(2, '0');
+    if (yFilter) {
+        let yearExists = Array.from(yFilter.options).some(opt => opt.value === String(now.getFullYear()));
+        if (!yearExists) {
+            yFilter.innerHTML += `<option value="${now.getFullYear()}">${now.getFullYear()}</option>`;
+        }
+        yFilter.value = String(now.getFullYear());
+    }
 });
 
 window.switchPayrollSubTab = function(subTab) {
