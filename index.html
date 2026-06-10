@@ -1940,10 +1940,27 @@
                             
                             <div class="row">
                                 <div class="col-12">
-                                    <!-- Keep the inner content of System Settings -->
-                                    
-
-                        
+                                    <div class="section-card bg-glass">
+                                        <h3>Strict Payroll Restrictions</h3>
+                                        <p class="text-secondary mb-3">Enforce monthly payroll generation limits and set the minimum allowed date for generation.</p>
+                                        <form id="settings-payroll-lock-form" onsubmit="event.preventDefault(); if(window.savePayrollLockSettings) window.savePayrollLockSettings();">
+                                            <div class="form-group mb-3">
+                                                <label class="switch-label" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                                    <input type="checkbox" id="payroll-lock-enabled" style="width: 18px; height: 18px;">
+                                                    <span style="font-weight: 500;">Enforce Strict Payroll Dates</span>
+                                                </label>
+                                                <small class="text-muted" style="display: block; margin-top: 5px;">If enabled, payroll can only be generated ONCE per month, and only on or after the specified generation date.</small>
+                                            </div>
+                                            <div class="form-group mb-3" style="max-width: 300px;">
+                                                <label for="payroll-lock-date">Allowed Generation Date (1-31)</label>
+                                                <input type="number" id="payroll-lock-date" class="form-control" min="1" max="31" value="1" placeholder="e.g. 1">
+                                                <small class="text-muted">Payroll cannot be generated before this date.</small>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-lock"></i> Save Restrictions</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                                 </div>
                             </div>
                         </div>

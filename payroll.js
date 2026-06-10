@@ -1175,21 +1175,54 @@ window.deleteLoan = function(loanId) {
 window.initPayrollProcessView = function() {
     const startInput = document.getElementById('payroll-process-start');
     const endInput = document.getElementById('payroll-process-end');
+    const db = getDb();
+    const cp = db.companyProfile || {};
     
-    if (startInput && !startInput.value) {
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        startInput.value = `${yyyy}-${mm}-01`;
-        
-        // Default end date to last day of the month
-        const lastDay = new Date(yyyy, today.getMonth() + 1, 0).getDate();
-        endInput.value = `${yyyy}-${mm}-${lastDay}`;
+    if (startInput && endInput) {
+        if (cp.payrollLockEnabled) {
+            // Lock enabled: Set to Previous Month and make readonly
+            const today = new Date();
+            let prevMonthDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            
+            const yyyy = prevMonthDate.getFullYear();
+            const mm = String(prevMonthDate.getMonth() + 1).padStart(2, '0');
+            startInput.value = `${yyyy}-${mm}-01`;
+            
+            const lastDay = new Date(yyyy, prevMonthDate.getMonth() + 1, 0).getDate();
+            endInput.value = `${yyyy}-${mm}-${lastDay}`;
+            
+            startInput.readOnly = true;
+            endInput.readOnly = true;
+            
+            startInput.style.backgroundColor = 'rgba(0,0,0,0.05)';
+            endInput.style.backgroundColor = 'rgba(0,0,0,0.05)';
+            startInput.style.pointerEvents = 'none';
+            endInput.style.pointerEvents = 'none';
+        } else {
+            // Lock disabled: Default to current month, but make editable
+            startInput.readOnly = false;
+            endInput.readOnly = false;
+            startInput.style.backgroundColor = '';
+            endInput.style.backgroundColor = '';
+            startInput.style.pointerEvents = 'auto';
+            endInput.style.pointerEvents = 'auto';
+            
+            if (!startInput.value) {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                startInput.value = `${yyyy}-${mm}-01`;
+                
+                const lastDay = new Date(yyyy, today.getMonth() + 1, 0).getDate();
+                endInput.value = `${yyyy}-${mm}-${lastDay}`;
+            }
+        }
     }
 };
 
 window.generatePayrollPreview = function() {
     const db = getDb();
+    const cp = db.companyProfile || {};
     const startInput = document.getElementById('payroll-process-start').value;
     const endInput = document.getElementById('payroll-process-end').value;
     const deptFilter = document.getElementById('payroll-process-dept').value;
@@ -1205,6 +1238,37 @@ window.generatePayrollPreview = function() {
     if (startDate > endDate) {
         if(window.showToast) showToast("Error", "Start date cannot be after end date.", "error");
         return;
+    }
+
+    if (cp.payrollLockEnabled) {
+        const today = new Date();
+        const allowedDate = parseInt(cp.payrollLockDate) || 1;
+        
+        // Calculate earliest allowed date based on the end of the payroll cycle
+        const earliestAllowedDate = new Date(endDate);
+        earliestAllowedDate.setDate(earliestAllowedDate.getDate() + 1); // Move to 1st of next month
+        earliestAllowedDate.setDate(allowedDate); // Set to allowed generation date
+        
+        today.setHours(0,0,0,0);
+        earliestAllowedDate.setHours(0,0,0,0);
+        
+        if (today < earliestAllowedDate) {
+            const formattedEarliest = earliestAllowedDate.toLocaleDateString('en-GB');
+            if(window.showToast) showToast("Error", `Payroll Generation Locked. You can only generate this payroll on or after ${formattedEarliest}.`, "error");
+            return;
+        }
+        
+        // Duplicate check
+        const history = db.payrollHistory || [];
+        const isDuplicate = history.some(record => {
+            const rEnd = new Date(record.endDate);
+            return rEnd.getMonth() === endDate.getMonth() && rEnd.getFullYear() === endDate.getFullYear();
+        });
+        
+        if (isDuplicate) {
+            if(window.showToast) showToast("Error", "Payroll for this month has already been generated. Duplicate generation is blocked.", "error");
+            return;
+        }
     }
 
     let users = db.users.filter(u => u.status === 'Active');

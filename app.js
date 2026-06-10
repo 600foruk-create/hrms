@@ -2596,6 +2596,11 @@ window.openCompanyProfileModal = function () {
     document.getElementById('bp-letter-header').value = cp.bankLetterHeader || 'We, M/s [COMPANY_NAME], kindly request you to transfer the monthly salaries from our company account No. [ACCOUNT_NO] to the individual accounts of our employees as per the details mentioned below:';
     document.getElementById('bp-letter-footer').value = cp.bankLetterFooter || 'We authorize the bank to debit our Company Account No. [ACCOUNT_NO] for the total salary disbursement and transfer the respective net amounts into the employees\' individual bank accounts mentioned above.\nIf any further information or documentation is required, please let us know.\nThank you for your cooperation.\nSincerely,';
 
+    if (document.getElementById('payroll-lock-enabled')) {
+        document.getElementById('payroll-lock-enabled').checked = !!cp.payrollLockEnabled;
+        document.getElementById('payroll-lock-date').value = cp.payrollLockDate || 1;
+    }
+
     // Clear logo input just in case
     document.getElementById('comp-logo-input').value = '';
     const dropzone = document.getElementById('dropzone-company-logo');
@@ -3733,6 +3738,22 @@ window.saveBankProfile = async function() {
     
     await saveDb(db);
     showToast("Bank Profile", "Bank settings and letter text saved successfully.");
+};
+
+window.savePayrollLockSettings = async function() {
+    const db = getDb();
+    if (!db) return;
+    
+    if (!db.companyProfile || Array.isArray(db.companyProfile)) {
+        db.companyProfile = {};
+    }
+    const cp = db.companyProfile;
+    
+    cp.payrollLockEnabled = document.getElementById('payroll-lock-enabled').checked;
+    cp.payrollLockDate = parseInt(document.getElementById('payroll-lock-date').value) || 1;
+    
+    await saveDb(db);
+    showToast("Payroll Restrictions", "Strict payroll limits saved successfully.");
 };
 
 // Settings Event Delegation (Click actions like Reset/Test)
