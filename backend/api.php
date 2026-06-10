@@ -103,6 +103,12 @@ try { $pdo->exec("ALTER TABLE users DROP COLUMN `documents`"); } catch (Exceptio
 try { $pdo->exec("ALTER TABLE users DROP COLUMN `leaveBalances`"); } catch (Exception $e) {}
 try { $pdo->exec("ALTER TABLE company_profile DROP COLUMN `leaveTypes`"); } catch (Exception $e) {}
 try { $pdo->exec("DROP TABLE IF EXISTS `settings`"); } catch (Exception $e) {}
+a
+// Drop obsolete company_profile fields (MySQL)
+$obsolete_cp = ['payrollLockEnabled', 'payrollLockDate', 'payrollLockStartDate', 'payrollLockEndDate', 'bankName', 'bankBranchCode', 'bankAccountNo', 'signatory', 'signatoryDesignation', 'bankLetterHeader', 'bankLetterFooter', 'idCardFrontBase64', 'idCardBackBase64'];
+foreach ($obsolete_cp as $col) {
+    try { $pdo->exec("ALTER TABLE company_profile DROP COLUMN `$col`"); } catch (Exception $e) {}
+}
 
 // Auto-migrate role enum and update existing 'Employee' roles to 'User'
 try {
@@ -188,48 +194,42 @@ try {
 } catch (Exception $e) {
     // Ignore if unsupported (e.g. SQLite doesn't support ENGINE=InnoDB)
     try {
-        $pdo->exec("CREATE TABLE IF NOT EXISTS `company_profile` (
-            `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-            `name` TEXT,
-            `email` TEXT,
-            `phone` TEXT,
-            `website` TEXT,
-            `address` TEXT,
-            `reg` TEXT,
-            `slogan` TEXT,
-            `industry` TEXT,
-            `size` TEXT,
-            `type` TEXT,
-            `logoBase64` TEXT,
-            `letterheadBase64` TEXT,
-            `signatureBase64` TEXT,
-            `leaveTypes` TEXT
-        )");
-        
-        $pdo->exec("CREATE TABLE IF NOT EXISTS `bank_profile` (
-            `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-            `bankName` TEXT,
-            `bankBranchCode` TEXT,
-            `bankAccountNo` TEXT,
-            `signatory` TEXT,
-            `signatoryDesignation` TEXT,
-            `bankLetterHeader` TEXT,
-            `bankLetterFooter` TEXT
-        )");
-        
-        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockEnabled` INTEGER DEFAULT 0"); } catch (Exception $ex) {}
-        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockDate` INTEGER DEFAULT 1"); } catch (Exception $ex) {}
-        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockStartDate` TEXT"); } catch (Exception $ex) {}
-        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockEndDate` TEXT"); } catch (Exception $ex) {}
-        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `idCardFrontBase64` TEXT"); } catch (Exception $ex) {}
-        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `idCardBackBase64` TEXT"); } catch (Exception $ex) {}
-        
-        $pdo->exec("CREATE TABLE IF NOT EXISTS `employee_documents` (
-            `id` INTEGER PRIMARY KEY AUTOINCREMENT,
-            `employee_id` TEXT NOT NULL,
-            `doc_name` TEXT NOT NULL,
-            `doc_url` TEXT NOT NULL
-        )");
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS `company_profile` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+                `name` TEXT,
+                `email` TEXT,
+                `phone` TEXT,
+                `website` TEXT,
+                `address` TEXT,
+                `reg` TEXT,
+                `slogan` TEXT,
+                `industry` TEXT,
+                `size` TEXT,
+                `type` TEXT,
+                `logoBase64` TEXT,
+                `letterheadBase64` TEXT,
+                `signatureBase64` TEXT
+            )");
+            
+            $pdo->exec("CREATE TABLE IF NOT EXISTS `bank_profile` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+                `bankName` TEXT,
+                `bankBranchCode` TEXT,
+                `bankAccountNo` TEXT,
+                `signatory` TEXT,
+                `signatoryDesignation` TEXT,
+                `bankLetterHeader` TEXT,
+                `bankLetterFooter` TEXT
+            )");
+            
+            $pdo->exec("CREATE TABLE IF NOT EXISTS `employee_documents` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+                `employee_id` TEXT NOT NULL,
+                `doc_name` TEXT NOT NULL,
+                `doc_url` TEXT NOT NULL
+            )");
+        } catch (Exception $ex) {}
 
         $pdo->exec("CREATE TABLE IF NOT EXISTS `employee_leave_balances` (
             `id` INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -602,18 +602,12 @@ elseif ($action === 'save_all') {
         $pdo->exec("DELETE FROM company_leave_types");
         if (!empty($data['companyProfile'])) {
             $cp = $data['companyProfile'];
-            $stmt = $pdo->prepare("INSERT INTO company_profile (name, email, phone, website, address, reg, slogan, industry, size, type, logoBase64, letterheadBase64, signatureBase64, idCardFrontBase64, idCardBackBase64, leaveTypes, payrollLockEnabled, payrollLockDate, payrollLockStartDate, payrollLockEndDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO company_profile (name, email, phone, website, address, reg, slogan, industry, size, type, logoBase64, letterheadBase64, signatureBase64) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $cp['name'] ?? '', $cp['email'] ?? '', $cp['phone'] ?? '', $cp['website'] ?? '',
                 $cp['address'] ?? '', $cp['reg'] ?? '', $cp['slogan'] ?? '', $cp['industry'] ?? '',
                 $cp['size'] ?? '', $cp['type'] ?? '', $cp['logoBase64'] ?? '', $cp['letterheadBase64'] ?? '',
-                $cp['signatureBase64'] ?? '',
-                $cp['idCardFrontBase64'] ?? '', $cp['idCardBackBase64'] ?? '',
-                !empty($cp['leaveTypes']) ? json_encode($cp['leaveTypes']) : null,
-                !empty($cp['payrollLockEnabled']) ? 1 : 0, 
-                $cp['payrollLockDate'] ?? 1,
-                $cp['payrollLockStartDate'] ?? '', 
-                $cp['payrollLockEndDate'] ?? ''
+                $cp['signatureBase64'] ?? ''
             ]);
             
             if (!empty($cp['leaveTypes']) && is_array($cp['leaveTypes'])) {
