@@ -102,6 +102,14 @@ async function saveDb(data) {
     } catch (e) {
         console.warn("Could not save to localStorage. Quota exceeded?", e);
     }
+    
+    if (window.isDemoMode) return true;
+    
+    // Prevent accidental wipe if data is incomplete
+    if (!data || !data.users) {
+        console.error("Invalid database state. Aborting network sync.");
+        return false;
+    }
 
     try {
         const response = await fetch(API_URL + '?action=save_all', {
@@ -118,7 +126,29 @@ async function saveDb(data) {
         return true;
     } catch (error) {
         console.warn("Network Warning: Could not connect to database server. Using local storage.", error);
-        // Silently fail network sync so user only sees the success toast of their action
+        return false;
+    }
+}
+
+// RESTful API Endpoint for Independent Saves
+async function saveUserOnServer(userObj) {
+    if (window.isDemoMode) return true;
+    try {
+        const response = await fetch(API_URL + '?action=save_user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user: userObj })
+        });
+        const result = await response.json();
+        if (result.status !== 'success') {
+            console.error("API Error saving user:", result.message);
+            alert("API Error: " + result.message);
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error("Network Error saving user:", error);
+        alert("Network Error: Could not save user to server.");
         return false;
     }
 }
@@ -3200,13 +3230,14 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
             user.profilePic = window.tempProfilePic;
             user.documents = window.tempDocuments;
 
+            // RESTful API Sync
+            await saveUserOnServer(user);
+
             showToast("Success", `Profile updated successfully for ${name}.`);
             logAudit(`Updated profile details for employee: ${name} (${role}).`);
             closeAllModals();
             if (typeof refreshTabContent === 'function' && typeof activeTab !== 'undefined') refreshTabContent(activeTab);
             else if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
-            
-            await saveDb(db);
         }
     } else {
         // Create Mode — use the admin-entered Employee ID as the actual primary ID
@@ -3216,7 +3247,7 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
         }
 
         const actualId = displayId.trim();
-        db.users.push({
+        const newUser = {
             id: actualId,
             displayId: actualId,
             name,
@@ -3245,9 +3276,11 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
             profilePic: window.tempProfilePic,
             documents: window.tempDocuments,
             leaveBalances: (db.companyProfile?.leaveTypes || []).map(lt => ({ id: lt.id, name: lt.name, balance: lt.days }))
-        });
+        };
+        db.users.push(newUser);
 
-        const saved = await saveDb(db);
+        // RESTful API Sync
+        const saved = await saveUserOnServer(newUser);
         if(saved) {
             showToast("Created", `New user profile created for ${name} (ID: ${actualId}).`);
             logAudit(`Created new employee profile: ${name} (${role}, ID: ${actualId}).`);

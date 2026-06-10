@@ -154,6 +154,31 @@ try {
     try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockDate` int(11) DEFAULT 1"); } catch (Exception $ex) {}
     try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockStartDate` varchar(50) DEFAULT NULL"); } catch (Exception $ex) {}
     try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockEndDate` varchar(50) DEFAULT NULL"); } catch (Exception $ex) {}
+    
+    // Phase 1: Database Normalization Tables
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `employee_documents` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `employee_id` varchar(100) NOT NULL,
+        `doc_name` varchar(255) NOT NULL,
+        `doc_url` longtext NOT NULL,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `employee_leave_balances` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `employee_id` varchar(100) NOT NULL,
+        `leave_type` varchar(100) NOT NULL,
+        `balance` int(11) NOT NULL DEFAULT 0,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `company_leave_types` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `type_id` varchar(100) NOT NULL,
+        `name` varchar(150) NOT NULL,
+        `allowance` int(11) NOT NULL DEFAULT 0,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 } catch (Exception $e) {
     // Ignore if unsupported (e.g. SQLite doesn't support ENGINE=InnoDB)
     try {
@@ -190,6 +215,27 @@ try {
         try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockDate` INTEGER DEFAULT 1"); } catch (Exception $ex) {}
         try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockStartDate` TEXT"); } catch (Exception $ex) {}
         try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockEndDate` TEXT"); } catch (Exception $ex) {}
+        
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `employee_documents` (
+            `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+            `employee_id` TEXT NOT NULL,
+            `doc_name` TEXT NOT NULL,
+            `doc_url` TEXT NOT NULL
+        )");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `employee_leave_balances` (
+            `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+            `employee_id` TEXT NOT NULL,
+            `leave_type` TEXT NOT NULL,
+            `balance` INTEGER NOT NULL DEFAULT 0
+        )");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `company_leave_types` (
+            `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+            `type_id` TEXT NOT NULL,
+            `name` TEXT NOT NULL,
+            `allowance` INTEGER NOT NULL DEFAULT 0
+        )");
     } catch (Exception $e2) {
         error_log("Failed to create company_profile table: " . $e2->getMessage());
     }
@@ -217,16 +263,29 @@ if ($action === 'load_all') {
         // Fetch Users
         $stmt = $pdo->query("SELECT * FROM users");
         $usersRecords = $stmt->fetchAll();
+        
+        // Fetch Normalized User Data
+        $docStmt = $pdo->query("SELECT employee_id, doc_name as name, doc_url as url FROM employee_documents");
+        $allDocs = $docStmt->fetchAll();
+        
+        $balStmt = $pdo->query("SELECT employee_id, leave_type as id, balance FROM employee_leave_balances");
+        $allBals = $balStmt->fetchAll();
+
         foreach ($usersRecords as &$u) {
-            if (!empty($u['documents'])) {
-                $u['documents'] = json_decode($u['documents'], true) ?: [];
-            } else {
-                $u['documents'] = [];
+            $origDocs = $u['documents'] ?? '';
+            $origBals = $u['leaveBalances'] ?? '';
+            
+            $u['documents'] = array_values(array_filter($allDocs, function($d) use ($u) { return $d['employee_id'] === $u['id']; }));
+            if (empty($u['documents']) && !empty($origDocs)) {
+                $u['documents'] = json_decode($origDocs, true) ?: [];
             }
-            if (!empty($u['leaveBalances'])) {
-                $u['leaveBalances'] = json_decode($u['leaveBalances'], true) ?: [];
-            } else {
-                $u['leaveBalances'] = [];
+            
+            $u['leaveBalances'] = array_values(array_filter($allBals, function($b) use ($u) { return $b['employee_id'] === $u['id']; }));
+            // Convert balance strings to integers
+            foreach ($u['leaveBalances'] as &$lb) { $lb['balance'] = (int)$lb['balance']; }
+            
+            if (empty($u['leaveBalances']) && !empty($origBals)) {
+                $u['leaveBalances'] = json_decode($origBals, true) ?: [];
             }
         }
         if (empty($usersRecords)) {
@@ -303,10 +362,14 @@ if ($action === 'load_all') {
         $stmt = $pdo->query("SELECT * FROM company_profile LIMIT 1");
         $cpRow = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($cpRow) {
-            if (!empty($cpRow['leaveTypes'])) {
-                $cpRow['leaveTypes'] = json_decode($cpRow['leaveTypes'], true) ?: [];
-            } else {
-                $cpRow['leaveTypes'] = [];
+            $origLeaveTypes = $cpRow['leaveTypes'] ?? '';
+            
+            $cltStmt = $pdo->query("SELECT type_id as id, name, allowance FROM company_leave_types");
+            $cpRow['leaveTypes'] = $cltStmt->fetchAll();
+            foreach ($cpRow['leaveTypes'] as &$lt) { $lt['allowance'] = (int)$lt['allowance']; }
+            
+            if (empty($cpRow['leaveTypes']) && !empty($origLeaveTypes)) {
+                $cpRow['leaveTypes'] = json_decode($origLeaveTypes, true) ?: [];
             }
             $dbState['companyProfile'] = $cpRow;
         } else {
@@ -383,8 +446,14 @@ elseif ($action === 'save_all') {
 
         // 1. Sync Users
         $pdo->exec("DELETE FROM users");
+        $pdo->exec("DELETE FROM employee_documents");
+        $pdo->exec("DELETE FROM employee_leave_balances");
+        
         if (!empty($data['users'])) {
             $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, documents, bloodGroup, designation, leaveBalances, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode, themeColor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $docStmt = $pdo->prepare("INSERT INTO employee_documents (employee_id, doc_name, doc_url) VALUES (?, ?, ?)");
+            $balStmt = $pdo->prepare("INSERT INTO employee_leave_balances (employee_id, leave_type, balance) VALUES (?, ?, ?)");
+            
             foreach ($data['users'] as $u) {
                 $stmt->execute([
                     $u['id'], 
@@ -417,6 +486,18 @@ elseif ($action === 'save_all') {
                     $u['branchCode'] ?? null,
                     $u['themeColor'] ?? null
                 ]);
+                
+                if (!empty($u['documents']) && is_array($u['documents'])) {
+                    foreach ($u['documents'] as $doc) {
+                        $docStmt->execute([$u['id'], $doc['name'] ?? '', $doc['url'] ?? '']);
+                    }
+                }
+                
+                if (!empty($u['leaveBalances']) && is_array($u['leaveBalances'])) {
+                    foreach ($u['leaveBalances'] as $bal) {
+                        $balStmt->execute([$u['id'], $bal['id'] ?? '', (int)($bal['balance'] ?? 0)]);
+                    }
+                }
             }
         }
 
@@ -510,6 +591,7 @@ elseif ($action === 'save_all') {
 
         // 9. Sync Company Profile
         $pdo->exec("DELETE FROM company_profile");
+        $pdo->exec("DELETE FROM company_leave_types");
         if (!empty($data['companyProfile'])) {
             $cp = $data['companyProfile'];
             $stmt = $pdo->prepare("INSERT INTO company_profile (name, email, phone, website, address, reg, slogan, industry, size, type, logoBase64, letterheadBase64, signatureBase64, leaveTypes, payrollLockEnabled, payrollLockDate, payrollLockStartDate, payrollLockEndDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -524,6 +606,13 @@ elseif ($action === 'save_all') {
                 $cp['payrollLockStartDate'] ?? '', 
                 $cp['payrollLockEndDate'] ?? ''
             ]);
+            
+            if (!empty($cp['leaveTypes']) && is_array($cp['leaveTypes'])) {
+                $cltStmt = $pdo->prepare("INSERT INTO company_leave_types (type_id, name, allowance) VALUES (?, ?, ?)");
+                foreach ($cp['leaveTypes'] as $lt) {
+                    $cltStmt->execute([$lt['id'] ?? '', $lt['name'] ?? '', (int)($lt['allowance'] ?? 0)]);
+                }
+            }
         }
         
         // 9.5 Sync Bank Profile
@@ -583,6 +672,74 @@ elseif ($action === 'save_all') {
     } catch (Exception $e) {
         $pdo->rollBack();
         echo json_encode(["status" => "error", "message" => "Transaction Failed: " . $e->getMessage()]);
+    }
+} elseif ($action === 'save_user') {
+    $inputJSON = file_get_contents('php://input');
+    $data = json_decode($inputJSON, true);
+    if (!$data || !isset($data['user'])) {
+        die(json_encode(["status" => "error", "message" => "Invalid JSON payload"]));
+    }
+    $u = $data['user'];
+    try {
+        $pdo->beginTransaction();
+        
+        // Check if user exists
+        $stmt = $pdo->prepare("SELECT id FROM users WHERE id = ?");
+        $stmt->execute([$u['id']]);
+        $exists = $stmt->fetch();
+        
+        if ($exists) {
+            $stmt = $pdo->prepare("UPDATE users SET displayId=?, email=?, password=?, name=?, role=?, managerId=?, status=?, salary=?, startDate=?, endDate=?, profilePic=?, documents=?, bloodGroup=?, designation=?, leaveBalances=?, fatherName=?, gender=?, dob=?, cnic=?, maritalStatus=?, phone=?, emergencyContact=?, bankName=?, accountTitle=?, accountNumber=?, iban=?, branchCode=?, themeColor=? WHERE id=?");
+            $stmt->execute([
+                $u['displayId'] ?? null, $u['email'], $u['password'], $u['name'], $u['role'], 
+                $u['managerId'] ?? null, $u['status'], $u['salary'], $u['startDate'], $u['endDate'], 
+                $u['profilePic'] ?? null, !empty($u['documents']) ? json_encode($u['documents']) : null,
+                $u['bloodGroup'] ?? null, $u['designation'] ?? null, 
+                !empty($u['leaveBalances']) ? json_encode($u['leaveBalances']) : null,
+                $u['fatherName'] ?? null, $u['gender'] ?? null, $u['dob'] === '' ? null : ($u['dob'] ?? null),
+                $u['cnic'] ?? null, $u['maritalStatus'] ?? null, $u['phone'] ?? null, 
+                $u['emergencyContact'] ?? null, $u['bankName'] ?? null, $u['accountTitle'] ?? null,
+                $u['accountNumber'] ?? null, $u['iban'] ?? null, $u['branchCode'] ?? null,
+                $u['themeColor'] ?? null, $u['id']
+            ]);
+        } else {
+            $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, documents, bloodGroup, designation, leaveBalances, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode, themeColor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $u['id'], $u['displayId'] ?? null, $u['email'], $u['password'], $u['name'], $u['role'], 
+                $u['managerId'] ?? null, $u['status'], $u['salary'], $u['startDate'], $u['endDate'], 
+                $u['profilePic'] ?? null, !empty($u['documents']) ? json_encode($u['documents']) : null,
+                $u['bloodGroup'] ?? null, $u['designation'] ?? null, 
+                !empty($u['leaveBalances']) ? json_encode($u['leaveBalances']) : null,
+                $u['fatherName'] ?? null, $u['gender'] ?? null, $u['dob'] === '' ? null : ($u['dob'] ?? null),
+                $u['cnic'] ?? null, $u['maritalStatus'] ?? null, $u['phone'] ?? null, 
+                $u['emergencyContact'] ?? null, $u['bankName'] ?? null, $u['accountTitle'] ?? null,
+                $u['accountNumber'] ?? null, $u['iban'] ?? null, $u['branchCode'] ?? null,
+                $u['themeColor'] ?? null
+            ]);
+        }
+        
+        $pdo->exec("DELETE FROM employee_documents WHERE employee_id = " . $pdo->quote($u['id']));
+        $pdo->exec("DELETE FROM employee_leave_balances WHERE employee_id = " . $pdo->quote($u['id']));
+        
+        if (!empty($u['documents']) && is_array($u['documents'])) {
+            $docStmt = $pdo->prepare("INSERT INTO employee_documents (employee_id, doc_name, doc_url) VALUES (?, ?, ?)");
+            foreach ($u['documents'] as $doc) {
+                $docStmt->execute([$u['id'], $doc['name'] ?? '', $doc['url'] ?? '']);
+            }
+        }
+        
+        if (!empty($u['leaveBalances']) && is_array($u['leaveBalances'])) {
+            $balStmt = $pdo->prepare("INSERT INTO employee_leave_balances (employee_id, leave_type, balance) VALUES (?, ?, ?)");
+            foreach ($u['leaveBalances'] as $bal) {
+                $balStmt->execute([$u['id'], $bal['id'] ?? '', (int)($bal['balance'] ?? 0)]);
+            }
+        }
+        
+        $pdo->commit();
+        echo json_encode(["status" => "success"]);
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        echo json_encode(["status" => "error", "message" => "Failed to save user: " . $e->getMessage()]);
     }
 } else {
     echo json_encode(["status" => "error", "message" => "Invalid action specified."]);
