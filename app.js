@@ -1306,53 +1306,9 @@ function renderAdminMyAttendance() {
 }
 
 function renderAdminAttendanceSlab() {
-    const db = getDb();
-    const dateInput = document.getElementById('admin-slab-filter-date');
-    if (!dateInput.value) {
-        dateInput.value = new Date().toISOString().split('T')[0];
-    }
-    const filterDate = dateInput.value;
-    
     const tableBody = document.getElementById('admin-attendance-slab-table-body');
-    tableBody.innerHTML = '';
-    
-    // Get all users except admin (or include admin too, but usually employees)
-    const users = db.users.filter(u => u.status !== 'Inactive');
-    
-    let defaulters = [];
-    
-    users.forEach(u => {
-        const log = db.attendance.find(l => l.employeeId === u.id && l.date === filterDate);
-        let status = 'Absent';
-        if (log) {
-            status = log.status;
-        }
-        
-        if (status === 'Absent' || status === 'Half Day' || status === 'Late') {
-            defaulters.push({
-                employeeId: u.displayId || u.id,
-                employeeName: u.name,
-                role: u.role,
-                status: status,
-                contact: u.phone || u.email
-            });
-        }
-    });
-    
-    if (defaulters.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="5" class="empty-state">No defaulters found for this date.</td></tr>`;
-    } else {
-        defaulters.forEach(d => {
-            tableBody.innerHTML += `
-                <tr>
-                    <td class="text-secondary">${d.employeeId}</td>
-                    <td class="bold">${d.employeeName}</td>
-                    <td><span class="badge-role ${d.role.toLowerCase()}">${d.role}</span></td>
-                    <td><span class="badge-status rejected">${d.status}</span></td>
-                    <td class="italic">${d.contact}</td>
-                </tr>
-            `;
-        });
+    if (tableBody) {
+        tableBody.innerHTML = `<tr><td colspan="5" class="empty-state">This module has been disabled.</td></tr>`;
     }
 }
 function renderAdminLeaveTab() {
