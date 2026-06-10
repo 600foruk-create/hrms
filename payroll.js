@@ -618,7 +618,7 @@ window.openBankLetterModal = function() {
     const today = new Date();
     document.getElementById('bank-letter-date').value = today.toISOString().split('T')[0];
 
-    updateBankLetterPreview();
+    window.updateBankLetterPreview();
 
     document.getElementById('modal-bank-letter').classList.remove('hidden');
     document.getElementById('modal-overlay').classList.remove('hidden');
