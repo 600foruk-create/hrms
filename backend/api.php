@@ -74,8 +74,6 @@ $new_columns = [
     "ADD COLUMN `endDate` date DEFAULT NULL",
     "ADD COLUMN `managerId` varchar(50) DEFAULT NULL",
     "ADD COLUMN `profilePic` longtext DEFAULT NULL",
-    "ADD COLUMN `documents` longtext DEFAULT NULL",
-    "ADD COLUMN `leaveBalances` longtext DEFAULT NULL",
     "ADD COLUMN `displayId` varchar(50) DEFAULT NULL",
     "ADD COLUMN `fatherName` varchar(100) DEFAULT NULL",
     "ADD COLUMN `gender` varchar(20) DEFAULT NULL",
@@ -99,6 +97,11 @@ foreach ($new_columns as $col) {
         // Column likely already exists
     }
 }
+
+// Clean up normalized columns if they exist (MySQL only)
+try { $pdo->exec("ALTER TABLE users DROP COLUMN `documents`"); } catch (Exception $e) {}
+try { $pdo->exec("ALTER TABLE users DROP COLUMN `leaveBalances`"); } catch (Exception $e) {}
+try { $pdo->exec("ALTER TABLE company_profile DROP COLUMN `leaveTypes`"); } catch (Exception $e) {}
 
 // Auto-migrate role enum and update existing 'Employee' roles to 'User'
 try {
@@ -452,42 +455,21 @@ elseif ($action === 'save_all') {
         $pdo->exec("DELETE FROM users");
         $pdo->exec("DELETE FROM employee_documents");
         $pdo->exec("DELETE FROM employee_leave_balances");
-        
+
         if (!empty($data['users'])) {
-            $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, documents, bloodGroup, designation, leaveBalances, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode, themeColor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, bloodGroup, designation, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode, themeColor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $docStmt = $pdo->prepare("INSERT INTO employee_documents (employee_id, doc_name, doc_url) VALUES (?, ?, ?)");
             $balStmt = $pdo->prepare("INSERT INTO employee_leave_balances (employee_id, leave_type, balance) VALUES (?, ?, ?)");
             
             foreach ($data['users'] as $u) {
                 $stmt->execute([
-                    $u['id'], 
-                    $u['displayId'] ?? null,
-                    $u['email'], 
-                    $u['password'], 
-                    $u['name'], 
-                    $u['role'], 
-                    $u['managerId'] ?? '', 
-                    $u['status'], 
-                    $u['salary'] === '' ? 0 : ($u['salary'] ?? 0), 
-                    $u['startDate'] === '' ? null : ($u['startDate'] ?? null), 
-                    $u['endDate'] === '' ? null : ($u['endDate'] ?? null),
-                    $u['profilePic'] ?? null,
-                    !empty($u['documents']) ? json_encode($u['documents']) : null,
-                    $u['bloodGroup'] ?? null,
-                    $u['designation'] ?? null,
-                    !empty($u['leaveBalances']) ? json_encode($u['leaveBalances']) : null,
-                    $u['fatherName'] ?? null,
-                    $u['gender'] ?? null,
-                    $u['dob'] === '' ? null : ($u['dob'] ?? null),
-                    $u['cnic'] ?? null,
-                    $u['maritalStatus'] ?? null,
-                    $u['phone'] ?? null,
-                    $u['emergencyContact'] ?? null,
-                    $u['bankName'] ?? null,
-                    $u['accountTitle'] ?? null,
-                    $u['accountNumber'] ?? null,
-                    $u['iban'] ?? null,
-                    $u['branchCode'] ?? null,
+                    $u['id'], $u['displayId'] ?? null, $u['email'], $u['password'], $u['name'], $u['role'], 
+                    $u['managerId'] ?? null, $u['status'], $u['salary'], $u['startDate'], $u['endDate'], 
+                    $u['profilePic'] ?? null, $u['bloodGroup'] ?? null, $u['designation'] ?? null, 
+                    $u['fatherName'] ?? null, $u['gender'] ?? null, $u['dob'] === '' ? null : ($u['dob'] ?? null),
+                    $u['cnic'] ?? null, $u['maritalStatus'] ?? null, $u['phone'] ?? null, 
+                    $u['emergencyContact'] ?? null, $u['bankName'] ?? null, $u['accountTitle'] ?? null,
+                    $u['accountNumber'] ?? null, $u['iban'] ?? null, $u['branchCode'] ?? null,
                     $u['themeColor'] ?? null
                 ]);
                 
@@ -694,13 +676,11 @@ elseif ($action === 'save_all') {
         $exists = $stmt->fetch();
         
         if ($exists) {
-            $stmt = $pdo->prepare("UPDATE users SET displayId=?, email=?, password=?, name=?, role=?, managerId=?, status=?, salary=?, startDate=?, endDate=?, profilePic=?, documents=?, bloodGroup=?, designation=?, leaveBalances=?, fatherName=?, gender=?, dob=?, cnic=?, maritalStatus=?, phone=?, emergencyContact=?, bankName=?, accountTitle=?, accountNumber=?, iban=?, branchCode=?, themeColor=? WHERE id=?");
+            $stmt = $pdo->prepare("UPDATE users SET displayId=?, email=?, password=?, name=?, role=?, managerId=?, status=?, salary=?, startDate=?, endDate=?, profilePic=?, bloodGroup=?, designation=?, fatherName=?, gender=?, dob=?, cnic=?, maritalStatus=?, phone=?, emergencyContact=?, bankName=?, accountTitle=?, accountNumber=?, iban=?, branchCode=?, themeColor=? WHERE id=?");
             $stmt->execute([
                 $u['displayId'] ?? null, $u['email'], $u['password'], $u['name'], $u['role'], 
                 $u['managerId'] ?? null, $u['status'], $u['salary'], $u['startDate'], $u['endDate'], 
-                $u['profilePic'] ?? null, !empty($u['documents']) ? json_encode($u['documents']) : null,
-                $u['bloodGroup'] ?? null, $u['designation'] ?? null, 
-                !empty($u['leaveBalances']) ? json_encode($u['leaveBalances']) : null,
+                $u['profilePic'] ?? null, $u['bloodGroup'] ?? null, $u['designation'] ?? null, 
                 $u['fatherName'] ?? null, $u['gender'] ?? null, $u['dob'] === '' ? null : ($u['dob'] ?? null),
                 $u['cnic'] ?? null, $u['maritalStatus'] ?? null, $u['phone'] ?? null, 
                 $u['emergencyContact'] ?? null, $u['bankName'] ?? null, $u['accountTitle'] ?? null,
@@ -708,13 +688,11 @@ elseif ($action === 'save_all') {
                 $u['themeColor'] ?? null, $u['id']
             ]);
         } else {
-            $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, documents, bloodGroup, designation, leaveBalances, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode, themeColor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, bloodGroup, designation, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode, themeColor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $u['id'], $u['displayId'] ?? null, $u['email'], $u['password'], $u['name'], $u['role'], 
                 $u['managerId'] ?? null, $u['status'], $u['salary'], $u['startDate'], $u['endDate'], 
-                $u['profilePic'] ?? null, !empty($u['documents']) ? json_encode($u['documents']) : null,
-                $u['bloodGroup'] ?? null, $u['designation'] ?? null, 
-                !empty($u['leaveBalances']) ? json_encode($u['leaveBalances']) : null,
+                $u['profilePic'] ?? null, $u['bloodGroup'] ?? null, $u['designation'] ?? null, 
                 $u['fatherName'] ?? null, $u['gender'] ?? null, $u['dob'] === '' ? null : ($u['dob'] ?? null),
                 $u['cnic'] ?? null, $u['maritalStatus'] ?? null, $u['phone'] ?? null, 
                 $u['emergencyContact'] ?? null, $u['bankName'] ?? null, $u['accountTitle'] ?? null,
