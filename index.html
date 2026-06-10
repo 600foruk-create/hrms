@@ -1912,57 +1912,47 @@
                         <div id="settings-content-general-settings" class="settings-sub-tab-content hidden" style="max-height: calc(100vh - 180px); overflow-y: auto; padding-right: 10px;">
                             <div class="row">
                                 <div class="col-12 mb-4">
-                                    <div class="section-card bg-glass">
-                                        <h3>Theme & Grid Settings</h3>
-                                        <p class="text-secondary mb-4">Customize the visual appearance of your dashboard.</p>
-                                        
-                                        <!-- Keep the inner content of Grid setting -->
-                                        
-                            <div class="section-card bg-glass">
-                                <h3 style="margin-bottom: 15px;">Theme & Grid Settings</h3>
-                                <form id="settings-theme-form" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                        <label for="theme-color" style="margin: 0; font-weight: 500;">Primary Color:</label>
-                                        <input type="color" id="theme-color" class="form-control" style="width: 50px; height: 35px; padding: 2px; cursor: pointer;" value="#0f3484">
-                                        <span id="theme-color-hex" style="font-family: monospace; color: var(--text-muted); width: 60px;">#0f3484</span>
-                                    </div>
-                                    <div style="display: flex; gap: 10px;">
-                                        <button type="submit" id="btn-save-theme" class="btn btn-primary" style="height: 35px; padding: 0 15px;"><i class="fa-solid fa-palette"></i> Save</button>
-                                        <button type="button" id="btn-reset-theme" class="btn btn-outline" style="height: 35px; padding: 0 15px;"><i class="fa-solid fa-rotate-left"></i> Reset</button>
-                                    </div>
-                                </form>
-                            </div>
-                        
+                                    <div class="section-card bg-glass" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; padding: 15px 20px;">
+                                        <h3 style="margin: 0; font-size: 15px;">Theme Settings</h3>
+                                        <form id="settings-theme-form" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; margin: 0;">
+                                            <div style="display: flex; align-items: center; gap: 10px;">
+                                                <label for="theme-color" style="margin: 0; font-weight: 500;">Primary Color:</label>
+                                                <input type="color" id="theme-color" class="form-control" style="width: 50px; height: 35px; padding: 2px; cursor: pointer;" value="#0f3484">
+                                                <span id="theme-color-hex" style="font-family: monospace; color: var(--text-muted); width: 60px;">#0f3484</span>
+                                            </div>
+                                            <div style="display: flex; gap: 10px;">
+                                                <button type="submit" id="btn-save-theme" class="btn btn-primary" style="height: 35px; padding: 0 15px;"><i class="fa-solid fa-palette"></i> Save</button>
+                                                <button type="button" id="btn-reset-theme" class="btn btn-outline" style="height: 35px; padding: 0 15px;"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+                                            </div>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
                             
                             <div class="row">
-                                <div class="col-12">
-                            <div class="section-card bg-glass">
-                                <h3 style="margin-bottom: 15px;">Strict Payroll Restrictions</h3>
-                                <form id="settings-payroll-lock-form" onsubmit="event.preventDefault(); if(window.savePayrollLockSettings) window.savePayrollLockSettings();" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
-                                    <label class="switch-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0;">
-                                        <input type="checkbox" id="payroll-lock-enabled" style="width: 16px; height: 16px;">
-                                        <span style="font-weight: 500;">Enforce Dates</span>
-                                    </label>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <label for="payroll-lock-date" style="margin: 0; white-space: nowrap;">Gen. Date:</label>
-                                        <input type="number" id="payroll-lock-date" class="form-control" min="1" max="31" value="1" style="width: 60px; height: 35px; padding: 5px;">
+                                <div class="col-12 mb-4">
+                                    <div class="section-card bg-glass" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; padding: 15px 20px;">
+                                        <h3 style="margin: 0; font-size: 15px;">Payroll Restrictions</h3>
+                                        <form id="settings-payroll-lock-form" onsubmit="event.preventDefault(); if(window.savePayrollLockSettings) window.savePayrollLockSettings();" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; margin: 0;">
+                                            <label class="switch-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0;">
+                                                <input type="checkbox" id="payroll-lock-enabled" style="width: 16px; height: 16px;">
+                                                <span style="font-weight: 500;">Enforce Dates</span>
+                                            </label>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <label for="payroll-lock-date" style="margin: 0; white-space: nowrap;">Gen. Date:</label>
+                                                <input type="number" id="payroll-lock-date" class="form-control" min="1" max="31" value="1" style="width: 60px; height: 35px; padding: 5px;">
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <label for="payroll-lock-start-date" style="margin: 0; white-space: nowrap;">Start:</label>
+                                                <input type="date" id="payroll-lock-start-date" class="form-control" style="height: 35px; padding: 5px;">
+                                            </div>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <label for="payroll-lock-end-date" style="margin: 0; white-space: nowrap;">End:</label>
+                                                <input type="date" id="payroll-lock-end-date" class="form-control" style="height: 35px; padding: 5px;">
+                                            </div>
+                                            <button type="submit" class="btn btn-primary" style="height: 35px; padding: 0 15px;"><i class="fa-solid fa-lock"></i> Save</button>
+                                        </form>
                                     </div>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <label for="payroll-lock-start-date" style="margin: 0; white-space: nowrap;">Start:</label>
-                                        <input type="date" id="payroll-lock-start-date" class="form-control" style="height: 35px; padding: 5px;">
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <label for="payroll-lock-end-date" style="margin: 0; white-space: nowrap;">End:</label>
-                                        <input type="date" id="payroll-lock-end-date" class="form-control" style="height: 35px; padding: 5px;">
-                                    </div>
-                                    <button type="submit" class="btn btn-primary" style="height: 35px; padding: 0 15px;"><i class="fa-solid fa-lock"></i> Save</button>
-                                </form>
-                            </div>
-                                </div>
-                            </div>
                                 </div>
                             </div>
                         </div>
