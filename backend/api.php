@@ -103,7 +103,7 @@ try { $pdo->exec("ALTER TABLE users DROP COLUMN `documents`"); } catch (Exceptio
 try { $pdo->exec("ALTER TABLE users DROP COLUMN `leaveBalances`"); } catch (Exception $e) {}
 try { $pdo->exec("ALTER TABLE company_profile DROP COLUMN `leaveTypes`"); } catch (Exception $e) {}
 try { $pdo->exec("DROP TABLE IF EXISTS `settings`"); } catch (Exception $e) {}
-a
+
 // Drop obsolete company_profile fields (MySQL)
 $obsolete_cp = ['payrollLockEnabled', 'payrollLockDate', 'payrollLockStartDate', 'payrollLockEndDate', 'bankName', 'bankBranchCode', 'bankAccountNo', 'signatory', 'signatoryDesignation', 'bankLetterHeader', 'bankLetterFooter', 'idCardFrontBase64', 'idCardBackBase64'];
 foreach ($obsolete_cp as $col) {
