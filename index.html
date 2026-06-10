@@ -1919,8 +1919,7 @@
                                         <!-- Keep the inner content of Grid setting -->
                                         
                             <div class="section-card bg-glass">
-                                <h3>Grid Setting (Theme Colors)</h3>
-                                <p class="text-secondary mb-3">Customize your dashboard's primary color. This is saved to your personal profile.</p>
+                                <h3 style="margin-bottom: 15px;">Theme & Grid Settings</h3>
                                 <form id="settings-theme-form" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
                                     <div style="display: flex; align-items: center; gap: 10px;">
                                         <label for="theme-color" style="margin: 0; font-weight: 500;">Primary Color:</label>
@@ -1940,35 +1939,28 @@
                             
                             <div class="row">
                                 <div class="col-12">
-                                    <div class="section-card bg-glass">
-                                        <h3>Strict Payroll Restrictions</h3>
-                                        <p class="text-secondary mb-3">Enforce monthly payroll generation limits and set the minimum allowed date for generation.</p>
-                                        <form id="settings-payroll-lock-form" onsubmit="event.preventDefault(); if(window.savePayrollLockSettings) window.savePayrollLockSettings();">
-                                            <div class="form-group mb-3">
-                                                <label class="switch-label" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                                                    <input type="checkbox" id="payroll-lock-enabled" style="width: 18px; height: 18px;">
-                                                    <span style="font-weight: 500;">Enforce Strict Payroll Dates</span>
-                                                </label>
-                                                <small class="text-muted" style="display: block; margin-top: 5px;">If enabled, payroll can only be generated ONCE per month, and only on or after the specified generation date.</small>
-                                            </div>
-                                            <div class="form-group mb-3" style="max-width: 300px;">
-                                                <label for="payroll-lock-date">Allowed Generation Date (1-31)</label>
-                                                <input type="number" id="payroll-lock-date" class="form-control" min="1" max="31" value="1" placeholder="e.g. 1">
-                                                <small class="text-muted">Payroll cannot be generated before this date.</small>
-                                            </div>
-                                            <div class="form-row mb-3" style="max-width: 300px;">
-                                                <div class="col">
-                                                    <label for="payroll-lock-start-date">Locked Start Date</label>
-                                                    <input type="date" id="payroll-lock-start-date" class="form-control">
-                                                </div>
-                                                <div class="col">
-                                                    <label for="payroll-lock-end-date">Locked End Date</label>
-                                                    <input type="date" id="payroll-lock-end-date" class="form-control">
-                                                </div>
-                                            </div>
-                                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-lock"></i> Save Restrictions</button>
-                                        </form>
+                            <div class="section-card bg-glass">
+                                <h3 style="margin-bottom: 15px;">Strict Payroll Restrictions</h3>
+                                <form id="settings-payroll-lock-form" onsubmit="event.preventDefault(); if(window.savePayrollLockSettings) window.savePayrollLockSettings();" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                                    <label class="switch-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0;">
+                                        <input type="checkbox" id="payroll-lock-enabled" style="width: 16px; height: 16px;">
+                                        <span style="font-weight: 500;">Enforce Dates</span>
+                                    </label>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <label for="payroll-lock-date" style="margin: 0; white-space: nowrap;">Gen. Date:</label>
+                                        <input type="number" id="payroll-lock-date" class="form-control" min="1" max="31" value="1" style="width: 60px; height: 35px; padding: 5px;">
                                     </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <label for="payroll-lock-start-date" style="margin: 0; white-space: nowrap;">Start:</label>
+                                        <input type="date" id="payroll-lock-start-date" class="form-control" style="height: 35px; padding: 5px;">
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <label for="payroll-lock-end-date" style="margin: 0; white-space: nowrap;">End:</label>
+                                        <input type="date" id="payroll-lock-end-date" class="form-control" style="height: 35px; padding: 5px;">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary" style="height: 35px; padding: 0 15px;"><i class="fa-solid fa-lock"></i> Save</button>
+                                </form>
+                            </div>
                                 </div>
                             </div>
                                 </div>
