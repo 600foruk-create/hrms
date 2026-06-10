@@ -2742,6 +2742,74 @@ window.openCompanyProfileModal = function () {
                 initSignaturePad();
             };
         }
+
+        // ID Card Front
+        const idCardFrontDropzone = document.getElementById('dropzone-idcard-front');
+        if (idCardFrontDropzone) {
+            if (cp.idCardFrontBase64) {
+                document.getElementById('company-profile-form').dataset.idCardFrontBase64 = cp.idCardFrontBase64;
+                idCardFrontDropzone.innerHTML = `
+                    <img src="${cp.idCardFrontBase64}" alt="ID Card Front" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                    <div style="font-size: 11px; color: var(--text-muted);">Click to change Front Template</div>
+                    <input type="file" id="comp-idcard-front-input" accept="image/*" style="display:none;">
+                `;
+                const newInput = idCardFrontDropzone.querySelector('#comp-idcard-front-input');
+                if (newInput) {
+                    newInput.onchange = () => {
+                        if (newInput.files.length) window.onIdCardFrontSelected(idCardFrontDropzone, newInput.files);
+                    };
+                    idCardFrontDropzone.onclick = () => newInput.click();
+                }
+            } else {
+                idCardFrontDropzone.innerHTML = `
+                    <i class="fa-solid fa-id-card" style="font-size: 24px; color: var(--primary);"></i>
+                    <div style="font-weight: 600;">Upload Front Template</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">Click or drag image here (Max 2MB)</div>
+                    <input type="file" id="comp-idcard-front-input" accept="image/*" style="display:none;">
+                `;
+                const newInput = idCardFrontDropzone.querySelector('#comp-idcard-front-input');
+                if (newInput) {
+                    newInput.onchange = () => {
+                        if (newInput.files.length) window.onIdCardFrontSelected(idCardFrontDropzone, newInput.files);
+                    };
+                    idCardFrontDropzone.onclick = () => newInput.click();
+                }
+            }
+        }
+
+        // ID Card Back
+        const idCardBackDropzone = document.getElementById('dropzone-idcard-back');
+        if (idCardBackDropzone) {
+            if (cp.idCardBackBase64) {
+                document.getElementById('company-profile-form').dataset.idCardBackBase64 = cp.idCardBackBase64;
+                idCardBackDropzone.innerHTML = `
+                    <img src="${cp.idCardBackBase64}" alt="ID Card Back" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                    <div style="font-size: 11px; color: var(--text-muted);">Click to change Back Template</div>
+                    <input type="file" id="comp-idcard-back-input" accept="image/*" style="display:none;">
+                `;
+                const newInput = idCardBackDropzone.querySelector('#comp-idcard-back-input');
+                if (newInput) {
+                    newInput.onchange = () => {
+                        if (newInput.files.length) window.onIdCardBackSelected(idCardBackDropzone, newInput.files);
+                    };
+                    idCardBackDropzone.onclick = () => newInput.click();
+                }
+            } else {
+                idCardBackDropzone.innerHTML = `
+                    <i class="fa-solid fa-id-card" style="font-size: 24px; color: var(--primary);"></i>
+                    <div style="font-weight: 600;">Upload Back Template</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">Click or drag image here (Max 2MB)</div>
+                    <input type="file" id="comp-idcard-back-input" accept="image/*" style="display:none;">
+                `;
+                const newInput = idCardBackDropzone.querySelector('#comp-idcard-back-input');
+                if (newInput) {
+                    newInput.onchange = () => {
+                        if (newInput.files.length) window.onIdCardBackSelected(idCardBackDropzone, newInput.files);
+                    };
+                    idCardBackDropzone.onclick = () => newInput.click();
+                }
+            }
+        }
     }
 };
 
@@ -3742,6 +3810,8 @@ document.addEventListener('submit', async (e) => {
                 if (cpForm.dataset.logoBase64) cp.logoBase64 = cpForm.dataset.logoBase64;
                 if (cpForm.dataset.letterheadBase64) cp.letterheadBase64 = cpForm.dataset.letterheadBase64;
                 if (cpForm.dataset.signatureBase64) cp.signatureBase64 = cpForm.dataset.signatureBase64;
+                if (cpForm.dataset.idCardFrontBase64) cp.idCardFrontBase64 = cpForm.dataset.idCardFrontBase64;
+                if (cpForm.dataset.idCardBackBase64) cp.idCardBackBase64 = cpForm.dataset.idCardBackBase64;
             }
 
             db.companyProfile = cp;

@@ -135,6 +135,8 @@ try {
     try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `leaveTypes` longtext DEFAULT NULL"); } catch (Exception $ex) {}
     try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `letterheadBase64` longtext DEFAULT NULL"); } catch (Exception $ex) {}
     try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `signatureBase64` longtext DEFAULT NULL"); } catch (Exception $ex) {}
+    try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `idCardFrontBase64` longtext DEFAULT NULL"); } catch (Exception $ex) {}
+    try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `idCardBackBase64` longtext DEFAULT NULL"); } catch (Exception $ex) {}
     
     // Ensure bank_profile table exists
     $pdo->exec("CREATE TABLE IF NOT EXISTS `bank_profile` (
@@ -215,6 +217,8 @@ try {
         try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockDate` INTEGER DEFAULT 1"); } catch (Exception $ex) {}
         try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockStartDate` TEXT"); } catch (Exception $ex) {}
         try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockEndDate` TEXT"); } catch (Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `idCardFrontBase64` TEXT"); } catch (Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `idCardBackBase64` TEXT"); } catch (Exception $ex) {}
         
         $pdo->exec("CREATE TABLE IF NOT EXISTS `employee_documents` (
             `id` INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -594,12 +598,13 @@ elseif ($action === 'save_all') {
         $pdo->exec("DELETE FROM company_leave_types");
         if (!empty($data['companyProfile'])) {
             $cp = $data['companyProfile'];
-            $stmt = $pdo->prepare("INSERT INTO company_profile (name, email, phone, website, address, reg, slogan, industry, size, type, logoBase64, letterheadBase64, signatureBase64, leaveTypes, payrollLockEnabled, payrollLockDate, payrollLockStartDate, payrollLockEndDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO company_profile (name, email, phone, website, address, reg, slogan, industry, size, type, logoBase64, letterheadBase64, signatureBase64, idCardFrontBase64, idCardBackBase64, leaveTypes, payrollLockEnabled, payrollLockDate, payrollLockStartDate, payrollLockEndDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $cp['name'] ?? '', $cp['email'] ?? '', $cp['phone'] ?? '', $cp['website'] ?? '',
                 $cp['address'] ?? '', $cp['reg'] ?? '', $cp['slogan'] ?? '', $cp['industry'] ?? '',
                 $cp['size'] ?? '', $cp['type'] ?? '', $cp['logoBase64'] ?? '', $cp['letterheadBase64'] ?? '',
                 $cp['signatureBase64'] ?? '',
+                $cp['idCardFrontBase64'] ?? '', $cp['idCardBackBase64'] ?? '',
                 !empty($cp['leaveTypes']) ? json_encode($cp['leaveTypes']) : null,
                 !empty($cp['payrollLockEnabled']) ? 1 : 0, 
                 $cp['payrollLockDate'] ?? 1,
