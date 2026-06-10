@@ -355,8 +355,9 @@ function handleLogin(usernameOrEmail, password) {
         if (searchBox) searchBox.value = "";
 
         // Apply Custom Theme if exists
-        if (user.themeColor) {
-            document.documentElement.style.setProperty('--primary', user.themeColor);
+        const sysSettings = db.systemSettings || {};
+        if (sysSettings.themeColor) {
+            document.documentElement.style.setProperty('--primary', sysSettings.themeColor);
         } else {
             document.documentElement.style.setProperty('--primary', '#5f3bf6'); // Default
         }
@@ -1424,10 +1425,10 @@ function renderAdminSettingsTab() {
 
 
     // Grid Setting (Theme)
-    const currentUser = JSON.parse(sessionStorage.getItem('current_user') || '{}');
-    if (currentUser.themeColor) {
-        document.getElementById('theme-color').value = currentUser.themeColor;
-        document.getElementById('theme-color-hex').textContent = currentUser.themeColor;
+    const sysSettings = getDb().systemSettings || {};
+    if (sysSettings.themeColor) {
+        document.getElementById('theme-color').value = sysSettings.themeColor;
+        document.getElementById('theme-color-hex').textContent = sysSettings.themeColor;
     }
 
     // Populate Company Profile Inline Form
@@ -2583,11 +2584,12 @@ window.openCompanyProfileModal = function () {
     document.getElementById('bp-letter-header').value = bankProfile.bankLetterHeader || 'We, M/s [COMPANY_NAME], kindly request you to transfer the monthly salaries from our company account No. [ACCOUNT_NO] to the individual accounts of our employees as per the details mentioned below:';
     document.getElementById('bp-letter-footer').value = bankProfile.bankLetterFooter || 'We authorize the bank to debit our Company Account No. [ACCOUNT_NO] for the total salary disbursement and transfer the respective net amounts into the employees\' individual bank accounts mentioned above.\nIf any further information or documentation is required, please let us know.\nThank you for your cooperation.\nSincerely,';
 
+    const sysSettings = db.systemSettings || {};
     if (document.getElementById('payroll-lock-enabled')) {
-        document.getElementById('payroll-lock-enabled').checked = !!cp.payrollLockEnabled;
-        document.getElementById('payroll-lock-date').value = cp.payrollLockDate || 1;
-        document.getElementById('payroll-lock-start-date').value = cp.payrollLockStartDate || '';
-        document.getElementById('payroll-lock-end-date').value = cp.payrollLockEndDate || '';
+        document.getElementById('payroll-lock-enabled').checked = sysSettings.payrollLockEnabled === 'true' || sysSettings.payrollLockEnabled === true;
+        document.getElementById('payroll-lock-date').value = sysSettings.payrollLockDate || 1;
+        document.getElementById('payroll-lock-start-date').value = sysSettings.payrollLockStartDate || '';
+        document.getElementById('payroll-lock-end-date').value = sysSettings.payrollLockEndDate || '';
     }
 
     // Clear logo input just in case
@@ -3701,15 +3703,11 @@ document.addEventListener('submit', async (e) => {
         if (formId === 'settings-theme-form') {
             const themeColor = document.getElementById('theme-color').value;
             const db = getDb();
-            const userIndex = db.users.findIndex(u => u.id === currentUser.id);
-            if (userIndex > -1) {
-                db.users[userIndex].themeColor = themeColor;
-                currentUser.themeColor = themeColor;
-                sessionStorage.setItem('current_user', JSON.stringify(currentUser));
-                document.documentElement.style.setProperty('--primary', themeColor);
-                showToast("Theme Saved", "Your primary color has been updated.");
-                await saveDb(db);
-            }
+            if (!db.systemSettings) db.systemSettings = {};
+            db.systemSettings.themeColor = themeColor;
+            document.documentElement.style.setProperty('--primary', themeColor);
+            showToast("Theme Saved", "Company primary color has been updated.");
+            await saveDb(db);
         }
         else if (formId === 'settings-email-form') {
             const db = getDb();
@@ -3806,15 +3804,15 @@ window.savePayrollLockSettings = async function() {
     const db = getDb();
     if (!db) return;
     
-    if (!db.companyProfile || Array.isArray(db.companyProfile)) {
-        db.companyProfile = {};
+    if (!db.systemSettings) {
+        db.systemSettings = {};
     }
-    const cp = db.companyProfile;
+    const sysSettings = db.systemSettings;
     
-    cp.payrollLockEnabled = document.getElementById('payroll-lock-enabled').checked;
-    cp.payrollLockDate = parseInt(document.getElementById('payroll-lock-date').value) || 1;
-    cp.payrollLockStartDate = document.getElementById('payroll-lock-start-date').value;
-    cp.payrollLockEndDate = document.getElementById('payroll-lock-end-date').value;
+    sysSettings.payrollLockEnabled = document.getElementById('payroll-lock-enabled').checked;
+    sysSettings.payrollLockDate = parseInt(document.getElementById('payroll-lock-date').value) || 1;
+    sysSettings.payrollLockStartDate = document.getElementById('payroll-lock-start-date').value;
+    sysSettings.payrollLockEndDate = document.getElementById('payroll-lock-end-date').value;
     
     showToast("Payroll Restrictions", "Strict payroll limits saved successfully.");
     saveDb(db); // Background sync
@@ -3829,15 +3827,11 @@ document.addEventListener('click', async (e) => {
         document.getElementById('theme-color-hex').textContent = defaultTheme;
         
         const db = getDb();
-        const userIndex = db.users.findIndex(u => u.id === currentUser.id);
-        if (userIndex > -1) {
-            delete db.users[userIndex].themeColor;
-            await saveDb(db);
-            delete currentUser.themeColor;
-            sessionStorage.setItem('current_user', JSON.stringify(currentUser));
-            document.documentElement.style.setProperty('--primary', defaultTheme);
-            showToast("Theme Reset", "Color has been reset to default.");
-        }
+        if (!db.systemSettings) db.systemSettings = {};
+        db.systemSettings.themeColor = defaultTheme;
+        await saveDb(db);
+        document.documentElement.style.setProperty('--primary', defaultTheme);
+        showToast("Theme Reset", "Color has been reset to default.");
     }
 
     // Biometric Test Button
@@ -4975,8 +4969,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentUser = JSON.parse(prevSession);
         
         // Apply Custom Theme if exists
-        if (currentUser.themeColor) {
-            document.documentElement.style.setProperty('--primary', currentUser.themeColor);
+        const cachedDb = JSON.parse(localStorage.getItem('cached_db') || '{}');
+        const sysSettings = cachedDb.systemSettings || {};
+        if (sysSettings.themeColor) {
+            document.documentElement.style.setProperty('--primary', sysSettings.themeColor);
         } else {
             document.documentElement.style.setProperty('--primary', '#5f3bf6'); // Default
         }

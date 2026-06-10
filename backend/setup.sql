@@ -7,6 +7,15 @@ SET time_zone = "+00:00";
 
 -- --------------------------------------------------------
 
+-- Table structure for table `system_settings`
+CREATE TABLE `system_settings` (
+  `setting_key` varchar(100) NOT NULL,
+  `setting_value` text DEFAULT NULL,
+  PRIMARY KEY (`setting_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
 -- Table structure for table `users`
 CREATE TABLE `users` (
   `id` varchar(50) NOT NULL,

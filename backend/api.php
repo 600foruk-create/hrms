@@ -110,6 +110,25 @@ foreach ($obsolete_cp as $col) {
     try { $pdo->exec("ALTER TABLE company_profile DROP COLUMN `$col`"); } catch (Exception $e) {}
 }
 
+// Ensure system_settings exists
+try {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `system_settings` (
+        `setting_key` varchar(100) NOT NULL,
+        `setting_value` text DEFAULT NULL,
+        PRIMARY KEY (`setting_key`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+} catch (Exception $e) {
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `system_settings` (
+            `setting_key` TEXT PRIMARY KEY,
+            `setting_value` TEXT
+        )");
+    } catch (Exception $e2) {}
+}
+
+// Drop themeColor from users as it's now global
+try { $pdo->exec("ALTER TABLE users DROP COLUMN `themeColor`"); } catch (Exception $e) {}
+
 // Auto-migrate role enum and update existing 'Employee' roles to 'User'
 try {
     $pdo->exec("ALTER TABLE users MODIFY COLUMN `role` enum('Admin','Manager','Employee','User') NOT NULL DEFAULT 'User'");
@@ -307,6 +326,18 @@ if ($action === 'load_all') {
 
         // Legacy Settings (Weights) removed
         $dbState['weights'] = [];
+
+        // Fetch System Settings
+        try {
+            $stmt = $pdo->query("SELECT * FROM system_settings");
+            $sysSettings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $dbState['systemSettings'] = [];
+            foreach ($sysSettings as $row) {
+                $dbState['systemSettings'][$row['setting_key']] = $row['setting_value'];
+            }
+        } catch (Exception $e) {
+            $dbState['systemSettings'] = [];
+        }
 
         // Fetch Leaves
         try {
@@ -667,6 +698,15 @@ elseif ($action === 'save_all') {
                     $ph['id'], $ph['batchId'], $ph['userId'], $ph['startDate'], $ph['endDate'], 
                     $ph['netFixed'], $ph['absencyDeduction'], $ph['loanDeduction'], $ph['bonus'], $ph['otherDeduction'], $ph['netPay'], $ph['processedAt']
                 ]);
+            }
+        }
+
+        // 11. Sync System Settings
+        $pdo->exec("DELETE FROM system_settings");
+        if (isset($data['systemSettings']) && is_array($data['systemSettings'])) {
+            $stmt = $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?)");
+            foreach ($data['systemSettings'] as $k => $v) {
+                $stmt->execute([$k, (string)$v]);
             }
         }
 
