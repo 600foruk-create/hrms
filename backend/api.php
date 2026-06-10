@@ -172,7 +172,9 @@ try {
             `logoBase64` TEXT,
             `letterheadBase64` TEXT,
             `signatureBase64` TEXT,
-            `leaveTypes` TEXT,
+            `leaveTypes` TEXT
+        )");
+        
         $pdo->exec("CREATE TABLE IF NOT EXISTS `bank_profile` (
             `id` INTEGER PRIMARY KEY AUTOINCREMENT,
             `bankName` TEXT,
