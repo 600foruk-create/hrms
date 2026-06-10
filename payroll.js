@@ -683,7 +683,8 @@ window.updateBankLetterPreview = function() {
     let grandNet = 0;
 
     history.forEach(h => {
-        const emp = db.employees.find(e => e.id === h.empId) || {};
+        const employees = db.employees || [];
+        const emp = employees.find(e => e.id === h.empId) || {};
         
         let basic = h.netFixedPay || 0;
         let additions = 0;
