@@ -2584,6 +2584,11 @@ window.openCompanyProfileModal = function () {
     document.getElementById('comp-industry').value = cp.industry || '';
     document.getElementById('comp-size').value = cp.size || '';
     document.getElementById('comp-type').value = cp.type || '';
+    
+    document.getElementById('comp-bank-name').value = cp.bankName || '';
+    document.getElementById('comp-branch-code').value = cp.bankBranchCode || '';
+    document.getElementById('comp-account-no').value = cp.bankAccountNo || '';
+    document.getElementById('comp-signatory').value = cp.signatory || '';
 
     // Clear logo input just in case
     document.getElementById('comp-logo-input').value = '';
@@ -3683,6 +3688,11 @@ document.addEventListener('submit', async (e) => {
             cp.industry = document.getElementById('comp-industry').value;
             cp.size = document.getElementById('comp-size').value;
             cp.type = document.getElementById('comp-type').value;
+            
+            cp.bankName = document.getElementById('comp-bank-name').value;
+            cp.bankBranchCode = document.getElementById('comp-branch-code').value;
+            cp.bankAccountNo = document.getElementById('comp-account-no').value;
+            cp.signatory = document.getElementById('comp-signatory').value;
 
             const cpForm = document.getElementById('company-profile-form');
             if (cpForm) {

@@ -583,6 +583,224 @@ window.printIndividualPayslip = function() {
     window.print();
 };
 
+window.openBankLetterModal = function() {
+    const db = getDb();
+    if (!db) return;
+
+    let history = db.payrollHistory || [];
+    
+    // Apply filters to get the current list
+    const monthFilter = document.getElementById('history-filter-month')?.value || 'All';
+    const yearFilter = document.getElementById('history-filter-year')?.value || 'All';
+
+    if (monthFilter !== 'All') {
+        history = history.filter(h => {
+            const d = new Date(h.endDate);
+            return String(d.getMonth() + 1).padStart(2, '0') === monthFilter;
+        });
+    }
+    if (yearFilter !== 'All') {
+        history = history.filter(h => {
+            const d = new Date(h.endDate);
+            return String(d.getFullYear()) === yearFilter;
+        });
+    }
+    
+    // Sort by most recent
+    history.sort((a, b) => new Date(b.processedAt) - new Date(a.processedAt));
+
+    // Store the filtered history for the preview update
+    window.currentBankLetterHistory = history;
+
+    // Reset inputs
+    document.getElementById('bank-letter-cheque-no').value = '';
+    
+    const today = new Date();
+    document.getElementById('bank-letter-date').value = today.toISOString().split('T')[0];
+
+    updateBankLetterPreview();
+
+    document.getElementById('modal-bank-letter').classList.remove('hidden');
+    document.getElementById('modal-overlay').classList.remove('hidden');
+    
+    if (!window.originalDocumentTitle) {
+        window.originalDocumentTitle = document.title;
+    }
+    document.title = `Bank_Letter_${monthFilter}_${yearFilter}`;
+};
+
+window.updateBankLetterPreview = function() {
+    const db = getDb();
+    const history = window.currentBankLetterHistory || [];
+    const cp = db.companyProfile || {};
+    
+    const monthFilter = document.getElementById('history-filter-month')?.value || 'All';
+    const yearFilter = document.getElementById('history-filter-year')?.value || 'All';
+    let monthName = monthFilter !== 'All' ? new Date(2000, parseInt(monthFilter)-1, 1).toLocaleString('default', { month: 'long' }) : 'All Months';
+    let periodText = monthFilter !== 'All' ? `${monthName.toUpperCase()}-${yearFilter}` : `ALL PERIODS`;
+
+    const chequeNo = document.getElementById('bank-letter-cheque-no').value.trim() || '_________________';
+    const chequeDateStr = document.getElementById('bank-letter-date').value;
+    const chequeDate = chequeDateStr ? new Date(chequeDateStr).toLocaleDateString('en-GB').replace(/\//g, '-') : '_____________';
+
+    const bankName = cp.bankName || '[Bank Name]';
+    const branchCode = cp.bankBranchCode || '[Branch Code]';
+    const companyAccount = cp.bankAccountNo || '[Company Account No]';
+    const signatory = cp.signatory || '[Signatory Name & Title]';
+
+    let tableRows = '';
+    let sno = 1;
+    let grandGross = 0;
+    let grandDeduction = 0;
+    let grandNet = 0;
+
+    history.forEach(h => {
+        const emp = db.employees.find(e => e.id === h.empId) || {};
+        
+        let basic = h.netFixedPay || 0;
+        let additions = 0;
+        if (h.allowances) additions += Object.values(h.allowances).reduce((sum, v) => sum + v, 0);
+        if (h.bonus) additions += h.bonus;
+        
+        if (typeof h.fixedAllowancesTotal === 'undefined') {
+            const slab = db.globalSalarySlab || { allowances: [], deductions: [] };
+            const fixedAllow = slab.allowances.reduce((sum, item) => {
+                if (item.type === 'Percentage') return sum + (basic * (item.amount / 100));
+                return sum + item.amount;
+            }, 0);
+            additions += fixedAllow;
+        } else {
+            additions += h.fixedAllowancesTotal || 0;
+        }
+
+        let grossSalary = basic + additions;
+        
+        let deductions = 0;
+        if (h.deductions) deductions += Object.values(h.deductions).reduce((sum, v) => sum + v, 0);
+        if (h.loanEmi) deductions += h.loanEmi;
+        if (typeof h.fixedDeductionsTotal === 'undefined') {
+            const slab = db.globalSalarySlab || { allowances: [], deductions: [] };
+            const fixedDeduct = slab.deductions.reduce((sum, item) => {
+                if (item.type === 'Percentage') return sum + (basic * (item.amount / 100));
+                return sum + item.amount;
+            }, 0);
+            deductions += fixedDeduct;
+        } else {
+            deductions += h.fixedDeductionsTotal || 0;
+        }
+
+        let netSalary = h.finalNetPay;
+
+        grandGross += grossSalary;
+        grandDeduction += deductions;
+        grandNet += netSalary;
+
+        const empName = emp.name || h.empName;
+        const fatherName = emp.fatherName ? `<br><small style="color: #555;">S/O ${emp.fatherName}</small>` : '';
+        const cnic = emp.cnic || 'N/A';
+        const dobStr = emp.startDate ? new Date(emp.startDate).toLocaleDateString('en-GB').replace(/\//g, '-') : 'N/A';
+        const accountNo = emp.accountNumber || 'N/A';
+
+        tableRows += `
+            <tr style="border-bottom: 1px solid #000;">
+                <td style="padding: 6px 4px; text-align: center;">${sno++}</td>
+                <td style="padding: 6px 4px;">${empName}${fatherName}</td>
+                <td style="padding: 6px 4px; text-align: center;">${cnic}</td>
+                <td style="padding: 6px 4px; text-align: center;">${dobStr}</td>
+                <td style="padding: 6px 4px; text-align: right;">${Math.round(grossSalary)}</td>
+                <td style="padding: 6px 4px; text-align: right;">${Math.round(deductions)}</td>
+                <td style="padding: 6px 4px; text-align: right;">${Math.round(netSalary)}</td>
+                <td style="padding: 6px 4px; text-align: center;">${accountNo}</td>
+            </tr>
+        `;
+    });
+
+    const html = `
+        <div class="report-print-sheet" style="color: black !important; font-size: 13px !important; font-family: Arial, sans-serif;">
+            ${cp.letterheadBase64 ? `<img src="${cp.letterheadBase64}" style="width: 100%; max-height: 150px; object-fit: contain; margin-bottom: 20px;">` : `
+            <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 20px;">
+                ${cp.logoBase64 ? `<img src="${cp.logoBase64}" style="max-height: 80px; margin-bottom: 10px;">` : ''}
+                <h1 style="margin: 0; font-size: 24px; text-transform: uppercase;">${cp.name || 'COMPANY NAME'}</h1>
+                <p style="margin: 5px 0 0 0; font-size: 14px;">${cp.address || ''} | ${cp.email || ''} | ${cp.phone || ''}</p>
+            </div>`}
+
+            <div style="margin-bottom: 20px;">
+                <p style="margin: 0;">The Manager</p>
+                <p style="margin: 0;">${bankName}</p>
+                <p style="margin: 0;">Branch Code: ${branchCode}</p>
+            </div>
+
+            <p style="font-weight: bold; margin-bottom: 10px;">Subject: Request for Transfer of Salaries to Employees' Individual Accounts For ${periodText}</p>
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <div>Cheque No. <span style="font-weight: bold;">${chequeNo}</span></div>
+                <div>Dated: <span style="font-weight: bold;">${chequeDate}</span></div>
+                <div>for Rs. <span style="font-weight: bold;">${Math.round(grandNet)}</span></div>
+            </div>
+
+            <p style="margin-bottom: 15px;">Dear Sir,</p>
+            <p style="margin-bottom: 20px; text-align: justify; line-height: 1.5;">
+                We, M/s ${cp.name || 'Company'}, kindly request you to transfer the monthly salaries from our company account <strong>No. ${companyAccount}</strong> to the individual accounts of our employees as per the details mentioned below:
+            </p>
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px;">
+                <thead>
+                    <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000;">
+                        <th style="padding: 8px 4px; text-align: center;">S.No.</th>
+                        <th style="padding: 8px 4px; text-align: left;">Employee Name<br><small>Father Name</small></th>
+                        <th style="padding: 8px 4px; text-align: center;">CNIC</th>
+                        <th style="padding: 8px 4px; text-align: center;">Date of<br>Appointment</th>
+                        <th style="padding: 8px 4px; text-align: right;">Gross<br>Salary</th>
+                        <th style="padding: 8px 4px; text-align: right;">Deductions</th>
+                        <th style="padding: 8px 4px; text-align: right;">Net Salary<br>Paid</th>
+                        <th style="padding: 8px 4px; text-align: center;">Employee A/C Number</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${tableRows}
+                </tbody>
+                <tfoot>
+                    <tr style="border-top: 2px solid #000; border-bottom: 2px solid #000; font-weight: bold;">
+                        <td colspan="4" style="padding: 10px 4px; text-align: right;">Total :-</td>
+                        <td style="padding: 10px 4px; text-align: right;">${Math.round(grandGross)}</td>
+                        <td style="padding: 10px 4px; text-align: right;">${Math.round(grandDeduction)}</td>
+                        <td style="padding: 10px 4px; text-align: right;">${Math.round(grandNet)}</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <p style="margin-bottom: 15px; text-align: justify; line-height: 1.5;">
+                We authorize the bank to debit our <strong>Company Account No. ${companyAccount}</strong> for the total salary disbursement and transfer the respective net amounts into the employees' individual bank accounts mentioned above.
+            </p>
+            <p style="margin-bottom: 30px;">If any further information or documentation is required, please let us know.<br>Thank you for your cooperation.<br><br>Sincerely,</p>
+
+            <div style="margin-top: 50px;">
+                <p style="font-weight: bold; margin: 0;">${signatory.split('-')[0]?.trim() || '[Name]'}</p>
+                <p style="margin: 0;">${signatory.split('-')[1]?.trim() || '[Designation]'}</p>
+                <p style="margin: 0;">M/s ${cp.name || 'Company'}</p>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('bank-letter-print-area').innerHTML = html;
+};
+
+window.printBankLetter = function() {
+    document.body.classList.add('printing-modal');
+    // Hide summary modal if it somehow overlaps
+    const otherModals = document.querySelectorAll('.modal:not(#modal-bank-letter)');
+    otherModals.forEach(m => m.style.display = 'none');
+    
+    // Quick timeout to let DOM settle
+    setTimeout(() => {
+        window.print();
+        document.body.classList.remove('printing-modal');
+        otherModals.forEach(m => m.style.display = '');
+    }, 100);
+};
+
+
 window.printSummary = function() {
     window.print();
 };
