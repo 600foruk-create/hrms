@@ -2599,6 +2599,8 @@ window.openCompanyProfileModal = function () {
     if (document.getElementById('payroll-lock-enabled')) {
         document.getElementById('payroll-lock-enabled').checked = !!cp.payrollLockEnabled;
         document.getElementById('payroll-lock-date').value = cp.payrollLockDate || 1;
+        document.getElementById('payroll-lock-start-date').value = cp.payrollLockStartDate || '';
+        document.getElementById('payroll-lock-end-date').value = cp.payrollLockEndDate || '';
     }
 
     // Clear logo input just in case
@@ -3751,6 +3753,8 @@ window.savePayrollLockSettings = async function() {
     
     cp.payrollLockEnabled = document.getElementById('payroll-lock-enabled').checked;
     cp.payrollLockDate = parseInt(document.getElementById('payroll-lock-date').value) || 1;
+    cp.payrollLockStartDate = document.getElementById('payroll-lock-start-date').value;
+    cp.payrollLockEndDate = document.getElementById('payroll-lock-end-date').value;
     
     await saveDb(db);
     showToast("Payroll Restrictions", "Strict payroll limits saved successfully.");

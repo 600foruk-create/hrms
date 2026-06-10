@@ -1180,16 +1180,27 @@ window.initPayrollProcessView = function() {
     
     if (startInput && endInput) {
         if (cp.payrollLockEnabled) {
-            // Lock enabled: Set to Previous Month and make readonly
-            const today = new Date();
-            let prevMonthDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            // Lock enabled: Set to Explicit Settings Dates or Fallback to Previous Month
+            let startVal = '';
+            let endVal = '';
             
-            const yyyy = prevMonthDate.getFullYear();
-            const mm = String(prevMonthDate.getMonth() + 1).padStart(2, '0');
-            startInput.value = `${yyyy}-${mm}-01`;
+            if (cp.payrollLockStartDate && cp.payrollLockEndDate) {
+                startVal = cp.payrollLockStartDate;
+                endVal = cp.payrollLockEndDate;
+            } else {
+                const today = new Date();
+                let prevMonthDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                
+                const yyyy = prevMonthDate.getFullYear();
+                const mm = String(prevMonthDate.getMonth() + 1).padStart(2, '0');
+                startVal = `${yyyy}-${mm}-01`;
+                
+                const lastDay = new Date(yyyy, prevMonthDate.getMonth() + 1, 0).getDate();
+                endVal = `${yyyy}-${mm}-${lastDay}`;
+            }
             
-            const lastDay = new Date(yyyy, prevMonthDate.getMonth() + 1, 0).getDate();
-            endInput.value = `${yyyy}-${mm}-${lastDay}`;
+            startInput.value = startVal;
+            endInput.value = endVal;
             
             startInput.readOnly = true;
             endInput.readOnly = true;
