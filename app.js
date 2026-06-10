@@ -112,7 +112,7 @@ async function saveDb(data) {
         const result = await response.json();
         if (result.status !== 'success') {
             console.warn("Sync Warning: Failed to backup data to server: " + result.message);
-            // We rely on localStorage fallback, so no alert/toast is shown to disrupt user
+            alert("Database Error: Could not save to server. " + result.message);
             return false;
         }
         return true;
