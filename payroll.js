@@ -584,49 +584,70 @@ window.printIndividualPayslip = function() {
 };
 
 window.openBankLetterModal = function() {
-    const db = getDb();
-    if (!db) return;
+    try {
+        const db = getDb();
+        if (!db) {
+            alert("Database not found");
+            return;
+        }
 
-    let history = db.payrollHistory || [];
-    
-    // Apply filters to get the current list
-    const monthFilter = document.getElementById('history-filter-month')?.value || 'All';
-    const yearFilter = document.getElementById('history-filter-year')?.value || 'All';
+        let history = db.payrollHistory || [];
+        
+        // Apply filters to get the current list
+        const monthFilter = document.getElementById('history-filter-month')?.value || 'All';
+        const yearFilter = document.getElementById('history-filter-year')?.value || 'All';
 
-    if (monthFilter !== 'All') {
-        history = history.filter(h => {
-            const d = new Date(h.endDate);
-            return String(d.getMonth() + 1).padStart(2, '0') === monthFilter;
-        });
+        if (monthFilter !== 'All') {
+            history = history.filter(h => {
+                const d = new Date(h.endDate);
+                return String(d.getMonth() + 1).padStart(2, '0') === monthFilter;
+            });
+        }
+        if (yearFilter !== 'All') {
+            history = history.filter(h => {
+                const d = new Date(h.endDate);
+                return String(d.getFullYear()) === yearFilter;
+            });
+        }
+        
+        // Sort by most recent
+        history.sort((a, b) => new Date(b.processedAt) - new Date(a.processedAt));
+
+        // Store the filtered history for the preview update
+        window.currentBankLetterHistory = history;
+
+        // Reset inputs
+        const chequeNoInput = document.getElementById('bank-letter-cheque-no');
+        if (chequeNoInput) chequeNoInput.value = '';
+        
+        const dateInput = document.getElementById('bank-letter-date');
+        const today = new Date();
+        if (dateInput) dateInput.value = today.toISOString().split('T')[0];
+
+        window.updateBankLetterPreview();
+
+        const modal = document.getElementById('modal-bank-letter');
+        const overlay = document.getElementById('modal-overlay');
+        
+        if (!modal) {
+            alert("Modal element 'modal-bank-letter' not found in HTML!");
+            return;
+        }
+        if (!overlay) {
+            alert("Overlay element 'modal-overlay' not found in HTML!");
+            return;
+        }
+
+        modal.classList.remove('hidden');
+        overlay.classList.remove('hidden');
+        
+        if (!window.originalDocumentTitle) {
+            window.originalDocumentTitle = document.title;
+        }
+        document.title = `Bank_Letter_${monthFilter}_${yearFilter}`;
+    } catch (err) {
+        alert("Error opening modal: " + err.message + "\n" + err.stack);
     }
-    if (yearFilter !== 'All') {
-        history = history.filter(h => {
-            const d = new Date(h.endDate);
-            return String(d.getFullYear()) === yearFilter;
-        });
-    }
-    
-    // Sort by most recent
-    history.sort((a, b) => new Date(b.processedAt) - new Date(a.processedAt));
-
-    // Store the filtered history for the preview update
-    window.currentBankLetterHistory = history;
-
-    // Reset inputs
-    document.getElementById('bank-letter-cheque-no').value = '';
-    
-    const today = new Date();
-    document.getElementById('bank-letter-date').value = today.toISOString().split('T')[0];
-
-    window.updateBankLetterPreview();
-
-    document.getElementById('modal-bank-letter').classList.remove('hidden');
-    document.getElementById('modal-overlay').classList.remove('hidden');
-    
-    if (!window.originalDocumentTitle) {
-        window.originalDocumentTitle = document.title;
-    }
-    document.title = `Bank_Letter_${monthFilter}_${yearFilter}`;
 };
 
 window.updateBankLetterPreview = function() {
