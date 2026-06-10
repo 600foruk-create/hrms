@@ -2585,10 +2585,13 @@ window.openCompanyProfileModal = function () {
     document.getElementById('comp-size').value = cp.size || '';
     document.getElementById('comp-type').value = cp.type || '';
     
-    document.getElementById('comp-bank-name').value = cp.bankName || '';
-    document.getElementById('comp-branch-code').value = cp.bankBranchCode || '';
-    document.getElementById('comp-account-no').value = cp.bankAccountNo || '';
-    document.getElementById('comp-signatory').value = cp.signatory || '';
+    document.getElementById('bp-bank-name').value = cp.bankName || '';
+    document.getElementById('bp-branch-code').value = cp.bankBranchCode || '';
+    document.getElementById('bp-account-no').value = cp.bankAccountNo || '';
+    document.getElementById('bp-signatory').value = cp.signatory || '';
+    
+    document.getElementById('bp-letter-header').value = cp.bankLetterHeader || 'We, M/s [COMPANY_NAME], kindly request you to transfer the monthly salaries from our company account No. [ACCOUNT_NO] to the individual accounts of our employees as per the details mentioned below:';
+    document.getElementById('bp-letter-footer').value = cp.bankLetterFooter || 'We authorize the bank to debit our Company Account No. [ACCOUNT_NO] for the total salary disbursement and transfer the respective net amounts into the employees\' individual bank accounts mentioned above.\nIf any further information or documentation is required, please let us know.\nThank you for your cooperation.\nSincerely,';
 
     // Clear logo input just in case
     document.getElementById('comp-logo-input').value = '';
@@ -3688,11 +3691,7 @@ document.addEventListener('submit', async (e) => {
             cp.industry = document.getElementById('comp-industry').value;
             cp.size = document.getElementById('comp-size').value;
             cp.type = document.getElementById('comp-type').value;
-            
-            cp.bankName = document.getElementById('comp-bank-name').value;
-            cp.bankBranchCode = document.getElementById('comp-branch-code').value;
-            cp.bankAccountNo = document.getElementById('comp-account-no').value;
-            cp.signatory = document.getElementById('comp-signatory').value;
+
 
             const cpForm = document.getElementById('company-profile-form');
             if (cpForm) {
@@ -3708,6 +3707,27 @@ document.addEventListener('submit', async (e) => {
         }
     }
 });
+
+window.saveBankProfile = async function() {
+    const db = getDb();
+    if (!db) return;
+    
+    if (!db.companyProfile || Array.isArray(db.companyProfile)) {
+        db.companyProfile = {};
+    }
+    const cp = db.companyProfile;
+    
+    cp.bankName = document.getElementById('bp-bank-name').value;
+    cp.bankBranchCode = document.getElementById('bp-branch-code').value;
+    cp.bankAccountNo = document.getElementById('bp-account-no').value;
+    cp.signatory = document.getElementById('bp-signatory').value;
+    
+    cp.bankLetterHeader = document.getElementById('bp-letter-header').value;
+    cp.bankLetterFooter = document.getElementById('bp-letter-footer').value;
+    
+    await saveDb(db);
+    showToast("Bank Profile", "Bank settings and letter text saved successfully.");
+};
 
 // Settings Event Delegation (Click actions like Reset/Test)
 document.addEventListener('click', async (e) => {

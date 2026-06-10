@@ -648,6 +648,13 @@ window.updateBankLetterPreview = function() {
     const companyAccount = cp.bankAccountNo || '[Company Account No]';
     const signatory = cp.signatory || '[Signatory Name & Title]';
 
+    let customHeader = cp.bankLetterHeader || 'We, M/s [COMPANY_NAME], kindly request you to transfer the monthly salaries from our company account No. [ACCOUNT_NO] to the individual accounts of our employees as per the details mentioned below:';
+    let customFooter = cp.bankLetterFooter || 'We authorize the bank to debit our Company Account No. [ACCOUNT_NO] for the total salary disbursement and transfer the respective net amounts into the employees\' individual bank accounts mentioned above.\nIf any further information or documentation is required, please let us know.\nThank you for your cooperation.\nSincerely,';
+
+    const compName = cp.name || 'Company';
+    customHeader = customHeader.replace(/\[COMPANY_NAME\]/g, `<strong>${compName}</strong>`).replace(/\[ACCOUNT_NO\]/g, `<strong>${companyAccount}</strong>`).replace(/\n/g, '<br>');
+    customFooter = customFooter.replace(/\[COMPANY_NAME\]/g, `<strong>${compName}</strong>`).replace(/\[ACCOUNT_NO\]/g, `<strong>${companyAccount}</strong>`).replace(/\n/g, '<br>');
+
     let tableRows = '';
     let sno = 1;
     let grandGross = 0;
@@ -740,7 +747,7 @@ window.updateBankLetterPreview = function() {
 
             <p style="margin-bottom: 15px;">Dear Sir,</p>
             <p style="margin-bottom: 20px; text-align: justify; line-height: 1.5;">
-                We, M/s ${cp.name || 'Company'}, kindly request you to transfer the monthly salaries from our company account <strong>No. ${companyAccount}</strong> to the individual accounts of our employees as per the details mentioned below:
+                ${customHeader}
             </p>
 
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px;">
@@ -770,10 +777,9 @@ window.updateBankLetterPreview = function() {
                 </tfoot>
             </table>
 
-            <p style="margin-bottom: 15px; text-align: justify; line-height: 1.5;">
-                We authorize the bank to debit our <strong>Company Account No. ${companyAccount}</strong> for the total salary disbursement and transfer the respective net amounts into the employees' individual bank accounts mentioned above.
+            <p style="margin-bottom: 30px; text-align: justify; line-height: 1.5;">
+                ${customFooter}
             </p>
-            <p style="margin-bottom: 30px;">If any further information or documentation is required, please let us know.<br>Thank you for your cooperation.<br><br>Sincerely,</p>
 
             <div style="margin-top: 50px;">
                 <p style="font-weight: bold; margin: 0;">${signatory.split('-')[0]?.trim() || '[Name]'}</p>

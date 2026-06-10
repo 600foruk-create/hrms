@@ -1525,7 +1525,7 @@
                                                 </select>
                                             </div>
                                             <div class="form-group" style="margin-bottom: 0; display: flex; gap: 8px;">
-                                                <button class="btn btn-outline" style="height: 38px; display: flex; align-items: center; gap: 8px; padding: 0 15px;" onclick="if(window.openBankLetterModal) window.openBankLetterModal()">
+                                                <button class="btn btn-outline" style="height: 38px; display: flex; align-items: center; gap: 8px; padding: 0 15px;" onclick="window.openBankLetterModal()">
                                                     <i class="fa-solid fa-building-columns"></i> Bank Letter
                                                 </button>
                                                 <button class="btn btn-primary" style="height: 38px; display: flex; align-items: center; gap: 8px; padding: 0 15px;" onclick="if(window.openMonthlySummaryModal) window.openMonthlySummaryModal()">
@@ -1720,6 +1720,9 @@
                             <button class="btn-sub-tab active" data-settings-subtab="company-profile">
                                 <i class="fa-solid fa-building"></i> Company Profile
                             </button>
+                            <button class="btn-sub-tab" data-settings-subtab="bank-profile">
+                                <i class="fa-solid fa-building-columns"></i> Bank Profile
+                            </button>
                             <button class="btn-sub-tab" data-settings-subtab="general-settings">
                                 <i class="fa-solid fa-gear"></i> General Setting
                             </button>
@@ -1803,25 +1806,7 @@
                                         </div>
                                     </div>
 
-                                    <h4 class="section-title" style="margin-top: 15px;">Salary Bank Details</h4>
-                                    <div class="form-grid-3">
-                                        <div class="form-group">
-                                            <label for="comp-bank-name">Company Bank Name</label>
-                                            <input type="text" id="comp-bank-name" class="form-control" placeholder="e.g. Allied Bank Limited">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="comp-branch-code">Branch Code</label>
-                                            <input type="text" id="comp-branch-code" class="form-control" placeholder="e.g. 0811">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="comp-account-no">Company Account No.</label>
-                                            <input type="text" id="comp-account-no" class="form-control" placeholder="e.g. PK14ABPA0010115923650010">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="comp-signatory">Signatory Name & Title</label>
-                                            <input type="text" id="comp-signatory" class="form-control" placeholder="e.g. Laal Muhammad - Managing Partner">
-                                        </div>
-                                    </div>
+
 
                                     <h4 class="section-title" style="margin-top: 15px;">Company Branding</h4>
                                     <div class="form-grid-2">
@@ -1869,9 +1854,53 @@
                                     </div>
                                 </form>
                             </div>
-                        </div>
+                                     </div>
 
-                        
+                        <!-- 1.5. Bank Profile -->
+                        <div id="settings-content-bank-profile" class="settings-sub-tab-content hidden" style="max-height: calc(100vh - 180px); overflow-y: auto; padding-right: 10px;">
+                            <div class="section-card bg-glass">
+                                <h3>Bank Profile & Letter Settings</h3>
+                                <p class="text-secondary mb-3">Configure your company's bank details and customize the text used in Bank Letters.</p>
+                                
+                                <form id="bank-profile-form" onsubmit="event.preventDefault(); if(window.saveBankProfile) window.saveBankProfile();">
+                                    <h4 class="section-title">Salary Bank Details</h4>
+                                    <div class="form-grid-3">
+                                        <div class="form-group">
+                                            <label for="bp-bank-name">Company Bank Name</label>
+                                            <input type="text" id="bp-bank-name" class="form-control" placeholder="e.g. Allied Bank Limited">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="bp-branch-code">Branch Code</label>
+                                            <input type="text" id="bp-branch-code" class="form-control" placeholder="e.g. 0811">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="bp-account-no">Company Account No.</label>
+                                            <input type="text" id="bp-account-no" class="form-control" placeholder="e.g. PK14ABPA0010115923650010">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="bp-signatory">Signatory Name & Title</label>
+                                            <input type="text" id="bp-signatory" class="form-control" placeholder="e.g. Laal Muhammad - Managing Partner">
+                                        </div>
+                                    </div>
+
+                                    <h4 class="section-title" style="margin-top: 15px;">Letter Customization</h4>
+                                    <div class="form-group">
+                                        <label for="bp-letter-header">Letter Header Text (Above Table)</label>
+                                        <textarea id="bp-letter-header" class="form-control" rows="4" placeholder="e.g. We kindly request you to transfer..."></textarea>
+                                        <small class="text-secondary">You can use [COMPANY_NAME] and [ACCOUNT_NO] as placeholders.</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="bp-letter-footer">Letter Footer Text (Below Table)</label>
+                                        <textarea id="bp-letter-footer" class="form-control" rows="4" placeholder="e.g. We authorize the bank to debit..."></textarea>
+                                        <small class="text-secondary">You can use [COMPANY_NAME] and [ACCOUNT_NO] as placeholders.</small>
+                                    </div>
+
+                                    <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Save Bank Profile</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
 
                         <!-- 2. General Settings (Replaces Grid & System Settings) -->
                         <div id="settings-content-general-settings" class="settings-sub-tab-content hidden" style="max-height: calc(100vh - 180px); overflow-y: auto; padding-right: 10px;">
