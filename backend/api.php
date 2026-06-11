@@ -41,13 +41,13 @@ try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS `global_salary_settings` (`id` int(11) NOT NULL AUTO_INCREMENT, `allowances` longtext, `deductions` longtext, PRIMARY KEY (`id`))");
     $pdo->exec("CREATE TABLE IF NOT EXISTS `salary_profiles` (`userId` varchar(50) NOT NULL, `isCustomSlab` tinyint(1), `allowances` longtext, `deductions` longtext, PRIMARY KEY (`userId`))");
     $pdo->exec("CREATE TABLE IF NOT EXISTS `loans` (`id` varchar(50) NOT NULL, `userId` varchar(50), `type` varchar(50), `totalAmount` decimal(10,2), `monthlyInstallment` decimal(10,2), `remainingAmount` decimal(10,2), `issuedAt` varchar(50), PRIMARY KEY (`id`))");
-    $pdo->exec("CREATE TABLE IF NOT EXISTS `payroll_history` (`id` varchar(50) NOT NULL, `batchId` varchar(50), `userId` varchar(50), `startDate` varchar(50), `endDate` varchar(50), `netFixed` decimal(10,2), `absencyDeduction` decimal(10,2), `loanDeduction` decimal(10,2), `bonus` decimal(10,2), `otherDeduction` decimal(10,2), `netPay` decimal(10,2), `processedAt` varchar(50), PRIMARY KEY (`id`))");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `payroll_history` (`id` varchar(50) NOT NULL, `batchId` varchar(50), `userId` varchar(50), `startDate` varchar(50), `endDate` varchar(50), `netFixed` decimal(10,2), `fixedAllowances` decimal(10,2) DEFAULT 0, `fixedDeductions` decimal(10,2) DEFAULT 0, `absencyDeduction` decimal(10,2), `loanDeduction` decimal(10,2), `bonus` decimal(10,2), `otherDeduction` decimal(10,2), `netPay` decimal(10,2), `processedAt` varchar(50), PRIMARY KEY (`id`))");
 } catch (Exception $e) {
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS `global_salary_settings` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `allowances` TEXT, `deductions` TEXT)");
         $pdo->exec("CREATE TABLE IF NOT EXISTS `salary_profiles` (`userId` TEXT PRIMARY KEY, `isCustomSlab` INTEGER, `allowances` TEXT, `deductions` TEXT)");
         $pdo->exec("CREATE TABLE IF NOT EXISTS `loans` (`id` TEXT PRIMARY KEY, `userId` TEXT, `type` TEXT, `totalAmount` REAL, `monthlyInstallment` REAL, `remainingAmount` REAL, `issuedAt` TEXT)");
-        $pdo->exec("CREATE TABLE IF NOT EXISTS `payroll_history` (`id` TEXT PRIMARY KEY, `batchId` TEXT, `userId` TEXT, `startDate` TEXT, `endDate` TEXT, `netFixed` REAL, `absencyDeduction` REAL, `loanDeduction` REAL, `bonus` REAL, `otherDeduction` REAL, `netPay` REAL, `processedAt` TEXT)");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `payroll_history` (`id` TEXT PRIMARY KEY, `batchId` TEXT, `userId` TEXT, `startDate` TEXT, `endDate` TEXT, `netFixed` REAL, `fixedAllowances` REAL DEFAULT 0, `fixedDeductions` REAL DEFAULT 0, `absencyDeduction` REAL, `loanDeduction` REAL, `bonus` REAL, `otherDeduction` REAL, `netPay` REAL, `processedAt` TEXT)");
     } catch (Exception $e2) {}
 }
 
@@ -462,15 +462,21 @@ if ($action === 'load_all') {
         } catch (Exception $e) { $dbState['loans'] = []; }
 
         try {
+            // Auto-migrate: add fixedAllowances and fixedDeductions columns if missing
+            try { $pdo->exec("ALTER TABLE payroll_history ADD COLUMN `fixedAllowances` decimal(10,2) DEFAULT 0"); } catch (Exception $ex) {}
+            try { $pdo->exec("ALTER TABLE payroll_history ADD COLUMN `fixedDeductions` decimal(10,2) DEFAULT 0"); } catch (Exception $ex) {}
+            
             $stmt = $pdo->query("SELECT * FROM payroll_history");
             $dbState['payrollHistory'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
             foreach ($dbState['payrollHistory'] as &$ph) {
-                $ph['netFixed'] = (float)$ph['netFixed'];
-                $ph['absencyDeduction'] = (float)$ph['absencyDeduction'];
-                $ph['loanDeduction'] = (float)$ph['loanDeduction'];
-                $ph['allowances'] = json_decode($ph['allowances'] ?: '[]', true);
-                $ph['deductions'] = json_decode($ph['deductions'] ?: '[]', true);
-                $ph['netSalary'] = (float)$ph['netSalary'];
+                $ph['netFixed'] = (float)($ph['netFixed'] ?? 0);
+                $ph['fixedAllowances'] = (float)($ph['fixedAllowances'] ?? 0);
+                $ph['fixedDeductions'] = (float)($ph['fixedDeductions'] ?? 0);
+                $ph['absencyDeduction'] = (float)($ph['absencyDeduction'] ?? 0);
+                $ph['loanDeduction'] = (float)($ph['loanDeduction'] ?? 0);
+                $ph['bonus'] = (float)($ph['bonus'] ?? 0);
+                $ph['otherDeduction'] = (float)($ph['otherDeduction'] ?? 0);
+                $ph['netPay'] = (float)($ph['netPay'] ?? 0);
             }
         } catch (Exception $e) { $dbState['payrollHistory'] = []; }
 
@@ -680,11 +686,16 @@ elseif ($action === 'save_all') {
         try {
             $pdo->exec("DELETE FROM payroll_history");
             if (!empty($data['payrollHistory'])) {
-                $stmt = $pdo->prepare("INSERT INTO payroll_history (id, batchId, userId, startDate, endDate, netFixed, absencyDeduction, loanDeduction, bonus, otherDeduction, netPay, processedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                // Add missing columns if they don't exist (for existing databases)
+                try { $pdo->exec("ALTER TABLE payroll_history ADD COLUMN `fixedAllowances` decimal(10,2) DEFAULT 0"); } catch (Exception $ex) {}
+                try { $pdo->exec("ALTER TABLE payroll_history ADD COLUMN `fixedDeductions` decimal(10,2) DEFAULT 0"); } catch (Exception $ex) {}
+                
+                $stmt = $pdo->prepare("INSERT INTO payroll_history (id, batchId, userId, startDate, endDate, netFixed, fixedAllowances, fixedDeductions, absencyDeduction, loanDeduction, bonus, otherDeduction, netPay, processedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 foreach ($data['payrollHistory'] as $ph) {
                     $stmt->execute([
                         $ph['id'], $ph['batchId'], $ph['userId'], $ph['startDate'], $ph['endDate'], 
-                        $ph['netFixed'], $ph['absencyDeduction'], $ph['loanDeduction'], $ph['bonus'], $ph['otherDeduction'], $ph['netPay'], $ph['processedAt']
+                        $ph['netFixed'], $ph['fixedAllowances'] ?? 0, $ph['fixedDeductions'] ?? 0,
+                        $ph['absencyDeduction'], $ph['loanDeduction'], $ph['bonus'], $ph['otherDeduction'], $ph['netPay'], $ph['processedAt']
                     ]);
                 }
             }
