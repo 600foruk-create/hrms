@@ -58,8 +58,22 @@ async function syncServer() {
             window.dbLoaded = true;
             success = true;
 
-            // Cache DB for offline/reload persistence
-            localStorage.setItem('hrms_fallback_db', JSON.stringify(result.data));
+            // Cache DB for offline/reload persistence (Strip large base64 data to prevent QuotaExceededError)
+            try {
+                const cacheData = JSON.parse(JSON.stringify(result.data));
+                if (cacheData.users) {
+                    cacheData.users.forEach(u => { delete u.documents; delete u.profileImageBase64; });
+                }
+                if (cacheData.companyProfile) {
+                    delete cacheData.companyProfile.letterheadBase64;
+                    delete cacheData.companyProfile.signatureBase64;
+                    delete cacheData.companyProfile.idCardFrontBase64;
+                    delete cacheData.companyProfile.idCardBackBase64;
+                }
+                localStorage.setItem('hrms_fallback_db', JSON.stringify(cacheData));
+            } catch (e) {
+                console.warn("Could not cache DB to localStorage. Quota exceeded.", e);
+            }
             
             // Apply Global Settings (Theme) immediately upon sync
             if (result.data.systemSettings && result.data.systemSettings.themeColor) {
@@ -336,7 +350,10 @@ function handleLogin(usernameOrEmail, password) {
 
         // Set Session
         currentUser = user;
-        localStorage.setItem('current_user', JSON.stringify(user));
+        const sessionUser = { ...user };
+        delete sessionUser.documents; // Remove huge base64 arrays to save localStorage space
+        delete sessionUser.profileImageBase64;
+        localStorage.setItem('current_user', JSON.stringify(sessionUser));
 
         // Auto Mark Attendance for Employee on Login
         if (user.role === 'User') {
@@ -381,7 +398,6 @@ function handleLogin(usernameOrEmail, password) {
     } catch (e) {
         console.error("handleLogin error: ", e);
         showToast("Error", "An unexpected login error occurred.", "error");
-        alert("Login Error Stack:\n" + e.stack);
     }
 }
 
