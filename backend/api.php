@@ -540,165 +540,197 @@ elseif ($action === 'save_all') {
         }
 
         // 2. Sync Weights
-        $pdo->exec("DELETE FROM settings");
-        if (!empty($data['weights'])) {
-            $stmt = $pdo->prepare("INSERT INTO settings (key_name, value_data) VALUES (?, ?)");
-            foreach ($data['weights'] as $k => $v) {
-                $stmt->execute([$k, $v]);
-            }
-        }
-
-        // 3. Sync Leaves
-        $pdo->exec("DELETE FROM leaves");
-        if (!empty($data['leaves'])) {
-            $stmt = $pdo->prepare("INSERT INTO leaves (id, employeeId, employeeName, type, startDate, endDate, reason, status, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            foreach ($data['leaves'] as $l) {
-                $stmt->execute([$l['id'], $l['employeeId'], $l['employeeName'], $l['type'], $l['startDate'], $l['endDate'], $l['reason'], $l['status'], $l['comments'] ?? '']);
-            }
-        }
-
-        // 4. Sync Productivity
-        try { $pdo->exec("DELETE FROM practices"); } catch (Exception $e) {}
-        if (!empty($data['practices'])) {
-            $stmt = $pdo->prepare("INSERT INTO practices (id, practice_name, practice_code) VALUES (?, ?, ?)");
-            foreach ($data['practices'] as $p) {
-                $stmt->execute([$p['id'], $p['practice_name'], $p['practice_code']]);
-            }
-        }
-
-        try { $pdo->exec("DELETE FROM manager_practices"); } catch (Exception $e) {}
-        if (!empty($data['manager_practices'])) {
-            $stmt = $pdo->prepare("INSERT INTO manager_practices (id, manager_id, practice_id) VALUES (?, ?, ?)");
-            foreach ($data['manager_practices'] as $mp) {
-                $stmt->execute([$mp['id'], $mp['manager_id'], $mp['practice_id']]);
-            }
-        }
-
-        try { $pdo->exec("DELETE FROM productivity_logs"); } catch (Exception $e) {}
-        if (!empty($data['productivity_logs'])) {
-            $stmt = $pdo->prepare("INSERT INTO productivity_logs (id, employee_id, practice_id, log_date, created_at) VALUES (?, ?, ?, ?, ?)");
-            foreach ($data['productivity_logs'] as $pl) {
-                $stmt->execute([$pl['id'], $pl['employee_id'], $pl['practice_id'], $pl['log_date'], $pl['created_at']]);
-            }
-        }
-
-        try { $pdo->exec("DELETE FROM productivity_tasks"); } catch (Exception $e) {}
-        if (!empty($data['productivity_tasks'])) {
-            $stmt = $pdo->prepare("INSERT INTO productivity_tasks (id, log_id, task_type, total_count, time_minutes, extra_data, notes) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            foreach ($data['productivity_tasks'] as $pt) {
-                $stmt->execute([$pt['id'], $pt['log_id'], $pt['task_type'], $pt['total_count'], $pt['time_minutes'], $pt['extra_data'] ? json_encode($pt['extra_data']) : null, $pt['notes']]);
-            }
-        }
-
-        // 5. Sync Attendance
-        $pdo->exec("DELETE FROM attendance");
-        if (!empty($data['attendance'])) {
-            $stmt = $pdo->prepare("INSERT INTO attendance (date, employeeId, employeeName, status, markedBy, timeIn, timeOut) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            foreach ($data['attendance'] as $a) {
-                $stmt->execute([$a['date'], $a['employeeId'], $a['employeeName'], $a['status'], $a['markedBy'] ?? 'System', $a['timeIn'] ?? null, $a['timeOut'] ?? null]);
-            }
-        }
-
-        // 6. Sync Announcements
-        $pdo->exec("DELETE FROM announcements");
-        if (!empty($data['announcements'])) {
-            $stmt = $pdo->prepare("INSERT INTO announcements (id, title, content, target, date, author) VALUES (?, ?, ?, ?, ?, ?)");
-            foreach ($data['announcements'] as $a) {
-                $stmt->execute([$a['id'], $a['title'], $a['content'], $a['target'], $a['date'], $a['author']]);
-            }
-        }
-
-        // 7. Sync Audit Logs
-        $pdo->exec("DELETE FROM audit_logs");
-        if (!empty($data['auditLogs'])) {
-            $stmt = $pdo->prepare("INSERT INTO audit_logs (timestamp, userId, userName, details) VALUES (?, ?, ?, ?)");
-            foreach ($data['auditLogs'] as $al) {
-                $stmt->execute([$al['timestamp'], $al['userId'], $al['userName'], $al['details']]);
-            }
-        }
-
-        // 8. Sync Notifications
-        $pdo->exec("DELETE FROM notifications");
-        if (!empty($data['notifications'])) {
-            $stmt = $pdo->prepare("INSERT INTO notifications (id, userId, message, read_status, time) VALUES (?, ?, ?, ?, ?)");
-            foreach ($data['notifications'] as $n) {
-                $readStatus = (!empty($n['read']) && $n['read']) ? 1 : 0;
-                $stmt->execute([$n['id'], $n['userId'], $n['message'], $readStatus, $n['time']]);
-            }
-        }
-
-        // 9. Sync Company Profile
-        $pdo->exec("DELETE FROM company_profile");
-        $pdo->exec("DELETE FROM company_leave_types");
-        if (!empty($data['companyProfile'])) {
-            $cp = $data['companyProfile'];
-            $stmt = $pdo->prepare("INSERT INTO company_profile (name, email, phone, website, address, reg, slogan, industry, size, type, logoBase64, letterheadBase64, signatureBase64) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([
-                $cp['name'] ?? '', $cp['email'] ?? '', $cp['phone'] ?? '', $cp['website'] ?? '',
-                $cp['address'] ?? '', $cp['reg'] ?? '', $cp['slogan'] ?? '', $cp['industry'] ?? '',
-                $cp['size'] ?? '', $cp['type'] ?? '', $cp['logoBase64'] ?? '', $cp['letterheadBase64'] ?? '',
-                $cp['signatureBase64'] ?? ''
-            ]);
-            
-            if (!empty($cp['leaveTypes']) && is_array($cp['leaveTypes'])) {
-                $cltStmt = $pdo->prepare("INSERT INTO company_leave_types (type_id, name, allowance) VALUES (?, ?, ?)");
-                foreach ($cp['leaveTypes'] as $lt) {
-                    $cltStmt->execute([$lt['id'] ?? '', $lt['name'] ?? '', (int)($lt['allowance'] ?? 0)]);
+        try {
+            $pdo->exec("DELETE FROM settings");
+            if (!empty($data['weights'])) {
+                $stmt = $pdo->prepare("INSERT INTO settings (key_name, value_data) VALUES (?, ?)");
+                foreach ($data['weights'] as $k => $v) {
+                    $stmt->execute([$k, $v]);
                 }
             }
-        }
+        } catch (Exception $e) {}
+
+        // 3. Sync Leaves
+        try {
+            $pdo->exec("DELETE FROM leaves");
+            if (!empty($data['leaves'])) {
+                $stmt = $pdo->prepare("INSERT INTO leaves (id, employeeId, employeeName, type, startDate, endDate, reason, status, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                foreach ($data['leaves'] as $l) {
+                    $stmt->execute([$l['id'], $l['employeeId'], $l['employeeName'], $l['type'], $l['startDate'], $l['endDate'], $l['reason'], $l['status'], $l['comments'] ?? '']);
+                }
+            }
+        } catch (Exception $e) {}
+
+        // 4. Sync Productivity
+        try {
+            $pdo->exec("DELETE FROM practices");
+            if (!empty($data['practices'])) {
+                $stmt = $pdo->prepare("INSERT INTO practices (id, practice_name, practice_code) VALUES (?, ?, ?)");
+                foreach ($data['practices'] as $p) {
+                    $stmt->execute([$p['id'], $p['practice_name'], $p['practice_code']]);
+                }
+            }
+        } catch (Exception $e) {}
+
+        try {
+            $pdo->exec("DELETE FROM manager_practices");
+            if (!empty($data['manager_practices'])) {
+                $stmt = $pdo->prepare("INSERT INTO manager_practices (id, manager_id, practice_id) VALUES (?, ?, ?)");
+                foreach ($data['manager_practices'] as $mp) {
+                    $stmt->execute([$mp['id'], $mp['manager_id'], $mp['practice_id']]);
+                }
+            }
+        } catch (Exception $e) {}
+
+        try {
+            $pdo->exec("DELETE FROM productivity_logs");
+            if (!empty($data['productivity_logs'])) {
+                $stmt = $pdo->prepare("INSERT INTO productivity_logs (id, employee_id, practice_id, log_date, created_at) VALUES (?, ?, ?, ?, ?)");
+                foreach ($data['productivity_logs'] as $pl) {
+                    $stmt->execute([$pl['id'], $pl['employee_id'], $pl['practice_id'], $pl['log_date'], $pl['created_at']]);
+                }
+            }
+        } catch (Exception $e) {}
+
+        try {
+            $pdo->exec("DELETE FROM productivity_tasks");
+            if (!empty($data['productivity_tasks'])) {
+                $stmt = $pdo->prepare("INSERT INTO productivity_tasks (id, log_id, task_type, total_count, time_minutes, extra_data, notes) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                foreach ($data['productivity_tasks'] as $pt) {
+                    $stmt->execute([$pt['id'], $pt['log_id'], $pt['task_type'], $pt['total_count'], $pt['time_minutes'], $pt['extra_data'] ? json_encode($pt['extra_data']) : null, $pt['notes']]);
+                }
+            }
+        } catch (Exception $e) {}
+
+        // 5. Sync Attendance
+        try {
+            $pdo->exec("DELETE FROM attendance");
+            if (!empty($data['attendance'])) {
+                $stmt = $pdo->prepare("INSERT INTO attendance (date, employeeId, employeeName, status, markedBy, timeIn, timeOut) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                foreach ($data['attendance'] as $a) {
+                    $stmt->execute([$a['date'], $a['employeeId'], $a['employeeName'], $a['status'], $a['markedBy'] ?? 'System', $a['timeIn'] ?? null, $a['timeOut'] ?? null]);
+                }
+            }
+        } catch (Exception $e) {}
+
+        // 6. Sync Announcements
+        try {
+            $pdo->exec("DELETE FROM announcements");
+            if (!empty($data['announcements'])) {
+                $stmt = $pdo->prepare("INSERT INTO announcements (id, title, content, target, date, author) VALUES (?, ?, ?, ?, ?, ?)");
+                foreach ($data['announcements'] as $a) {
+                    $stmt->execute([$a['id'], $a['title'], $a['content'], $a['target'], $a['date'], $a['author']]);
+                }
+            }
+        } catch (Exception $e) {}
+
+        // 7. Sync Audit Logs
+        try {
+            $pdo->exec("DELETE FROM audit_logs");
+            if (!empty($data['auditLogs'])) {
+                $stmt = $pdo->prepare("INSERT INTO audit_logs (timestamp, userId, userName, details) VALUES (?, ?, ?, ?)");
+                foreach ($data['auditLogs'] as $al) {
+                    $stmt->execute([$al['timestamp'], $al['userId'], $al['userName'], $al['details']]);
+                }
+            }
+        } catch (Exception $e) {}
+
+        // 8. Sync Notifications
+        try {
+            $pdo->exec("DELETE FROM notifications");
+            if (!empty($data['notifications'])) {
+                $stmt = $pdo->prepare("INSERT INTO notifications (id, userId, message, read_status, time) VALUES (?, ?, ?, ?, ?)");
+                foreach ($data['notifications'] as $n) {
+                    $readStatus = (!empty($n['read']) && $n['read']) ? 1 : 0;
+                    $stmt->execute([$n['id'], $n['userId'], $n['message'], $readStatus, $n['time']]);
+                }
+            }
+        } catch (Exception $e) {}
+
+        // 9. Sync Company Profile
+        try {
+            $pdo->exec("DELETE FROM company_profile");
+            $pdo->exec("DELETE FROM company_leave_types");
+            if (!empty($data['companyProfile'])) {
+                $cp = $data['companyProfile'];
+                $stmt = $pdo->prepare("INSERT INTO company_profile (name, email, phone, website, address, reg, slogan, industry, size, type, logoBase64, letterheadBase64, signatureBase64) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([
+                    $cp['name'] ?? '', $cp['email'] ?? '', $cp['phone'] ?? '', $cp['website'] ?? '',
+                    $cp['address'] ?? '', $cp['reg'] ?? '', $cp['slogan'] ?? '', $cp['industry'] ?? '',
+                    $cp['size'] ?? '', $cp['type'] ?? '', $cp['logoBase64'] ?? '', $cp['letterheadBase64'] ?? '',
+                    $cp['signatureBase64'] ?? ''
+                ]);
+                
+                if (!empty($cp['leaveTypes']) && is_array($cp['leaveTypes'])) {
+                    $cltStmt = $pdo->prepare("INSERT INTO company_leave_types (type_id, name, allowance) VALUES (?, ?, ?)");
+                    foreach ($cp['leaveTypes'] as $lt) {
+                        $cltStmt->execute([$lt['id'] ?? '', $lt['name'] ?? '', (int)($lt['allowance'] ?? 0)]);
+                    }
+                }
+            }
+        } catch (Exception $e) {}
         
         // 9.5 Sync Bank Profile
-        $pdo->exec("DELETE FROM bank_profile");
-        if (!empty($data['bankProfile'])) {
-            $bp = $data['bankProfile'];
-            $stmt = $pdo->prepare("INSERT INTO bank_profile (bankName, bankBranchCode, bankAccountNo, signatory, signatoryDesignation, bankLetterHeader, bankLetterFooter) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([
-                $bp['bankName'] ?? '', $bp['bankBranchCode'] ?? '', $bp['bankAccountNo'] ?? '',
-                $bp['signatory'] ?? '', $bp['signatoryDesignation'] ?? '',
-                $bp['bankLetterHeader'] ?? '', $bp['bankLetterFooter'] ?? ''
-            ]);
-        }
+        try {
+            $pdo->exec("DELETE FROM bank_profile");
+            if (!empty($data['bankProfile'])) {
+                $bp = $data['bankProfile'];
+                $stmt = $pdo->prepare("INSERT INTO bank_profile (bankName, bankBranchCode, bankAccountNo, signatory, signatoryDesignation, bankLetterHeader, bankLetterFooter) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([
+                    $bp['bankName'] ?? '', $bp['bankBranchCode'] ?? '', $bp['bankAccountNo'] ?? '',
+                    $bp['signatory'] ?? '', $bp['signatoryDesignation'] ?? '',
+                    $bp['bankLetterHeader'] ?? '', $bp['bankLetterFooter'] ?? ''
+                ]);
+            }
+        } catch (Exception $e) {}
 
         // 10. Sync Payroll & Salary Data
-        $pdo->exec("DELETE FROM global_salary_settings");
-        if (isset($data['globalSalarySettings'])) {
-            $stmt = $pdo->prepare("INSERT INTO global_salary_settings (allowances, deductions) VALUES (?, ?)");
-            $stmt->execute([
-                json_encode($data['globalSalarySettings']['allowances'] ?? []),
-                json_encode($data['globalSalarySettings']['deductions'] ?? [])
-            ]);
-        }
-
-        $pdo->exec("DELETE FROM salary_profiles");
-        if (!empty($data['salaryProfiles'])) {
-            $stmt = $pdo->prepare("INSERT INTO salary_profiles (userId, isCustomSlab, allowances, deductions) VALUES (?, ?, ?, ?)");
-            foreach ($data['salaryProfiles'] as $sp) {
+        try {
+            $pdo->exec("DELETE FROM global_salary_settings");
+            if (isset($data['globalSalarySettings'])) {
+                $stmt = $pdo->prepare("INSERT INTO global_salary_settings (allowances, deductions) VALUES (?, ?)");
                 $stmt->execute([
-                    $sp['userId'], !empty($sp['isCustomSlab']) ? 1 : 0,
-                    json_encode($sp['allowances'] ?? []), json_encode($sp['deductions'] ?? [])
+                    json_encode($data['globalSalarySettings']['allowances'] ?? []),
+                    json_encode($data['globalSalarySettings']['deductions'] ?? [])
                 ]);
             }
-        }
+        } catch (Exception $e) {}
 
-        $pdo->exec("DELETE FROM loans");
-        if (!empty($data['loans'])) {
-            $stmt = $pdo->prepare("INSERT INTO loans (id, userId, type, totalAmount, monthlyInstallment, remainingAmount, issuedAt) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            foreach ($data['loans'] as $l) {
-                $stmt->execute([$l['id'], $l['userId'], $l['type'], $l['totalAmount'], $l['monthlyInstallment'], $l['remainingAmount'], $l['issuedAt']]);
+        try {
+            $pdo->exec("DELETE FROM salary_profiles");
+            if (!empty($data['salaryProfiles'])) {
+                $stmt = $pdo->prepare("INSERT INTO salary_profiles (userId, isCustomSlab, allowances, deductions) VALUES (?, ?, ?, ?)");
+                foreach ($data['salaryProfiles'] as $sp) {
+                    $stmt->execute([
+                        $sp['userId'], !empty($sp['isCustomSlab']) ? 1 : 0,
+                        json_encode($sp['allowances'] ?? []), json_encode($sp['deductions'] ?? [])
+                    ]);
+                }
             }
-        }
+        } catch (Exception $e) {}
 
-        $pdo->exec("DELETE FROM payroll_history");
-        if (!empty($data['payrollHistory'])) {
-            $stmt = $pdo->prepare("INSERT INTO payroll_history (id, batchId, userId, startDate, endDate, netFixed, absencyDeduction, loanDeduction, bonus, otherDeduction, netPay, processedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            foreach ($data['payrollHistory'] as $ph) {
-                $stmt->execute([
-                    $ph['id'], $ph['batchId'], $ph['userId'], $ph['startDate'], $ph['endDate'], 
-                    $ph['netFixed'], $ph['absencyDeduction'], $ph['loanDeduction'], $ph['bonus'], $ph['otherDeduction'], $ph['netPay'], $ph['processedAt']
-                ]);
+        try {
+            $pdo->exec("DELETE FROM loans");
+            if (!empty($data['loans'])) {
+                $stmt = $pdo->prepare("INSERT INTO loans (id, userId, type, totalAmount, monthlyInstallment, remainingAmount, issuedAt) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                foreach ($data['loans'] as $l) {
+                    $stmt->execute([$l['id'], $l['userId'], $l['type'], $l['totalAmount'], $l['monthlyInstallment'], $l['remainingAmount'], $l['issuedAt']]);
+                }
             }
-        }
+        } catch (Exception $e) {}
+
+        try {
+            $pdo->exec("DELETE FROM payroll_history");
+            if (!empty($data['payrollHistory'])) {
+                $stmt = $pdo->prepare("INSERT INTO payroll_history (id, batchId, userId, startDate, endDate, netFixed, absencyDeduction, loanDeduction, bonus, otherDeduction, netPay, processedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                foreach ($data['payrollHistory'] as $ph) {
+                    $stmt->execute([
+                        $ph['id'], $ph['batchId'], $ph['userId'], $ph['startDate'], $ph['endDate'], 
+                        $ph['netFixed'], $ph['absencyDeduction'], $ph['loanDeduction'], $ph['bonus'], $ph['otherDeduction'], $ph['netPay'], $ph['processedAt']
+                    ]);
+                }
+            }
+        } catch (Exception $e) {}
 
         // 11. Sync System Settings
         $pdo->exec("DELETE FROM system_settings");
