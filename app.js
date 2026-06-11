@@ -1206,9 +1206,7 @@ window.reactivateEmployee = async function(userId) {
         const saved = await saveDb(db);
         if(saved) {
             showToast("Employee Reactivated", `${user.name} has been marked as active.`, "success");
-            renderAdminDashboard();
-            const empBtn = document.querySelector('.btn-sub-tab[data-subtab="employees"]');
-            if (empBtn) empBtn.click();
+            renderAdminEmployeesTab();
         }
     }
 };
