@@ -1552,10 +1552,65 @@
 
                     <!-- Admin Productivity Tab -->
                     <div id="admin-tab-productivity" class="tab-view">
-                        <div class="empty-state">
-                            <i class="fa-solid fa-list-check" style="font-size: 48px; color: var(--border-color); margin-bottom: 1rem;"></i>
-                            <h2>Practices Empty State</h2>
-                            <p class="text-secondary">This module has been disabled.</p>
+                        <div class="view-header">
+                            <div>
+                                <h1>Company Practices & Assignments</h1>
+                                <p class="text-secondary">Manage practices and their assignments to managers.</p>
+                            </div>
+                        </div>
+
+                        <!-- Sub-tab Navigation -->
+                        <div class="sub-tab-nav">
+                            <button class="btn-sub-tab active" data-subtab="admin-prod-practices">
+                                <i class="fa-solid fa-list-check"></i> Practices
+                            </button>
+                            <button class="btn-sub-tab" data-subtab="admin-prod-assignments">
+                                <i class="fa-solid fa-user-tie"></i> Manager Assignments
+                            </button>
+                        </div>
+
+                        <!-- Sub-tab: Practices -->
+                        <div id="subtab-content-admin-prod-practices" class="sub-tab-content">
+                            <div class="section-card bg-glass flex-table-card">
+                                <div class="section-card-header">
+                                    <h3>Practices</h3>
+                                </div>
+                                <div class="form-group row" style="padding:15px; border-bottom:1px solid var(--border-color); display:flex; gap:10px;">
+                                    <input type="text" id="new-practice-name" placeholder="Practice Name" class="form-control" style="flex:1;">
+                                    <input type="text" id="new-practice-code" placeholder="Practice Code" class="form-control" style="width:150px;">
+                                    <button class="btn btn-primary" id="btn-add-practice">Add Practice</button>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead><tr><th>Code</th><th>Name</th><th>Action</th></tr></thead>
+                                        <tbody id="admin-practice-table-body"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sub-tab: Manager Assignments -->
+                        <div id="subtab-content-admin-prod-assignments" class="sub-tab-content hidden">
+                            <div class="section-card bg-glass flex-table-card">
+                                <div class="section-card-header">
+                                    <h3>Manager Assignments</h3>
+                                </div>
+                                <div class="form-group row" style="padding:15px; border-bottom:1px solid var(--border-color); display:flex; gap:10px;">
+                                    <select id="assign-manager-select" class="form-control" style="flex:1;">
+                                        <option value="">Select Manager...</option>
+                                    </select>
+                                    <select id="assign-practice-select" class="form-control" style="flex:1;">
+                                        <option value="">Select Practice...</option>
+                                    </select>
+                                    <button class="btn btn-primary" id="btn-assign-practice">Assign</button>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead><tr><th>Manager</th><th>Practice</th><th>Action</th></tr></thead>
+                                        <tbody id="admin-assignment-table-body"></tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -2226,10 +2281,63 @@
 
                     <!-- Manager Productivity Tab -->
                     <div id="manager-tab-productivity" class="tab-view">
-                        <div class="empty-state">
-                            <i class="fa-solid fa-list-check" style="font-size: 48px; color: var(--border-color); margin-bottom: 1rem;"></i>
-                            <h2>Practices Empty State</h2>
-                            <p class="text-secondary">This module has been disabled.</p>
+                        <div class="view-header">
+                            <div>
+                                <h1>Tasks & Productivity</h1>
+                                <p class="text-secondary">Manage assigned practices and monitor team productivity</p>
+                            </div>
+                        </div>
+
+                        <!-- Sub-tab Navigation -->
+                        <div class="sub-tab-nav">
+                            <button class="btn-sub-tab active" data-subtab="manager-prod-assigned">
+                                <i class="fa-solid fa-briefcase"></i> My Assigned Practices
+                            </button>
+                            <button class="btn-sub-tab" data-subtab="manager-prod-team">
+                                <i class="fa-solid fa-users"></i> Team Productivity
+                            </button>
+                        </div>
+
+                        <!-- Sub-tab: Assigned Practices -->
+                        <div id="subtab-content-manager-prod-assigned" class="sub-tab-content">
+                            <div class="section-card bg-glass flex-table-card">
+                                <div class="header-with-actions" style="margin-bottom:15px;">
+                                    <h3>Practices Assigned to Me</h3>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Practice Code</th>
+                                                <th>Practice Name</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="manager-assigned-practices-body">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sub-tab: Team Productivity -->
+                        <div id="subtab-content-manager-prod-team" class="sub-tab-content hidden">
+                            <div class="section-card bg-glass flex-table-card">
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Employee</th>
+                                                <th>Practice</th>
+                                                <th>Total Work</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="manager-team-prod-body">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -2577,10 +2685,70 @@
 
                     <!-- Employee Productivity Tab -->
                     <div id="employee-tab-productivity" class="tab-view">
-                        <div class="empty-state">
-                            <i class="fa-solid fa-list-check" style="font-size: 48px; color: var(--border-color); margin-bottom: 1rem;"></i>
-                            <h2>Practices Empty State</h2>
-                            <p class="text-secondary">This module has been disabled.</p>
+                        <div class="view-header">
+                            <div>
+                                <h1>My Productivity Log</h1>
+                                <p class="text-secondary">Log your daily tasks for assigned practices</p>
+                            </div>
+                        </div>
+                        
+                        <div style="display:grid; grid-template-columns: 1fr 2fr; gap:20px;">
+                            <!-- Task Entry Form -->
+                            <div class="section-card bg-glass" style="height: fit-content;">
+                                <div class="section-card-header">
+                                    <h3>Log a Task</h3>
+                                </div>
+                                <div style="padding: 15px;">
+                                    <div class="form-group mb-3">
+                                        <label>Select Practice</label>
+                                        <select id="ept-practice-select" class="form-control" required></select>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label>Log Date</label>
+                                        <input type="date" id="ept-date" class="form-control" required>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label>Task Type</label>
+                                        <select id="ept-task-type" class="form-control" required onchange="window.onEptTaskTypeChange()">
+                                            <option value="">Select a Task Type...</option>
+                                            <option value="Eligibilities">Eligibilities</option>
+                                            <option value="Authorizations">Authorizations</option>
+                                            <option value="Claims">Claims</option>
+                                            <option value="Payment Posting">Payment Posting</option>
+                                            <option value="Follow Up">Follow Up</option>
+                                            <option value="Reports">Reports</option>
+                                            <option value="Others">Others</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div id="ept-dynamic-fields" style="background: rgba(0,0,0,0.02); padding: 10px; border-radius: 6px; margin-bottom: 15px;">
+                                        <div class="text-center text-muted" style="font-size: 12px; padding: 10px;">Select a task type to reveal fields</div>
+                                    </div>
+                                    
+                                    <button class="btn btn-primary btn-block" style="width: 100%;" onclick="window.saveTaskEntry()">Save Task Log</button>
+                                </div>
+                            </div>
+                            
+                            <!-- My Logs View -->
+                            <div class="section-card bg-glass flex-table-card">
+                                <div class="section-card-header">
+                                    <h3>Recent Logs</h3>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Practice</th>
+                                                <th>Tasks Added</th>
+                                                <th>Total Time</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="ept-my-logs-body">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -2872,6 +3040,82 @@
         </form>
     </div>
 
+    <!-- 2. Update Productivity Modal (Employee Form) -->
+    <div id="modal-productivity-form" class="modal hidden">
+        <div class="modal-header">
+            <h3>Update Daily Productivity</h3>
+            <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="productivity-submission-form">
+            <div class="modal-body">
+                <!-- Date (Auto-filled but visible) -->
+                <div class="form-group">
+                    <label>Submission Date</label>
+                    <input type="text" id="prod-form-date" class="form-control" readonly>
+                </div>
+
+                <!-- Custom Multi-select for Tasks -->
+                <div class="form-group">
+                    <label>Task / Practice <span class="required">*</span></label>
+                    <div class="custom-multiselect" id="tasks-multiselect">
+                        <div class="multiselect-select-box">
+                            <span class="selected-text">Select Tasks</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="multiselect-options-container hidden">
+                            <label><input type="checkbox" value="Billing" data-text="Billing"> Billing</label>
+                            <label><input type="checkbox" value="Follow-up" data-text="Follow-up"> Follow-up</label>
+                            <label><input type="checkbox" value="Payment Posting" data-text="Payment Posting"> Payment
+                                Posting</label>
+                            <label><input type="checkbox" value="Eligibility Check" data-text="Eligibility Check">
+                                Eligibility Check</label>
+                            <label><input type="checkbox" value="Report Preparation" data-text="Report Preparation">
+                                Report Preparation</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Multi-select for Sub-categories -->
+                <div class="form-group">
+                    <label>Sub-Category <span class="required">*</span></label>
+                    <div class="custom-multiselect" id="subcats-multiselect">
+                        <div class="multiselect-select-box">
+                            <span class="selected-text">Select Subcategories</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="multiselect-options-container hidden" id="subcats-options-list">
+                            <div class="placeholder-msg">Select a task first</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Count (numeric only) -->
+                <div class="form-group">
+                    <label for="prod-count">Count / Quantity <span class="required">*</span></label>
+                    <input type="number" id="prod-count" min="1" class="form-control" required
+                        placeholder="Enter numeric count">
+                </div>
+
+                <!-- Detail Notes -->
+                <div class="form-group">
+                    <label for="prod-notes">Detail Notes <span class="required">*</span></label>
+                    <textarea id="prod-notes" rows="3" class="form-control" required
+                        placeholder="Describe task details, case IDs, or issues..."></textarea>
+                </div>
+
+                <!-- Live Score Preview -->
+                <div class="live-score-preview bg-glass">
+                    <span>Estimated Productivity Score:</span>
+                    <strong id="prod-score-live">0</strong>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline modal-close">Cancel</button>
+                <button type="submit" class="btn btn-primary">Submit Productivity</button>
+            </div>
+        </form>
+    </div>
+
     <!-- 3. Leave Request Modal (Employee Form) -->
     <div id="modal-leave-form" class="modal hidden">
         <div class="modal-header">
@@ -2940,6 +3184,22 @@
         </div>
     </div>
 
+    <!-- 5. Review Productivity Modal (Manager View) -->
+    <div id="modal-productivity-review" class="modal hidden">
+        <div class="modal-header">
+            <h3>Review Productivity Submission</h3>
+            <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="review-details">
+                <div class="detail-row"><span>Employee:</span> <strong id="prod-review-emp">Emma</strong></div>
+                <div class="detail-row"><span>Date:</span> <strong id="prod-review-date">2026-05-23</strong></div>
+                <div class="detail-row"><span>Tasks:</span> <strong id="prod-review-tasks">Billing, Follow-up</strong>
+                </div>
+                <div class="detail-row"><span>Sub-categories:</span> <strong id="prod-review-subcats">Accounts
+                        Receivable</strong></div>
+                <div class="detail-row"><span>Count / Quantity:</span> <strong id="prod-review-count">20</strong></div>
+                <div class="detail-row"><span>Calculated Score:</span> <strong id="prod-review-calc-score"
                         class="text-info">40</strong></div>
                 <div class="detail-row"><span>Submitted Notes:</span>
                     <p id="prod-review-notes" class="text-secondary italic">Completed 20 bills for client A</p>
@@ -3258,6 +3518,7 @@
         var cacheBuster = new Date().getTime();
         document.write('<script src="app.js?v=' + cacheBuster + '"><\/script>');
         document.write('<script src="payroll.js?v=' + cacheBuster + '"><\/script>');
+        document.write('<script src="productivity.js?v=' + cacheBuster + '"><\/script>');
     </script>
     <!-- Employee ID Card Modal -->
     <!-- Employee ID Card Modal -->
