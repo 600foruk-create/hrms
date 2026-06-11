@@ -328,7 +328,7 @@ function handleLogin(usernameOrEmail, password) {
 
         // Set Session
         currentUser = user;
-        sessionStorage.setItem('current_user', JSON.stringify(user));
+        localStorage.setItem('current_user', JSON.stringify(user));
 
         // Auto Mark Attendance for Employee on Login
         if (user.role === 'User') {
@@ -382,7 +382,8 @@ function handleLogout() {
     logAudit(`Logged out of the system.`);
 
     currentUser = null;
-    sessionStorage.removeItem('current_user');
+    localStorage.removeItem('current_user');
+    localStorage.removeItem('active_tab');
     clearTimeout(inactivityTimeout);
 
     if (typeof closeAllModals === 'function') {
@@ -617,6 +618,7 @@ function renderSidebar() {
 
 function switchTab(tabId) {
     activeTab = tabId;
+    localStorage.setItem('active_tab', tabId);
 
     // Update Sidebar Selection active state
     document.querySelectorAll('.sidebar-link').forEach(link => {
@@ -4963,7 +4965,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
-    const prevSession = sessionStorage.getItem('current_user');
+    const prevSession = localStorage.getItem('current_user');
     if (prevSession) {
 
         currentUser = JSON.parse(prevSession);
@@ -4986,10 +4988,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (appShell) {
             appShell.classList.remove('hidden');
             appShell.style.setProperty('display', 'flex', 'important');
-        }
         document.body.classList.remove('login-view');
         renderSidebar();
-        switchTab('dashboard');
+        const savedTab = localStorage.getItem('active_tab') || 'dashboard';
+        switchTab(savedTab);
         setupSessionTimer();
         showToast("Session Restored", `Welcome back, ${currentUser.name}.`);
     }
