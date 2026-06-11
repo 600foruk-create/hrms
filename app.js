@@ -599,11 +599,27 @@ function renderSidebar() {
         roleEl.textContent = currentUser.role;
         roleEl.className = `role-badge badge-role ${currentUser.role.toLowerCase()}`;
     }
-    if (avatarEl) avatarEl.textContent = currentUser.name.charAt(0).toUpperCase();
+    if (currentUser.profilePic) {
+        const imgHTML = `<img src="${currentUser.profilePic}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="Profile">`;
+        if (avatarEl) {
+            avatarEl.innerHTML = imgHTML;
+            avatarEl.style.background = 'transparent';
+        }
+        topbarAvatarEl.innerHTML = imgHTML;
+        topbarAvatarEl.style.background = 'transparent';
+    } else {
+        if (avatarEl) {
+            avatarEl.innerHTML = '';
+            avatarEl.textContent = currentUser.name.charAt(0).toUpperCase();
+            avatarEl.style.background = 'var(--primary)';
+        }
+        topbarAvatarEl.innerHTML = '';
+        topbarAvatarEl.textContent = currentUser.name.charAt(0).toUpperCase();
+        topbarAvatarEl.style.background = 'var(--primary)';
+    }
 
     dropdownNameEl.textContent = currentUser.name;
     dropdownEmailEl.textContent = currentUser.email;
-    topbarAvatarEl.textContent = currentUser.name.charAt(0).toUpperCase();
 
     const topbarNameLabel = document.getElementById('topbar-user-name-label');
     const topbarRoleLabel = document.getElementById('topbar-user-role-label');
