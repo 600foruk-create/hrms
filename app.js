@@ -886,8 +886,8 @@ function renderAdminDashboard() {
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div class="avatar-small" style="background: rgba(95, 59, 246, 0.15); color: #5f3bf6; width: 32px; height: 32px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center;">${initials}</div>
                             <div style="display: flex; flex-direction: column;">
-                                <span style="font-size: 13px; font-weight: 700; color: #fff;">${task.employeeName}</span>
-                                <span style="font-size: 11px; color: var(--text-secondary);">${task.tasks.join(', ')} â€¢ Score: <strong>${task.score}</strong></span>
+                                <span style="font-size: 13px; font-weight: 700; color: #fff;">${task.employeeName || 'Employee'}</span>
+                                <span style="font-size: 11px; color: var(--text-secondary);">${(task.tasks || []).join(', ') || 'Productivity Log'} â€¢ Score: <strong>${task.score || 'N/A'}</strong></span>
                             </div>
                         </div>
                         ${actionButtons}
@@ -924,7 +924,8 @@ function renderAdminDashboard() {
             recentTasksTableBody.innerHTML = `<tr><td colspan="6" class="empty-state">No tasks found.</td></tr>`;
         } else {
             list.slice(0, 10).forEach(task => {
-                const emp = db.users.find(u => u.id === task.employeeId);
+                const empId = task.employeeId || task.employee_id;
+                const emp = db.users.find(u => u.id === empId);
                 const dept = emp ? (emp.managerId === 'U2' ? 'Operations' : (emp.managerId === 'U3' ? 'Billing' : 'Support')) : 'Support';
                 const statusClass = task.status === 'Approved' ? 'approved' : (task.status === 'Rejected' ? 'rejected' : 'pending');
 
@@ -942,11 +943,11 @@ function renderAdminDashboard() {
 
                 recentTasksTableBody.innerHTML += `
                     <tr>
-                        <td class="bold">${task.tasks.join(', ')}</td>
-                        <td class="text-secondary">${(db.users.find(u => u.id === task.employeeId) || {}).displayId || task.employeeId}</td><td>${task.employeeName}</td>
+                        <td class="bold">${(task.tasks || []).join(', ') || 'Productivity Log'}</td>
+                        <td class="text-secondary">${(db.users.find(u => u.id === empId) || {}).displayId || empId}</td><td>${task.employeeName || (emp ? emp.name : 'Unknown')}</td>
                         <td><span style="font-size: 11px; font-weight: 700; color: #38bdf8;">${dept}</span></td>
-                        <td>${task.date}</td>
-                        <td><span class="badge-status ${statusClass}">${task.status}</span></td>
+                        <td>${task.date || task.log_date}</td>
+                        <td><span class="badge-status ${statusClass}">${task.status || 'Approved'}</span></td>
                         <td>${actionBtn}</td>
                     </tr>
                 `;
