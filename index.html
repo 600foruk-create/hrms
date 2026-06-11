@@ -3522,15 +3522,14 @@
     <!-- Employee ID Card Modal -->
     <!-- Employee ID Card Modal -->
     <div id="modal-id-card" class="modal modal-lg hidden" style="max-width: 850px;">
-        <div class="modal-content" style="max-width: 850px; padding: 2rem;">
-            <div class="modal-header" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-                <h2>Employee ID Card</h2>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn btn-primary" onclick="printIdCard()"><i class="fa-solid fa-print"></i> Print Card</button>
-                    <button type="button" class="modal-close" style="position: relative; right: 0; top: 0;"><i class="fa-solid fa-xmark"></i></button>
-                </div>
+        <div class="modal-header no-print">
+            <h3>Employee ID Card</h3>
+            <div class="modal-header-controls">
+                <button class="btn btn-outline" style="padding: 4px 12px; font-size: 12px; height: auto;" onclick="printIdCard()"><i class="fa-solid fa-print"></i> Print Card</button>
+                <button type="button" class="modal-close"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="modal-body print-container" style="display: flex; justify-content: center; gap: 40px; flex-wrap: nowrap; overflow-x: auto; padding: 20px 10px; border-radius: var(--radius-md);">
+        </div>
+        <div class="modal-body print-container" style="display: flex; justify-content: center; gap: 20px; flex-wrap: nowrap; overflow-x: auto; padding: 10px; border-radius: var(--radius-md);">
                 
                 <!-- FRONT SIDE -->
                 <div class="id-card id-card-front" style="width: 250px; height: 380px; flex-shrink: 0; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; position: relative; color: #1e293b; display: flex; flex-direction: column; align-items: center; border: 1px solid #e2e8f0; font-family: 'Inter', sans-serif;">
@@ -3633,7 +3632,6 @@
                 </div>
 
             </div>
-        </div>
     </div>
     
     <!-- Bank Letter Cheque Data Pre-Modal -->
