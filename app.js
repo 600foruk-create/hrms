@@ -58,20 +58,27 @@ async function syncServer() {
             window.dbLoaded = true;
             success = true;
 
-            // Clear legacy huge data to free up quota
-            localStorage.removeItem('cached_db');
+            // Deep clean localStorage of all legacy or unrecognized keys to absolutely prevent QuotaExceededError
+            try {
+                Object.keys(localStorage).forEach(key => {
+                    if (!['current_user', 'active_tab', 'hrms_fallback_db'].includes(key)) {
+                        localStorage.removeItem(key);
+                    }
+                });
+            } catch (e) {}
 
             // Cache DB for offline/reload persistence (Strip large base64 data to prevent QuotaExceededError)
             try {
                 const cacheData = JSON.parse(JSON.stringify(result.data));
                 if (cacheData.users) {
-                    cacheData.users.forEach(u => { delete u.documents; delete u.profileImageBase64; });
+                    cacheData.users.forEach(u => { delete u.documents; delete u.profileImageBase64; delete u.profilePic; });
                 }
                 if (cacheData.companyProfile) {
                     delete cacheData.companyProfile.letterheadBase64;
                     delete cacheData.companyProfile.signatureBase64;
                     delete cacheData.companyProfile.idCardFrontBase64;
                     delete cacheData.companyProfile.idCardBackBase64;
+                    delete cacheData.companyProfile.logoBase64;
                 }
                 localStorage.setItem('hrms_fallback_db', JSON.stringify(cacheData));
             } catch (e) {
@@ -123,7 +130,18 @@ async function saveDb(data) {
     }
     window.hrmsDatabase = data; // Immediate local update for UI speed
     try {
-        localStorage.setItem('hrms_fallback_db', JSON.stringify(data));
+        const cacheData = JSON.parse(JSON.stringify(data));
+        if (cacheData.users) {
+            cacheData.users.forEach(u => { delete u.documents; delete u.profileImageBase64; delete u.profilePic; });
+        }
+        if (cacheData.companyProfile) {
+            delete cacheData.companyProfile.letterheadBase64;
+            delete cacheData.companyProfile.signatureBase64;
+            delete cacheData.companyProfile.idCardFrontBase64;
+            delete cacheData.companyProfile.idCardBackBase64;
+            delete cacheData.companyProfile.logoBase64;
+        }
+        localStorage.setItem('hrms_fallback_db', JSON.stringify(cacheData));
     } catch (e) {
         console.warn("Could not save to localStorage. Quota exceeded?", e);
     }
@@ -351,11 +369,19 @@ function handleLogin(usernameOrEmail, password) {
             return;
         }
 
+        // Final quota sweep
+        try {
+            Object.keys(localStorage).forEach(key => {
+                if (!['current_user', 'active_tab', 'hrms_fallback_db'].includes(key)) localStorage.removeItem(key);
+            });
+        } catch (e) {}
+
         // Set Session
         currentUser = user;
         const sessionUser = { ...user };
         delete sessionUser.documents; // Remove huge base64 arrays to save localStorage space
         delete sessionUser.profileImageBase64;
+        delete sessionUser.profilePic;
         localStorage.setItem('current_user', JSON.stringify(sessionUser));
 
         // Auto Mark Attendance for Employee on Login
