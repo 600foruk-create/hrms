@@ -539,7 +539,7 @@ body.light-mode .user-profile-badge {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    background: var(--primary);
     color: white;
     display: flex;
     align-items: center;
@@ -774,7 +774,7 @@ body.light-mode .topbar-btn {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    background: var(--primary);
     color: white;
     font-weight: 700;
     display: flex;
@@ -1597,7 +1597,7 @@ body.light-mode .report-preview-container {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%);
+    background: var(--primary);
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     flex-shrink: 0;
 }
@@ -1842,7 +1842,7 @@ body.light-mode .report-preview-container {
     width: 72px;
     height: 72px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    background: var(--primary);
     color: white;
     font-family: var(--font-heading);
     font-size: 28px;

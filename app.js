@@ -931,7 +931,7 @@ function renderAdminDashboard() {
                 approvalsListEl.innerHTML += `
                     <div class="approval-card bg-glass-card" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: rgba(255,255,255,0.01);">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div class="avatar-small" style="background: rgba(95, 59, 246, 0.15); color: #5f3bf6; width: 32px; height: 32px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center;">${initials}</div>
+                            <div class="avatar-small" style="background: var(--primary); color: #fff; width: 32px; height: 32px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center;">${initials}</div>
                             <div style="display: flex; flex-direction: column;">
                                 <span style="font-size: 13px; font-weight: 700; color: #fff;">${task.employeeName || 'Employee'}</span>
                                 <span style="font-size: 11px; color: var(--text-secondary);">${(task.tasks || []).join(', ') || 'Productivity Log'} â€¢ Score: <strong>${task.score || 'N/A'}</strong></span>
@@ -1088,7 +1088,7 @@ function renderAdminDashboard() {
                     membersHTML += `
                         <div class="team-member-item" style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
                             <div class="team-member-left">
-                                <div class="team-member-avatar" style="background: rgba(95, 59, 246, 0.1); color: #5f3bf6; width: 24px; height: 24px; font-size: 10px;">${empInitials}</div>
+                                <div class="team-member-avatar" style="background: var(--primary); color: #fff; width: 24px; height: 24px; font-size: 10px;">${empInitials}</div>
                                 <div class="team-member-info">
                                     <span class="team-member-name" style="font-size: 12px;">${emp.name}</span>
                                 </div>
@@ -1187,7 +1187,7 @@ function renderAdminEmployeesTab() {
                     membersHTML += `
                         <div class="team-member-item">
                             <div class="team-member-left">
-                                <div class="team-member-avatar" style="background: rgba(95, 59, 246, 0.1); color: #5f3bf6;">${empInitials}</div>
+                                <div class="team-member-avatar" style="background: var(--primary); color: #fff;">${empInitials}</div>
                                 <div class="team-member-info">
                                     <span class="team-member-name">${emp.name}</span>
                                     <span class="team-member-email">${emp.email}</span>
