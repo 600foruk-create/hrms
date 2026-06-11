@@ -322,7 +322,7 @@ function applyCompanyProfile(db) {
         if (companyLogo) {
             logoIcon.innerHTML = `<img src="${companyLogo}" alt="Logo" style="max-height:28px; max-width:100%; object-fit:contain;">`;
         } else {
-            logoIcon.innerHTML = `<img src="assets/images/my_logo.png" alt="Softifyx Logo" style="max-height:28px; object-fit:contain;">`;
+            logoIcon.innerHTML = `<span style="font-size:20px; font-weight:900; background: linear-gradient(90deg,#1a2b8a,#0e7c9e,#00c8b4); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">NexZeal</span>`;
         }
     }
 }
