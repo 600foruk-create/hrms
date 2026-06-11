@@ -4988,6 +4988,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (appShell) {
             appShell.classList.remove('hidden');
             appShell.style.setProperty('display', 'flex', 'important');
+        }
         document.body.classList.remove('login-view');
         renderSidebar();
         const savedTab = localStorage.getItem('active_tab') || 'dashboard';
