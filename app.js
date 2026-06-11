@@ -381,6 +381,7 @@ function handleLogin(usernameOrEmail, password) {
     } catch (e) {
         console.error("handleLogin error: ", e);
         showToast("Error", "An unexpected login error occurred.", "error");
+        alert("Login Error Stack:\n" + e.stack);
     }
 }
 
