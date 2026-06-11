@@ -58,6 +58,9 @@ async function syncServer() {
             window.dbLoaded = true;
             success = true;
 
+            // Clear legacy huge data to free up quota
+            localStorage.removeItem('cached_db');
+
             // Cache DB for offline/reload persistence (Strip large base64 data to prevent QuotaExceededError)
             try {
                 const cacheData = JSON.parse(JSON.stringify(result.data));
@@ -398,6 +401,7 @@ function handleLogin(usernameOrEmail, password) {
     } catch (e) {
         console.error("handleLogin error: ", e);
         showToast("Error", "An unexpected login error occurred.", "error");
+        alert("Login Error Stack:\n" + e.stack);
     }
 }
 
