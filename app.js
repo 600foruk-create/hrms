@@ -458,7 +458,7 @@ function handleLogout() {
         document.body.classList.add('login-view');
         const db = getDb();
         if (db && db.login_bg) {
-            authPanel.style.setProperty('background-image', `url('${db.login_bg}')`, 'important');
+            authPanel.style.setProperty('background-image', `url('${db.login_bg}?v=2')`, 'important');
         }
     }
     document.getElementById('login-form').reset();
@@ -4345,7 +4345,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (db && db.login_bg) {
         const authPanel = document.getElementById('auth-panel');
         if (authPanel) {
-            authPanel.style.setProperty('background-image', `url('${db.login_bg}')`, 'important');
+            authPanel.style.setProperty('background-image', `url('${db.login_bg}?v=2')`, 'important');
         }
     }
 
