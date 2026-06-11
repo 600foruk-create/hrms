@@ -25,7 +25,7 @@
             document.body.classList.remove('login-view');
             document.write('<style>#auth-panel { display: none !important; } #app-shell { display: flex !important; }</style>');
             
-            const cachedDb = JSON.parse(localStorage.getItem('cached_db') || '{}');
+            const cachedDb = JSON.parse(localStorage.getItem('hrms_fallback_db') || '{}');
             const sysSettings = cachedDb.systemSettings || {};
             if (sysSettings.themeColor) {
                 document.documentElement.style.setProperty('--primary', sysSettings.themeColor);

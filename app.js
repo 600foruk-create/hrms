@@ -58,6 +58,14 @@ async function syncServer() {
             window.dbLoaded = true;
             success = true;
 
+            // Cache DB for offline/reload persistence
+            localStorage.setItem('hrms_fallback_db', JSON.stringify(result.data));
+            
+            // Apply Global Settings (Theme) immediately upon sync
+            if (result.data.systemSettings && result.data.systemSettings.themeColor) {
+                document.documentElement.style.setProperty('--primary', result.data.systemSettings.themeColor);
+            }
+
             if (needsCleanup) {
                 console.log("Orphaned/Dummy records detected. Auto-cleaning SQL database...");
                 setTimeout(() => saveDb(result.data), 2000);
@@ -4969,7 +4977,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentUser = JSON.parse(prevSession);
         
         // Apply Custom Theme if exists
-        const cachedDb = JSON.parse(localStorage.getItem('cached_db') || '{}');
+        const cachedDb = JSON.parse(localStorage.getItem('hrms_fallback_db') || '{}');
         const sysSettings = cachedDb.systemSettings || {};
         if (sysSettings.themeColor) {
             document.documentElement.style.setProperty('--primary', sysSettings.themeColor);
