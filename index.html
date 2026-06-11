@@ -19,6 +19,19 @@
 </head>
 
 <body class="light-mode login-view">
+    <!-- Anti-flicker script: immediately hides login screen if session exists -->
+    <script>
+        if (localStorage.getItem('current_user')) {
+            document.body.classList.remove('login-view');
+            document.write('<style>#auth-panel { display: none !important; } #app-shell { display: flex !important; }</style>');
+            
+            const cachedDb = JSON.parse(localStorage.getItem('cached_db') || '{}');
+            const sysSettings = cachedDb.systemSettings || {};
+            if (sysSettings.themeColor) {
+                document.documentElement.style.setProperty('--primary', sysSettings.themeColor);
+            }
+        }
+    </script>
 
     <!-- 12. View Payslip Modal -->
     <div id="modal-view-payslip" class="modal hidden" style="max-width: 900px; width: 95%;">
