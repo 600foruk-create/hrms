@@ -93,8 +93,7 @@ window.renderPayrollHistory = function() {
         let fixedDed = record.fixedDeductions;
         let fixedAll = record.fixedAllowances;
         
-        // Only recalculate if values were never stored (old records before schema fix)
-        if (fixedDed === undefined || fixedDed === null || fixedAll === undefined || fixedAll === null) {
+        if (fixedDed === undefined || fixedAll === undefined) {
             const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
             let profile = db.salaryProfiles?.find(p => p.userId === record.userId);
             let allowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
@@ -188,8 +187,7 @@ window.openMonthlySummaryModal = function() {
         let fixedDed = record.fixedDeductions;
         let fixedAll = record.fixedAllowances;
         
-        // Only recalculate if values were never stored (old records before schema fix)
-        if (fixedDed === undefined || fixedDed === null || fixedAll === undefined || fixedAll === null) {
+        if (fixedDed === undefined || fixedAll === undefined) {
             const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
             let profile = db.salaryProfiles?.find(p => p.userId === record.userId);
             let allowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
@@ -701,7 +699,7 @@ window.updateBankLetterPreview = function() {
         let fixedDed = h.fixedDeductions;
         let fixedAll = h.fixedAllowances;
         
-        if (fixedDed === undefined || fixedDed === null || fixedAll === undefined || fixedAll === null) {
+        if (fixedDed === undefined || fixedAll === undefined) {
             const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
             let profile = db.salaryProfiles?.find(p => p.userId === h.userId);
             let pAllowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
