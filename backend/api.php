@@ -331,12 +331,12 @@ if ($action === 'load_all') {
         try {
             $stmt = $pdo->query("SELECT * FROM system_settings");
             $sysSettings = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            $dbState['systemSettings'] = [];
+            $dbState['systemSettings'] = (object)[];
             foreach ($sysSettings as $row) {
-                $dbState['systemSettings'][$row['setting_key']] = $row['setting_value'];
+                $dbState['systemSettings']->{$row['setting_key']} = $row['setting_value'];
             }
         } catch (Exception $e) {
-            $dbState['systemSettings'] = [];
+            $dbState['systemSettings'] = (object)[];
         }
 
         // Fetch Leaves
@@ -734,9 +734,12 @@ elseif ($action === 'save_all') {
 
         // 11. Sync System Settings
         $pdo->exec("DELETE FROM system_settings");
-        if (isset($data['systemSettings']) && is_array($data['systemSettings'])) {
+        if (isset($data['systemSettings']) && (is_array($data['systemSettings']) || is_object($data['systemSettings']))) {
             $stmt = $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?)");
             foreach ($data['systemSettings'] as $k => $v) {
+                if (is_bool($v)) {
+                    $v = $v ? 'true' : 'false';
+                }
                 $stmt->execute([$k, (string)$v]);
             }
         }
