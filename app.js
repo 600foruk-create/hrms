@@ -305,6 +305,13 @@ window.openDocument = function (dataUrl, name) {
     }
 };
 
+function getGreeting() {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+}
+
 function applyCompanyProfile(db) {
     if (!db) return;
 
@@ -774,6 +781,11 @@ window.quickApproveTask = function (id, status) {
 
 function renderAdminDashboard() {
     const db = getDb();
+
+    const adminTitle = document.getElementById('admin-welcome-title');
+    if (adminTitle && currentUser) {
+        adminTitle.innerHTML = `${getGreeting()}, ${currentUser.name}! 👋`;
+    }
 
     // Set current date
     const dateDisplay = document.getElementById('dashboard-date-display');
@@ -1769,6 +1781,12 @@ window.saveLeaveType = function (id) {
 // ==================== RENDERING: MANAGER VIEWS ====================
 function renderManagerDashboard() {
     const db = getDb();
+    
+    const managerTitle = document.getElementById('manager-welcome-title');
+    if (managerTitle && currentUser) {
+        managerTitle.innerHTML = `${getGreeting()}, ${currentUser.name}! 👋`;
+    }
+
     const teamMembers = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
     const teamSize = teamMembers.length;
 
@@ -2188,7 +2206,11 @@ function renderManagerLeaveTab() {
 // ==================== RENDERING: EMPLOYEE VIEWS ====================
 function renderEmployeeDashboard() {
     const db = getDb();
-    document.getElementById('employee-welcome-title').textContent = `Welcome Back, ${currentUser.name}!`;
+    
+    const employeeTitle = document.getElementById('employee-welcome-title');
+    if (employeeTitle && currentUser) {
+        employeeTitle.innerHTML = `${getGreeting()}, ${currentUser.name}! 👋`;
+    }
 
     // Top Metric Cards
     const today = new Date().toISOString().split('T')[0];
