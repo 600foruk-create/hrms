@@ -5919,13 +5919,24 @@ window.renderAdminProductivityTab = function() {
         (db.users || []).forEach(u => {
             const opt = document.createElement('option');
             opt.value = u.id;
-            opt.textContent = u.name;
+            opt.textContent = u.name || `User ${u.id}`;
             empFilter.appendChild(opt);
         });
     }
     
     if (catFilter && catFilter.options.length <= 1) {
-        (settings.productivityCategories || []).forEach(cat => {
+        let allCats = [];
+        (settings.businessUnits || []).forEach(bu => {
+            (bu.practices || []).forEach(p => allCats.push(p.name));
+        });
+        (settings.tesCategories || []).forEach(tc => {
+            (tc.tasks || []).forEach(t => allCats.push(t.name));
+        });
+        (db.productivity_logs || []).forEach(l => {
+            if (l.practice_id) allCats.push(l.practice_id);
+        });
+        
+        [...new Set(allCats)].filter(Boolean).forEach(cat => {
             const opt = document.createElement('option');
             opt.value = cat;
             opt.textContent = cat;
