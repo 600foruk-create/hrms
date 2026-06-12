@@ -5300,67 +5300,119 @@ function generateId(prefix) {
 
 // --------- ADMIN UI RENDERING ---------
 window.renderProductivitySettings = function() {
-    const buList = document.getElementById('admin-bu-list');
-    const tesList = document.getElementById('admin-tes-list');
-    if (!buList || !tesList) return;
-
     const settings = getProdSettings();
 
-    // Render Business Units
-    buList.innerHTML = '';
-    if (settings.businessUnits.length === 0) {
-        buList.innerHTML = '<div class="text-secondary text-center" style="padding: 10px; font-size: 13px;">No Business Units found.</div>';
-    } else {
+    // Populate BU dropdown
+    const buSelect = document.getElementById('config-bu-select');
+    const tesSelect = document.getElementById('config-tes-select');
+    
+    if (buSelect) {
+        const currentBuVal = buSelect.value;
+        buSelect.innerHTML = '<option value="">-- Select Business Unit --</option>';
         settings.businessUnits.forEach(bu => {
-            let practicesHtml = bu.practices.map(p => `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; background: rgba(0,0,0,0.03); border-radius: 4px; margin-top: 4px; font-size: 13px;">
-                    <span><i class="fa-solid fa-circle-dot" style="font-size: 8px; color: var(--primary-color); margin-right: 5px;"></i> ${p.name}</span>
-                    <button class="btn btn-sm" style="color: var(--danger); padding: 0;" onclick="window.deleteBuPractice('${bu.id}', '${p.id}')"><i class="fa-solid fa-trash"></i></button>
-                </div>
-            `).join('');
-
-            buList.innerHTML += `
-                <div style="border: 1px solid var(--border-color); border-radius: 6px; padding: 10px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <strong style="font-size: 14px; color: var(--primary-color);"><i class="fa-solid fa-building"></i> ${bu.name}</strong>
-                        <div>
-                            <button class="btn btn-sm btn-outline" style="padding: 2px 6px; font-size: 11px;" onclick="window.addBuPracticeModal('${bu.id}')"><i class="fa-solid fa-plus"></i> Practice</button>
-                            <button class="btn btn-sm btn-outline" style="padding: 2px 6px; font-size: 11px; color: var(--danger); border-color: var(--danger);" onclick="window.deleteBu('${bu.id}')"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>
-                    ${practicesHtml}
-                </div>
-            `;
+            const option = document.createElement('option');
+            option.value = bu.id;
+            option.textContent = bu.name;
+            buSelect.appendChild(option);
         });
+        if (currentBuVal && settings.businessUnits.find(b => b.id === currentBuVal)) {
+            buSelect.value = currentBuVal;
+        }
+        window.updateConfigPracticesDropdown();
     }
 
-    // Render TES Categories
-    tesList.innerHTML = '';
-    if (settings.tesCategories.length === 0) {
-        tesList.innerHTML = '<div class="text-secondary text-center" style="padding: 10px; font-size: 13px;">No TES Categories found.</div>';
-    } else {
+    if (tesSelect) {
+        const currentTesVal = tesSelect.value;
+        tesSelect.innerHTML = '<option value="">-- Select TES Category --</option>';
         settings.tesCategories.forEach(tes => {
-            let tasksHtml = tes.tasks.map(t => `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; background: rgba(0,0,0,0.03); border-radius: 4px; margin-top: 4px; font-size: 13px;">
-                    <span><i class="fa-solid fa-circle-dot" style="font-size: 8px; color: var(--success); margin-right: 5px;"></i> ${t.name}</span>
-                    <button class="btn btn-sm" style="color: var(--danger); padding: 0;" onclick="window.deleteTesTask('${tes.id}', '${t.id}')"><i class="fa-solid fa-trash"></i></button>
-                </div>
-            `).join('');
-
-            tesList.innerHTML += `
-                <div style="border: 1px solid var(--border-color); border-radius: 6px; padding: 10px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <strong style="font-size: 14px; color: var(--success);"><i class="fa-solid fa-layer-group"></i> ${tes.name}</strong>
-                        <div>
-                            <button class="btn btn-sm btn-outline" style="padding: 2px 6px; font-size: 11px;" onclick="window.addTesTaskModal('${tes.id}')"><i class="fa-solid fa-plus"></i> Task</button>
-                            <button class="btn btn-sm btn-outline" style="padding: 2px 6px; font-size: 11px; color: var(--danger); border-color: var(--danger);" onclick="window.deleteTes('${tes.id}')"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>
-                    ${tasksHtml}
-                </div>
-            `;
+            const option = document.createElement('option');
+            option.value = tes.id;
+            option.textContent = tes.name;
+            tesSelect.appendChild(option);
         });
+        if (currentTesVal && settings.tesCategories.find(t => t.id === currentTesVal)) {
+            tesSelect.value = currentTesVal;
+        }
+        window.updateConfigTasksDropdown();
     }
+};
+
+window.updateConfigPracticesDropdown = function() {
+    const buSelect = document.getElementById('config-bu-select');
+    if (!buSelect) return;
+    const buId = buSelect.value;
+    const practiceSelect = document.getElementById('config-practice-select');
+    const btnDeleteBu = document.getElementById('btn-delete-bu');
+    
+    if (btnDeleteBu) btnDeleteBu.style.display = buId ? 'inline-block' : 'none';
+    
+    if (!practiceSelect) return;
+    const currentPracticeVal = practiceSelect.value;
+    practiceSelect.innerHTML = '<option value="">-- Select Practice --</option>';
+    
+    if (buId) {
+        const settings = getProdSettings();
+        const bu = settings.businessUnits.find(b => b.id === buId);
+        if (bu && bu.practices) {
+            bu.practices.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p.id;
+                option.textContent = p.name;
+                practiceSelect.appendChild(option);
+            });
+        }
+    }
+    if (currentPracticeVal && Array.from(practiceSelect.options).find(o => o.value === currentPracticeVal)) {
+        practiceSelect.value = currentPracticeVal;
+    }
+    window.updateConfigPracticeButtons();
+};
+
+window.updateConfigPracticeButtons = function() {
+    const practiceSelect = document.getElementById('config-practice-select');
+    if (!practiceSelect) return;
+    const practiceId = practiceSelect.value;
+    const btnDeletePractice = document.getElementById('btn-delete-practice');
+    if (btnDeletePractice) btnDeletePractice.style.display = practiceId ? 'inline-block' : 'none';
+};
+
+window.updateConfigTasksDropdown = function() {
+    const tesSelect = document.getElementById('config-tes-select');
+    if (!tesSelect) return;
+    const tesId = tesSelect.value;
+    const taskSelect = document.getElementById('config-task-select');
+    const btnDeleteTes = document.getElementById('btn-delete-tes');
+    
+    if (btnDeleteTes) btnDeleteTes.style.display = tesId ? 'inline-block' : 'none';
+    
+    if (!taskSelect) return;
+    const currentTaskVal = taskSelect.value;
+    taskSelect.innerHTML = '<option value="">-- Select Task --</option>';
+    
+    if (tesId) {
+        const settings = getProdSettings();
+        const tes = settings.tesCategories.find(t => t.id === tesId);
+        if (tes && tes.tasks) {
+            tes.tasks.forEach(t => {
+                const option = document.createElement('option');
+                option.value = t.id;
+                option.textContent = t.name;
+                taskSelect.appendChild(option);
+            });
+        }
+    }
+    if (currentTaskVal && Array.from(taskSelect.options).find(o => o.value === currentTaskVal)) {
+        taskSelect.value = currentTaskVal;
+    }
+    window.updateConfigTaskButtons();
+};
+
+window.updateConfigTaskButtons = function() {
+    const taskSelect = document.getElementById('config-task-select');
+    if (!taskSelect) return;
+    const taskId = taskSelect.value;
+    const btnDeleteTask = document.getElementById('btn-delete-task');
+    if (btnDeleteTask) btnDeleteTask.style.display = taskId ? 'inline-block' : 'none';
 };
 
 // --------- ADMIN ACTIONS ---------
@@ -5385,10 +5437,14 @@ window.addBuModal = function() {
     });
 };
 
-window.deleteBu = function(id) {
+window.deleteSelectedBu = function() {
+    const buSelect = document.getElementById('config-bu-select');
+    if (!buSelect || !buSelect.value) return;
+    const id = buSelect.value;
+    
     Swal.fire({
         title: 'Are you sure?',
-        text: "This will delete the Business Unit and all its practices.",
+        text: "This will delete the selected Business Unit and all its practices.",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes, delete it!'
@@ -5402,7 +5458,14 @@ window.deleteBu = function(id) {
     });
 };
 
-window.addBuPracticeModal = function(buId) {
+window.addPracticeToSelectedBu = function() {
+    const buSelect = document.getElementById('config-bu-select');
+    if (!buSelect || !buSelect.value) {
+        showToast('Error', 'Please select a Business Unit first');
+        return;
+    }
+    const buId = buSelect.value;
+    
     Swal.fire({
         title: 'Add Practice',
         input: 'text',
@@ -5426,40 +5489,40 @@ window.addBuPracticeModal = function(buId) {
     });
 };
 
-window.deleteBuPractice = function(buId, pId) {
-    const settings = getProdSettings();
-    const bu = settings.businessUnits.find(b => b.id === buId);
-    if (bu) {
-        bu.practices = bu.practices.filter(p => p.id !== pId);
-        saveProdSettings(settings);
-    }
-};
-
-window.addTesModal = function() {
+window.deleteSelectedPractice = function() {
+    const buSelect = document.getElementById('config-bu-select');
+    const practiceSelect = document.getElementById('config-practice-select');
+    if (!buSelect || !buSelect.value || !practiceSelect || !practiceSelect.value) return;
+    
+    const buId = buSelect.value;
+    const pId = practiceSelect.value;
+    
     Swal.fire({
-        title: 'Add TES Category',
-        input: 'text',
-        inputPlaceholder: 'Enter TES Category name',
+        title: 'Delete Practice?',
+        icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'Add',
-        preConfirm: (name) => {
-            if (!name) Swal.showValidationMessage('Name is required');
-            return name;
-        }
+        confirmButtonText: 'Delete'
     }).then((result) => {
         if (result.isConfirmed) {
             const settings = getProdSettings();
-            settings.tesCategories.push({ id: generateId('TC'), name: result.value, tasks: [] });
-            saveProdSettings(settings);
-            showToast('Success', 'TES Category added');
+            const bu = settings.businessUnits.find(b => b.id === buId);
+            if (bu) {
+                bu.practices = bu.practices.filter(p => p.id !== pId);
+                saveProdSettings(settings);
+                showToast('Deleted', 'Practice removed');
+            }
         }
     });
 };
 
-window.deleteTes = function(id) {
+window.deleteSelectedTes = function() {
+    const tesSelect = document.getElementById('config-tes-select');
+    if (!tesSelect || !tesSelect.value) return;
+    const id = tesSelect.value;
+    
     Swal.fire({
         title: 'Are you sure?',
-        text: "This will delete the TES Category and all its tasks.",
+        text: "This will delete the selected TES Category and all its tasks.",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes, delete it!'
@@ -5473,7 +5536,14 @@ window.deleteTes = function(id) {
     });
 };
 
-window.addTesTaskModal = function(tesId) {
+window.addTaskToSelectedTes = function() {
+    const tesSelect = document.getElementById('config-tes-select');
+    if (!tesSelect || !tesSelect.value) {
+        showToast('Error', 'Please select a TES Category first');
+        return;
+    }
+    const tesId = tesSelect.value;
+    
     Swal.fire({
         title: 'Add Task',
         input: 'text',
@@ -5497,13 +5567,30 @@ window.addTesTaskModal = function(tesId) {
     });
 };
 
-window.deleteTesTask = function(tesId, tId) {
-    const settings = getProdSettings();
-    const tes = settings.tesCategories.find(t => t.id === tesId);
-    if (tes) {
-        tes.tasks = tes.tasks.filter(t => t.id !== tId);
-        saveProdSettings(settings);
-    }
+window.deleteSelectedTask = function() {
+    const tesSelect = document.getElementById('config-tes-select');
+    const taskSelect = document.getElementById('config-task-select');
+    if (!tesSelect || !tesSelect.value || !taskSelect || !taskSelect.value) return;
+    
+    const tesId = tesSelect.value;
+    const taskId = taskSelect.value;
+    
+    Swal.fire({
+        title: 'Delete Task?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Delete'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const settings = getProdSettings();
+            const tes = settings.tesCategories.find(t => t.id === tesId);
+            if (tes) {
+                tes.tasks = tes.tasks.filter(t => t.id !== taskId);
+                saveProdSettings(settings);
+                showToast('Deleted', 'Task removed');
+            }
+        }
+    });
 };
 
 // --------- EMPLOYEE SUBMISSION FORM LOGIC ---------
