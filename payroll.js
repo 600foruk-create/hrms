@@ -90,23 +90,21 @@ window.renderPayrollHistory = function() {
         visibleCount++;
         
         const basic = parseInt(user?.salary) || 0;
-        let fixedDed = parseFloat(record.fixedDeductions);
-        let fixedAll = parseFloat(record.fixedAllowances);
         
-        if (isNaN(fixedDed) || isNaN(fixedAll)) {
-            const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
-            let profile = db.salaryProfiles?.find(p => p.userId === record.userId);
-            let allowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
-            let deductions = profile && profile.isCustomSlab ? (profile.deductions || []) : (globalSlab.deductions || []);
-            
-            fixedAll = 0;
-            allowances.forEach(a => { fixedAll += (a.type === 'percentage') ? (basic * (parseFloat(a.value)||0)) / 100 : (parseFloat(a.value)||0); });
-            fixedDed = 0;
-            deductions.forEach(d => { fixedDed += (d.type === 'percentage') ? (basic * (parseFloat(d.value)||0)) / 100 : (parseFloat(d.value)||0); });
-        }
+        const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
+        let profile = db.salaryProfiles?.find(p => p.userId === record.userId);
+        let allowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
+        let deductions = profile && profile.isCustomSlab ? (profile.deductions || []) : (globalSlab.deductions || []);
+        
+        let fixedAll = 0;
+        allowances.forEach(a => { fixedAll += (a.type === 'percentage') ? (basic * (parseFloat(a.value)||0)) / 100 : (parseFloat(a.value)||0); });
+        
+        let fixedDed = 0;
+        deductions.forEach(d => { fixedDed += (d.type === 'percentage') ? (basic * (parseFloat(d.value)||0)) / 100 : (parseFloat(d.value)||0); });
 
-        const totalDed = (fixedDed || 0) + (record.absencyDeduction || 0) + (record.loanDeduction || 0) + (record.otherDeduction || 0);
-        const totalAdd = (fixedAll || 0) + (record.bonus || 0);
+        const totalDed = fixedDed + (record.absencyDeduction || 0) + (record.loanDeduction || 0) + (record.otherDeduction || 0);
+        const totalAdd = fixedAll + (record.bonus || 0);
+        const dynamicNetPay = basic + totalAdd - totalDed;
         
         const processedDate = new Date(record.processedAt).toLocaleDateString();
 
@@ -118,7 +116,7 @@ window.renderPayrollHistory = function() {
                 <td>Rs ${Math.round(basic).toLocaleString()}</td>
                 <td class="text-danger">-Rs ${Math.round(totalDed).toLocaleString()}</td>
                 <td class="text-success">+Rs ${Math.round(totalAdd).toLocaleString()}</td>
-                <td class="text-primary bold">Rs ${Math.round(record.netPay).toLocaleString()}</td>
+                <td class="text-primary bold">Rs ${Math.round(dynamicNetPay).toLocaleString()}</td>
                 <td class="text-secondary">${processedDate}</td>
                 <td>
                     <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="window.openPayslipModal('${record.id}')">
@@ -184,28 +182,25 @@ window.openMonthlySummaryModal = function() {
         
         const basic = parseInt(user?.salary) || 0;
         
-        let fixedDed = parseFloat(record.fixedDeductions);
-        let fixedAll = parseFloat(record.fixedAllowances);
+        const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
+        let profile = db.salaryProfiles?.find(p => p.userId === record.userId);
+        let allowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
+        let deductions = profile && profile.isCustomSlab ? (profile.deductions || []) : (globalSlab.deductions || []);
         
-        if (isNaN(fixedDed) || isNaN(fixedAll)) {
-            const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
-            let profile = db.salaryProfiles?.find(p => p.userId === record.userId);
-            let allowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
-            let deductions = profile && profile.isCustomSlab ? (profile.deductions || []) : (globalSlab.deductions || []);
-            
-            fixedAll = 0;
-            allowances.forEach(a => { fixedAll += (a.type === 'percentage') ? (basic * (parseFloat(a.value)||0)) / 100 : (parseFloat(a.value)||0); });
-            fixedDed = 0;
-            deductions.forEach(d => { fixedDed += (d.type === 'percentage') ? (basic * (parseFloat(d.value)||0)) / 100 : (parseFloat(d.value)||0); });
-        }
+        let fixedAll = 0;
+        allowances.forEach(a => { fixedAll += (a.type === 'percentage') ? (basic * (parseFloat(a.value)||0)) / 100 : (parseFloat(a.value)||0); });
+        
+        let fixedDed = 0;
+        deductions.forEach(d => { fixedDed += (d.type === 'percentage') ? (basic * (parseFloat(d.value)||0)) / 100 : (parseFloat(d.value)||0); });
 
-        const totalDed = (fixedDed || 0) + (record.absencyDeduction || 0) + (record.loanDeduction || 0) + (record.otherDeduction || 0);
-        const totalAdd = (fixedAll || 0) + (record.bonus || 0); 
+        const totalDed = fixedDed + (record.absencyDeduction || 0) + (record.loanDeduction || 0) + (record.otherDeduction || 0);
+        const totalAdd = fixedAll + (record.bonus || 0); 
+        const dynamicNetPay = basic + totalAdd - totalDed;
         
         grandTotalBasic += basic;
         grandTotalAllowances += totalAdd;
         grandTotalDeductions += totalDed;
-        grandTotalNet += record.netPay;
+        grandTotalNet += dynamicNetPay;
 
         tableRows += `
             <tr>
@@ -214,7 +209,7 @@ window.openMonthlySummaryModal = function() {
                 <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; color: #334155; font-size: 11px;">Rs ${basic.toLocaleString()}</td>
                 <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; color: #059669; font-size: 11px;">Rs ${Math.round(totalAdd).toLocaleString()}</td>
                 <td style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; color: #dc2626; font-size: 11px;">Rs ${Math.round(totalDed).toLocaleString()}</td>
-                <td class="bold text-primary" style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; font-size: 12px;">Rs ${Math.round(record.netPay).toLocaleString()}</td>
+                <td class="bold text-primary" style="padding: 12px 10px; border-bottom: 1px solid #e2e8f0; font-size: 12px;">Rs ${Math.round(dynamicNetPay).toLocaleString()}</td>
             </tr>
         `;
     });
@@ -554,7 +549,7 @@ window.openPayslipModal = function(recordId) {
                     <div style="font-size: 14px; color: #0f766e; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Net Payable Salary</div>
                     <div style="font-size: 12px; color: #134e4a; margin-top: 4px; opacity: 0.8;">(Gross Earnings - Total Deductions)</div>
                 </div>
-                <div style="font-size: 28px; font-weight: 900; color: #0f766e;">Rs ${Math.round(record.netPay).toLocaleString()}</div>
+                <div style="font-size: 28px; font-weight: 900; color: #0f766e;">Rs ${Math.round(totalAllow - totalDed).toLocaleString()}</div>
             </div>
             
             <!-- Disclaimer -->
@@ -696,24 +691,20 @@ window.updateBankLetterPreview = function() {
         
         let basic = parseInt(user?.salary) || 0;
         
-        let fixedDed = parseFloat(h.fixedDeductions);
-        let fixedAll = parseFloat(h.fixedAllowances);
+        const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
+        let profile = db.salaryProfiles?.find(p => p.userId === h.userId);
+        let pAllowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
+        let pDeductions = profile && profile.isCustomSlab ? (profile.deductions || []) : (globalSlab.deductions || []);
         
-        if (isNaN(fixedDed) || isNaN(fixedAll)) {
-            const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
-            let profile = db.salaryProfiles?.find(p => p.userId === h.userId);
-            let pAllowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
-            let pDeductions = profile && profile.isCustomSlab ? (profile.deductions || []) : (globalSlab.deductions || []);
-            
-            fixedAll = 0;
-            pAllowances.forEach(a => { fixedAll += (a.type === 'percentage') ? (basic * (parseFloat(a.value)||0)) / 100 : (parseFloat(a.value)||0); });
-            fixedDed = 0;
-            pDeductions.forEach(d => { fixedDed += (d.type === 'percentage') ? (basic * (parseFloat(d.value)||0)) / 100 : (parseFloat(d.value)||0); });
-        }
+        let fixedAll = 0;
+        pAllowances.forEach(a => { fixedAll += (a.type === 'percentage') ? (basic * (parseFloat(a.value)||0)) / 100 : (parseFloat(a.value)||0); });
+        
+        let fixedDed = 0;
+        pDeductions.forEach(d => { fixedDed += (d.type === 'percentage') ? (basic * (parseFloat(d.value)||0)) / 100 : (parseFloat(d.value)||0); });
 
-        let allowances = (fixedAll || 0) + (h.bonus || 0);
-        let deductions = (fixedDed || 0) + (h.absencyDeduction || 0) + (h.loanDeduction || h.loanEmi || 0) + (h.otherDeduction || 0);
-        let netSalary = h.netPay || h.finalNetPay || 0;
+        let allowances = fixedAll + (h.bonus || 0);
+        let deductions = fixedDed + (h.absencyDeduction || 0) + (h.loanDeduction || h.loanEmi || 0) + (h.otherDeduction || 0);
+        let netSalary = basic + allowances - deductions;
 
         grandBasic += basic;
         grandAllowances += allowances;
@@ -1498,10 +1489,28 @@ window.renderMyPayslips = function() {
         return;
     }
 
+    const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
+    const basic = parseInt(window.currentUser?.salary) || 0;
+
     history.forEach(record => {
         const d = new Date(record.endDate || record.processedAt || new Date());
         const monthName = d.toLocaleString('default', { month: 'long', year: 'numeric' });
-        const netPay = Math.round(record.netPay).toLocaleString();
+        
+        let profile = db.salaryProfiles?.find(p => p.userId === record.userId);
+        let allowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
+        let deductions = profile && profile.isCustomSlab ? (profile.deductions || []) : (globalSlab.deductions || []);
+        
+        let fixedAll = 0;
+        allowances.forEach(a => { fixedAll += (a.type === 'percentage') ? (basic * (parseFloat(a.value)||0)) / 100 : (parseFloat(a.value)||0); });
+        
+        let fixedDed = 0;
+        deductions.forEach(d => { fixedDed += (d.type === 'percentage') ? (basic * (parseFloat(d.value)||0)) / 100 : (parseFloat(d.value)||0); });
+
+        const totalDed = fixedDed + (record.absencyDeduction || 0) + (record.loanDeduction || 0) + (record.otherDeduction || 0);
+        const totalAdd = fixedAll + (record.bonus || 0);
+        const dynamicNetPay = basic + totalAdd - totalDed;
+        
+        const netPay = Math.round(dynamicNetPay).toLocaleString();
         
         targetTbody.innerHTML += `
             <tr>
