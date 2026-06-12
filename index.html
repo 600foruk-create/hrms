@@ -1563,6 +1563,9 @@
                             <button class="btn-sub-tab active" data-subtab="admin-prod-all-logs">
                                 <i class="fa-solid fa-list"></i> All Submitted Logs
                             </button>
+                            <button class="btn-sub-tab" data-subtab="admin-prod-config">
+                                <i class="fa-solid fa-gear"></i> Categories Config
+                            </button>
                         </div>
 
                         <!-- Sub-tab: All Logs -->
@@ -1586,6 +1589,28 @@
                                             <!-- Dynamic rows populated by app.js -->
                                         </tbody>
                                     </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sub-tab: Categories Config -->
+                        <div id="subtab-content-admin-prod-config" class="sub-tab-content hidden" style="max-height: calc(100vh - 180px); overflow-y: auto; padding-right: 10px;">
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <div class="section-card bg-glass">
+                                        <h3>Business Units & Practices</h3>
+                                        <p class="text-secondary mb-3">Manage main business units and their child practices.</p>
+                                        <div id="admin-bu-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                                        <button class="btn btn-outline mt-3" onclick="window.addBuModal()"><i class="fa-solid fa-plus"></i> Add Business Unit</button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <div class="section-card bg-glass">
+                                        <h3>TES Categories & Tasks</h3>
+                                        <p class="text-secondary mb-3">Manage TES categories and their child tasks.</p>
+                                        <div id="admin-tes-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                                        <button class="btn btn-outline mt-3" onclick="window.addTesModal()"><i class="fa-solid fa-plus"></i> Add TES Category</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1695,9 +1720,6 @@
                             </button>
                             <button class="btn-sub-tab" data-settings-subtab="api-ip-config">
                                 <i class="fa-solid fa-network-wired"></i> APIs/IP Configuration
-                            </button>
-                            <button class="btn-sub-tab" data-settings-subtab="productivity-settings">
-                                <i class="fa-solid fa-list-check"></i> Productivity Setting
                             </button>
                         </div>
 
@@ -2019,25 +2041,6 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- 4. Productivity Settings -->
-                        <div id="settings-content-productivity-settings" class="settings-sub-tab-content hidden" style="max-height: calc(100vh - 180px); overflow-y: auto; padding-right: 10px;">
-                            <div class="row">
-                                <div class="col-md-6 mb-4">
-                                    <div class="section-card bg-glass">
-                                        <h3>Business Units & Practices</h3>
-                                        <p class="text-secondary mb-3">Manage main business units and their child practices.</p>
-                                        <div id="admin-bu-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
-                                        <button class="btn btn-outline mt-3" onclick="window.addBuModal()"><i class="fa-solid fa-plus"></i> Add Business Unit</button>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-4">
-                                    <div class="section-card bg-glass">
-                                        <h3>TES Categories & Tasks</h3>
-                                        <p class="text-secondary mb-3">Manage TES categories and their child tasks.</p>
-                                        <div id="admin-tes-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
-                                        <button class="btn btn-outline mt-3" onclick="window.addTesModal()"><i class="fa-solid fa-plus"></i> Add TES Category</button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
