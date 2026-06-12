@@ -5264,3 +5264,588 @@ window.printIdCard = function () {
     document.body.classList.remove('printing-modal');
 };
 
+
+// ==========================================
+// NEW PRODUCTIVITY MODULE (BU / TES)
+// ==========================================
+
+function getProdSettings() {
+    const db = getDb();
+    if (!db.systemSettings) db.systemSettings = {};
+    if (!db.systemSettings.productivityCategories) {
+        db.systemSettings.productivityCategories = JSON.stringify({
+            businessUnits: [],
+            tesCategories: []
+        });
+    }
+    try {
+        return JSON.parse(db.systemSettings.productivityCategories);
+    } catch(e) {
+        return { businessUnits: [], tesCategories: [] };
+    }
+}
+
+function saveProdSettings(settings) {
+    const db = getDb();
+    if (!db.systemSettings) db.systemSettings = {};
+    db.systemSettings.productivityCategories = JSON.stringify(settings);
+    saveDb(db);
+    renderProductivitySettings();
+    populateProdDropdowns();
+}
+
+function generateId(prefix) {
+    return prefix + '_' + Date.now() + Math.floor(Math.random() * 1000);
+}
+
+// --------- ADMIN UI RENDERING ---------
+window.renderProductivitySettings = function() {
+    const buList = document.getElementById('admin-bu-list');
+    const tesList = document.getElementById('admin-tes-list');
+    if (!buList || !tesList) return;
+
+    const settings = getProdSettings();
+
+    // Render Business Units
+    buList.innerHTML = '';
+    if (settings.businessUnits.length === 0) {
+        buList.innerHTML = '<div class="text-secondary text-center" style="padding: 10px; font-size: 13px;">No Business Units found.</div>';
+    } else {
+        settings.businessUnits.forEach(bu => {
+            let practicesHtml = bu.practices.map(p => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; background: rgba(0,0,0,0.03); border-radius: 4px; margin-top: 4px; font-size: 13px;">
+                    <span><i class="fa-solid fa-circle-dot" style="font-size: 8px; color: var(--primary-color); margin-right: 5px;"></i> ${p.name}</span>
+                    <button class="btn btn-sm" style="color: var(--danger); padding: 0;" onclick="window.deleteBuPractice('${bu.id}', '${p.id}')"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `).join('');
+
+            buList.innerHTML += `
+                <div style="border: 1px solid var(--border-color); border-radius: 6px; padding: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <strong style="font-size: 14px; color: var(--primary-color);"><i class="fa-solid fa-building"></i> ${bu.name}</strong>
+                        <div>
+                            <button class="btn btn-sm btn-outline" style="padding: 2px 6px; font-size: 11px;" onclick="window.addBuPracticeModal('${bu.id}')"><i class="fa-solid fa-plus"></i> Practice</button>
+                            <button class="btn btn-sm btn-outline" style="padding: 2px 6px; font-size: 11px; color: var(--danger); border-color: var(--danger);" onclick="window.deleteBu('${bu.id}')"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                    ${practicesHtml}
+                </div>
+            `;
+        });
+    }
+
+    // Render TES Categories
+    tesList.innerHTML = '';
+    if (settings.tesCategories.length === 0) {
+        tesList.innerHTML = '<div class="text-secondary text-center" style="padding: 10px; font-size: 13px;">No TES Categories found.</div>';
+    } else {
+        settings.tesCategories.forEach(tes => {
+            let tasksHtml = tes.tasks.map(t => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; background: rgba(0,0,0,0.03); border-radius: 4px; margin-top: 4px; font-size: 13px;">
+                    <span><i class="fa-solid fa-circle-dot" style="font-size: 8px; color: var(--success); margin-right: 5px;"></i> ${t.name}</span>
+                    <button class="btn btn-sm" style="color: var(--danger); padding: 0;" onclick="window.deleteTesTask('${tes.id}', '${t.id}')"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `).join('');
+
+            tesList.innerHTML += `
+                <div style="border: 1px solid var(--border-color); border-radius: 6px; padding: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <strong style="font-size: 14px; color: var(--success);"><i class="fa-solid fa-layer-group"></i> ${tes.name}</strong>
+                        <div>
+                            <button class="btn btn-sm btn-outline" style="padding: 2px 6px; font-size: 11px;" onclick="window.addTesTaskModal('${tes.id}')"><i class="fa-solid fa-plus"></i> Task</button>
+                            <button class="btn btn-sm btn-outline" style="padding: 2px 6px; font-size: 11px; color: var(--danger); border-color: var(--danger);" onclick="window.deleteTes('${tes.id}')"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                    ${tasksHtml}
+                </div>
+            `;
+        });
+    }
+};
+
+// --------- ADMIN ACTIONS ---------
+window.addBuModal = function() {
+    Swal.fire({
+        title: 'Add Business Unit',
+        input: 'text',
+        inputPlaceholder: 'Enter Business Unit name',
+        showCancelButton: true,
+        confirmButtonText: 'Add',
+        preConfirm: (name) => {
+            if (!name) Swal.showValidationMessage('Name is required');
+            return name;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const settings = getProdSettings();
+            settings.businessUnits.push({ id: generateId('BU'), name: result.value, practices: [] });
+            saveProdSettings(settings);
+            showToast('Success', 'Business Unit added');
+        }
+    });
+};
+
+window.deleteBu = function(id) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This will delete the Business Unit and all its practices.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const settings = getProdSettings();
+            settings.businessUnits = settings.businessUnits.filter(bu => bu.id !== id);
+            saveProdSettings(settings);
+            showToast('Deleted', 'Business Unit removed');
+        }
+    });
+};
+
+window.addBuPracticeModal = function(buId) {
+    Swal.fire({
+        title: 'Add Practice',
+        input: 'text',
+        inputPlaceholder: 'Enter Practice name',
+        showCancelButton: true,
+        confirmButtonText: 'Add',
+        preConfirm: (name) => {
+            if (!name) Swal.showValidationMessage('Name is required');
+            return name;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const settings = getProdSettings();
+            const bu = settings.businessUnits.find(b => b.id === buId);
+            if (bu) {
+                bu.practices.push({ id: generateId('P'), name: result.value });
+                saveProdSettings(settings);
+                showToast('Success', 'Practice added');
+            }
+        }
+    });
+};
+
+window.deleteBuPractice = function(buId, pId) {
+    const settings = getProdSettings();
+    const bu = settings.businessUnits.find(b => b.id === buId);
+    if (bu) {
+        bu.practices = bu.practices.filter(p => p.id !== pId);
+        saveProdSettings(settings);
+    }
+};
+
+window.addTesModal = function() {
+    Swal.fire({
+        title: 'Add TES Category',
+        input: 'text',
+        inputPlaceholder: 'Enter TES Category name',
+        showCancelButton: true,
+        confirmButtonText: 'Add',
+        preConfirm: (name) => {
+            if (!name) Swal.showValidationMessage('Name is required');
+            return name;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const settings = getProdSettings();
+            settings.tesCategories.push({ id: generateId('TC'), name: result.value, tasks: [] });
+            saveProdSettings(settings);
+            showToast('Success', 'TES Category added');
+        }
+    });
+};
+
+window.deleteTes = function(id) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This will delete the TES Category and all its tasks.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const settings = getProdSettings();
+            settings.tesCategories = settings.tesCategories.filter(tc => tc.id !== id);
+            saveProdSettings(settings);
+            showToast('Deleted', 'TES Category removed');
+        }
+    });
+};
+
+window.addTesTaskModal = function(tesId) {
+    Swal.fire({
+        title: 'Add Task',
+        input: 'text',
+        inputPlaceholder: 'Enter Task name',
+        showCancelButton: true,
+        confirmButtonText: 'Add',
+        preConfirm: (name) => {
+            if (!name) Swal.showValidationMessage('Name is required');
+            return name;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const settings = getProdSettings();
+            const tes = settings.tesCategories.find(t => t.id === tesId);
+            if (tes) {
+                tes.tasks.push({ id: generateId('T'), name: result.value });
+                saveProdSettings(settings);
+                showToast('Success', 'Task added');
+            }
+        }
+    });
+};
+
+window.deleteTesTask = function(tesId, tId) {
+    const settings = getProdSettings();
+    const tes = settings.tesCategories.find(t => t.id === tesId);
+    if (tes) {
+        tes.tasks = tes.tasks.filter(t => t.id !== tId);
+        saveProdSettings(settings);
+    }
+};
+
+// --------- EMPLOYEE SUBMISSION FORM LOGIC ---------
+window.toggleEptProdType = function() {
+    const type = document.querySelector('input[name="ept-prod-type"]:checked')?.value || 'BU';
+    if (type === 'BU') {
+        document.getElementById('ept-fields-bu').style.display = 'block';
+        document.getElementById('ept-fields-tes').style.display = 'none';
+    } else {
+        document.getElementById('ept-fields-bu').style.display = 'none';
+        document.getElementById('ept-fields-tes').style.display = 'block';
+    }
+};
+
+window.toggleProdTypeFields = function() {
+    const type = document.querySelector('input[name="prod-type"]:checked')?.value || 'BU';
+    if (type === 'BU') {
+        document.getElementById('prod-fields-bu').style.display = 'block';
+        document.getElementById('prod-fields-tes').style.display = 'none';
+    } else {
+        document.getElementById('prod-fields-bu').style.display = 'none';
+        document.getElementById('prod-fields-tes').style.display = 'block';
+    }
+};
+
+window.populateProdDropdowns = function() {
+    const settings = getProdSettings();
+    
+    // EPT (Inline)
+    const eptBuSelect = document.getElementById('ept-bu-select');
+    const eptTesSelect = document.getElementById('ept-tes-select');
+    
+    if (eptBuSelect) {
+        eptBuSelect.innerHTML = '<option value="">-- Select Business Unit --</option>' + 
+            settings.businessUnits.map(bu => `<option value="${bu.id}">${bu.name}</option>`).join('');
+    }
+    if (eptTesSelect) {
+        eptTesSelect.innerHTML = '<option value="">-- Select TES Category --</option>' + 
+            settings.tesCategories.map(tes => `<option value="${tes.id}">${tes.name}</option>`).join('');
+    }
+
+    // Modal
+    const prodBuSelect = document.getElementById('prod-bu-select');
+    const prodTesSelect = document.getElementById('prod-tes-select');
+    if (prodBuSelect) {
+        prodBuSelect.innerHTML = '<option value="">-- Select Business Unit --</option>' + 
+            settings.businessUnits.map(bu => `<option value="${bu.id}">${bu.name}</option>`).join('');
+    }
+    if (prodTesSelect) {
+        prodTesSelect.innerHTML = '<option value="">-- Select TES Category --</option>' + 
+            settings.tesCategories.map(tes => `<option value="${tes.id}">${tes.name}</option>`).join('');
+    }
+};
+
+window.onEptBuChange = function() {
+    const settings = getProdSettings();
+    const buId = document.getElementById('ept-bu-select').value;
+    const bu = settings.businessUnits.find(b => b.id === buId);
+    const optionsContainer = document.getElementById('ept-bu-practices-options');
+    
+    document.querySelector('#ept-bu-practices-multiselect .selected-text').textContent = 'Select Practices';
+    if (!bu) {
+        optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">Select a Business Unit first</div>';
+        return;
+    }
+    if (bu.practices.length === 0) {
+        optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">No practices found in this Business Unit</div>';
+        return;
+    }
+    
+    optionsContainer.innerHTML = bu.practices.map(p => `
+        <label><input type="checkbox" value="${p.id}" data-text="${p.name}"> ${p.name}</label>
+    `).join('');
+};
+
+window.onEptTesChange = function() {
+    const settings = getProdSettings();
+    const tesId = document.getElementById('ept-tes-select').value;
+    const tes = settings.tesCategories.find(t => t.id === tesId);
+    const optionsContainer = document.getElementById('ept-tes-tasks-options');
+    
+    document.querySelector('#ept-tes-tasks-multiselect .selected-text').textContent = 'Select Tasks';
+    if (!tes) {
+        optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">Select a TES Category first</div>';
+        return;
+    }
+    if (tes.tasks.length === 0) {
+        optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">No tasks found in this Category</div>';
+        return;
+    }
+    
+    optionsContainer.innerHTML = tes.tasks.map(t => `
+        <label><input type="checkbox" value="${t.id}" data-text="${t.name}"> ${t.name}</label>
+    `).join('');
+};
+
+// Same for Modal if needed
+window.onProdBuChange = function() {
+    const settings = getProdSettings();
+    const buId = document.getElementById('prod-bu-select').value;
+    const bu = settings.businessUnits.find(b => b.id === buId);
+    const optionsContainer = document.getElementById('prod-bu-practices-options');
+    
+    document.querySelector('#prod-bu-practices-multiselect .selected-text').textContent = 'Select Practices';
+    if (!bu) {
+        optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">Select a Business Unit first</div>';
+        return;
+    }
+    optionsContainer.innerHTML = bu.practices.map(p => `<label><input type="checkbox" value="${p.id}" data-text="${p.name}"> ${p.name}</label>`).join('');
+};
+
+window.onProdTesChange = function() {
+    const settings = getProdSettings();
+    const tesId = document.getElementById('prod-tes-select').value;
+    const tes = settings.tesCategories.find(t => t.id === tesId);
+    const optionsContainer = document.getElementById('prod-tes-tasks-options');
+    
+    document.querySelector('#prod-tes-tasks-multiselect .selected-text').textContent = 'Select Tasks';
+    if (!tes) {
+        optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">Select a TES Category first</div>';
+        return;
+    }
+    optionsContainer.innerHTML = tes.tasks.map(t => `<label><input type="checkbox" value="${t.id}" data-text="${t.name}"> ${t.name}</label>`).join('');
+};
+
+// Multi-select custom logic (bind to all checkboxes in our custom multiselects)
+document.addEventListener('change', function(e) {
+    if (e.target.matches('.custom-multiselect input[type="checkbox"]')) {
+        const container = e.target.closest('.custom-multiselect');
+        const selectedTextSpan = container.querySelector('.selected-text');
+        const checkedBoxes = Array.from(container.querySelectorAll('input[type="checkbox"]:checked'));
+        if (checkedBoxes.length === 0) {
+            selectedTextSpan.textContent = 'Select items...';
+        } else if (checkedBoxes.length === 1) {
+            selectedTextSpan.textContent = checkedBoxes[0].getAttribute('data-text');
+        } else {
+            selectedTextSpan.textContent = checkedBoxes.length + ' items selected';
+        }
+    }
+});
+
+// Override window.saveTaskEntry for Inline Form
+window.saveTaskEntry = function() {
+    const type = document.querySelector('input[name="ept-prod-type"]:checked')?.value || 'BU';
+    const date = document.getElementById('ept-date').value;
+    const timeSpent = parseInt(document.getElementById('ept-time-spent').value) || 0;
+    const totalCount = parseInt(document.getElementById('ept-total-count').value) || 0;
+    const notes = document.getElementById('ept-notes').value.trim();
+
+    if (!date) return showToast('Error', 'Date is required', 'error');
+    if (timeSpent <= 0) return showToast('Error', 'Time spent must be > 0', 'error');
+    if (totalCount <= 0) return showToast('Error', 'Total count must be > 0', 'error');
+
+    const settings = getProdSettings();
+    let practiceId = '';
+    let practiceName = '';
+    let selectedItems = [];
+
+    if (type === 'BU') {
+        const buId = document.getElementById('ept-bu-select').value;
+        if (!buId) return showToast('Error', 'Please select a Business Unit', 'error');
+        const bu = settings.businessUnits.find(b => b.id === buId);
+        practiceId = 'BU_' + buId;
+        practiceName = 'BU: ' + bu.name;
+        
+        const checked = Array.from(document.querySelectorAll('#ept-bu-practices-options input[type="checkbox"]:checked'));
+        if (checked.length === 0) return showToast('Error', 'Please select at least one Practice', 'error');
+        selectedItems = checked.map(c => c.getAttribute('data-text'));
+    } else {
+        const tesId = document.getElementById('ept-tes-select').value;
+        if (!tesId) return showToast('Error', 'Please select a TES Category', 'error');
+        const tes = settings.tesCategories.find(t => t.id === tesId);
+        practiceId = 'TES_' + tesId;
+        practiceName = 'TES: ' + tes.name;
+        
+        const checked = Array.from(document.querySelectorAll('#ept-tes-tasks-options input[type="checkbox"]:checked'));
+        if (checked.length === 0) return showToast('Error', 'Please select at least one Task', 'error');
+        selectedItems = checked.map(c => c.getAttribute('data-text'));
+    }
+
+    const db = getDb();
+    if (!db.productivity_logs) db.productivity_logs = [];
+    if (!db.productivity_tasks) db.productivity_tasks = [];
+
+    const logId = generateId('LOG');
+    
+    // Save Log (Representing the main category)
+    db.productivity_logs.unshift({
+        id: logId,
+        employee_id: currentUser.id,
+        practice_id: practiceName, // Storing human-readable string for easy rendering in old tables
+        log_date: date,
+        created_at: new Date().toISOString()
+    });
+
+    // Save Tasks (Representing the sub-items)
+    db.productivity_tasks.push({
+        id: generateId('PT'),
+        log_id: logId,
+        task_type: selectedItems.join(', '),
+        total_count: totalCount,
+        time_minutes: timeSpent,
+        extra_data: { type: type, items: selectedItems },
+        notes: notes
+    });
+
+    saveDb(db);
+    showToast('Success', 'Productivity logged successfully');
+    
+    // Reset Form
+    document.getElementById('ept-date').value = '';
+    document.getElementById('ept-time-spent').value = '';
+    document.getElementById('ept-total-count').value = '';
+    document.getElementById('ept-notes').value = '';
+    document.querySelectorAll('.custom-multiselect input[type="checkbox"]').forEach(c => c.checked = false);
+    document.querySelectorAll('.custom-multiselect .selected-text').forEach(s => s.textContent = 'Select items...');
+    
+    // Render logs
+    if (window.renderMyProductivityLogs) window.renderMyProductivityLogs();
+};
+
+// Listeners to initialize rendering
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        renderProductivitySettings();
+        populateProdDropdowns();
+        
+        // Setup simple custom multiselect dropdown logic
+        document.querySelectorAll('.multiselect-select-box').forEach(box => {
+            box.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const container = box.nextElementSibling;
+                document.querySelectorAll('.multiselect-options-container').forEach(c => {
+                    if (c !== container) c.classList.add('hidden');
+                });
+                container.classList.toggle('hidden');
+            });
+        });
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.multiselect-options-container').forEach(c => c.classList.add('hidden'));
+        });
+        document.querySelectorAll('.multiselect-options-container').forEach(c => {
+            c.addEventListener('click', (e) => e.stopPropagation());
+        });
+    }, 1500);
+});
+
+// --------- RENDER PRODUCTIVITY LOGS ---------
+
+window.renderMyProductivityLogs = function() {
+    const tbody = document.getElementById('ept-my-logs-body');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const db = getDb();
+    if (!db.productivity_logs) return;
+
+    const myLogs = db.productivity_logs.filter(l => String(l.employee_id) === String(currentUser.id));
+    myLogs.sort((a, b) => new Date(b.log_date) - new Date(a.log_date));
+
+    if (myLogs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No logs found</td></tr>';
+        return;
+    }
+
+    myLogs.forEach(log => {
+        const tasks = (db.productivity_tasks || []).filter(t => String(t.log_id) === String(log.id));
+        const totalTime = tasks.reduce((sum, t) => sum + (parseInt(t.time_minutes) || 0), 0);
+        const taskTypes = tasks.map(t => t.task_type).join(', ');
+
+        tbody.innerHTML += `
+            <tr>
+                <td>${log.log_date}</td>
+                <td><span class="badge-role" style="background: rgba(15, 52, 132, 0.1); color: var(--primary-color);">${log.practice_id}</span></td>
+                <td>${taskTypes || '-'}</td>
+                <td>${totalTime} mins</td>
+            </tr>
+        `;
+    });
+};
+
+window.renderManagerProductivityTab = function() {
+    const tbody = document.getElementById('manager-team-prod-body');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const db = getDb();
+    
+    // Find team
+    const team = (db.users || []).filter(u => 
+        (u.role === 'User' || u.role === 'Employee') && 
+        (String(u.managerId) === String(currentUser.id) || u.managerId === currentUser.name || u.managerId === currentUser.email)
+    );
+    const teamIds = team.map(t => String(t.id));
+
+    if (teamIds.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No team members found</td></tr>';
+        return;
+    }
+
+    const teamLogs = (db.productivity_logs || []).filter(l => teamIds.includes(String(l.employee_id)));
+    teamLogs.sort((a, b) => new Date(b.log_date) - new Date(a.log_date));
+
+    if (teamLogs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No team productivity logs found</td></tr>';
+        return;
+    }
+
+    teamLogs.forEach(log => {
+        const emp = team.find(u => String(u.id) === String(log.employee_id));
+        const tasks = (db.productivity_tasks || []).filter(t => String(t.log_id) === String(log.id));
+        const totalTime = tasks.reduce((sum, t) => sum + (parseInt(t.time_minutes) || 0), 0);
+        const taskTypes = tasks.map(t => t.task_type).join(', ');
+
+        tbody.innerHTML += `
+            <tr>
+                <td>${log.log_date}</td>
+                <td>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <img src="${emp.avatar || 'assets/images/default-avatar.png'}" style="width:24px; height:24px; border-radius:50%; object-fit:cover;">
+                        ${emp.name}
+                    </div>
+                </td>
+                <td><span class="badge-role" style="background: rgba(15, 52, 132, 0.1); color: var(--primary-color);">${log.practice_id}</span></td>
+                <td>${taskTypes || '-'} (${totalTime} mins)</td>
+                <td>
+                    <button class="btn btn-sm btn-outline" onclick="showToast('Info', 'Log details viewing coming soon!')">View</button>
+                </td>
+            </tr>
+        `;
+    });
+};
+
+window.renderEmployeeProductivityTab = function() {
+    if (window.renderMyProductivityLogs) {
+        window.renderMyProductivityLogs();
+    }
+};
+
+// Hook into existing function calls by overwriting them
+function renderManagerProductivityTab() {
+    if (window.renderManagerProductivityTab) window.renderManagerProductivityTab();
+}
+
+function renderEmployeeProductivityTab() {
+    if (window.renderEmployeeProductivityTab) window.renderEmployeeProductivityTab();
+}

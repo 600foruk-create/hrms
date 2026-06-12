@@ -1549,8 +1549,8 @@
                         </div>
                     </div>
 
-                    <!-- Admin Productivity Tab -->
-                    <div id="admin-tab-productivity" class="tab-view">
+                    <!-- Admin Productivity Tab (Deprecated) -->
+                    <div id="admin-tab-productivity" class="tab-view hidden" style="display: none;">
                         <div class="view-header">
                             <div>
                                 <h1>Company Practices & Assignments</h1>
@@ -1717,6 +1717,9 @@
                             </button>
                             <button class="btn-sub-tab" data-settings-subtab="api-ip-config">
                                 <i class="fa-solid fa-network-wired"></i> APIs/IP Configuration
+                            </button>
+                            <button class="btn-sub-tab" data-settings-subtab="productivity-settings">
+                                <i class="fa-solid fa-list-check"></i> Productivity Setting
                             </button>
                         </div>
 
@@ -2038,6 +2041,28 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- 4. Productivity Settings -->
+                        <div id="settings-content-productivity-settings" class="settings-sub-tab-content hidden" style="max-height: calc(100vh - 180px); overflow-y: auto; padding-right: 10px;">
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <div class="section-card bg-glass">
+                                        <h3>Business Units & Practices</h3>
+                                        <p class="text-secondary mb-3">Manage main business units and their child practices.</p>
+                                        <div id="admin-bu-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                                        <button class="btn btn-outline mt-3" onclick="window.addBuModal()"><i class="fa-solid fa-plus"></i> Add Business Unit</button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <div class="section-card bg-glass">
+                                        <h3>TES Categories & Tasks</h3>
+                                        <p class="text-secondary mb-3">Manage TES categories and their child tasks.</p>
+                                        <div id="admin-tes-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                                        <button class="btn btn-outline mt-3" onclick="window.addTesModal()"><i class="fa-solid fa-plus"></i> Add TES Category</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 <!-- ==================== MANAGER VIEW ==================== -->
@@ -2300,8 +2325,8 @@
                         </div>
 
                         <!-- Sub-tab Navigation -->
-                        <div class="sub-tab-nav">
-                            <button class="btn-sub-tab active" data-subtab="manager-prod-assigned">
+                        <div class="sub-tab-nav" style="display: none;">
+                            <button class="btn-sub-tab" data-subtab="manager-prod-assigned" style="display: none;">
                                 <i class="fa-solid fa-briefcase"></i> My Assigned Practices
                             </button>
                             <button class="btn-sub-tab" data-subtab="manager-prod-team">
@@ -2310,7 +2335,7 @@
                         </div>
 
                         <!-- Sub-tab: Assigned Practices -->
-                        <div id="subtab-content-manager-prod-assigned" class="sub-tab-content">
+                        <div id="subtab-content-manager-prod-assigned" class="sub-tab-content hidden" style="display: none;">
                             <div class="section-card bg-glass flex-table-card">
                                 <div class="header-with-actions" style="margin-bottom:15px;">
                                     <h3>Practices Assigned to Me</h3>
@@ -2331,7 +2356,7 @@
                         </div>
 
                         <!-- Sub-tab: Team Productivity -->
-                        <div id="subtab-content-manager-prod-team" class="sub-tab-content hidden">
+                        <div id="subtab-content-manager-prod-team" class="sub-tab-content">
                             <div class="section-card bg-glass flex-table-card">
                                 <div class="table-container">
                                     <table class="data-table">
@@ -2711,29 +2736,78 @@
                                 </div>
                                 <div style="padding: 15px;">
                                     <div class="form-group mb-3">
-                                        <label>Select Practice</label>
-                                        <select id="ept-practice-select" class="form-control" required></select>
+                                        <label>Productivity Type</label>
+                                        <div style="display: flex; gap: 15px; margin-top: 5px;">
+                                            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                                <input type="radio" name="ept-prod-type" value="BU" checked onchange="if(window.toggleEptProdType) window.toggleEptProdType()"> Business Unit
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                                <input type="radio" name="ept-prod-type" value="TES" onchange="if(window.toggleEptProdType) window.toggleEptProdType()"> TES Category
+                                            </label>
+                                        </div>
                                     </div>
+
                                     <div class="form-group mb-3">
                                         <label>Log Date</label>
                                         <input type="date" id="ept-date" class="form-control" required>
                                     </div>
-                                    <div class="form-group mb-3">
-                                        <label>Task Type</label>
-                                        <select id="ept-task-type" class="form-control" required onchange="window.onEptTaskTypeChange()">
-                                            <option value="">Select a Task Type...</option>
-                                            <option value="Eligibilities">Eligibilities</option>
-                                            <option value="Authorizations">Authorizations</option>
-                                            <option value="Claims">Claims</option>
-                                            <option value="Payment Posting">Payment Posting</option>
-                                            <option value="Follow Up">Follow Up</option>
-                                            <option value="Reports">Reports</option>
-                                            <option value="Others">Others</option>
-                                        </select>
+
+                                    <!-- Business Unit Path -->
+                                    <div id="ept-fields-bu">
+                                        <div class="form-group mb-3">
+                                            <label>Select Business Unit</label>
+                                            <select id="ept-bu-select" class="form-control" onchange="if(window.onEptBuChange) window.onEptBuChange()">
+                                                <option value="">-- Select Business Unit --</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group mb-3">
+                                            <label>Select Practices</label>
+                                            <div class="custom-multiselect" id="ept-bu-practices-multiselect">
+                                                <div class="multiselect-select-box">
+                                                    <span class="selected-text">Select Practices</span>
+                                                    <i class="fa-solid fa-chevron-down"></i>
+                                                </div>
+                                                <div class="multiselect-options-container hidden" id="ept-bu-practices-options" style="max-height: 150px; overflow-y: auto;">
+                                                    <div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">Select a Business Unit first</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- TES Category Path -->
+                                    <div id="ept-fields-tes" style="display: none;">
+                                        <div class="form-group mb-3">
+                                            <label>Select TES Category</label>
+                                            <select id="ept-tes-select" class="form-control" onchange="if(window.onEptTesChange) window.onEptTesChange()">
+                                                <option value="">-- Select TES Category --</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group mb-3">
+                                            <label>Select Tasks</label>
+                                            <div class="custom-multiselect" id="ept-tes-tasks-multiselect">
+                                                <div class="multiselect-select-box">
+                                                    <span class="selected-text">Select Tasks</span>
+                                                    <i class="fa-solid fa-chevron-down"></i>
+                                                </div>
+                                                <div class="multiselect-options-container hidden" id="ept-tes-tasks-options" style="max-height: 150px; overflow-y: auto;">
+                                                    <div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">Select a TES Category first</div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     
-                                    <div id="ept-dynamic-fields" style="background: rgba(0,0,0,0.02); padding: 10px; border-radius: 6px; margin-bottom: 15px;">
-                                        <div class="text-center text-muted" style="font-size: 12px; padding: 10px;">Select a task type to reveal fields</div>
+                                    <!-- Additional Details (Time & Notes) -->
+                                    <div class="form-group mb-3">
+                                        <label>Time Spent (Minutes)</label>
+                                        <input type="number" id="ept-time-spent" class="form-control" required min="1" placeholder="e.g. 120">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label>Total Count / Quantity</label>
+                                        <input type="number" id="ept-total-count" class="form-control" required min="1" placeholder="e.g. 5">
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label>Notes / Details</label>
+                                        <textarea id="ept-notes" class="form-control" rows="2" placeholder="Task descriptions..."></textarea>
                                     </div>
                                     
                                     <button class="btn btn-primary btn-block" style="width: 100%;" onclick="window.saveTaskEntry()">Save Task Log</button>
@@ -3065,37 +3139,59 @@
                     <input type="text" id="prod-form-date" class="form-control" readonly>
                 </div>
 
-                <!-- Custom Multi-select for Tasks -->
+                <!-- Productivity Type Selection -->
                 <div class="form-group">
-                    <label>Task / Practice <span class="required">*</span></label>
-                    <div class="custom-multiselect" id="tasks-multiselect">
-                        <div class="multiselect-select-box">
-                            <span class="selected-text">Select Tasks</span>
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </div>
-                        <div class="multiselect-options-container hidden">
-                            <label><input type="checkbox" value="Billing" data-text="Billing"> Billing</label>
-                            <label><input type="checkbox" value="Follow-up" data-text="Follow-up"> Follow-up</label>
-                            <label><input type="checkbox" value="Payment Posting" data-text="Payment Posting"> Payment
-                                Posting</label>
-                            <label><input type="checkbox" value="Eligibility Check" data-text="Eligibility Check">
-                                Eligibility Check</label>
-                            <label><input type="checkbox" value="Report Preparation" data-text="Report Preparation">
-                                Report Preparation</label>
+                    <label>Productivity Type <span class="required">*</span></label>
+                    <div style="display: flex; gap: 20px; margin-top: 5px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="prod-type" value="BU" checked onchange="if(window.toggleProdTypeFields) window.toggleProdTypeFields()"> Business Unit
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="prod-type" value="TES" onchange="if(window.toggleProdTypeFields) window.toggleProdTypeFields()"> TES Category
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Business Unit Path -->
+                <div id="prod-fields-bu">
+                    <div class="form-group">
+                        <label>Business Unit <span class="required">*</span></label>
+                        <select id="prod-bu-select" class="form-control" onchange="if(window.onProdBuChange) window.onProdBuChange()">
+                            <option value="">-- Select Business Unit --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Practices <span class="text-secondary">(Multi-select)</span> <span class="required">*</span></label>
+                        <div class="custom-multiselect" id="prod-bu-practices-multiselect">
+                            <div class="multiselect-select-box">
+                                <span class="selected-text">Select Practices</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+                            <div class="multiselect-options-container hidden" id="prod-bu-practices-options">
+                                <div class="placeholder-msg">Select a Business Unit first</div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Custom Multi-select for Sub-categories -->
-                <div class="form-group">
-                    <label>Sub-Category <span class="required">*</span></label>
-                    <div class="custom-multiselect" id="subcats-multiselect">
-                        <div class="multiselect-select-box">
-                            <span class="selected-text">Select Subcategories</span>
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </div>
-                        <div class="multiselect-options-container hidden" id="subcats-options-list">
-                            <div class="placeholder-msg">Select a task first</div>
+                <!-- TES Category Path -->
+                <div id="prod-fields-tes" style="display: none;">
+                    <div class="form-group">
+                        <label>TES Category <span class="required">*</span></label>
+                        <select id="prod-tes-select" class="form-control" onchange="if(window.onProdTesChange) window.onProdTesChange()">
+                            <option value="">-- Select TES Category --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tasks <span class="text-secondary">(Multi-select)</span> <span class="required">*</span></label>
+                        <div class="custom-multiselect" id="prod-tes-tasks-multiselect">
+                            <div class="multiselect-select-box">
+                                <span class="selected-text">Select Tasks</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+                            <div class="multiselect-options-container hidden" id="prod-tes-tasks-options">
+                                <div class="placeholder-msg">Select a TES Category first</div>
+                            </div>
                         </div>
                     </div>
                 </div>
