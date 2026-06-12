@@ -5849,3 +5849,48 @@ function renderManagerProductivityTab() {
 function renderEmployeeProductivityTab() {
     if (window.renderEmployeeProductivityTab) window.renderEmployeeProductivityTab();
 }
+
+// --------- ADMIN PRODUCTIVITY TAB ---------
+
+window.renderAdminProductivityTab = function() {
+    const tbody = document.getElementById('admin-all-prod-body');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const db = getDb();
+    
+    const allLogs = (db.productivity_logs || []);
+    allLogs.sort((a, b) => new Date(b.log_date) - new Date(a.log_date));
+
+    if (allLogs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No company productivity logs found</td></tr>';
+        return;
+    }
+
+    allLogs.forEach(log => {
+        const emp = (db.users || []).find(u => String(u.id) === String(log.employee_id)) || { name: 'Unknown User' };
+        const tasks = (db.productivity_tasks || []).filter(t => String(t.log_id) === String(log.id));
+        const totalTime = tasks.reduce((sum, t) => sum + (parseInt(t.time_minutes) || 0), 0);
+        const taskTypes = tasks.map(t => t.task_type).join(', ');
+
+        tbody.innerHTML += `
+            <tr>
+                <td>${log.log_date}</td>
+                <td>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <img src="${emp.avatar || 'assets/images/default-avatar.png'}" style="width:24px; height:24px; border-radius:50%; object-fit:cover;">
+                        ${emp.name}
+                    </div>
+                </td>
+                <td><span class="badge-role" style="background: rgba(15, 52, 132, 0.1); color: var(--primary-color);">${log.practice_id}</span></td>
+                <td>${taskTypes || '-'} (${totalTime} mins)</td>
+                <td>
+                    <button class="btn btn-sm btn-outline" onclick="showToast('Info', 'Log details viewing coming soon!')">View</button>
+                </td>
+            </tr>
+        `;
+    });
+};
+
+function renderAdminProductivityTab() {
+    if (window.renderAdminProductivityTab) window.renderAdminProductivityTab();
+}
