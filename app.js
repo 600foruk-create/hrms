@@ -5318,8 +5318,8 @@ window.renderProductivitySettings = function() {
                 `).join('');
 
                 buTree.innerHTML += `
-                    <div class="tree-item mb-2">
-                        <div class="tree-item-header d-flex align-items-center p-2 rounded" style="background: rgba(0,0,0,0.02); cursor: pointer;" onclick="window.toggleTree('bu-${bu.id}')">
+                    <div class="tree-item mb-1">
+                        <div class="tree-item-header d-flex align-items-center p-1 px-2 rounded" style="background: rgba(0,0,0,0.02); cursor: pointer;" onclick="window.toggleTree('bu-${bu.id}')">
                             <i class="fa-solid fa-chevron-right me-2 text-secondary" id="icon-bu-${bu.id}" style="font-size: 10px; transition: transform 0.2s;"></i>
                             <i class="fa-solid fa-building text-primary me-2"></i>
                             <strong style="font-size: 14px; color: var(--text-color);">${bu.name}</strong>
@@ -5353,8 +5353,8 @@ window.renderProductivitySettings = function() {
                 `).join('');
 
                 tesTree.innerHTML += `
-                    <div class="tree-item mb-2">
-                        <div class="tree-item-header d-flex align-items-center p-2 rounded" style="background: rgba(0,0,0,0.02); cursor: pointer;" onclick="window.toggleTree('tes-${tes.id}')">
+                    <div class="tree-item mb-1">
+                        <div class="tree-item-header d-flex align-items-center p-1 px-2 rounded" style="background: rgba(0,0,0,0.02); cursor: pointer;" onclick="window.toggleTree('tes-${tes.id}')">
                             <i class="fa-solid fa-chevron-right me-2 text-secondary" id="icon-tes-${tes.id}" style="font-size: 10px; transition: transform 0.2s;"></i>
                             <i class="fa-solid fa-layer-group text-success me-2"></i>
                             <strong style="font-size: 14px; color: var(--text-color);">${tes.name}</strong>
