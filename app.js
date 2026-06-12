@@ -5320,7 +5320,7 @@ window.renderProductivitySettings = function() {
                 buTree.innerHTML += `
                     <div class="tree-item mb-1">
                         <div class="tree-item-header p-1 px-2 rounded" style="display: flex; align-items: center; background: rgba(0,0,0,0.02); cursor: pointer;" onclick="window.toggleTree('bu-${bu.id}')">
-                            <i class="fa-solid fa-chevron-right me-2 text-secondary" id="icon-bu-${bu.id}" style="font-size: 10px; transition: transform 0.2s;"></i>
+                            <i class="fa-solid fa-chevron-right text-secondary" id="icon-bu-${bu.id}" style="font-size: 10px; margin-right: 8px; transition: transform 0.2s;"></i>
                             <strong style="font-size: 14px; color: var(--text-color);">${bu.name}</strong>
                             <div style="margin-left: auto; display: flex; gap: 8px;">
                                 <span class="text-primary" style="cursor: pointer;" onclick="window.addBuPracticeModal('${bu.id}'); event.stopPropagation();"><i class="fa-solid fa-plus"></i></span>
@@ -5354,7 +5354,7 @@ window.renderProductivitySettings = function() {
                 tesTree.innerHTML += `
                     <div class="tree-item mb-1">
                         <div class="tree-item-header p-1 px-2 rounded" style="display: flex; align-items: center; background: rgba(0,0,0,0.02); cursor: pointer;" onclick="window.toggleTree('tes-${tes.id}')">
-                            <i class="fa-solid fa-chevron-right me-2 text-secondary" id="icon-tes-${tes.id}" style="font-size: 10px; transition: transform 0.2s;"></i>
+                            <i class="fa-solid fa-chevron-right text-secondary" id="icon-tes-${tes.id}" style="font-size: 10px; margin-right: 8px; transition: transform 0.2s;"></i>
                             <strong style="font-size: 14px; color: var(--text-color);">${tes.name}</strong>
                             <div style="margin-left: auto; display: flex; gap: 12px;">
                                 <span class="text-success" style="cursor: pointer;" onclick="window.addTesTaskModal('${tes.id}'); event.stopPropagation();"><i class="fa-solid fa-plus"></i></span>
@@ -5897,22 +5897,66 @@ function renderEmployeeProductivityTab() {
 window.renderAdminProductivityTab = function() {
     const tbody = document.getElementById('admin-all-prod-body');
     if (!tbody) return;
-    tbody.innerHTML = '';
-    const db = getDb();
     
-    const allLogs = (db.productivity_logs || []);
-    allLogs.sort((a, b) => new Date(b.log_date) - new Date(a.log_date));
-
-    if (allLogs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted" style="padding: 20px;">No company productivity logs found</td></tr>';
-        
-        const countSpan = document.getElementById('admin-prod-log-count');
-        if (countSpan) countSpan.textContent = `Showing 0 logs`;
-        return;
+    const db = getDb();
+    const settings = getSystemSettings();
+    
+    // Setup Filter Dropdowns if empty
+    const dateFilter = document.getElementById('admin-log-filter-date');
+    const empFilter = document.getElementById('admin-log-filter-employee');
+    const catFilter = document.getElementById('admin-log-filter-category');
+    
+    // Default to today if date is empty
+    if (dateFilter && !dateFilter.value) {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        dateFilter.value = `${yyyy}-${mm}-${dd}`;
     }
     
+    if (empFilter && empFilter.options.length <= 1) {
+        (db.users || []).forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.id;
+            opt.textContent = u.name;
+            empFilter.appendChild(opt);
+        });
+    }
+    
+    if (catFilter && catFilter.options.length <= 1) {
+        (settings.productivityCategories || []).forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat;
+            opt.textContent = cat;
+            catFilter.appendChild(opt);
+        });
+    }
+
+    const selectedDate = dateFilter ? dateFilter.value : '';
+    const selectedEmp = empFilter ? empFilter.value : '';
+    const selectedCat = catFilter ? catFilter.value : '';
+
+    let allLogs = (db.productivity_logs || []);
+    
+    // Apply Filters
+    allLogs = allLogs.filter(log => {
+        if (selectedDate && log.log_date !== selectedDate) return false;
+        if (selectedEmp && String(log.employee_id) !== String(selectedEmp)) return false;
+        if (selectedCat && log.practice_id !== selectedCat) return false; // assuming practice_id stores the category
+        return true;
+    });
+
+    allLogs.sort((a, b) => new Date(b.log_date) - new Date(a.log_date));
+
     const countSpan = document.getElementById('admin-prod-log-count');
-    if (countSpan) countSpan.textContent = `Showing ${allLogs.length} active logs`;
+    if (countSpan) countSpan.textContent = `Showing ${allLogs.length} logs`;
+
+    tbody.innerHTML = '';
+    if (allLogs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted" style="padding: 20px;">No company productivity logs found for the selected filters</td></tr>';
+        return;
+    }
 
     allLogs.forEach(log => {
         const emp = (db.users || []).find(u => String(u.id) === String(log.employee_id)) || { name: 'Unknown User' };
