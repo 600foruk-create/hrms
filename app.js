@@ -1411,8 +1411,10 @@ function renderAdminLeaveTab() {
     // Sort leaves status: pending first, then by date
     const leaves = db.leaves;
     leaves.sort((a, b) => {
-        if (a.status === 'Pending' && b.status !== 'Pending') return -1;
-        if (a.status !== 'Pending' && b.status === 'Pending') return 1;
+        const aNeedsReview = (a.status === 'Pending' || a.status === 'Waiting for Admin Approval');
+        const bNeedsReview = (b.status === 'Pending' || b.status === 'Waiting for Admin Approval');
+        if (aNeedsReview && !bNeedsReview) return -1;
+        if (!aNeedsReview && bNeedsReview) return 1;
         return new Date(b.startDate) - new Date(a.startDate);
     });
 
@@ -1422,7 +1424,7 @@ function renderAdminLeaveTab() {
         leaves.forEach(l => {
             const statusClass = l.status === 'Approved' ? 'approved' : (l.status === 'Rejected' ? 'rejected' : 'pending');
             let actionBtnHTML = '';
-            if (l.status === 'Pending') {
+            if (l.status === 'Pending' || l.status === 'Waiting for Admin Approval') {
                 actionBtnHTML = `<button class="btn btn-sm btn-outline" onclick="reviewLeaveRequest('${l.id}')">Review</button>`;
             } else {
                 actionBtnHTML = `<span class="text-muted">Reviewed</span>`;
@@ -1513,6 +1515,17 @@ function renderAdminSettingsTab() {
     if (sysSettings.themeColor) {
         document.getElementById('theme-color').value = sysSettings.themeColor;
         document.getElementById('theme-color-hex').textContent = sysSettings.themeColor;
+    }
+
+    // Payroll Restrictions and Leave Approvals
+    if (document.getElementById('payroll-lock-enabled')) {
+        document.getElementById('payroll-lock-enabled').checked = !!sysSettings.payrollLockEnabled;
+        document.getElementById('payroll-lock-date').value = sysSettings.payrollLockDate || 1;
+        document.getElementById('payroll-lock-start-date').value = sysSettings.payrollLockStartDate || '';
+        document.getElementById('payroll-lock-end-date').value = sysSettings.payrollLockEndDate || '';
+    }
+    if (document.getElementById('leave-approval-by-admin')) {
+        document.getElementById('leave-approval-by-admin').checked = !!sysSettings.leaveApprovedByAdmin;
     }
 
     // Populate Company Profile Inline Form
@@ -3460,15 +3473,29 @@ function processLeaveReview(status) {
 
     const leave = db.leaves.find(l => l.id === id);
     if (leave) {
-        leave.status = status;
+        let newStatus = status;
+
+        if (status === 'Approved' && currentUser.role === 'Manager') {
+            const isTwoStep = db.systemSettings && db.systemSettings.leaveApprovedByAdmin;
+            if (isTwoStep) {
+                newStatus = 'Waiting for Admin Approval';
+            }
+        }
+
+        leave.status = newStatus;
         leave.comments = comments;
 
-        showToast("Leave Evaluation", `Leave request marked as ${status}.`);
-        logAudit(`Leave request (${leave.type}) for ${leave.employeeName} marked as ${status}.`, false);
-        addNotification(leave.employeeId, `Your leave request for ${leave.startDate} has been ${status}. Manager Remarks: ${comments || 'None'}`, false);
+        showToast("Leave Evaluation", `Leave request marked as ${newStatus}.`);
+        logAudit(`Leave request (${leave.type}) for ${leave.employeeName} marked as ${newStatus}.`, false);
+        
+        let notificationMsg = `Your leave request for ${leave.startDate} has been ${newStatus}. Manager Remarks: ${comments || 'None'}`;
+        if (newStatus === 'Waiting for Admin Approval') {
+            notificationMsg = `Your leave request for ${leave.startDate} has been approved by your Manager and is now waiting for Admin approval. Remarks: ${comments || 'None'}`;
+        }
+        addNotification(leave.employeeId, notificationMsg, false);
 
         // If approved, update attendance register as Leave for those dates
-        if (status === 'Approved') {
+        if (newStatus === 'Approved') {
             logLeaveAttendance(leave);
 
             // Deduct from leave balance
@@ -3909,6 +3936,21 @@ window.savePayrollLockSettings = async function() {
     sysSettings.payrollLockEndDate = document.getElementById('payroll-lock-end-date').value;
     
     showToast("Payroll Restrictions", "Strict payroll limits saved successfully.");
+    saveDb(db); // Background sync
+};
+
+window.saveLeaveApprovalSettings = async function() {
+    const db = getDb();
+    if (!db) return;
+    
+    if (!db.systemSettings) {
+        db.systemSettings = {};
+    }
+    const sysSettings = db.systemSettings;
+    
+    sysSettings.leaveApprovedByAdmin = document.getElementById('leave-approval-by-admin').checked;
+    
+    showToast("Leave Approvals", "Leave approval settings saved successfully.");
     saveDb(db); // Background sync
 };
 
