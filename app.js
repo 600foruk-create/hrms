@@ -5311,7 +5311,7 @@ window.renderProductivitySettings = function() {
         } else {
             settings.businessUnits.forEach(bu => {
                 const practicesHtml = bu.practices.map(p => `
-                    <div class="d-flex justify-content-between align-items-center mb-2 text-secondary" style="font-size: 13px;">
+                    <div class="mb-2 text-secondary" style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
                         <span><i class="fa-solid fa-circle" style="font-size: 6px; margin-right: 8px;"></i> ${p.name}</span>
                         <span class="text-danger" style="cursor: pointer;" onclick="window.deleteBuPractice('${bu.id}', '${p.id}')"><i class="fa-solid fa-trash"></i></span>
                     </div>
@@ -5319,11 +5319,11 @@ window.renderProductivitySettings = function() {
 
                 buTree.innerHTML += `
                     <div class="tree-item mb-1">
-                        <div class="tree-item-header d-flex align-items-center p-1 px-2 rounded" style="background: rgba(0,0,0,0.02); cursor: pointer;" onclick="window.toggleTree('bu-${bu.id}')">
+                        <div class="tree-item-header p-1 px-2 rounded" style="display: flex; align-items: center; background: rgba(0,0,0,0.02); cursor: pointer;" onclick="window.toggleTree('bu-${bu.id}')">
                             <i class="fa-solid fa-chevron-right me-2 text-secondary" id="icon-bu-${bu.id}" style="font-size: 10px; transition: transform 0.2s;"></i>
                             <i class="fa-solid fa-building text-primary me-2"></i>
                             <strong style="font-size: 14px; color: var(--text-color);">${bu.name}</strong>
-                            <div class="ms-auto d-flex gap-2">
+                            <div style="margin-left: auto; display: flex; gap: 8px;">
                                 <span class="text-primary" style="cursor: pointer;" onclick="window.addBuPracticeModal('${bu.id}'); event.stopPropagation();"><i class="fa-solid fa-plus"></i></span>
                                 <span class="text-danger" style="cursor: pointer;" onclick="window.deleteBu('${bu.id}'); event.stopPropagation();"><i class="fa-solid fa-trash"></i></span>
                             </div>
@@ -5346,7 +5346,7 @@ window.renderProductivitySettings = function() {
         } else {
             settings.tesCategories.forEach(tes => {
                 const tasksHtml = tes.tasks.map(t => `
-                    <div class="d-flex justify-content-between align-items-center mb-2 text-secondary" style="font-size: 13px;">
+                    <div class="mb-2 text-secondary" style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
                         <span><i class="fa-solid fa-circle" style="font-size: 6px; margin-right: 8px; color: var(--success);"></i> ${t.name}</span>
                         <span class="text-danger" style="cursor: pointer;" onclick="window.deleteTesTask('${tes.id}', '${t.id}')"><i class="fa-solid fa-trash"></i></span>
                     </div>
@@ -5354,11 +5354,11 @@ window.renderProductivitySettings = function() {
 
                 tesTree.innerHTML += `
                     <div class="tree-item mb-1">
-                        <div class="tree-item-header d-flex align-items-center p-1 px-2 rounded" style="background: rgba(0,0,0,0.02); cursor: pointer;" onclick="window.toggleTree('tes-${tes.id}')">
+                        <div class="tree-item-header p-1 px-2 rounded" style="display: flex; align-items: center; background: rgba(0,0,0,0.02); cursor: pointer;" onclick="window.toggleTree('tes-${tes.id}')">
                             <i class="fa-solid fa-chevron-right me-2 text-secondary" id="icon-tes-${tes.id}" style="font-size: 10px; transition: transform 0.2s;"></i>
                             <i class="fa-solid fa-layer-group text-success me-2"></i>
                             <strong style="font-size: 14px; color: var(--text-color);">${tes.name}</strong>
-                            <div class="ms-auto d-flex gap-3">
+                            <div style="margin-left: auto; display: flex; gap: 12px;">
                                 <span class="text-success" style="cursor: pointer;" onclick="window.addTesTaskModal('${tes.id}'); event.stopPropagation();"><i class="fa-solid fa-plus"></i></span>
                                 <span class="text-danger" style="cursor: pointer;" onclick="window.deleteTes('${tes.id}'); event.stopPropagation();"><i class="fa-solid fa-trash"></i></span>
                             </div>
