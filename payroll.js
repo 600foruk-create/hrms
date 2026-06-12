@@ -90,10 +90,10 @@ window.renderPayrollHistory = function() {
         visibleCount++;
         
         const basic = parseInt(user?.salary) || 0;
-        let fixedDed = record.fixedDeductions;
-        let fixedAll = record.fixedAllowances;
+        let fixedDed = parseFloat(record.fixedDeductions);
+        let fixedAll = parseFloat(record.fixedAllowances);
         
-        if (fixedDed === undefined || fixedAll === undefined) {
+        if (isNaN(fixedDed) || isNaN(fixedAll)) {
             const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
             let profile = db.salaryProfiles?.find(p => p.userId === record.userId);
             let allowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
@@ -105,8 +105,8 @@ window.renderPayrollHistory = function() {
             deductions.forEach(d => { fixedDed += (d.type === 'percentage') ? (basic * (parseFloat(d.value)||0)) / 100 : (parseFloat(d.value)||0); });
         }
 
-        const totalDed = fixedDed + (record.absencyDeduction || 0) + (record.loanDeduction || 0) + (record.otherDeduction || 0);
-        const totalAdd = fixedAll + (record.bonus || 0);
+        const totalDed = (fixedDed || 0) + (record.absencyDeduction || 0) + (record.loanDeduction || 0) + (record.otherDeduction || 0);
+        const totalAdd = (fixedAll || 0) + (record.bonus || 0);
         
         const processedDate = new Date(record.processedAt).toLocaleDateString();
 
@@ -184,10 +184,10 @@ window.openMonthlySummaryModal = function() {
         
         const basic = parseInt(user?.salary) || 0;
         
-        let fixedDed = record.fixedDeductions;
-        let fixedAll = record.fixedAllowances;
+        let fixedDed = parseFloat(record.fixedDeductions);
+        let fixedAll = parseFloat(record.fixedAllowances);
         
-        if (fixedDed === undefined || fixedAll === undefined) {
+        if (isNaN(fixedDed) || isNaN(fixedAll)) {
             const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
             let profile = db.salaryProfiles?.find(p => p.userId === record.userId);
             let allowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
@@ -199,8 +199,8 @@ window.openMonthlySummaryModal = function() {
             deductions.forEach(d => { fixedDed += (d.type === 'percentage') ? (basic * (parseFloat(d.value)||0)) / 100 : (parseFloat(d.value)||0); });
         }
 
-        const totalDed = fixedDed + (record.absencyDeduction || 0) + (record.loanDeduction || 0) + (record.otherDeduction || 0);
-        const totalAdd = fixedAll + (record.bonus || 0); 
+        const totalDed = (fixedDed || 0) + (record.absencyDeduction || 0) + (record.loanDeduction || 0) + (record.otherDeduction || 0);
+        const totalAdd = (fixedAll || 0) + (record.bonus || 0); 
         
         grandTotalBasic += basic;
         grandTotalAllowances += totalAdd;
@@ -696,10 +696,10 @@ window.updateBankLetterPreview = function() {
         
         let basic = parseInt(user?.salary) || 0;
         
-        let fixedDed = h.fixedDeductions;
-        let fixedAll = h.fixedAllowances;
+        let fixedDed = parseFloat(h.fixedDeductions);
+        let fixedAll = parseFloat(h.fixedAllowances);
         
-        if (fixedDed === undefined || fixedAll === undefined) {
+        if (isNaN(fixedDed) || isNaN(fixedAll)) {
             const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
             let profile = db.salaryProfiles?.find(p => p.userId === h.userId);
             let pAllowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
@@ -711,8 +711,8 @@ window.updateBankLetterPreview = function() {
             pDeductions.forEach(d => { fixedDed += (d.type === 'percentage') ? (basic * (parseFloat(d.value)||0)) / 100 : (parseFloat(d.value)||0); });
         }
 
-        let allowances = fixedAll + (h.bonus || 0);
-        let deductions = fixedDed + (h.absencyDeduction || 0) + (h.loanDeduction || h.loanEmi || 0) + (h.otherDeduction || 0);
+        let allowances = (fixedAll || 0) + (h.bonus || 0);
+        let deductions = (fixedDed || 0) + (h.absencyDeduction || 0) + (h.loanDeduction || h.loanEmi || 0) + (h.otherDeduction || 0);
         let netSalary = h.netPay || h.finalNetPay || 0;
 
         grandBasic += basic;
