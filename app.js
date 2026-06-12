@@ -5302,117 +5302,89 @@ function generateId(prefix) {
 window.renderProductivitySettings = function() {
     const settings = getProdSettings();
 
-    // Populate BU dropdown
-    const buSelect = document.getElementById('config-bu-select');
-    const tesSelect = document.getElementById('config-tes-select');
-    
-    if (buSelect) {
-        const currentBuVal = buSelect.value;
-        buSelect.innerHTML = '<option value="">-- Select Business Unit --</option>';
-        settings.businessUnits.forEach(bu => {
-            const option = document.createElement('option');
-            option.value = bu.id;
-            option.textContent = bu.name;
-            buSelect.appendChild(option);
-        });
-        if (currentBuVal && settings.businessUnits.find(b => b.id === currentBuVal)) {
-            buSelect.value = currentBuVal;
-        }
-        window.updateConfigPracticesDropdown();
-    }
+    // 1. Render Business Units Tree
+    const buTree = document.getElementById('admin-bu-tree');
+    if (buTree) {
+        buTree.innerHTML = '';
+        if (settings.businessUnits.length === 0) {
+            buTree.innerHTML = '<div class="text-secondary text-center" style="font-size: 13px;">No Business Units found.</div>';
+        } else {
+            settings.businessUnits.forEach(bu => {
+                const practicesHtml = bu.practices.map(p => `
+                    <div class="d-flex justify-content-between align-items-center mb-2 text-secondary" style="font-size: 13px;">
+                        <span><i class="fa-solid fa-circle" style="font-size: 6px; margin-right: 8px;"></i> ${p.name}</span>
+                        <button class="btn btn-sm p-0 text-danger" onclick="window.deleteBuPractice('${bu.id}', '${p.id}')"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `).join('');
 
-    if (tesSelect) {
-        const currentTesVal = tesSelect.value;
-        tesSelect.innerHTML = '<option value="">-- Select TES Category --</option>';
-        settings.tesCategories.forEach(tes => {
-            const option = document.createElement('option');
-            option.value = tes.id;
-            option.textContent = tes.name;
-            tesSelect.appendChild(option);
-        });
-        if (currentTesVal && settings.tesCategories.find(t => t.id === currentTesVal)) {
-            tesSelect.value = currentTesVal;
-        }
-        window.updateConfigTasksDropdown();
-    }
-};
-
-window.updateConfigPracticesDropdown = function() {
-    const buSelect = document.getElementById('config-bu-select');
-    if (!buSelect) return;
-    const buId = buSelect.value;
-    const practiceSelect = document.getElementById('config-practice-select');
-    const btnDeleteBu = document.getElementById('btn-delete-bu');
-    
-    if (btnDeleteBu) btnDeleteBu.style.display = buId ? 'inline-block' : 'none';
-    
-    if (!practiceSelect) return;
-    const currentPracticeVal = practiceSelect.value;
-    practiceSelect.innerHTML = '<option value="">-- Select Practice --</option>';
-    
-    if (buId) {
-        const settings = getProdSettings();
-        const bu = settings.businessUnits.find(b => b.id === buId);
-        if (bu && bu.practices) {
-            bu.practices.forEach(p => {
-                const option = document.createElement('option');
-                option.value = p.id;
-                option.textContent = p.name;
-                practiceSelect.appendChild(option);
+                buTree.innerHTML += `
+                    <div class="tree-item mb-2">
+                        <div class="tree-item-header d-flex align-items-center p-2 rounded" style="background: rgba(0,0,0,0.02); cursor: pointer;" onclick="window.toggleTree('bu-${bu.id}')">
+                            <i class="fa-solid fa-chevron-right me-2 text-secondary" id="icon-bu-${bu.id}" style="font-size: 10px; transition: transform 0.2s;"></i>
+                            <i class="fa-solid fa-building text-primary me-2"></i>
+                            <strong style="font-size: 14px; color: var(--text-color);">${bu.name}</strong>
+                            <div class="ms-auto d-flex gap-2">
+                                <button class="btn btn-sm p-0 text-primary" onclick="window.addBuPracticeModal('${bu.id}'); event.stopPropagation();"><i class="fa-solid fa-plus"></i></button>
+                                <button class="btn btn-sm p-0 text-danger" onclick="window.deleteBu('${bu.id}'); event.stopPropagation();"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                        <div class="tree-item-children ps-4 pt-2 hidden" id="children-bu-${bu.id}">
+                            ${practicesHtml || '<div class="text-muted" style="font-size: 12px; margin-bottom: 8px;">No practices found</div>'}
+                        </div>
+                    </div>
+                `;
             });
         }
     }
-    if (currentPracticeVal && Array.from(practiceSelect.options).find(o => o.value === currentPracticeVal)) {
-        practiceSelect.value = currentPracticeVal;
-    }
-    window.updateConfigPracticeButtons();
-};
 
-window.updateConfigPracticeButtons = function() {
-    const practiceSelect = document.getElementById('config-practice-select');
-    if (!practiceSelect) return;
-    const practiceId = practiceSelect.value;
-    const btnDeletePractice = document.getElementById('btn-delete-practice');
-    if (btnDeletePractice) btnDeletePractice.style.display = practiceId ? 'inline-block' : 'none';
-};
+    // 2. Render TES Categories Tree
+    const tesTree = document.getElementById('admin-tes-tree');
+    if (tesTree) {
+        tesTree.innerHTML = '';
+        if (settings.tesCategories.length === 0) {
+            tesTree.innerHTML = '<div class="text-secondary text-center" style="font-size: 13px;">No TES Categories found.</div>';
+        } else {
+            settings.tesCategories.forEach(tes => {
+                const tasksHtml = tes.tasks.map(t => `
+                    <div class="d-flex justify-content-between align-items-center mb-2 text-secondary" style="font-size: 13px;">
+                        <span><i class="fa-solid fa-circle" style="font-size: 6px; margin-right: 8px; color: var(--success);"></i> ${t.name}</span>
+                        <button class="btn btn-sm p-0 text-danger" onclick="window.deleteTesTask('${tes.id}', '${t.id}')"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `).join('');
 
-window.updateConfigTasksDropdown = function() {
-    const tesSelect = document.getElementById('config-tes-select');
-    if (!tesSelect) return;
-    const tesId = tesSelect.value;
-    const taskSelect = document.getElementById('config-task-select');
-    const btnDeleteTes = document.getElementById('btn-delete-tes');
-    
-    if (btnDeleteTes) btnDeleteTes.style.display = tesId ? 'inline-block' : 'none';
-    
-    if (!taskSelect) return;
-    const currentTaskVal = taskSelect.value;
-    taskSelect.innerHTML = '<option value="">-- Select Task --</option>';
-    
-    if (tesId) {
-        const settings = getProdSettings();
-        const tes = settings.tesCategories.find(t => t.id === tesId);
-        if (tes && tes.tasks) {
-            tes.tasks.forEach(t => {
-                const option = document.createElement('option');
-                option.value = t.id;
-                option.textContent = t.name;
-                taskSelect.appendChild(option);
+                tesTree.innerHTML += `
+                    <div class="tree-item mb-2">
+                        <div class="tree-item-header d-flex align-items-center p-2 rounded" style="background: rgba(0,0,0,0.02); cursor: pointer;" onclick="window.toggleTree('tes-${tes.id}')">
+                            <i class="fa-solid fa-chevron-right me-2 text-secondary" id="icon-tes-${tes.id}" style="font-size: 10px; transition: transform 0.2s;"></i>
+                            <i class="fa-solid fa-layer-group text-success me-2"></i>
+                            <strong style="font-size: 14px; color: var(--text-color);">${tes.name}</strong>
+                            <div class="ms-auto d-flex gap-2">
+                                <button class="btn btn-sm p-0 text-success" onclick="window.addTesTaskModal('${tes.id}'); event.stopPropagation();"><i class="fa-solid fa-plus"></i></button>
+                                <button class="btn btn-sm p-0 text-danger" onclick="window.deleteTes('${tes.id}'); event.stopPropagation();"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                        <div class="tree-item-children ps-4 pt-2 hidden" id="children-tes-${tes.id}">
+                            ${tasksHtml || '<div class="text-muted" style="font-size: 12px; margin-bottom: 8px;">No tasks found</div>'}
+                        </div>
+                    </div>
+                `;
             });
         }
     }
-    if (currentTaskVal && Array.from(taskSelect.options).find(o => o.value === currentTaskVal)) {
-        taskSelect.value = currentTaskVal;
-    }
-    window.updateConfigTaskButtons();
 };
 
-window.updateConfigTaskButtons = function() {
-    const taskSelect = document.getElementById('config-task-select');
-    if (!taskSelect) return;
-    const taskId = taskSelect.value;
-    const btnDeleteTask = document.getElementById('btn-delete-task');
-    if (btnDeleteTask) btnDeleteTask.style.display = taskId ? 'inline-block' : 'none';
+window.toggleTree = function(id) {
+    const children = document.getElementById('children-' + id);
+    const icon = document.getElementById('icon-' + id);
+    if (children) {
+        if (children.classList.contains('hidden')) {
+            children.classList.remove('hidden');
+            if (icon) icon.style.transform = 'rotate(90deg)';
+        } else {
+            children.classList.add('hidden');
+            if (icon) icon.style.transform = 'rotate(0deg)';
+        }
+    }
 };
 
 // --------- ADMIN ACTIONS ---------
@@ -5437,14 +5409,10 @@ window.addBuModal = function() {
     });
 };
 
-window.deleteSelectedBu = function() {
-    const buSelect = document.getElementById('config-bu-select');
-    if (!buSelect || !buSelect.value) return;
-    const id = buSelect.value;
-    
+window.deleteBu = function(id) {
     Swal.fire({
         title: 'Are you sure?',
-        text: "This will delete the selected Business Unit and all its practices.",
+        text: "This will delete the Business Unit and all its practices.",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes, delete it!'
@@ -5458,14 +5426,7 @@ window.deleteSelectedBu = function() {
     });
 };
 
-window.addPracticeToSelectedBu = function() {
-    const buSelect = document.getElementById('config-bu-select');
-    if (!buSelect || !buSelect.value) {
-        showToast('Error', 'Please select a Business Unit first');
-        return;
-    }
-    const buId = buSelect.value;
-    
+window.addBuPracticeModal = function(buId) {
     Swal.fire({
         title: 'Add Practice',
         input: 'text',
@@ -5489,14 +5450,7 @@ window.addPracticeToSelectedBu = function() {
     });
 };
 
-window.deleteSelectedPractice = function() {
-    const buSelect = document.getElementById('config-bu-select');
-    const practiceSelect = document.getElementById('config-practice-select');
-    if (!buSelect || !buSelect.value || !practiceSelect || !practiceSelect.value) return;
-    
-    const buId = buSelect.value;
-    const pId = practiceSelect.value;
-    
+window.deleteBuPractice = function(buId, pId) {
     Swal.fire({
         title: 'Delete Practice?',
         icon: 'warning',
@@ -5515,14 +5469,31 @@ window.deleteSelectedPractice = function() {
     });
 };
 
-window.deleteSelectedTes = function() {
-    const tesSelect = document.getElementById('config-tes-select');
-    if (!tesSelect || !tesSelect.value) return;
-    const id = tesSelect.value;
-    
+window.addTesModal = function() {
+    Swal.fire({
+        title: 'Add TES Category',
+        input: 'text',
+        inputPlaceholder: 'Enter TES Category name',
+        showCancelButton: true,
+        confirmButtonText: 'Add',
+        preConfirm: (name) => {
+            if (!name) Swal.showValidationMessage('Name is required');
+            return name;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const settings = getProdSettings();
+            settings.tesCategories.push({ id: generateId('TC'), name: result.value, tasks: [] });
+            saveProdSettings(settings);
+            showToast('Success', 'TES Category added');
+        }
+    });
+};
+
+window.deleteTes = function(id) {
     Swal.fire({
         title: 'Are you sure?',
-        text: "This will delete the selected TES Category and all its tasks.",
+        text: "This will delete the TES Category and all its tasks.",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes, delete it!'
@@ -5536,14 +5507,7 @@ window.deleteSelectedTes = function() {
     });
 };
 
-window.addTaskToSelectedTes = function() {
-    const tesSelect = document.getElementById('config-tes-select');
-    if (!tesSelect || !tesSelect.value) {
-        showToast('Error', 'Please select a TES Category first');
-        return;
-    }
-    const tesId = tesSelect.value;
-    
+window.addTesTaskModal = function(tesId) {
     Swal.fire({
         title: 'Add Task',
         input: 'text',
@@ -5567,14 +5531,7 @@ window.addTaskToSelectedTes = function() {
     });
 };
 
-window.deleteSelectedTask = function() {
-    const tesSelect = document.getElementById('config-tes-select');
-    const taskSelect = document.getElementById('config-task-select');
-    if (!tesSelect || !tesSelect.value || !taskSelect || !taskSelect.value) return;
-    
-    const tesId = tesSelect.value;
-    const taskId = taskSelect.value;
-    
+window.deleteTesTask = function(tesId, taskId) {
     Swal.fire({
         title: 'Delete Task?',
         icon: 'warning',
@@ -5949,29 +5906,53 @@ window.renderAdminProductivityTab = function() {
     allLogs.sort((a, b) => new Date(b.log_date) - new Date(a.log_date));
 
     if (allLogs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No company productivity logs found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted" style="padding: 20px;">No company productivity logs found</td></tr>';
+        
+        const countSpan = document.getElementById('admin-prod-log-count');
+        if (countSpan) countSpan.textContent = `Showing 0 logs`;
         return;
     }
+    
+    const countSpan = document.getElementById('admin-prod-log-count');
+    if (countSpan) countSpan.textContent = `Showing ${allLogs.length} active logs`;
 
     allLogs.forEach(log => {
         const emp = (db.users || []).find(u => String(u.id) === String(log.employee_id)) || { name: 'Unknown User' };
         const tasks = (db.productivity_tasks || []).filter(t => String(t.log_id) === String(log.id));
         const totalTime = tasks.reduce((sum, t) => sum + (parseInt(t.time_minutes) || 0), 0);
-        const taskTypes = tasks.map(t => t.task_type).join(', ');
+        
+        // Extract unique task types
+        const uniqueTaskTypes = [...new Set(tasks.map(t => t.task_type))];
+        const taskTypeDisplay = uniqueTaskTypes.length > 0 ? uniqueTaskTypes[0] : 'General Task';
+        const taskSubDisplay = uniqueTaskTypes.length > 1 ? `+${uniqueTaskTypes.length - 1} more` : (tasks[0] ? tasks[0].time_minutes + ' mins' : '');
+
+        const hours = Math.floor(totalTime / 60);
+        const mins = totalTime % 60;
+        const durationStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+        
+        const shortInitials = (emp.name || 'U').substring(0, 2).toUpperCase();
 
         tbody.innerHTML += `
-            <tr>
-                <td>${log.log_date}</td>
+            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <td style="font-weight: 500; color: var(--primary-color);">#LOG-${log.id}</td>
                 <td>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <img src="${emp.avatar || 'assets/images/default-avatar.png'}" style="width:24px; height:24px; border-radius:50%; object-fit:cover;">
-                        ${emp.name}
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div style="width: 32px; height: 32px; border-radius: 6px; background: var(--primary-color); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">
+                            ${shortInitials}
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; color: var(--text-color);">${log.practice_id || 'Global Ops'}</div>
+                            <div style="font-size: 11px; color: var(--text-secondary);">${emp.name}</div>
+                        </div>
                     </div>
                 </td>
-                <td><span class="badge-role" style="background: rgba(15, 52, 132, 0.1); color: var(--primary-color);">${log.practice_id}</span></td>
-                <td>${taskTypes || '-'} (${totalTime} mins)</td>
                 <td>
-                    <button class="btn btn-sm btn-outline" onclick="showToast('Info', 'Log details viewing coming soon!')">View</button>
+                    <div style="font-weight: 500; color: var(--text-color);">${taskTypeDisplay}</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">${taskSubDisplay}</div>
+                </td>
+                <td style="color: var(--text-secondary);">${durationStr}</td>
+                <td>
+                    <span class="badge-role" style="background: rgba(15, 52, 132, 0.1); color: var(--primary-color); border-radius: 12px; padding: 4px 10px; font-size: 11px;"><i class="fa-solid fa-circle" style="font-size: 6px; margin-right: 4px;"></i> Processing</span>
                 </td>
             </tr>
         `;
@@ -5981,3 +5962,4 @@ window.renderAdminProductivityTab = function() {
 function renderAdminProductivityTab() {
     if (window.renderAdminProductivityTab) window.renderAdminProductivityTab();
 }
+

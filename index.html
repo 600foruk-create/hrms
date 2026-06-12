@@ -1558,97 +1558,74 @@
                             </div>
                         </div>
 
-                        <!-- Sub-tab Navigation -->
-                        <div class="sub-tab-nav">
-                            <button class="btn-sub-tab active" data-subtab="admin-prod-all-logs">
-                                <i class="fa-solid fa-list"></i> All Submitted Logs
-                            </button>
-                            <button class="btn-sub-tab" data-subtab="admin-prod-config">
-                                <i class="fa-solid fa-gear"></i> Categories Config
-                            </button>
-                        </div>
-
-                        <!-- Sub-tab: All Logs -->
-                        <div id="subtab-content-admin-prod-all-logs" class="sub-tab-content">
-                            <div class="section-card bg-glass flex-table-card">
-                                <div class="section-card-header">
-                                    <h3>Productivity Logs</h3>
+                        <!-- Unified Productivity Layout -->
+                        <div class="row mt-4">
+                            <!-- Left Sidebar: Categories Config (Tree View) -->
+                            <div class="col-lg-4 mb-4">
+                                <!-- Business Units Tree -->
+                                <div class="section-card bg-glass mb-4 p-0 overflow-hidden" style="border-radius: 8px;">
+                                    <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="background: rgba(255,255,255,0.05);">
+                                        <h3 class="mb-0" style="font-size: 16px; color: var(--primary-color);">Business Units</h3>
+                                        <button class="btn btn-sm text-primary" style="font-size: 12px; font-weight: 500;">Edit All</button>
+                                    </div>
+                                    <div class="p-3" id="admin-bu-tree">
+                                        <!-- Dynamic Tree -->
+                                    </div>
+                                    <div class="p-3 text-center border-top">
+                                        <button class="btn btn-sm w-100" style="border: 1px dashed var(--primary-color); color: var(--primary-color); border-radius: 6px;" onclick="window.addBuModal()">
+                                            <i class="fa-solid fa-plus-circle me-1"></i> Add Business Unit
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="table-container">
-                                    <table class="data-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Date</th>
-                                                <th>Employee</th>
-                                                <th>Type</th>
-                                                <th>Tasks Added</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="admin-all-prod-body">
-                                            <!-- Dynamic rows populated by app.js -->
-                                        </tbody>
-                                    </table>
+                                
+                                <!-- TES Categories Tree -->
+                                <div class="section-card bg-glass p-0 overflow-hidden" style="border-radius: 8px;">
+                                    <div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="background: rgba(255,255,255,0.05);">
+                                        <h3 class="mb-0" style="font-size: 16px; color: var(--success);">TES Categories</h3>
+                                        <button class="btn btn-sm text-success" style="font-size: 12px; font-weight: 500;">Edit All</button>
+                                    </div>
+                                    <div class="p-3" id="admin-tes-tree">
+                                        <!-- Dynamic Tree -->
+                                    </div>
+                                    <div class="p-3 text-center border-top">
+                                        <button class="btn btn-sm w-100" style="border: 1px dashed var(--success); color: var(--success); border-radius: 6px;" onclick="window.addTesModal()">
+                                            <i class="fa-solid fa-plus-circle me-1"></i> Add TES Category
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Sub-tab: Categories Config -->
-                        <div id="subtab-content-admin-prod-config" class="sub-tab-content hidden" style="max-height: calc(100vh - 180px); overflow-y: auto; padding-right: 10px;">
-                            <div class="row">
-                                <div class="col-md-12 mb-4">
-                                    <div class="section-card bg-glass mb-4">
-                                        <h3>Business Units & Practices</h3>
-                                        <p class="text-secondary mb-3">Select a Business Unit to manage its Practices.</p>
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <label>Business Unit (Main Category)</label>
-                                                <select id="config-bu-select" class="form-control" onchange="window.updateConfigPracticesDropdown()">
-                                                    <option value="">-- Select Business Unit --</option>
-                                                </select>
-                                                <div class="mt-2" style="display: flex; gap: 10px;">
-                                                    <button class="btn btn-sm btn-outline" onclick="window.addBuModal()"><i class="fa-solid fa-plus"></i> Add Unit</button>
-                                                    <button class="btn btn-sm btn-outline" style="color: var(--danger); border-color: var(--danger); display:none;" id="btn-delete-bu" onclick="window.deleteSelectedBu()"><i class="fa-solid fa-trash"></i> Delete Unit</button>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6 mb-3">
-                                                <label>Practices (Sub Category)</label>
-                                                <select id="config-practice-select" class="form-control" onchange="window.updateConfigPracticeButtons()">
-                                                    <option value="">-- Select Practice --</option>
-                                                </select>
-                                                <div class="mt-2" style="display: flex; gap: 10px;">
-                                                    <button class="btn btn-sm btn-outline" onclick="window.addPracticeToSelectedBu()"><i class="fa-solid fa-plus"></i> Add Practice</button>
-                                                    <button class="btn btn-sm btn-outline" style="color: var(--danger); border-color: var(--danger); display:none;" id="btn-delete-practice" onclick="window.deleteSelectedPractice()"><i class="fa-solid fa-trash"></i> Delete Practice</button>
-                                                </div>
-                                            </div>
+                            
+                            <!-- Right Column: Live Productivity Logs -->
+                            <div class="col-lg-8 mb-4">
+                                <div class="section-card bg-glass h-100 p-0 overflow-hidden" style="border-radius: 8px; display: flex; flex-direction: column;">
+                                    <div class="d-flex justify-content-between align-items-center p-4 border-bottom" style="background: rgba(255,255,255,0.02);">
+                                        <div>
+                                            <h3 class="mb-1" style="font-size: 18px;">Live Productivity Logs</h3>
+                                            <p class="text-secondary mb-0" style="font-size: 13px;">Monitoring system-wide activity pulses</p>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-outline border-secondary text-secondary" style="border-radius: 6px; padding: 6px 12px;"><i class="fa-solid fa-filter"></i></button>
+                                            <button class="btn btn-outline border-secondary text-secondary" style="border-radius: 6px; padding: 6px 12px;"><i class="fa-solid fa-download"></i></button>
                                         </div>
                                     </div>
-                                    
-                                    <div class="section-card bg-glass">
-                                        <h3>TES Categories & Tasks</h3>
-                                        <p class="text-secondary mb-3">Select a TES Category to manage its Tasks.</p>
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <label>TES Category (Main Category)</label>
-                                                <select id="config-tes-select" class="form-control" onchange="window.updateConfigTasksDropdown()">
-                                                    <option value="">-- Select TES Category --</option>
-                                                </select>
-                                                <div class="mt-2" style="display: flex; gap: 10px;">
-                                                    <button class="btn btn-sm btn-outline" onclick="window.addTesModal()"><i class="fa-solid fa-plus"></i> Add Category</button>
-                                                    <button class="btn btn-sm btn-outline" style="color: var(--danger); border-color: var(--danger); display:none;" id="btn-delete-tes" onclick="window.deleteSelectedTes()"><i class="fa-solid fa-trash"></i> Delete Category</button>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6 mb-3">
-                                                <label>Tasks (Sub Category)</label>
-                                                <select id="config-task-select" class="form-control" onchange="window.updateConfigTaskButtons()">
-                                                    <option value="">-- Select Task --</option>
-                                                </select>
-                                                <div class="mt-2" style="display: flex; gap: 10px;">
-                                                    <button class="btn btn-sm btn-outline" onclick="window.addTaskToSelectedTes()"><i class="fa-solid fa-plus"></i> Add Task</button>
-                                                    <button class="btn btn-sm btn-outline" style="color: var(--danger); border-color: var(--danger); display:none;" id="btn-delete-task" onclick="window.deleteSelectedTask()"><i class="fa-solid fa-trash"></i> Delete Task</button>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <div class="table-responsive p-3" style="flex: 1;">
+                                        <table class="data-table table w-100" style="font-size: 13px;">
+                                            <thead style="background: transparent; border-bottom: 1px solid var(--border-color);">
+                                                <tr>
+                                                    <th style="font-weight: 600; color: var(--text-secondary); border: none;">LOG ID</th>
+                                                    <th style="font-weight: 600; color: var(--text-secondary); border: none;">UNIT / OPERATOR</th>
+                                                    <th style="font-weight: 600; color: var(--text-secondary); border: none;">ACTIVITY TYPE</th>
+                                                    <th style="font-weight: 600; color: var(--text-secondary); border: none;">DURATION</th>
+                                                    <th style="font-weight: 600; color: var(--text-secondary); border: none;">STATUS</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="admin-all-prod-body">
+                                                <!-- Dynamic rows populated by app.js -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center p-3 border-top text-secondary mt-auto" style="font-size: 12px;">
+                                        <span id="admin-prod-log-count">Showing active logs</span>
                                     </div>
                                 </div>
                             </div>
