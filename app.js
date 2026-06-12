@@ -6005,3 +6005,29 @@ function renderAdminProductivityTab() {
     if (window.renderAdminProductivityTab) window.renderAdminProductivityTab();
 }
 
+window.downloadAdminProdLogsPdf = function() {
+    let printHtml = '<html><head><title>Productivity Logs</title>';
+    printHtml += '<style>body{font-family:sans-serif;} table{width:100%;border-collapse:collapse;font-size:12px;} th,td{border:1px solid #ddd;padding:8px;text-align:left;} th{background:#f9f9f9;}</style>';
+    printHtml += '</head><body><h2>Company Productivity Logs</h2><table>';
+    printHtml += '<thead><tr><th>LOG ID</th><th>EMPLOYEE / PRACTICE</th><th>ACTIVITY TYPE</th><th>DURATION</th><th>STATUS</th></tr></thead><tbody>';
+    
+    const rows = document.querySelectorAll('#admin-all-prod-body tr');
+    if (rows.length === 0 || (rows.length === 1 && rows[0].innerText.includes('No company'))) {
+        printHtml += '<tr><td colspan="5">No logs found</td></tr>';
+    } else {
+        rows.forEach(r => {
+            const cells = r.querySelectorAll('td');
+            if (cells.length < 5) return;
+            printHtml += `<tr><td>${cells[0].innerText}</td><td>${cells[1].innerText.replace(/\n/g, ' - ')}</td><td>${cells[2].innerText.replace(/\n/g, ' - ')}</td><td>${cells[3].innerText}</td><td>${cells[4].innerText}</td></tr>`;
+        });
+    }
+    
+    printHtml += '</tbody></table></body></html>';
+    
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printHtml);
+    printWindow.document.close();
+    setTimeout(() => {
+        printWindow.print();
+    }, 500);
+};
