@@ -5313,7 +5313,7 @@ window.renderProductivitySettings = function() {
                 const practicesHtml = bu.practices.map(p => `
                     <div class="d-flex justify-content-between align-items-center mb-2 text-secondary" style="font-size: 13px;">
                         <span><i class="fa-solid fa-circle" style="font-size: 6px; margin-right: 8px;"></i> ${p.name}</span>
-                        <button class="btn btn-sm p-0 text-danger" onclick="window.deleteBuPractice('${bu.id}', '${p.id}')"><i class="fa-solid fa-trash"></i></button>
+                        <span class="text-danger" style="cursor: pointer;" onclick="window.deleteBuPractice('${bu.id}', '${p.id}')"><i class="fa-solid fa-trash"></i></span>
                     </div>
                 `).join('');
 
@@ -5324,8 +5324,8 @@ window.renderProductivitySettings = function() {
                             <i class="fa-solid fa-building text-primary me-2"></i>
                             <strong style="font-size: 14px; color: var(--text-color);">${bu.name}</strong>
                             <div class="ms-auto d-flex gap-2">
-                                <button class="btn btn-sm p-0 text-primary" onclick="window.addBuPracticeModal('${bu.id}'); event.stopPropagation();"><i class="fa-solid fa-plus"></i></button>
-                                <button class="btn btn-sm p-0 text-danger" onclick="window.deleteBu('${bu.id}'); event.stopPropagation();"><i class="fa-solid fa-trash"></i></button>
+                                <span class="text-primary" style="cursor: pointer;" onclick="window.addBuPracticeModal('${bu.id}'); event.stopPropagation();"><i class="fa-solid fa-plus"></i></span>
+                                <span class="text-danger" style="cursor: pointer;" onclick="window.deleteBu('${bu.id}'); event.stopPropagation();"><i class="fa-solid fa-trash"></i></span>
                             </div>
                         </div>
                         <div class="tree-item-children ps-4 pt-2 hidden" id="children-bu-${bu.id}">
@@ -5348,7 +5348,7 @@ window.renderProductivitySettings = function() {
                 const tasksHtml = tes.tasks.map(t => `
                     <div class="d-flex justify-content-between align-items-center mb-2 text-secondary" style="font-size: 13px;">
                         <span><i class="fa-solid fa-circle" style="font-size: 6px; margin-right: 8px; color: var(--success);"></i> ${t.name}</span>
-                        <button class="btn btn-sm p-0 text-danger" onclick="window.deleteTesTask('${tes.id}', '${t.id}')"><i class="fa-solid fa-trash"></i></button>
+                        <span class="text-danger" style="cursor: pointer;" onclick="window.deleteTesTask('${tes.id}', '${t.id}')"><i class="fa-solid fa-trash"></i></span>
                     </div>
                 `).join('');
 
@@ -5358,9 +5358,9 @@ window.renderProductivitySettings = function() {
                             <i class="fa-solid fa-chevron-right me-2 text-secondary" id="icon-tes-${tes.id}" style="font-size: 10px; transition: transform 0.2s;"></i>
                             <i class="fa-solid fa-layer-group text-success me-2"></i>
                             <strong style="font-size: 14px; color: var(--text-color);">${tes.name}</strong>
-                            <div class="ms-auto d-flex gap-2">
-                                <button class="btn btn-sm p-0 text-success" onclick="window.addTesTaskModal('${tes.id}'); event.stopPropagation();"><i class="fa-solid fa-plus"></i></button>
-                                <button class="btn btn-sm p-0 text-danger" onclick="window.deleteTes('${tes.id}'); event.stopPropagation();"><i class="fa-solid fa-trash"></i></button>
+                            <div class="ms-auto d-flex gap-3">
+                                <span class="text-success" style="cursor: pointer;" onclick="window.addTesTaskModal('${tes.id}'); event.stopPropagation();"><i class="fa-solid fa-plus"></i></span>
+                                <span class="text-danger" style="cursor: pointer;" onclick="window.deleteTes('${tes.id}'); event.stopPropagation();"><i class="fa-solid fa-trash"></i></span>
                             </div>
                         </div>
                         <div class="tree-item-children ps-4 pt-2 hidden" id="children-tes-${tes.id}">
