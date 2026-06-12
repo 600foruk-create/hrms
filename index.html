@@ -1595,26 +1595,62 @@
 
                         <!-- Sub-tab: Categories Config -->
                         <div id="subtab-content-admin-prod-config" class="sub-tab-content hidden" style="max-height: calc(100vh - 180px); overflow-y: auto; padding-right: 10px;">
-                            <div class="section-card bg-glass mb-4">
-                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
-                                    <div>
+                            <div class="row">
+                                <div class="col-md-12 mb-4">
+                                    <div class="section-card bg-glass mb-4">
                                         <h3>Business Units & Practices</h3>
-                                        <p class="text-secondary mb-0">Manage main business units and their child practices.</p>
+                                        <p class="text-secondary mb-3">Select a Business Unit to manage its Practices.</p>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label>Business Unit (Main Category)</label>
+                                                <select id="config-bu-select" class="form-control" onchange="window.updateConfigPracticesDropdown()">
+                                                    <option value="">-- Select Business Unit --</option>
+                                                </select>
+                                                <div class="mt-2" style="display: flex; gap: 10px;">
+                                                    <button class="btn btn-sm btn-outline" onclick="window.addBuModal()"><i class="fa-solid fa-plus"></i> Add Unit</button>
+                                                    <button class="btn btn-sm btn-outline" style="color: var(--danger); border-color: var(--danger); display:none;" id="btn-delete-bu" onclick="window.deleteSelectedBu()"><i class="fa-solid fa-trash"></i> Delete Unit</button>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label>Practices (Sub Category)</label>
+                                                <select id="config-practice-select" class="form-control" onchange="window.updateConfigPracticeButtons()">
+                                                    <option value="">-- Select Practice --</option>
+                                                </select>
+                                                <div class="mt-2" style="display: flex; gap: 10px;">
+                                                    <button class="btn btn-sm btn-outline" onclick="window.addPracticeToSelectedBu()"><i class="fa-solid fa-plus"></i> Add Practice</button>
+                                                    <button class="btn btn-sm btn-outline" style="color: var(--danger); border-color: var(--danger); display:none;" id="btn-delete-practice" onclick="window.deleteSelectedPractice()"><i class="fa-solid fa-trash"></i> Delete Practice</button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <button class="btn btn-outline" style="font-size: 13px; color: var(--primary-color); border-color: var(--primary-color);" onclick="window.addBuModal()"><i class="fa-solid fa-plus"></i> Add Business Unit</button>
-                                </div>
-                                <div id="admin-bu-list" style="display: flex; flex-direction: column; gap: 15px;"></div>
-                            </div>
-                            
-                            <div class="section-card bg-glass mb-4">
-                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
-                                    <div>
+                                    
+                                    <div class="section-card bg-glass">
                                         <h3>TES Categories & Tasks</h3>
-                                        <p class="text-secondary mb-0">Manage TES categories and their child tasks.</p>
+                                        <p class="text-secondary mb-3">Select a TES Category to manage its Tasks.</p>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label>TES Category (Main Category)</label>
+                                                <select id="config-tes-select" class="form-control" onchange="window.updateConfigTasksDropdown()">
+                                                    <option value="">-- Select TES Category --</option>
+                                                </select>
+                                                <div class="mt-2" style="display: flex; gap: 10px;">
+                                                    <button class="btn btn-sm btn-outline" onclick="window.addTesModal()"><i class="fa-solid fa-plus"></i> Add Category</button>
+                                                    <button class="btn btn-sm btn-outline" style="color: var(--danger); border-color: var(--danger); display:none;" id="btn-delete-tes" onclick="window.deleteSelectedTes()"><i class="fa-solid fa-trash"></i> Delete Category</button>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label>Tasks (Sub Category)</label>
+                                                <select id="config-task-select" class="form-control" onchange="window.updateConfigTaskButtons()">
+                                                    <option value="">-- Select Task --</option>
+                                                </select>
+                                                <div class="mt-2" style="display: flex; gap: 10px;">
+                                                    <button class="btn btn-sm btn-outline" onclick="window.addTaskToSelectedTes()"><i class="fa-solid fa-plus"></i> Add Task</button>
+                                                    <button class="btn btn-sm btn-outline" style="color: var(--danger); border-color: var(--danger); display:none;" id="btn-delete-task" onclick="window.deleteSelectedTask()"><i class="fa-solid fa-trash"></i> Delete Task</button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <button class="btn btn-outline" style="font-size: 13px; color: var(--primary-color); border-color: var(--primary-color);" onclick="window.addTesModal()"><i class="fa-solid fa-plus"></i> Add TES Category</button>
                                 </div>
-                                <div id="admin-tes-list" style="display: flex; flex-direction: column; gap: 15px;"></div>
                             </div>
                         </div>
                     </div>
