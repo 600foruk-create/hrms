@@ -1,4 +1,4 @@
-/**
+﻿/**
  * HRMS - Employee Management & Productivity Tracker
  * Core Application Script
  */
@@ -784,7 +784,7 @@ function renderAdminDashboard() {
 
     const adminTitle = document.getElementById('admin-welcome-title');
     if (adminTitle && currentUser) {
-        adminTitle.innerHTML = `${getGreeting()}, ${currentUser.name}! ðŸ‘‹`;
+        adminTitle.innerHTML = `${getGreeting()}, ${currentUser.name}! ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ¢â‚¬Â¹`;
     }
 
     // Set current date
@@ -962,7 +962,7 @@ function renderAdminDashboard() {
                             <div class="avatar-small" style="background: var(--primary); color: #fff; width: 32px; height: 32px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center;">${initials}</div>
                             <div style="display: flex; flex-direction: column;">
                                 <span style="font-size: 13px; font-weight: 700; color: #fff;">${task.employeeName || 'Employee'}</span>
-                                <span style="font-size: 11px; color: var(--text-secondary);">${(task.tasks || []).join(', ') || 'Productivity Log'} Ã¢â‚¬Â¢ Score: <strong>${task.score || 'N/A'}</strong></span>
+                                <span style="font-size: 11px; color: var(--text-secondary);">${(task.tasks || []).join(', ') || 'Productivity Log'} ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ Score: <strong>${task.score || 'N/A'}</strong></span>
                             </div>
                         </div>
                         ${actionButtons}
@@ -1797,7 +1797,7 @@ function renderManagerDashboard() {
     
     const managerTitle = document.getElementById('manager-welcome-title');
     if (managerTitle && currentUser) {
-        managerTitle.innerHTML = `${getGreeting()}, ${currentUser.name}! ðŸ‘‹`;
+        managerTitle.innerHTML = `${getGreeting()}, ${currentUser.name}! ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ¢â‚¬Â¹`;
     }
 
     const teamMembers = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
@@ -2149,7 +2149,7 @@ function renderManagerLeaveTab() {
                         <td>${l.startDate} to ${l.endDate}</td>
                         <td class="italic">"${l.reason}"</td>
                         <td><span class="badge-status ${statusClass}">${l.status}</span></td>
-                        <td><span class="text-muted italic">${l.comments || 'â€”'}</span></td>
+                        <td><span class="text-muted italic">${l.comments || 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â'}</span></td>
                         <td>${actionsHTML}</td>
                     </tr>
                 `;
@@ -2175,7 +2175,7 @@ function renderManagerLeaveTab() {
                         <td>${l.startDate} to ${l.endDate}</td>
                         <td class="italic">"${l.reason}"</td>
                         <td><span class="badge-status ${statusClass}">${l.status}</span></td>
-                        <td><span class="text-muted italic">${l.comments || 'â€”'}</span></td>
+                        <td><span class="text-muted italic">${l.comments || 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â'}</span></td>
                     </tr>
                 `;
             });
@@ -2222,7 +2222,7 @@ function renderEmployeeDashboard() {
     
     const employeeTitle = document.getElementById('employee-welcome-title');
     if (employeeTitle && currentUser) {
-        employeeTitle.innerHTML = `${getGreeting()}, ${currentUser.name}! ðŸ‘‹`;
+        employeeTitle.innerHTML = `${getGreeting()}, ${currentUser.name}! ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ¢â‚¬Â¹`;
     }
 
     // Top Metric Cards
@@ -2486,7 +2486,7 @@ function renderEmployeeLeaveTab() {
                     <td>${l.endDate}</td>
                     <td class="italic">"${l.reason}"</td>
                     <td><span class="badge-status ${statusClass}">${l.status}</span></td>
-                    <td><span class="text-muted italic">${l.comments || 'â€”'}</span></td>
+                    <td><span class="text-muted italic">${l.comments || 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â'}</span></td>
                 </tr>
             `;
         });
@@ -3373,7 +3373,7 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
             else if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
         }
     } else {
-        // Create Mode â€” use the admin-entered Employee ID as the actual primary ID
+        // Create Mode ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â use the admin-entered Employee ID as the actual primary ID
         if (password.length < 6) {
             showToast("Password Error", "Password must be at least 6 characters.", "error");
             return;
@@ -3601,7 +3601,7 @@ document.getElementById('leave-request-form').addEventListener('submit', (e) => 
     refreshTabContent(activeTab);
 });
 
-// Old productivity review modal removed â€” now handled by productivity.js
+// Old productivity review modal removed ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â now handled by productivity.js
 
 
 // 6. Manual Attendance Logger Form
@@ -4050,7 +4050,7 @@ window.enableAddNewLeaveType = function () {
 
 
 
-// Old productivity multi-select form logic removed â€” now handled by productivity.js
+// Old productivity multi-select form logic removed ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â now handled by productivity.js
 
 
 // ==================== REPORTS & EXPORT SHEETS ====================
@@ -4335,7 +4335,7 @@ function generateReport(roleContext) {
                     <td><span class="badge-role employee">${log.type}</span></td>
                     <td>${log.startDate} to ${log.endDate}</td>
                     <td><span class="badge-status ${statusClass}">${log.status}</span></td>
-                    <td class="italic">${log.comments || 'Ã¢â‚¬â€'}</td>
+                    <td class="italic">${log.comments || 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â'}</td>
                 </tr>
             `;
         });
@@ -5089,7 +5089,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // Document dropzone Ã¢â‚¬â€œ handle new files and append
+    // Document dropzone ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ handle new files and append
     window.onDocumentsSelected = async (zone, files) => {
         if (!window.tempDocuments) window.tempDocuments = [];
 
@@ -5913,13 +5913,14 @@ document.addEventListener('change', function(e) {
     }
 });
 
-// Override window.saveTaskEntry for Inline Form
-window.saveTaskEntry = function() {
-    const type = document.querySelector('input[name="ept-prod-type"]:checked')?.value || 'BU';
-    const date = document.getElementById('ept-date').value;
-    const timeSpent = parseInt(document.getElementById('ept-time-spent').value) || 0;
-    const totalCount = parseInt(document.getElementById('ept-total-count').value) || 0;
-    const notes = document.getElementById('ept-notes').value.trim();
+// Modal Form Submission Logic
+document.getElementById('productivity-submission-form')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const type = document.querySelector('input[name="prod-type"]:checked')?.value || 'BU';
+    const date = document.getElementById('prod-form-date')?.value || new Date().toISOString().split('T')[0];
+    const timeSpent = parseInt(document.getElementById('prod-time-spent').value) || 0;
+    const totalCount = parseInt(document.getElementById('prod-count').value) || 0;
+    const notes = document.getElementById('prod-notes').value.trim();
 
     if (!date) return showToast('Error', 'Date is required', 'error');
     if (timeSpent <= 0) return showToast('Error', 'Time spent must be > 0', 'error');
@@ -5931,23 +5932,23 @@ window.saveTaskEntry = function() {
     let selectedItems = [];
 
     if (type === 'BU') {
-        const buId = document.getElementById('ept-bu-select').value;
+        const buId = document.getElementById('prod-bu-select').value;
         if (!buId) return showToast('Error', 'Please select a Business Unit', 'error');
         const bu = settings.businessUnits.find(b => b.id === buId);
         practiceId = 'BU_' + buId;
         practiceName = 'BU: ' + bu.name;
         
-        const checked = Array.from(document.querySelectorAll('#ept-bu-practices-options input[type="checkbox"]:checked'));
+        const checked = Array.from(document.querySelectorAll('#prod-bu-practices-options input[type="checkbox"]:checked'));
         if (checked.length === 0) return showToast('Error', 'Please select at least one Practice', 'error');
         selectedItems = checked.map(c => c.getAttribute('data-text'));
     } else {
-        const tesId = document.getElementById('ept-tes-select').value;
+        const tesId = document.getElementById('prod-tes-select').value;
         if (!tesId) return showToast('Error', 'Please select a TES Category', 'error');
         const tes = settings.tesCategories.find(t => t.id === tesId);
         practiceId = 'TES_' + tesId;
         practiceName = 'TES: ' + tes.name;
         
-        const checked = Array.from(document.querySelectorAll('#ept-tes-tasks-options input[type="checkbox"]:checked'));
+        const checked = Array.from(document.querySelectorAll('#prod-tes-tasks-options input[type="checkbox"]:checked'));
         if (checked.length === 0) return showToast('Error', 'Please select at least one Task', 'error');
         selectedItems = checked.map(c => c.getAttribute('data-text'));
     }
@@ -5958,16 +5959,16 @@ window.saveTaskEntry = function() {
 
     const logId = generateId('LOG');
     
-    // Save Log (Representing the main category)
+    // Save Log
     db.productivity_logs.unshift({
         id: logId,
         employee_id: currentUser.id,
-        practice_id: practiceName, // Storing human-readable string for easy rendering in old tables
+        practice_id: practiceName, 
         log_date: date,
         created_at: new Date().toISOString()
     });
 
-    // Save Tasks (Representing the sub-items)
+    // Save Tasks
     db.productivity_tasks.push({
         id: generateId('PT'),
         log_id: logId,
@@ -5982,16 +5983,15 @@ window.saveTaskEntry = function() {
     showToast('Success', 'Productivity logged successfully');
     
     // Reset Form
-    document.getElementById('ept-date').value = '';
-    document.getElementById('ept-time-spent').value = '';
-    document.getElementById('ept-total-count').value = '';
-    document.getElementById('ept-notes').value = '';
+    document.getElementById('productivity-submission-form').reset();
     document.querySelectorAll('.custom-multiselect input[type="checkbox"]').forEach(c => c.checked = false);
-    document.querySelectorAll('.custom-multiselect .selected-text').forEach(s => s.textContent = 'Select items...');
+    document.querySelectorAll('.custom-multiselect .selected-text').forEach(s => s.textContent = 'Select Tasks/Practices');
     
-    // Render logs
-    if (window.renderMyProductivityLogs) window.renderMyProductivityLogs();
-};
+    closeModal('modal-productivity-form');
+    // Re-render views if they are open
+    if (typeof renderMyProductivityLogs === 'function') renderMyProductivityLogs();
+    if (typeof renderManagerProductivityTab === 'function') renderManagerProductivityTab();
+});
 
 // Listeners to initialize rendering
 document.addEventListener('DOMContentLoaded', () => {
@@ -6022,34 +6022,61 @@ document.addEventListener('DOMContentLoaded', () => {
 // --------- RENDER PRODUCTIVITY LOGS ---------
 
 window.renderMyProductivityLogs = function() {
-    const tbody = document.getElementById('ept-my-logs-body');
-    if (!tbody) return;
-    tbody.innerHTML = '';
+    const eptTbody = document.getElementById('ept-my-logs-body');
+    const mgrTbody = document.getElementById('manager-my-logs-body');
+    
+    if (!eptTbody && !mgrTbody) return;
+    
     const db = getDb();
-    if (!db.productivity_logs) return;
-
-    const myLogs = db.productivity_logs.filter(l => String(l.employee_id) === String(currentUser.id));
+    const myLogs = (db.productivity_logs || []).filter(l => String(l.employee_id) === String(currentUser.id));
     myLogs.sort((a, b) => new Date(b.log_date) - new Date(a.log_date));
 
+    let html = '';
     if (myLogs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No logs found</td></tr>';
-        return;
+        html = '<tr><td colspan="4" class="text-center text-muted">No logs found</td></tr>';
+    } else {
+        myLogs.forEach(log => {
+            const tasks = (db.productivity_tasks || []).filter(t => String(t.log_id) === String(log.id));
+            const totalTime = tasks.reduce((sum, t) => sum + (parseInt(t.time_minutes) || 0), 0);
+            const taskTypes = tasks.map(t => t.task_type).join(', ');
+
+            html += `
+                <tr>
+                    <td>${log.log_date}</td>
+                    <td><span class="badge-role" style="background: rgba(15, 52, 132, 0.1); color: var(--primary-color);">${log.practice_id}</span></td>
+                    <td>${taskTypes || '-'}</td>
+                    <td>${totalTime} mins</td>
+                </tr>
+            `;
+        });
     }
 
-    myLogs.forEach(log => {
-        const tasks = (db.productivity_tasks || []).filter(t => String(t.log_id) === String(log.id));
-        const totalTime = tasks.reduce((sum, t) => sum + (parseInt(t.time_minutes) || 0), 0);
-        const taskTypes = tasks.map(t => t.task_type).join(', ');
+    if (eptTbody) eptTbody.innerHTML = html;
+    if (mgrTbody) mgrTbody.innerHTML = html;
+};
 
-        tbody.innerHTML += `
-            <tr>
-                <td>${log.log_date}</td>
-                <td><span class="badge-role" style="background: rgba(15, 52, 132, 0.1); color: var(--primary-color);">${log.practice_id}</span></td>
-                <td>${taskTypes || '-'}</td>
-                <td>${totalTime} mins</td>
-            </tr>
-        `;
+window.switchManagerProdTab = function(tabId) {
+    document.querySelectorAll('#manager-tab-productivity .btn-sub-tab').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-subtab') === tabId) {
+            btn.classList.add('active');
+        }
     });
+    
+    document.querySelectorAll('#manager-tab-productivity .sub-tab-content').forEach(content => {
+        content.classList.remove('active');
+        content.style.display = 'none';
+        if (content.id === 'subtab-content-' + tabId) {
+            content.classList.add('active');
+            content.style.display = 'block';
+        }
+    });
+
+    if (tabId === 'manager-prod-team') {
+        if (window.renderManagerProductivityTab) window.renderManagerProductivityTab();
+    } else if (tabId === 'manager-prod-my-logs') {
+        if (window.renderMyProductivityLogs) window.renderMyProductivityLogs();
+    }
 };
 
 window.renderManagerProductivityTab = function() {

@@ -2364,46 +2364,26 @@
 
                     <!-- Manager Productivity Tab -->
                     <div id="manager-tab-productivity" class="tab-view">
-                        <div class="view-header">
+                        <div class="view-header" style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
                                 <h1>Tasks & Productivity</h1>
-                                <p class="text-secondary">Manage assigned practices and monitor team productivity</p>
+                                <p class="text-secondary">Manage team productivity and your own logs</p>
                             </div>
+                            <button class="btn btn-primary" onclick="openModal('modal-productivity-form'); if(window.populateProdDropdowns) window.populateProdDropdowns();"><i class="fa-solid fa-plus"></i> Add Productivity</button>
                         </div>
 
                         <!-- Sub-tab Navigation -->
-                        <div class="sub-tab-nav" style="display: none;">
-                            <button class="btn-sub-tab" data-subtab="manager-prod-assigned" style="display: none;">
-                                <i class="fa-solid fa-briefcase"></i> My Assigned Practices
+                        <div class="sub-tab-nav mb-4 mt-4">
+                            <button class="btn-sub-tab active" data-subtab="manager-prod-team" onclick="if(window.switchManagerProdTab) window.switchManagerProdTab('manager-prod-team')">
+                                <i class="fa-solid fa-users"></i> Team Logs
                             </button>
-                            <button class="btn-sub-tab" data-subtab="manager-prod-team">
-                                <i class="fa-solid fa-users"></i> Team Productivity
+                            <button class="btn-sub-tab" data-subtab="manager-prod-my-logs" onclick="if(window.switchManagerProdTab) window.switchManagerProdTab('manager-prod-my-logs')">
+                                <i class="fa-solid fa-clock-rotate-left"></i> My Logs
                             </button>
-                        </div>
-
-                        <!-- Sub-tab: Assigned Practices -->
-                        <div id="subtab-content-manager-prod-assigned" class="sub-tab-content hidden" style="display: none;">
-                            <div class="section-card bg-glass flex-table-card">
-                                <div class="header-with-actions" style="margin-bottom:15px;">
-                                    <h3>Practices Assigned to Me</h3>
-                                </div>
-                                <div class="table-container">
-                                    <table class="data-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Practice Code</th>
-                                                <th>Practice Name</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="manager-assigned-practices-body">
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
                         </div>
 
                         <!-- Sub-tab: Team Productivity -->
-                        <div id="subtab-content-manager-prod-team" class="sub-tab-content">
+                        <div id="subtab-content-manager-prod-team" class="sub-tab-content active">
                             <div class="section-card bg-glass flex-table-card">
                                 <div class="table-container">
                                     <table class="data-table">
@@ -2417,6 +2397,26 @@
                                             </tr>
                                         </thead>
                                         <tbody id="manager-team-prod-body">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sub-tab: My Logs -->
+                        <div id="subtab-content-manager-prod-my-logs" class="sub-tab-content">
+                            <div class="section-card bg-glass flex-table-card">
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Practice</th>
+                                                <th>Tasks Added</th>
+                                                <th>Total Time</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="manager-my-logs-body">
                                         </tbody>
                                     </table>
                                 </div>
@@ -2768,104 +2768,19 @@
 
                     <!-- Employee Productivity Tab -->
                     <div id="employee-tab-productivity" class="tab-view">
-                        <div class="view-header">
+                        <div class="view-header" style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
-                                <h1>My Productivity Log</h1>
-                                <p class="text-secondary">Log your daily tasks for assigned practices</p>
+                                <h1>My Productivity Logs</h1>
+                                <p class="text-secondary">View your past submissions</p>
                             </div>
+                            <button class="btn btn-primary" onclick="openModal('modal-productivity-form'); if(window.populateProdDropdowns) window.populateProdDropdowns();"><i class="fa-solid fa-plus"></i> Add Productivity</button>
                         </div>
                         
-                        <div style="display:grid; grid-template-columns: 1fr 2fr; gap:20px;">
-                            <!-- Task Entry Form -->
-                            <div class="section-card bg-glass" style="height: fit-content;">
-                                <div class="section-card-header">
-                                    <h3>Log a Task</h3>
-                                </div>
-                                <div style="padding: 15px;">
-                                    <div class="form-group mb-3">
-                                        <label>Productivity Type</label>
-                                        <div style="display: flex; gap: 15px; margin-top: 5px;">
-                                            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                                                <input type="radio" name="ept-prod-type" value="BU" checked onchange="if(window.toggleEptProdType) window.toggleEptProdType()"> Business Unit
-                                            </label>
-                                            <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                                                <input type="radio" name="ept-prod-type" value="TES" onchange="if(window.toggleEptProdType) window.toggleEptProdType()"> TES Category
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group mb-3">
-                                        <label>Log Date</label>
-                                        <input type="date" id="ept-date" class="form-control" required>
-                                    </div>
-
-                                    <!-- Business Unit Path -->
-                                    <div id="ept-fields-bu">
-                                        <div class="form-group mb-3">
-                                            <label>Select Business Unit</label>
-                                            <select id="ept-bu-select" class="form-control" onchange="if(window.onEptBuChange) window.onEptBuChange()">
-                                                <option value="">-- Select Business Unit --</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group mb-3">
-                                            <label>Select Practices</label>
-                                            <div class="custom-multiselect" id="ept-bu-practices-multiselect">
-                                                <div class="multiselect-select-box">
-                                                    <span class="selected-text">Select Practices</span>
-                                                    <i class="fa-solid fa-chevron-down"></i>
-                                                </div>
-                                                <div class="multiselect-options-container hidden" id="ept-bu-practices-options" style="max-height: 150px; overflow-y: auto;">
-                                                    <div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">Select a Business Unit first</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- TES Category Path -->
-                                    <div id="ept-fields-tes" style="display: none;">
-                                        <div class="form-group mb-3">
-                                            <label>Select TES Category</label>
-                                            <select id="ept-tes-select" class="form-control" onchange="if(window.onEptTesChange) window.onEptTesChange()">
-                                                <option value="">-- Select TES Category --</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group mb-3">
-                                            <label>Select Tasks</label>
-                                            <div class="custom-multiselect" id="ept-tes-tasks-multiselect">
-                                                <div class="multiselect-select-box">
-                                                    <span class="selected-text">Select Tasks</span>
-                                                    <i class="fa-solid fa-chevron-down"></i>
-                                                </div>
-                                                <div class="multiselect-options-container hidden" id="ept-tes-tasks-options" style="max-height: 150px; overflow-y: auto;">
-                                                    <div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">Select a TES Category first</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Additional Details (Time & Notes) -->
-                                    <div class="form-group mb-3">
-                                        <label>Time Spent (Minutes)</label>
-                                        <input type="number" id="ept-time-spent" class="form-control" required min="1" placeholder="e.g. 120">
-                                    </div>
-                                    <div class="form-group mb-3">
-                                        <label>Total Count / Quantity</label>
-                                        <input type="number" id="ept-total-count" class="form-control" required min="1" placeholder="e.g. 5">
-                                    </div>
-                                    <div class="form-group mb-3">
-                                        <label>Notes / Details</label>
-                                        <textarea id="ept-notes" class="form-control" rows="2" placeholder="Task descriptions..."></textarea>
-                                    </div>
-                                    
-                                    <button class="btn btn-primary btn-block" style="width: 100%;" onclick="window.saveTaskEntry()">Save Task Log</button>
-                                </div>
+                        <!-- My Logs View -->
+                        <div class="section-card bg-glass flex-table-card" style="margin-top: 20px;">
+                            <div class="section-card-header">
+                                <h3>Recent Logs</h3>
                             </div>
-                            
-                            <!-- My Logs View -->
-                            <div class="section-card bg-glass flex-table-card">
-                                <div class="section-card-header">
-                                    <h3>Recent Logs</h3>
-                                </div>
                                 <div class="table-container">
                                     <table class="data-table">
                                         <thead>
@@ -3241,6 +3156,13 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Time Spent (numeric only) -->
+                <div class="form-group">
+                    <label for="prod-time-spent">Time Spent (Minutes) <span class="required">*</span></label>
+                    <input type="number" id="prod-time-spent" min="1" class="form-control" required
+                        placeholder="e.g. 120">
                 </div>
 
                 <!-- Count (numeric only) -->
