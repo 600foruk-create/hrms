@@ -5298,37 +5298,34 @@ function generateId(prefix) {
     return prefix + '_' + Date.now() + Math.floor(Math.random() * 1000);
 }
 
-// --------- ADMIN UI RENDERING ---------
-window.renderProductivitySettings = function() {
+window.selectedAdminBuId = null;
+window.selectedAdminTesId = null;
+
+window.renderAdminCategoriesConfig = function() {
     const settings = getProdSettings();
 
-    // 1. Render Business Units Tree
-    const buTree = document.getElementById('admin-bu-tree');
-    if (buTree) {
-        buTree.innerHTML = '';
+    // 1. Render Business Units List
+    const buList = document.getElementById('admin-grid-bu-list');
+    if (buList) {
+        buList.innerHTML = '';
         if (settings.businessUnits.length === 0) {
-            buTree.innerHTML = '<div class="text-secondary text-center" style="font-size: 13px;">No Business Units found.</div>';
+            buList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">No Business Units found.</div>';
         } else {
+            // Ensure selected ID is valid
+            if (!settings.businessUnits.find(b => b.id === window.selectedAdminBuId)) {
+                window.selectedAdminBuId = settings.businessUnits.length > 0 ? settings.businessUnits[0].id : null;
+            }
+
             settings.businessUnits.forEach(bu => {
-                const practicesHtml = bu.practices.map(p => `
-                    <div class="mb-2 text-secondary" style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
-                        <span>${p.name}</span>
-                        <span class="text-danger" style="cursor: pointer;" onclick="window.deleteBuPractice('${bu.id}', '${p.id}')"><i class="fa-solid fa-trash"></i></span>
-                    </div>
-                `).join('');
+                const isActive = bu.id === window.selectedAdminBuId;
+                const bgStyle = isActive ? 'background: rgba(15, 52, 132, 0.1); border-left: 3px solid var(--primary-color);' : 'background: rgba(0,0,0,0.02); border-left: 3px solid transparent;';
+                const textStyle = isActive ? 'color: var(--primary-color); font-weight: 600;' : 'color: var(--text-color);';
 
-                buTree.innerHTML += `
-                    <div class="tree-item mb-1">
-                        <div class="tree-item-header p-1 px-2 rounded" style="display: flex; align-items: center; background: rgba(0,0,0,0.02); cursor: pointer;" onclick="window.toggleTree('bu-${bu.id}')">
-                            <i class="fa-solid fa-chevron-right text-secondary" id="icon-bu-${bu.id}" style="font-size: 10px; margin-right: 8px; transition: transform 0.2s;"></i>
-                            <strong style="font-size: 14px; color: var(--text-color);">${bu.name}</strong>
-                            <div style="margin-left: auto; display: flex; gap: 8px;">
-                                <span class="text-primary" style="cursor: pointer;" onclick="window.addBuPracticeModal('${bu.id}'); event.stopPropagation();"><i class="fa-solid fa-plus"></i></span>
-                                <span class="text-danger" style="cursor: pointer;" onclick="window.deleteBu('${bu.id}'); event.stopPropagation();"><i class="fa-solid fa-trash"></i></span>
-                            </div>
-                        </div>
-                        <div class="tree-item-children ps-4 pt-2 hidden" id="children-bu-${bu.id}">
-                            ${practicesHtml || '<div class="text-muted" style="font-size: 12px; margin-bottom: 8px;">No practices found</div>'}
+                buList.innerHTML += `
+                    <div class="p-2 px-3 mb-2 rounded" style="display: flex; align-items: center; cursor: pointer; ${bgStyle} transition: all 0.2s;" onclick="window.selectedAdminBuId='${bu.id}'; window.renderAdminCategoriesConfig();">
+                        <strong style="font-size: 14px; ${textStyle}">${bu.name}</strong>
+                        <div style="margin-left: auto; display: flex; gap: 8px;">
+                            <span class="text-danger" style="cursor: pointer; opacity: 0.7;" onclick="window.deleteBu('${bu.id}'); event.stopPropagation();" title="Delete"><i class="fa-solid fa-trash"></i></span>
                         </div>
                     </div>
                 `;
@@ -5336,39 +5333,97 @@ window.renderProductivitySettings = function() {
         }
     }
 
-    // 2. Render TES Categories Tree
-    const tesTree = document.getElementById('admin-tes-tree');
-    if (tesTree) {
-        tesTree.innerHTML = '';
-        if (settings.tesCategories.length === 0) {
-            tesTree.innerHTML = '<div class="text-secondary text-center" style="font-size: 13px;">No TES Categories found.</div>';
+    // 2. Render Practices List
+    const prList = document.getElementById('admin-grid-practices-list');
+    const btnAddPractice = document.getElementById('btn-add-practice');
+    const activeBuName = document.getElementById('grid-active-bu-name');
+    if (prList) {
+        if (!window.selectedAdminBuId) {
+            prList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">Select a Business Unit to view practices</div>';
+            if (btnAddPractice) btnAddPractice.style.display = 'none';
+            if (activeBuName) activeBuName.textContent = '';
         } else {
-            settings.tesCategories.forEach(tes => {
-                const tasksHtml = tes.tasks.map(t => `
-                    <div class="mb-2 text-secondary" style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
-                        <span>${t.name}</span>
-                        <span class="text-danger" style="cursor: pointer;" onclick="window.deleteTesTask('${tes.id}', '${t.id}')"><i class="fa-solid fa-trash"></i></span>
-                    </div>
-                `).join('');
-
-                tesTree.innerHTML += `
-                    <div class="tree-item mb-1">
-                        <div class="tree-item-header p-1 px-2 rounded" style="display: flex; align-items: center; background: rgba(0,0,0,0.02); cursor: pointer;" onclick="window.toggleTree('tes-${tes.id}')">
-                            <i class="fa-solid fa-chevron-right text-secondary" id="icon-tes-${tes.id}" style="font-size: 10px; margin-right: 8px; transition: transform 0.2s;"></i>
-                            <strong style="font-size: 14px; color: var(--text-color);">${tes.name}</strong>
-                            <div style="margin-left: auto; display: flex; gap: 12px;">
-                                <span class="text-success" style="cursor: pointer;" onclick="window.addTesTaskModal('${tes.id}'); event.stopPropagation();"><i class="fa-solid fa-plus"></i></span>
-                                <span class="text-danger" style="cursor: pointer;" onclick="window.deleteTes('${tes.id}'); event.stopPropagation();"><i class="fa-solid fa-trash"></i></span>
-                            </div>
+            const bu = settings.businessUnits.find(b => b.id === window.selectedAdminBuId);
+            if (btnAddPractice) btnAddPractice.style.display = 'block';
+            if (activeBuName) activeBuName.textContent = `(for ${bu.name})`;
+            
+            prList.innerHTML = '';
+            if (!bu.practices || bu.practices.length === 0) {
+                prList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">No practices found for this Business Unit.</div>';
+            } else {
+                bu.practices.forEach(p => {
+                    prList.innerHTML += `
+                        <div class="mb-2 p-2 rounded" style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.05);">
+                            <span>${p.name}</span>
+                            <span class="text-danger" style="cursor: pointer; opacity: 0.7;" onclick="window.deleteBuPractice('${bu.id}', '${p.id}')"><i class="fa-solid fa-trash"></i></span>
                         </div>
-                        <div class="tree-item-children ps-4 pt-2 hidden" id="children-tes-${tes.id}">
-                            ${tasksHtml || '<div class="text-muted" style="font-size: 12px; margin-bottom: 8px;">No tasks found</div>'}
+                    `;
+                });
+            }
+        }
+    }
+
+    // 3. Render TES Categories List
+    const tesList = document.getElementById('admin-grid-tes-list');
+    if (tesList) {
+        tesList.innerHTML = '';
+        if (settings.tesCategories.length === 0) {
+            tesList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">No TES Categories found.</div>';
+        } else {
+            if (!settings.tesCategories.find(t => t.id === window.selectedAdminTesId)) {
+                window.selectedAdminTesId = settings.tesCategories.length > 0 ? settings.tesCategories[0].id : null;
+            }
+
+            settings.tesCategories.forEach(tes => {
+                const isActive = tes.id === window.selectedAdminTesId;
+                const bgStyle = isActive ? 'background: rgba(0, 200, 83, 0.1); border-left: 3px solid var(--success);' : 'background: rgba(0,0,0,0.02); border-left: 3px solid transparent;';
+                const textStyle = isActive ? 'color: var(--success); font-weight: 600;' : 'color: var(--text-color);';
+
+                tesList.innerHTML += `
+                    <div class="p-2 px-3 mb-2 rounded" style="display: flex; align-items: center; cursor: pointer; ${bgStyle} transition: all 0.2s;" onclick="window.selectedAdminTesId='${tes.id}'; window.renderAdminCategoriesConfig();">
+                        <strong style="font-size: 14px; ${textStyle}">${tes.name}</strong>
+                        <div style="margin-left: auto; display: flex; gap: 12px;">
+                            <span class="text-danger" style="cursor: pointer; opacity: 0.7;" onclick="window.deleteTes('${tes.id}'); event.stopPropagation();" title="Delete"><i class="fa-solid fa-trash"></i></span>
                         </div>
                     </div>
                 `;
             });
         }
     }
+
+    // 4. Render Tasks List
+    const taskList = document.getElementById('admin-grid-tasks-list');
+    const btnAddTask = document.getElementById('btn-add-task');
+    const activeTesName = document.getElementById('grid-active-tes-name');
+    if (taskList) {
+        if (!window.selectedAdminTesId) {
+            taskList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">Select a TES Category to view tasks</div>';
+            if (btnAddTask) btnAddTask.style.display = 'none';
+            if (activeTesName) activeTesName.textContent = '';
+        } else {
+            const tes = settings.tesCategories.find(t => t.id === window.selectedAdminTesId);
+            if (btnAddTask) btnAddTask.style.display = 'block';
+            if (activeTesName) activeTesName.textContent = `(for ${tes.name})`;
+            
+            taskList.innerHTML = '';
+            if (!tes.tasks || tes.tasks.length === 0) {
+                taskList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">No tasks found for this Category.</div>';
+            } else {
+                tes.tasks.forEach(t => {
+                    taskList.innerHTML += `
+                        <div class="mb-2 p-2 rounded" style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.05);">
+                            <span>${t.name}</span>
+                            <span class="text-danger" style="cursor: pointer; opacity: 0.7;" onclick="window.deleteTesTask('${tes.id}', '${t.id}')"><i class="fa-solid fa-trash"></i></span>
+                        </div>
+                    `;
+                });
+            }
+        }
+    }
+};
+
+window.renderProductivitySettings = function() {
+    if (window.renderAdminCategoriesConfig) window.renderAdminCategoriesConfig();
 };
 
 window.toggleTree = function(id) {

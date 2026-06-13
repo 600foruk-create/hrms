@@ -1558,43 +1558,70 @@
                             </div>
                         </div>
 
-                        <!-- Unified Productivity Layout -->
-                        <div class="mt-4" style="display: flex; gap: 24px; align-items: stretch;">
-                            <!-- Left Sidebar: Categories Config (Tree View) -->
-                            <div style="flex: 0 0 32%; max-width: 32%;">
-                                <!-- Business Units Tree -->
-                                <div class="section-card bg-glass mb-3 p-0 overflow-hidden" style="border-radius: 8px;">
-                                    <div class="p-2 px-3 border-bottom" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05);">
-                                        <h3 class="mb-0" style="font-size: 16px; color: var(--primary-color);">Business Units</h3>
+                        <!-- Productivity Tabs Navigation -->
+                        <ul class="nav nav-tabs custom-tabs border-bottom-0 mb-4 mt-4" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" data-bs-toggle="tab" href="#admin-subtab-config" role="tab" style="cursor: pointer;" onclick="if(window.renderAdminCategoriesConfig) window.renderAdminCategoriesConfig()">Categories Config</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#admin-subtab-logs" role="tab" style="cursor: pointer;" onclick="if(window.renderAdminProductivityTab) window.renderAdminProductivityTab()">Live Productivity Logs</a>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content">
+                            <!-- Sub Tab 1: Categories Config (2x2 Grid) -->
+                            <div class="tab-pane fade show active" id="admin-subtab-config" role="tabpanel">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 24px;">
+                                    
+                                    <!-- Row 1, Col 1: Business Units -->
+                                    <div class="section-card bg-glass p-0 overflow-hidden" style="border-radius: 8px; display: flex; flex-direction: column; height: 350px;">
+                                        <div class="p-2 px-3 border-bottom" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05);">
+                                            <h3 class="mb-0" style="font-size: 16px; color: var(--primary-color);">Business Units</h3>
+                                            <button class="btn btn-sm btn-primary" style="padding: 2px 8px; font-size: 12px; border-radius: 4px;" onclick="window.addBuModal()"><i class="fa-solid fa-plus"></i> Add</button>
+                                        </div>
+                                        <div class="p-2 px-3" id="admin-grid-bu-list" style="flex: 1; overflow-y: auto;">
+                                            <!-- Dynamic BU List -->
+                                        </div>
                                     </div>
-                                    <div class="p-2 px-3" id="admin-bu-tree" style="max-height: 250px; overflow-y: auto;">
-                                        <!-- Dynamic Tree -->
+                                    
+                                    <!-- Row 1, Col 2: Practices -->
+                                    <div class="section-card bg-glass p-0 overflow-hidden" style="border-radius: 8px; display: flex; flex-direction: column; height: 350px;">
+                                        <div class="p-2 px-3 border-bottom" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05);">
+                                            <h3 class="mb-0" style="font-size: 16px; color: var(--primary-color);">Practices <span id="grid-active-bu-name" style="font-size: 12px; color: var(--text-secondary); font-weight: normal; margin-left: 8px;"></span></h3>
+                                            <button class="btn btn-sm btn-primary" id="btn-add-practice" style="padding: 2px 8px; font-size: 12px; border-radius: 4px; display: none;" onclick="window.addBuPracticeModal(window.selectedAdminBuId)"><i class="fa-solid fa-plus"></i> Add</button>
+                                        </div>
+                                        <div class="p-2 px-3" id="admin-grid-practices-list" style="flex: 1; overflow-y: auto;">
+                                            <div class="text-secondary text-center" style="margin-top: 40px; font-size: 13px;">Select a Business Unit to view practices</div>
+                                        </div>
                                     </div>
-                                    <div class="p-2 px-3 text-center border-top">
-                                        <button class="w-100 py-2" style="background: transparent; border: 1px dashed var(--primary-color); color: var(--primary-color); border-radius: 6px; font-size: 13px; cursor: pointer;" onclick="window.addBuModal()">
-                                            <i class="fa-solid fa-plus-circle me-1"></i> Add Business Unit
-                                        </button>
+
+                                    <!-- Row 2, Col 1: TES Categories -->
+                                    <div class="section-card bg-glass p-0 overflow-hidden" style="border-radius: 8px; display: flex; flex-direction: column; height: 350px;">
+                                        <div class="p-2 px-3 border-bottom" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05);">
+                                            <h3 class="mb-0" style="font-size: 16px; color: var(--success);">TES Categories</h3>
+                                            <button class="btn btn-sm btn-success" style="padding: 2px 8px; font-size: 12px; border-radius: 4px;" onclick="window.addTesModal()"><i class="fa-solid fa-plus"></i> Add</button>
+                                        </div>
+                                        <div class="p-2 px-3" id="admin-grid-tes-list" style="flex: 1; overflow-y: auto;">
+                                            <!-- Dynamic TES List -->
+                                        </div>
                                     </div>
-                                </div>
-                                
-                                <!-- TES Categories Tree -->
-                                <div class="section-card bg-glass p-0 overflow-hidden" style="border-radius: 8px;">
-                                    <div class="p-2 px-3 border-bottom" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05);">
-                                        <h3 class="mb-0" style="font-size: 16px; color: var(--success);">TES Categories</h3>
+
+                                    <!-- Row 2, Col 2: Tasks -->
+                                    <div class="section-card bg-glass p-0 overflow-hidden" style="border-radius: 8px; display: flex; flex-direction: column; height: 350px;">
+                                        <div class="p-2 px-3 border-bottom" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05);">
+                                            <h3 class="mb-0" style="font-size: 16px; color: var(--success);">Tasks <span id="grid-active-tes-name" style="font-size: 12px; color: var(--text-secondary); font-weight: normal; margin-left: 8px;"></span></h3>
+                                            <button class="btn btn-sm btn-success" id="btn-add-task" style="padding: 2px 8px; font-size: 12px; border-radius: 4px; display: none;" onclick="window.addTesTaskModal(window.selectedAdminTesId)"><i class="fa-solid fa-plus"></i> Add</button>
+                                        </div>
+                                        <div class="p-2 px-3" id="admin-grid-tasks-list" style="flex: 1; overflow-y: auto;">
+                                            <div class="text-secondary text-center" style="margin-top: 40px; font-size: 13px;">Select a TES Category to view tasks</div>
+                                        </div>
                                     </div>
-                                    <div class="p-2 px-3" id="admin-tes-tree" style="max-height: 250px; overflow-y: auto;">
-                                        <!-- Dynamic Tree -->
-                                    </div>
-                                    <div class="p-2 px-3 text-center border-top">
-                                        <button class="w-100 py-2" style="background: transparent; border: 1px dashed var(--success); color: var(--success); border-radius: 6px; font-size: 13px; cursor: pointer;" onclick="window.addTesModal()">
-                                            <i class="fa-solid fa-plus-circle me-1"></i> Add TES Category
-                                        </button>
-                                    </div>
+
                                 </div>
                             </div>
-                            
-                            <!-- Right Column: Live Productivity Logs -->
-                            <div style="flex: 1; min-width: 0;">
+
+                            <!-- Sub Tab 2: Live Productivity Logs -->
+                            <div class="tab-pane fade" id="admin-subtab-logs" role="tabpanel">
                                 <div class="section-card bg-glass p-0 overflow-hidden" style="border-radius: 8px; display: flex; flex-direction: column; min-height: calc(100vh - 180px);">
                                     <div class="p-4 border-bottom" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
                                         <div>
@@ -1609,13 +1636,13 @@
                                     <!-- Filters Row -->
                                     <div id="admin-prod-filters" class="hidden border-bottom" style="background: rgba(0,0,0,0.01);">
                                         <div class="p-2 px-4" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                                        <input type="date" id="admin-log-filter-date" class="form-control" style="max-width: 140px; font-size: 12px; padding: 4px 8px; height: 30px;">
-                                        <select id="admin-log-filter-employee" class="form-select" style="max-width: 140px; font-size: 12px; padding: 4px 8px; height: 30px;">
-                                            <option value="">All Employees</option>
-                                        </select>
-                                        <select id="admin-log-filter-category" class="form-select" style="max-width: 140px; font-size: 12px; padding: 4px 8px; height: 30px;">
-                                            <option value="">All Categories</option>
-                                        </select>
+                                            <input type="date" id="admin-log-filter-date" class="form-control" style="max-width: 140px; font-size: 12px; padding: 4px 8px; height: 30px;">
+                                            <select id="admin-log-filter-employee" class="form-select" style="max-width: 140px; font-size: 12px; padding: 4px 8px; height: 30px;">
+                                                <option value="">All Employees</option>
+                                            </select>
+                                            <select id="admin-log-filter-category" class="form-select" style="max-width: 140px; font-size: 12px; padding: 4px 8px; height: 30px;">
+                                                <option value="">All Categories</option>
+                                            </select>
                                             <button class="btn btn-primary" style="padding: 4px 12px; font-size: 12px; height: 30px; border-radius: 4px;" onclick="window.renderAdminProductivityTab()">Search</button>
                                         </div>
                                     </div>
