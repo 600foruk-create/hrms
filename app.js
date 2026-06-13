@@ -784,7 +784,7 @@ function renderAdminDashboard() {
 
     const adminTitle = document.getElementById('admin-welcome-title');
     if (adminTitle && currentUser) {
-        adminTitle.innerHTML = `${getGreeting()}, ${currentUser.name}! 👋`;
+        adminTitle.innerHTML = `${getGreeting()}, ${currentUser.name}! ðŸ‘‹`;
     }
 
     // Set current date
@@ -962,7 +962,7 @@ function renderAdminDashboard() {
                             <div class="avatar-small" style="background: var(--primary); color: #fff; width: 32px; height: 32px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center;">${initials}</div>
                             <div style="display: flex; flex-direction: column;">
                                 <span style="font-size: 13px; font-weight: 700; color: #fff;">${task.employeeName || 'Employee'}</span>
-                                <span style="font-size: 11px; color: var(--text-secondary);">${(task.tasks || []).join(', ') || 'Productivity Log'} â€¢ Score: <strong>${task.score || 'N/A'}</strong></span>
+                                <span style="font-size: 11px; color: var(--text-secondary);">${(task.tasks || []).join(', ') || 'Productivity Log'} Ã¢â‚¬Â¢ Score: <strong>${task.score || 'N/A'}</strong></span>
                             </div>
                         </div>
                         ${actionButtons}
@@ -1797,7 +1797,7 @@ function renderManagerDashboard() {
     
     const managerTitle = document.getElementById('manager-welcome-title');
     if (managerTitle && currentUser) {
-        managerTitle.innerHTML = `${getGreeting()}, ${currentUser.name}! 👋`;
+        managerTitle.innerHTML = `${getGreeting()}, ${currentUser.name}! ðŸ‘‹`;
     }
 
     const teamMembers = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
@@ -2149,7 +2149,7 @@ function renderManagerLeaveTab() {
                         <td>${l.startDate} to ${l.endDate}</td>
                         <td class="italic">"${l.reason}"</td>
                         <td><span class="badge-status ${statusClass}">${l.status}</span></td>
-                        <td><span class="text-muted italic">${l.comments || '—'}</span></td>
+                        <td><span class="text-muted italic">${l.comments || 'â€”'}</span></td>
                         <td>${actionsHTML}</td>
                     </tr>
                 `;
@@ -2175,7 +2175,7 @@ function renderManagerLeaveTab() {
                         <td>${l.startDate} to ${l.endDate}</td>
                         <td class="italic">"${l.reason}"</td>
                         <td><span class="badge-status ${statusClass}">${l.status}</span></td>
-                        <td><span class="text-muted italic">${l.comments || '—'}</span></td>
+                        <td><span class="text-muted italic">${l.comments || 'â€”'}</span></td>
                     </tr>
                 `;
             });
@@ -2222,7 +2222,7 @@ function renderEmployeeDashboard() {
     
     const employeeTitle = document.getElementById('employee-welcome-title');
     if (employeeTitle && currentUser) {
-        employeeTitle.innerHTML = `${getGreeting()}, ${currentUser.name}! 👋`;
+        employeeTitle.innerHTML = `${getGreeting()}, ${currentUser.name}! ðŸ‘‹`;
     }
 
     // Top Metric Cards
@@ -2486,7 +2486,7 @@ function renderEmployeeLeaveTab() {
                     <td>${l.endDate}</td>
                     <td class="italic">"${l.reason}"</td>
                     <td><span class="badge-status ${statusClass}">${l.status}</span></td>
-                    <td><span class="text-muted italic">${l.comments || '—'}</span></td>
+                    <td><span class="text-muted italic">${l.comments || 'â€”'}</span></td>
                 </tr>
             `;
         });
@@ -3373,7 +3373,7 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
             else if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
         }
     } else {
-        // Create Mode — use the admin-entered Employee ID as the actual primary ID
+        // Create Mode â€” use the admin-entered Employee ID as the actual primary ID
         if (password.length < 6) {
             showToast("Password Error", "Password must be at least 6 characters.", "error");
             return;
@@ -3601,7 +3601,7 @@ document.getElementById('leave-request-form').addEventListener('submit', (e) => 
     refreshTabContent(activeTab);
 });
 
-// Old productivity review modal removed — now handled by productivity.js
+// Old productivity review modal removed â€” now handled by productivity.js
 
 
 // 6. Manual Attendance Logger Form
@@ -4050,7 +4050,7 @@ window.enableAddNewLeaveType = function () {
 
 
 
-// Old productivity multi-select form logic removed — now handled by productivity.js
+// Old productivity multi-select form logic removed â€” now handled by productivity.js
 
 
 // ==================== REPORTS & EXPORT SHEETS ====================
@@ -4335,7 +4335,7 @@ function generateReport(roleContext) {
                     <td><span class="badge-role employee">${log.type}</span></td>
                     <td>${log.startDate} to ${log.endDate}</td>
                     <td><span class="badge-status ${statusClass}">${log.status}</span></td>
-                    <td class="italic">${log.comments || 'â€”'}</td>
+                    <td class="italic">${log.comments || 'Ã¢â‚¬â€'}</td>
                 </tr>
             `;
         });
@@ -5089,207 +5089,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // Document dropzone â€“ handle new files and append
+    // Document dropzone Ã¢â‚¬â€œ handle new files and append
     window.onDocumentsSelected = async (zone, files) => {
         if (!window.tempDocuments) window.tempDocuments = [];
 
         for (let i = 0; i < files.length; i++) {
             const f = files[i];
-            const dataUrl = await new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = e => resolve(e.target.result);
-                reader.readAsDataURL(f);
-            });
-            window.tempDocuments.push({ name: f.name, data: dataUrl });
-        }
-
-        window.renderDocumentsDropzone(zone);
-    };
-    setupDropzone('dropzone-documents', 'emp-documents-input', window.onDocumentsSelected);
-
-
-
-    const prevSession = localStorage.getItem('current_user');
-    if (prevSession) {
-
-        currentUser = JSON.parse(prevSession);
-        
-        // Apply Custom Theme if exists
-        const cachedDb = JSON.parse(localStorage.getItem('hrms_fallback_db') || '{}');
-        const sysSettings = cachedDb.systemSettings || {};
-        if (sysSettings.themeColor) {
-            document.documentElement.style.setProperty('--primary', sysSettings.themeColor);
-        } else {
-            document.documentElement.style.setProperty('--primary', '#5f3bf6'); // Default
-        }
-        
-        const authPanel = document.getElementById('auth-panel');
-        const appShell = document.getElementById('app-shell');
-        if (authPanel) {
-            authPanel.classList.add('hidden');
-            authPanel.style.setProperty('display', 'none', 'important');
-        }
-        if (appShell) {
-            appShell.classList.remove('hidden');
-            appShell.style.setProperty('display', 'flex', 'important');
-        }
-        document.body.classList.remove('login-view');
-        renderSidebar();
-        const savedTab = localStorage.getItem('active_tab') || 'dashboard';
-        switchTab(savedTab);
-        setupSessionTimer();
-        showToast("Session Restored", `Welcome back, ${currentUser.name}.`);
-    }
-});
-
-
-// ==================== ID CARD LOGIC ====================
-window.onIdCardFrontSelected = function (dropzone, files) {
-    if (!files || !files.length) return;
-    const file = files[0];
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const b64 = e.target.result;
-        document.getElementById('company-profile-form').dataset.idCardFrontBase64 = b64;
-        dropzone.innerHTML = `
-            <img src="${b64}" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
-            <div style="font-size: 11px; color: var(--text-muted);">Click to change Front Template</div>
-            <input type="file" id="comp-idcard-front-input" accept="image/*" style="display:none;">
-        `;
-        const newInput = dropzone.querySelector('#comp-idcard-front-input');
-        if (newInput) {
-            newInput.addEventListener('change', () => { if (newInput.files.length) window.onIdCardFrontSelected(dropzone, newInput.files); });
-            dropzone.addEventListener('click', () => newInput.click(), { once: true });
-        }
-    };
-    reader.readAsDataURL(file);
-};
-
-window.onIdCardBackSelected = function (dropzone, files) {
-    if (!files || !files.length) return;
-    const file = files[0];
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const b64 = e.target.result;
-        document.getElementById('company-profile-form').dataset.idCardBackBase64 = b64;
-        dropzone.innerHTML = `
-            <img src="${b64}" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
-            <div style="font-size: 11px; color: var(--text-muted);">Click to change Back Template</div>
-            <input type="file" id="comp-idcard-back-input" accept="image/*" style="display:none;">
-        `;
-        const newInput = dropzone.querySelector('#comp-idcard-back-input');
-        if (newInput) {
-            newInput.addEventListener('change', () => { if (newInput.files.length) window.onIdCardBackSelected(dropzone, newInput.files); });
-            dropzone.addEventListener('click', () => newInput.click(), { once: true });
-        }
-    };
-    reader.readAsDataURL(file);
-};
-
-window.openIdCardModal = function (userId) {
-    const db = getDb();
-    const user = db.users.find(u => u.id === userId);
-    if (!user) return;
-    const cp = (!db.companyProfile || Array.isArray(db.companyProfile)) ? {} : db.companyProfile;
-
-    const frontLogo = document.getElementById('id-card-front-logo');
-    const backLogo = document.getElementById('id-card-back-logo');
-    if (cp.logoBase64) {
-        if(frontLogo) { frontLogo.src = cp.logoBase64; frontLogo.style.display = 'block'; }
-        if(backLogo) { backLogo.src = cp.logoBase64; backLogo.style.display = 'block'; }
-    } else {
-        if(frontLogo) frontLogo.style.display = 'none';
-        if(backLogo) backLogo.style.display = 'none';
-    }
-
-    const frontCompanyName = document.getElementById('id-card-front-company-name');
-    if (frontCompanyName) {
-        if (cp.name) {
-            frontCompanyName.textContent = cp.name;
-            frontCompanyName.style.display = 'block';
-        } else {
-            frontCompanyName.style.display = 'none';
-        }
-    }
-
-    const avatarImg = document.getElementById('id-card-avatar');
-    const avatarPlaceholder = document.getElementById('id-card-avatar-placeholder');
-    if (user.profilePic) {
-        if(avatarImg) { avatarImg.src = user.profilePic; avatarImg.style.display = 'block'; }
-        if(avatarPlaceholder) avatarPlaceholder.style.display = 'none';
-    } else {
-        if(avatarImg) avatarImg.style.display = 'none';
-        if(avatarPlaceholder) avatarPlaceholder.style.display = 'block';
-    }
-
-    const signatureImg = document.getElementById('id-card-signature');
-    const signaturePlaceholder = document.getElementById('id-card-signature-placeholder');
-    if (cp.signatureBase64) {
-        if(signatureImg) { signatureImg.src = cp.signatureBase64; signatureImg.style.display = 'block'; }
-        if(signaturePlaceholder) signaturePlaceholder.style.display = 'none';
-    } else {
-        if(signatureImg) signatureImg.style.display = 'none';
-        if(signaturePlaceholder) signaturePlaceholder.style.display = 'block';
-    }
-
-    document.getElementById('id-card-name').textContent = user.name || '';
-    document.getElementById('id-card-designation').textContent = user.designation || '';
-    document.getElementById('id-card-id').textContent = user.displayId || user.id || '';
-    document.getElementById('id-card-dept').textContent = user.department || 'Operations';
-
-    document.getElementById('id-card-guardian').textContent = user.fatherName || '';
-    document.getElementById('id-card-cnic').textContent = user.cnic || '';
-    document.getElementById('id-card-emergency').textContent = user.emergencyContact || user.phone || '';
-    document.getElementById('id-card-blood').textContent = user.bloodGroup || '';
-
-    let joinDate = user.startDate || '';
-    if (joinDate) {
-        const d = new Date(joinDate);
-        if (!isNaN(d.getTime())) {
-            joinDate = d.toLocaleDateString('en-GB'); // dd/mm/yyyy
-        }
-    }
-    document.getElementById('id-card-join').textContent = joinDate;
-
-    document.getElementById('id-card-address').textContent = cp.address || '';
-    document.getElementById('id-card-company-phone').textContent = cp.phone || '';
-    document.getElementById('id-card-website').textContent = cp.website || '';
-
-    openModal('modal-id-card');
-};
-
-window.printIdCard = function () {
-    document.body.classList.add('printing-modal');
-    window.print();
-    document.body.classList.remove('printing-modal');
-};
-
-
-// ==========================================
-// NEW PRODUCTIVITY MODULE (BU / TES)
-// ==========================================
-
-function getProdSettings() {
-    const db = getDb();
-    if (!db.systemSettings) db.systemSettings = {};
-    if (!db.systemSettings.productivityCategories) {
-        db.systemSettings.productivityCategories = JSON.stringify({
-            businessUnits: [],
-            tesCategories: []
-        });
-    }
-    try {
-        return JSON.parse(db.systemSettings.productivityCategories);
-    } catch(e) {
-        return { businessUnits: [], tesCategories: [] };
-    }
-}
-
-function saveProdSettings(settings) {
-    const db = getDb();
-    if (!db.systemSettings) db.systemSettings = {};
-    db.systemSettings.productivityCategories = JSON.stringify(settings);
-    saveDb(db);
             const dataUrl = await new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.onload = e => resolve(e.target.result);
@@ -5695,6 +5500,280 @@ window.addBuModal = function() {
             if (!name) Swal.showValidationMessage('Name is required');
             return name;
         }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const settings = getProdSettings();
+            settings.businessUnits.push({ id: generateId('BU'), name: result.value, practices: [] });
+            saveProdSettings(settings);
+            showToast('Success', 'Business Unit added');
+        }
+    });
+};
+
+window.deleteSelectedBu = function() {
+    const id = window.selectedAdminBuId;
+    if (!id) return;
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This will delete the Business Unit and all its practices.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const settings = getProdSettings();
+            settings.businessUnits = settings.businessUnits.filter(bu => bu.id !== id);
+            saveProdSettings(settings);
+            window.selectedAdminBuId = null;
+            showToast('Deleted', 'Business Unit removed');
+        }
+    });
+};
+
+window.editSelectedBu = function() {
+    const id = window.selectedAdminBuId;
+    if (!id) return;
+    const settings = getProdSettings();
+    const bu = settings.businessUnits.find(b => b.id === id);
+    if (!bu) return;
+    Swal.fire({
+        title: 'Edit Business Unit',
+        input: 'text',
+        inputValue: bu.name,
+        inputPlaceholder: 'Enter Business Unit name',
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        preConfirm: (name) => {
+            if (!name) Swal.showValidationMessage('Name is required');
+            return name;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            bu.name = result.value;
+            saveProdSettings(settings);
+            showToast('Success', 'Business Unit updated');
+        }
+    });
+};
+
+window.addBuPracticeModal = function(buId) {
+    Swal.fire({
+        title: 'Add Practice',
+        input: 'text',
+        inputPlaceholder: 'Enter Practice name',
+        showCancelButton: true,
+        confirmButtonText: 'Add',
+        preConfirm: (name) => {
+            if (!name) Swal.showValidationMessage('Name is required');
+            return name;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const settings = getProdSettings();
+            const bu = settings.businessUnits.find(b => b.id === buId);
+            if (bu) {
+                bu.practices.push({ id: generateId('P'), name: result.value });
+                saveProdSettings(settings);
+                showToast('Success', 'Practice added');
+            }
+        }
+    });
+};
+
+window.deleteSelectedPractice = function() {
+    const buId = window.selectedAdminBuId;
+    const pId = window.selectedAdminPracticeId;
+    if (!buId || !pId) return;
+    Swal.fire({
+        title: 'Delete Practice?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Delete'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const settings = getProdSettings();
+            const bu = settings.businessUnits.find(b => b.id === buId);
+            if (bu) {
+                bu.practices = bu.practices.filter(p => p.id !== pId);
+                saveProdSettings(settings);
+                window.selectedAdminPracticeId = null;
+                showToast('Deleted', 'Practice removed');
+            }
+        }
+    });
+};
+
+window.editSelectedPractice = function() {
+    const buId = window.selectedAdminBuId;
+    const pId = window.selectedAdminPracticeId;
+    if (!buId || !pId) return;
+    const settings = getProdSettings();
+    const bu = settings.businessUnits.find(b => b.id === buId);
+    if (!bu) return;
+    const practice = bu.practices.find(p => p.id === pId);
+    if (!practice) return;
+    Swal.fire({
+        title: 'Edit Practice',
+        input: 'text',
+        inputValue: practice.name,
+        inputPlaceholder: 'Enter Practice name',
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        preConfirm: (name) => {
+            if (!name) Swal.showValidationMessage('Name is required');
+            return name;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            practice.name = result.value;
+            saveProdSettings(settings);
+            showToast('Success', 'Practice updated');
+        }
+    });
+};
+
+window.addTesModal = function() {
+    Swal.fire({
+        title: 'Add TES Category',
+        input: 'text',
+        inputPlaceholder: 'Enter TES Category name',
+        showCancelButton: true,
+        confirmButtonText: 'Add',
+        preConfirm: (name) => {
+            if (!name) Swal.showValidationMessage('Name is required');
+            return name;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const settings = getProdSettings();
+            settings.tesCategories.push({ id: generateId('TC'), name: result.value, tasks: [] });
+            saveProdSettings(settings);
+            showToast('Success', 'TES Category added');
+        }
+    });
+};
+
+window.deleteSelectedTes = function() {
+    const id = window.selectedAdminTesId;
+    if (!id) return;
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This will delete the TES Category and all its tasks.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const settings = getProdSettings();
+            settings.tesCategories = settings.tesCategories.filter(tc => tc.id !== id);
+            saveProdSettings(settings);
+            window.selectedAdminTesId = null;
+            showToast('Deleted', 'TES Category removed');
+        }
+    });
+};
+
+window.editSelectedTes = function() {
+    const id = window.selectedAdminTesId;
+    if (!id) return;
+    const settings = getProdSettings();
+    const tes = settings.tesCategories.find(tc => tc.id === id);
+    if (!tes) return;
+    Swal.fire({
+        title: 'Edit TES Category',
+        input: 'text',
+        inputValue: tes.name,
+        inputPlaceholder: 'Enter TES Category name',
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        preConfirm: (name) => {
+            if (!name) Swal.showValidationMessage('Name is required');
+            return name;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            tes.name = result.value;
+            saveProdSettings(settings);
+            showToast('Success', 'TES Category updated');
+        }
+    });
+};
+
+window.addTesTaskModal = function(tesId) {
+    Swal.fire({
+        title: 'Add Task',
+        input: 'text',
+        inputPlaceholder: 'Enter Task name',
+        showCancelButton: true,
+        confirmButtonText: 'Add',
+        preConfirm: (name) => {
+            if (!name) Swal.showValidationMessage('Name is required');
+            return name;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const settings = getProdSettings();
+            const tes = settings.tesCategories.find(t => t.id === tesId);
+            if (tes) {
+                tes.tasks.push({ id: generateId('T'), name: result.value });
+                saveProdSettings(settings);
+                showToast('Success', 'Task added');
+            }
+        }
+    });
+};
+
+window.deleteSelectedTask = function() {
+    const tesId = window.selectedAdminTesId;
+    const taskId = window.selectedAdminTaskId;
+    if (!tesId || !taskId) return;
+    Swal.fire({
+        title: 'Delete Task?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Delete'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const settings = getProdSettings();
+            const tes = settings.tesCategories.find(t => t.id === tesId);
+            if (tes) {
+                tes.tasks = tes.tasks.filter(t => t.id !== taskId);
+                saveProdSettings(settings);
+                window.selectedAdminTaskId = null;
+                showToast('Deleted', 'Task removed');
+            }
+        }
+    });
+};
+
+window.editSelectedTask = function() {
+    const tesId = window.selectedAdminTesId;
+    const taskId = window.selectedAdminTaskId;
+    if (!tesId || !taskId) return;
+    const settings = getProdSettings();
+    const tes = settings.tesCategories.find(t => t.id === tesId);
+    if (!tes) return;
+    const task = tes.tasks.find(t => t.id === taskId);
+    if (!task) return;
+    Swal.fire({
+        title: 'Edit Task',
+        input: 'text',
+        inputValue: task.name,
+        inputPlaceholder: 'Enter Task name',
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        preConfirm: (name) => {
+            if (!name) Swal.showValidationMessage('Name is required');
+            return name;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            task.name = result.value;
+            saveProdSettings(settings);
+            showToast('Success', 'Task updated');
+        }
+    });
+};
 // --------- EMPLOYEE SUBMISSION FORM LOGIC ---------
 window.toggleEptProdType = function() {
     const type = document.querySelector('input[name="ept-prod-type"]:checked')?.value || 'BU';
