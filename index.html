@@ -1559,18 +1559,18 @@
                         </div>
 
                         <!-- Productivity Tabs Navigation -->
-                        <ul class="nav nav-tabs custom-tabs border-bottom-0 mb-4 mt-4" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link active" data-bs-toggle="tab" href="#admin-subtab-config" role="tab" style="cursor: pointer;" onclick="if(window.renderAdminCategoriesConfig) window.renderAdminCategoriesConfig()">Categories Config</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" data-bs-toggle="tab" href="#admin-subtab-logs" role="tab" style="cursor: pointer;" onclick="if(window.renderAdminProductivityTab) window.renderAdminProductivityTab()">Live Productivity Logs</a>
-                            </li>
-                        </ul>
+                        <div class="sub-tab-nav mb-4 mt-4">
+                            <button class="btn-sub-tab active" data-target="admin-subtab-config" onclick="if(window.renderAdminCategoriesConfig) window.renderAdminCategoriesConfig()">
+                                <i class="fa-solid fa-layer-group"></i> Categories Config
+                            </button>
+                            <button class="btn-sub-tab" data-target="admin-subtab-logs" onclick="if(window.renderAdminProductivityTab) window.renderAdminProductivityTab()">
+                                <i class="fa-solid fa-clock-rotate-left"></i> Live Productivity Logs
+                            </button>
+                        </div>
 
-                        <div class="tab-content">
+                        <div>
                             <!-- Sub Tab 1: Categories Config (2x2 Grid) -->
-                            <div class="tab-pane fade show active" id="admin-subtab-config" role="tabpanel">
+                            <div id="admin-subtab-config" class="sub-tab-content active">
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 24px;">
                                     
                                     <!-- Row 1, Col 1: Business Units -->
@@ -1621,7 +1621,7 @@
                             </div>
 
                             <!-- Sub Tab 2: Live Productivity Logs -->
-                            <div class="tab-pane fade" id="admin-subtab-logs" role="tabpanel">
+                            <div id="admin-subtab-logs" class="sub-tab-content hidden">
                                 <div class="section-card bg-glass p-0 overflow-hidden" style="border-radius: 8px; display: flex; flex-direction: column; min-height: calc(100vh - 180px);">
                                     <div class="p-4 border-bottom" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
                                         <div>
