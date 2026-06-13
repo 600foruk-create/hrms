@@ -6326,40 +6326,92 @@ window.renderManagerProductivityTab = function () {
     teamLogs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     if (teamLogs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No team productivity logs found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No team productivity logs found</td></tr>';
         return;
     }
 
+    // Group logs by employee and date
+    const groupedLogs = {};
     teamLogs.forEach(log => {
-        const emp = team.find(u => String(u.id) === String(log.employee_id));
-        const docLink = log.doc_path && log.doc_path !== '-'
-            ? `<a href="${log.doc_path}" target="_blank" style="text-decoration: underline; color: var(--primary-color);"><i class="fa-solid fa-file"></i> View Doc</a>`
-            : '-';
+        const key = `${log.employee_id}_${log.date}`;
+        if (!groupedLogs[key]) {
+            groupedLogs[key] = {
+                employee_id: log.employee_id,
+                date: log.date,
+                totalScore: 0,
+                logs: []
+            };
+        }
+        groupedLogs[key].logs.push(log);
+        groupedLogs[key].totalScore += parseFloat(log.score_percentage) || 0;
+    });
 
+    Object.values(groupedLogs).forEach((group, index) => {
+        const emp = team.find(u => String(u.id) === String(group.employee_id)) || { name: 'Unknown', avatar: 'assets/images/default-avatar.png' };
+        let finalScore = group.totalScore > 100 ? 100 : group.totalScore;
+        const groupId = `mgr-group-${index}`;
+
+        // Parent Row
         tbody.innerHTML += `
-            <tr>
-                <td>${log.date}</td>
+            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05); background: #fdfdfd;">
+                <td style="font-weight: 500;">${group.date}</td>
                 <td>
                     <div style="display:flex; align-items:center; gap:8px;">
                         <img src="${emp.avatar || 'assets/images/default-avatar.png'}" style="width:24px; height:24px; border-radius:50%; object-fit:cover;">
-                        ${emp.name}
+                        <span style="font-weight: 600;">${emp.name}</span>
                     </div>
                 </td>
-                <td><span class="badge-role" style="background: rgba(15, 52, 132, 0.1); color: var(--primary-color);">${log.category}</span></td>
-                <td>${log.sub_category || '-'}</td>
-                <td>${log.electronic_mins || 0} mins</td>
-                <td>${log.manual_mins || 0} mins</td>
-                <td>${log.total_mins} mins</td>
-                <td>${docLink}</td>
+                <td><span style="font-weight:bold; color:var(--primary-color)">${finalScore.toFixed(1)}%</span></td>
                 <td>
-                    <button class="btn btn-sm btn-outline" onclick="showToast('Info', 'Log details viewing coming soon!')">View</button>
+                    <button class="btn btn-sm btn-outline" onclick="window.toggleProdGroup('${groupId}')">View</button>
                 </td>
-                <td>
-                    <span style="font-weight:bold; color:var(--primary-color)">${log.score_percentage}%</span>
+            </tr>
+        `;
+
+        // Child Rows container
+        let childRowsHtml = '';
+        group.logs.forEach(log => {
+            const docLink = log.doc_path && log.doc_path !== '-'
+                ? `<a href="${log.doc_path}" target="_blank" style="text-decoration: underline; color: var(--primary-color);"><i class="fa-solid fa-file"></i> View</a>`
+                : '-';
+            
+            childRowsHtml += `
+                <tr style="background: rgba(0,0,0,0.02); font-size: 12px;">
+                    <td style="padding: 0;">
+                        <div style="display: flex; justify-content: space-between; padding: 8px 20px; border-bottom: 1px solid rgba(0,0,0,0.03);">
+                            <div style="flex: 1;"><span style="color:var(--text-secondary)">Practice:</span> <span class="badge-role" style="background: rgba(15, 52, 132, 0.1); color: var(--primary-color); padding: 2px 6px;">${log.category}</span></div>
+                            <div style="flex: 1;"><span style="color:var(--text-secondary)">Task:</span> ${log.sub_category || '-'}</div>
+                            <div style="flex: 1;"><span style="color:var(--text-secondary)">Time:</span> ${log.total_mins} mins</div>
+                            <div style="flex: 1;"><span style="color:var(--text-secondary)">Doc:</span> ${docLink}</div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML += `
+            <tr id="${groupId}" class="hidden" style="display: none;">
+                <td colspan="4" style="padding: 0;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tbody>${childRowsHtml}</tbody>
+                    </table>
                 </td>
             </tr>
         `;
     });
+};
+
+window.toggleProdGroup = function(groupId) {
+    const row = document.getElementById(groupId);
+    if (row) {
+        if (row.style.display === 'none') {
+            row.style.display = 'table-row';
+            row.classList.remove('hidden');
+        } else {
+            row.style.display = 'none';
+            row.classList.add('hidden');
+        }
+    }
 };
 
 window.renderEmployeeProductivityTab = function () {
@@ -6456,56 +6508,91 @@ window.renderAdminProductivityTab = function () {
     const countSpan = document.getElementById('admin-prod-log-count');
     if (countSpan) countSpan.textContent = `Showing ${allLogs.length} logs`;
     
-    let totalScore = 0;
+    // Group logs by employee and date
+    const groupedLogs = {};
     allLogs.forEach(log => {
-        totalScore += parseFloat(log.score_percentage) || 0;
+        const key = `${log.employee_id}_${log.date}`;
+        if (!groupedLogs[key]) {
+            groupedLogs[key] = {
+                employee_id: log.employee_id,
+                date: log.date,
+                totalScore: 0,
+                logs: []
+            };
+        }
+        groupedLogs[key].logs.push(log);
+        groupedLogs[key].totalScore += parseFloat(log.score_percentage) || 0;
     });
-    if (totalScore > 100) totalScore = 100;
+
+    let totalScore = 0;
+    Object.values(groupedLogs).forEach(group => {
+        totalScore += group.totalScore > 100 ? 100 : group.totalScore;
+    });
     
     if (document.getElementById('admin-daily-score-display')) document.getElementById('admin-daily-score-display').textContent = `Total Score: ${totalScore.toFixed(1)}%`;
 
     tbody.innerHTML = '';
-    if (allLogs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted" style="padding: 20px;">No company productivity logs found for the selected filters</td></tr>';
+    if (Object.keys(groupedLogs).length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted" style="padding: 20px;">No company productivity logs found for the selected filters</td></tr>';
         return;
     }
 
-    allLogs.forEach(log => {
-        const emp = (db.users || []).find(u => String(u.id) === String(log.employee_id)) || { name: 'Unknown User' };
-
-        const hours = Math.floor(log.total_mins / 60);
-        const mins = log.total_mins % 60;
-        const durationStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
-
+    Object.values(groupedLogs).forEach((group, index) => {
+        const emp = (db.users || []).find(u => String(u.id) === String(group.employee_id)) || { name: 'Unknown User' };
+        let finalScore = group.totalScore > 100 ? 100 : group.totalScore;
+        const groupId = `admin-group-${index}`;
         const shortInitials = (emp.name || 'U').substring(0, 2).toUpperCase();
-        const docLink = log.doc_path && log.doc_path !== '-'
-            ? `<a href="${log.doc_path}" target="_blank" style="text-decoration: underline; color: var(--primary-color);"><i class="fa-solid fa-file"></i> View Doc</a>`
-            : '-';
 
+        // Parent Row
         tbody.innerHTML += `
-            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                <td style="font-weight: 500; color: var(--primary-color);">#LOG-${log.id}</td>
-                <td>${log.date}</td>
+            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05); background: #fdfdfd;">
+                <td style="font-weight: 500;">${group.date}</td>
                 <td>
                     <div style="display:flex; align-items:center; gap:12px;">
                         <div style="width: 32px; height: 32px; border-radius: 6px; background: var(--primary-color); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">
                             ${shortInitials}
                         </div>
                         <div>
-                            <div style="font-weight: 600; color: var(--text-color);">${log.category || 'Global Ops'}</div>
-                            <div style="font-size: 11px; color: var(--text-secondary);">${emp.name}</div>
+                            <div style="font-weight: 600; color: var(--text-color);">${emp.name}</div>
                         </div>
                     </div>
                 </td>
-                <td>${log.sub_category || '-'}</td>
-                <td>${log.electronic_mins || 0} mins</td>
-                <td>${log.manual_mins || 0} mins</td>
-                <td style="color: var(--text-secondary);">${durationStr}</td>
-                <td>${docLink}</td>
+                <td><span style="font-weight:bold; color:var(--primary-color)">${finalScore.toFixed(1)}%</span></td>
                 <td>
-                    <button class="btn btn-sm btn-outline" onclick="showToast('Info', 'Log details viewing coming soon!')">View</button>
+                    <button class="btn btn-sm btn-outline" onclick="window.toggleProdGroup('${groupId}')">View</button>
                 </td>
-                <td style="color: var(--primary-color); font-weight: bold;">${log.score_percentage}%</td>
+            </tr>
+        `;
+
+        // Child Rows container
+        let childRowsHtml = '';
+        group.logs.forEach(log => {
+            const durationStr = `${log.total_mins} mins`;
+            const docLink = log.doc_path && log.doc_path !== '-'
+                ? `<a href="${log.doc_path}" target="_blank" style="text-decoration: underline; color: var(--primary-color);"><i class="fa-solid fa-file"></i> View</a>`
+                : '-';
+            
+            childRowsHtml += `
+                <tr style="background: rgba(0,0,0,0.02); font-size: 12px;">
+                    <td style="padding: 0;">
+                        <div style="display: flex; justify-content: space-between; padding: 8px 20px; border-bottom: 1px solid rgba(0,0,0,0.03);">
+                            <div style="flex: 1;"><span style="color:var(--text-secondary)">Practice:</span> <span class="badge-role" style="background: rgba(15, 52, 132, 0.1); color: var(--primary-color); padding: 2px 6px;">${log.category}</span></div>
+                            <div style="flex: 1;"><span style="color:var(--text-secondary)">Task:</span> ${log.sub_category || '-'}</div>
+                            <div style="flex: 1;"><span style="color:var(--text-secondary)">Time:</span> ${durationStr}</div>
+                            <div style="flex: 1;"><span style="color:var(--text-secondary)">Doc:</span> ${docLink}</div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML += `
+            <tr id="${groupId}" class="hidden" style="display: none;">
+                <td colspan="4" style="padding: 0;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tbody>${childRowsHtml}</tbody>
+                    </table>
+                </td>
             </tr>
         `;
     });
