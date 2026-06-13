@@ -1,4 +1,4 @@
-﻿/**
+/**
  * HRMS - Employee Management & Productivity Tracker
  * Core Application Script
  */
@@ -5913,85 +5913,172 @@ document.addEventListener('change', function(e) {
     }
 });
 
-// Modal Form Submission Logic
-document.getElementById('productivity-submission-form')?.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const type = document.querySelector('input[name="prod-type"]:checked')?.value || 'BU';
-    const date = document.getElementById('prod-form-date')?.value || new Date().toISOString().split('T')[0];
-    const timeSpent = parseInt(document.getElementById('prod-time-spent').value) || 0;
-    const totalCount = parseInt(document.getElementById('prod-count').value) || 0;
-    const notes = document.getElementById('prod-notes').value.trim();
+// Productivity Staging Logic
+window.stagedProductivityLogs = [];
 
+window.calculateProdScore = function() {
+    // For now, estimated score is Total Minutes * 1 (Basic logic)
+    const mins = parseInt(document.getElementById('prod-time-spent').value) || 0;
+    const score = mins * 1; 
+    const scoreDisplay = document.getElementById('calc-score-display');
+    if (scoreDisplay) {
+        scoreDisplay.textContent = 'Score: ' + score;
+        scoreDisplay.style.display = 'inline-block';
+    }
+};
+
+window.addStagedProductivity = function() {
+    const buId = document.getElementById('prod-bu-select').value;
+    const date = document.getElementById('prod-form-date').value || new Date().toISOString().split('T')[0];
+    const tesId = document.getElementById('prod-tes-select').value;
+    
+    // Numbers
+    const electronic = parseInt(document.getElementById('prod-electronic').value) || 0;
+    const manual = parseInt(document.getElementById('prod-manual').value) || 0;
+    const totalMins = parseInt(document.getElementById('prod-time-spent').value) || 0;
+    const notes = document.getElementById('prod-notes').value.trim();
+    const docPath = document.getElementById('prod-doc-path').value.trim();
+
+    // Required Validations based on generic use case (At least BU or TES should be selected)
+    if (!buId && !tesId) return showToast('Error', 'Please select at least a Business Unit or TES Category', 'error');
     if (!date) return showToast('Error', 'Date is required', 'error');
-    if (timeSpent <= 0) return showToast('Error', 'Time spent must be > 0', 'error');
-    if (totalCount <= 0) return showToast('Error', 'Total count must be > 0', 'error');
+    if (totalMins <= 0) return showToast('Error', 'Total Minutes must be > 0', 'error');
 
     const settings = getProdSettings();
-    let practiceId = '';
-    let practiceName = '';
-    let selectedItems = [];
+    let practiceName = '-';
+    let subCategoryName = '-';
+    let selectedPracticeItems = [];
+    let selectedTaskItems = [];
 
-    if (type === 'BU') {
-        const buId = document.getElementById('prod-bu-select').value;
-        if (!buId) return showToast('Error', 'Please select a Business Unit', 'error');
+    // BU Data
+    if (buId) {
         const bu = settings.businessUnits.find(b => b.id === buId);
-        practiceId = 'BU_' + buId;
-        practiceName = 'BU: ' + bu.name;
-        
+        practiceName = bu ? bu.name : '-';
         const checked = Array.from(document.querySelectorAll('#prod-bu-practices-options input[type="checkbox"]:checked'));
-        if (checked.length === 0) return showToast('Error', 'Please select at least one Practice', 'error');
-        selectedItems = checked.map(c => c.getAttribute('data-text'));
-    } else {
-        const tesId = document.getElementById('prod-tes-select').value;
-        if (!tesId) return showToast('Error', 'Please select a TES Category', 'error');
+        selectedPracticeItems = checked.map(c => c.getAttribute('data-text'));
+        if (selectedPracticeItems.length > 0) {
+            practiceName += ' (' + selectedPracticeItems.join(', ') + ')';
+        }
+    }
+
+    // TES Data
+    if (tesId) {
         const tes = settings.tesCategories.find(t => t.id === tesId);
-        practiceId = 'TES_' + tesId;
-        practiceName = 'TES: ' + tes.name;
-        
+        subCategoryName = tes ? tes.name : '-';
         const checked = Array.from(document.querySelectorAll('#prod-tes-tasks-options input[type="checkbox"]:checked'));
-        if (checked.length === 0) return showToast('Error', 'Please select at least one Task', 'error');
-        selectedItems = checked.map(c => c.getAttribute('data-text'));
+        selectedTaskItems = checked.map(c => c.getAttribute('data-text'));
+        if (selectedTaskItems.length > 0) {
+            subCategoryName += ' (' + selectedTaskItems.join(', ') + ')';
+        }
+    }
+
+    const entry = {
+        date: date,
+        practiceName: practiceName,
+        subCategoryName: subCategoryName,
+        electronic: electronic,
+        manual: manual,
+        totalMins: totalMins,
+        notes: notes,
+        docPath: docPath
+    };
+
+    window.stagedProductivityLogs.push(entry);
+    
+    // Clear inputs for next entry
+    document.getElementById('prod-electronic').value = '';
+    document.getElementById('prod-manual').value = '';
+    document.getElementById('prod-time-spent').value = '';
+    document.getElementById('prod-notes').value = '';
+    document.getElementById('prod-doc-path').value = '';
+    document.querySelectorAll('.custom-multiselect input[type="checkbox"]').forEach(c => c.checked = false);
+    document.querySelectorAll('.custom-multiselect .selected-text').forEach(s => s.textContent = 'Select');
+    
+    const scoreDisplay = document.getElementById('calc-score-display');
+    if (scoreDisplay) scoreDisplay.style.display = 'none';
+
+    renderStagedProductivityTable();
+};
+
+window.removeStagedProductivity = function(index) {
+    window.stagedProductivityLogs.splice(index, 1);
+    renderStagedProductivityTable();
+};
+
+function renderStagedProductivityTable() {
+    const tbody = document.getElementById('prod-staging-body');
+    if (!tbody) return;
+    
+    if (window.stagedProductivityLogs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No Record Found.</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = window.stagedProductivityLogs.map((log, index) => `
+        <tr>
+            <td>${log.practiceName}</td>
+            <td>${log.subCategoryName}</td>
+            <td>${log.electronic}</td>
+            <td>${log.manual}</td>
+            <td>${log.totalMins}</td>
+            <td>${log.notes || '-'}</td>
+            <td>${log.docPath || '-'}</td>
+            <td>
+                <button type="button" class="btn btn-sm btn-outline" style="color: var(--danger); border-color: var(--danger);" onclick="removeStagedProductivity(${index})">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+window.submitAllStagedProductivity = function() {
+    if (window.stagedProductivityLogs.length === 0) {
+        return showToast('Error', 'Please add at least one record to submit.', 'error');
     }
 
     const db = getDb();
     if (!db.productivity_logs) db.productivity_logs = [];
     if (!db.productivity_tasks) db.productivity_tasks = [];
 
-    const logId = generateId('LOG');
-    
-    // Save Log
+    // Create a single main log entry for this submission session based on the first entry's date
+    const mainLogId = generateId('LOG');
+    const firstDate = window.stagedProductivityLogs[0].date;
+    const summaryPracticeName = window.stagedProductivityLogs[0].practiceName !== '-' ? window.stagedProductivityLogs[0].practiceName : window.stagedProductivityLogs[0].subCategoryName;
+
     db.productivity_logs.unshift({
-        id: logId,
+        id: mainLogId,
         employee_id: currentUser.id,
-        practice_id: practiceName, 
-        log_date: date,
+        practice_id: "Multiple Activities", 
+        log_date: firstDate,
         created_at: new Date().toISOString()
     });
 
-    // Save Tasks
-    db.productivity_tasks.push({
-        id: generateId('PT'),
-        log_id: logId,
-        task_type: selectedItems.join(', '),
-        total_count: totalCount,
-        time_minutes: timeSpent,
-        extra_data: { type: type, items: selectedItems },
-        notes: notes
+    window.stagedProductivityLogs.forEach(entry => {
+        db.productivity_tasks.push({
+            id: generateId('PT'),
+            log_id: mainLogId,
+            task_type: entry.subCategoryName !== '-' ? entry.subCategoryName : entry.practiceName,
+            total_count: entry.electronic + entry.manual,
+            electronic_count: entry.electronic,
+            manual_count: entry.manual,
+            time_minutes: entry.totalMins,
+            notes: entry.notes,
+            doc_path: entry.docPath
+        });
     });
 
     saveDb(db);
-    showToast('Success', 'Productivity logged successfully');
+    showToast('Success', 'All productivity entries logged successfully!');
     
-    // Reset Form
-    document.getElementById('productivity-submission-form').reset();
-    document.querySelectorAll('.custom-multiselect input[type="checkbox"]').forEach(c => c.checked = false);
-    document.querySelectorAll('.custom-multiselect .selected-text').forEach(s => s.textContent = 'Select Tasks/Practices');
-    
+    window.stagedProductivityLogs = [];
+    renderStagedProductivityTable();
     closeModal('modal-productivity-form');
+
     // Re-render views if they are open
     if (typeof renderMyProductivityLogs === 'function') renderMyProductivityLogs();
     if (typeof renderManagerProductivityTab === 'function') renderManagerProductivityTab();
-});
+};
 
 // Listeners to initialize rendering
 document.addEventListener('DOMContentLoaded', () => {

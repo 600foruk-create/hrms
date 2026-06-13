@@ -3088,108 +3088,116 @@
     </div>
 
     <!-- 2. Update Productivity Modal (Employee Form) -->
-    <div id="modal-productivity-form" class="modal hidden">
+    <div id="modal-productivity-form" class="modal hidden" style="width: 900px; max-width: 95vw; left: 50%; transform: translateX(-50%);">
         <div class="modal-header">
             <h3>Update Daily Productivity</h3>
             <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <form id="productivity-submission-form">
-            <div class="modal-body">
-                <!-- Date (Auto-filled but visible) -->
+        <div class="modal-body">
+            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                <!-- Row 1 -->
                 <div class="form-group">
-                    <label>Submission Date</label>
-                    <input type="text" id="prod-form-date" class="form-control" readonly>
+                    <label>Business Unit</label>
+                    <select id="prod-bu-select" class="form-control" onchange="if(window.onProdBuChange) window.onProdBuChange()">
+                        <option value="">-- Select Business Unit --</option>
+                    </select>
                 </div>
-
-                <!-- Productivity Type Selection -->
                 <div class="form-group">
-                    <label>Productivity Type <span class="required">*</span></label>
-                    <div style="display: flex; gap: 20px; margin-top: 5px;">
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                            <input type="radio" name="prod-type" value="BU" checked onchange="if(window.toggleProdTypeFields) window.toggleProdTypeFields()"> Business Unit
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                            <input type="radio" name="prod-type" value="TES" onchange="if(window.toggleProdTypeFields) window.toggleProdTypeFields()"> TES Category
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Business Unit Path -->
-                <div id="prod-fields-bu">
-                    <div class="form-group">
-                        <label>Business Unit <span class="required">*</span></label>
-                        <select id="prod-bu-select" class="form-control" onchange="if(window.onProdBuChange) window.onProdBuChange()">
-                            <option value="">-- Select Business Unit --</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Practices <span class="text-secondary">(Multi-select)</span> <span class="required">*</span></label>
-                        <div class="custom-multiselect" id="prod-bu-practices-multiselect">
-                            <div class="multiselect-select-box">
-                                <span class="selected-text">Select Practices</span>
-                                <i class="fa-solid fa-chevron-down"></i>
-                            </div>
-                            <div class="multiselect-options-container hidden" id="prod-bu-practices-options">
-                                <div class="placeholder-msg">Select a Business Unit first</div>
-                            </div>
+                    <label>Practice</label>
+                    <div class="custom-multiselect" id="prod-bu-practices-multiselect">
+                        <div class="multiselect-select-box">
+                            <span class="selected-text">Select Practice</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="multiselect-options-container hidden" id="prod-bu-practices-options">
+                            <div class="placeholder-msg">Select a Business Unit first</div>
                         </div>
                     </div>
                 </div>
+                <div class="form-group">
+                    <label>Sign-off Date</label>
+                    <input type="date" id="prod-form-date" class="form-control">
+                </div>
 
-                <!-- TES Category Path -->
-                <div id="prod-fields-tes" style="display: none;">
-                    <div class="form-group">
-                        <label>TES Category <span class="required">*</span></label>
-                        <select id="prod-tes-select" class="form-control" onchange="if(window.onProdTesChange) window.onProdTesChange()">
-                            <option value="">-- Select TES Category --</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Tasks <span class="text-secondary">(Multi-select)</span> <span class="required">*</span></label>
-                        <div class="custom-multiselect" id="prod-tes-tasks-multiselect">
-                            <div class="multiselect-select-box">
-                                <span class="selected-text">Select Tasks</span>
-                                <i class="fa-solid fa-chevron-down"></i>
-                            </div>
-                            <div class="multiselect-options-container hidden" id="prod-tes-tasks-options">
-                                <div class="placeholder-msg">Select a TES Category first</div>
-                            </div>
+                <!-- Row 2 -->
+                <div class="form-group">
+                    <label>TES Category</label>
+                    <select id="prod-tes-select" class="form-control" onchange="if(window.onProdTesChange) window.onProdTesChange()">
+                        <option value="">-- Select TES Category --</option>
+                    </select>
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label>Task (Sub Category)</label>
+                    <div class="custom-multiselect" id="prod-tes-tasks-multiselect">
+                        <div class="multiselect-select-box">
+                            <span class="selected-text">Select Task</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="multiselect-options-container hidden" id="prod-tes-tasks-options">
+                            <div class="placeholder-msg">Select a TES Category first</div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Time Spent (numeric only) -->
+            <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr 2fr 1.5fr; gap: 10px; margin-top: 15px;">
+                <!-- Row 3 -->
                 <div class="form-group">
-                    <label for="prod-time-spent">Time Spent (Minutes) <span class="required">*</span></label>
-                    <input type="number" id="prod-time-spent" min="1" class="form-control" required
-                        placeholder="e.g. 120">
+                    <label>Electronic</label>
+                    <input type="number" id="prod-electronic" min="0" class="form-control" placeholder="0">
                 </div>
-
-                <!-- Count (numeric only) -->
                 <div class="form-group">
-                    <label for="prod-count">Count / Quantity <span class="required">*</span></label>
-                    <input type="number" id="prod-count" min="1" class="form-control" required
-                        placeholder="Enter numeric count">
+                    <label>Manual/Paper/Call</label>
+                    <input type="number" id="prod-manual" min="0" class="form-control" placeholder="0">
                 </div>
-
-                <!-- Detail Notes -->
                 <div class="form-group">
-                    <label for="prod-notes">Detail Notes <span class="required">*</span></label>
-                    <textarea id="prod-notes" rows="3" class="form-control" required
-                        placeholder="Describe task details, case IDs, or issues..."></textarea>
+                    <label>Total Minutes</label>
+                    <input type="number" id="prod-time-spent" min="0" class="form-control" placeholder="0">
                 </div>
-
-                <!-- Live Score Preview -->
-                <div class="live-score-preview bg-glass">
-                    <span>Estimated Productivity Score:</span>
-                    <strong id="prod-score-live">0</strong>
+                <div class="form-group">
+                    <label>Task Detail</label>
+                    <input type="text" id="prod-notes" class="form-control" placeholder="Task details...">
+                </div>
+                <div class="form-group">
+                    <label>Document Path</label>
+                    <input type="text" id="prod-doc-path" class="form-control" placeholder="Enter path...">
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline modal-close">Cancel</button>
-                <button type="submit" class="btn btn-primary">Submit Productivity</button>
+
+            <!-- Row 4: Buttons -->
+            <div style="display: flex; justify-content: space-between; margin-top: 15px; margin-bottom: 20px;">
+                <button type="button" class="btn" style="background-color: var(--danger); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;" onclick="if(window.calculateProdScore) window.calculateProdScore()">Calculation</button>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <span id="calc-score-display" style="font-weight: bold; color: var(--text-primary); display: none;">Score: 0</span>
+                    <button type="button" class="btn" style="background-color: var(--danger); color: white; border: none; padding: 8px 32px; border-radius: 4px; cursor: pointer;" onclick="if(window.addStagedProductivity) window.addStagedProductivity()">Add</button>
+                </div>
             </div>
-        </form>
+
+            <!-- Row 5: Staging Table -->
+            <div class="table-container" style="max-height: 250px; overflow-y: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Sub Category</th>
+                            <th>Electronic</th>
+                            <th>Manual/Paper</th>
+                            <th>Total Time</th>
+                            <th>Activity</th>
+                            <th>Document Path</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="prod-staging-body">
+                        <tr><td colspan="8" class="text-center text-muted">No Record Found.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-footer" style="justify-content: flex-end;">
+            <button type="button" class="btn btn-outline modal-close">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="if(window.submitAllStagedProductivity) window.submitAllStagedProductivity()">Submit All</button>
+        </div>
     </div>
 
     <!-- 3. Leave Request Modal (Employee Form) -->
