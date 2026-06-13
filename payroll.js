@@ -1226,17 +1226,17 @@ window.initPayrollProcessView = function() {
     const startInput = document.getElementById('payroll-process-start');
     const endInput = document.getElementById('payroll-process-end');
     const db = getDb();
-    const cp = db.companyProfile || {};
+    const sysSettings = db.systemSettings || {};
     
     if (startInput && endInput) {
-        if (cp.payrollLockEnabled) {
+        if (sysSettings.payrollLockEnabled) {
             // Lock enabled: Set to Explicit Settings Dates or Fallback to Previous Month
             let startVal = '';
             let endVal = '';
             
-            if (cp.payrollLockStartDate && cp.payrollLockEndDate) {
-                startVal = cp.payrollLockStartDate;
-                endVal = cp.payrollLockEndDate;
+            if (sysSettings.payrollLockStartDate && sysSettings.payrollLockEndDate) {
+                startVal = sysSettings.payrollLockStartDate;
+                endVal = sysSettings.payrollLockEndDate;
             } else {
                 const today = new Date();
                 let prevMonthDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
@@ -1283,7 +1283,7 @@ window.initPayrollProcessView = function() {
 
 window.generatePayrollPreview = function() {
     const db = getDb();
-    const cp = db.companyProfile || {};
+    const sysSettings = db.systemSettings || {};
     const startInput = document.getElementById('payroll-process-start').value;
     const endInput = document.getElementById('payroll-process-end').value;
     const deptFilter = document.getElementById('payroll-process-dept').value;
@@ -1301,20 +1301,23 @@ window.generatePayrollPreview = function() {
         return;
     }
 
-    if (cp.payrollLockEnabled) {
+    if (sysSettings.payrollLockEnabled) {
         const today = new Date();
-        const allowedDate = parseInt(cp.payrollLockDate) || 1;
+        const allowedDate = parseInt(sysSettings.payrollLockDate) || 1;
         
         // Calculate earliest allowed date based on the end of the payroll cycle
         const earliestAllowedDate = new Date(endDate);
-        earliestAllowedDate.setDate(earliestAllowedDate.getDate() + 1); // Move to 1st of next month
-        earliestAllowedDate.setDate(allowedDate); // Set to allowed generation date
+        if (allowedDate <= earliestAllowedDate.getDate()) {
+            // If generation date is smaller/equal to end date (e.g. End: 30th, Gen Date: 1st), it means 1st of NEXT month
+            earliestAllowedDate.setMonth(earliestAllowedDate.getMonth() + 1);
+        }
+        earliestAllowedDate.setDate(allowedDate);
         
         today.setHours(0,0,0,0);
         earliestAllowedDate.setHours(0,0,0,0);
         
         if (today < earliestAllowedDate) {
-            const formattedEarliest = earliestAllowedDate.toLocaleDateString('en-GB');
+            const formattedEarliest = earliestAllowedDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
             if(window.showToast) showToast("Error", `Payroll Generation Locked. You can only generate this payroll on or after ${formattedEarliest}.`, "error");
             return;
         }
