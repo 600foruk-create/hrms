@@ -5290,6 +5290,201 @@ function saveProdSettings(settings) {
     if (!db.systemSettings) db.systemSettings = {};
     db.systemSettings.productivityCategories = JSON.stringify(settings);
     saveDb(db);
+            const dataUrl = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.readAsDataURL(f);
+            });
+            window.tempDocuments.push({ name: f.name, data: dataUrl });
+        }
+
+        window.renderDocumentsDropzone(zone);
+    };
+    setupDropzone('dropzone-documents', 'emp-documents-input', window.onDocumentsSelected);
+
+
+
+    const prevSession = localStorage.getItem('current_user');
+    if (prevSession) {
+
+        currentUser = JSON.parse(prevSession);
+        
+        // Apply Custom Theme if exists
+        const cachedDb = JSON.parse(localStorage.getItem('hrms_fallback_db') || '{}');
+        const sysSettings = cachedDb.systemSettings || {};
+        if (sysSettings.themeColor) {
+            document.documentElement.style.setProperty('--primary', sysSettings.themeColor);
+        } else {
+            document.documentElement.style.setProperty('--primary', '#5f3bf6'); // Default
+        }
+        
+        const authPanel = document.getElementById('auth-panel');
+        const appShell = document.getElementById('app-shell');
+        if (authPanel) {
+            authPanel.classList.add('hidden');
+            authPanel.style.setProperty('display', 'none', 'important');
+        }
+        if (appShell) {
+            appShell.classList.remove('hidden');
+            appShell.style.setProperty('display', 'flex', 'important');
+        }
+        document.body.classList.remove('login-view');
+        renderSidebar();
+        const savedTab = localStorage.getItem('active_tab') || 'dashboard';
+        switchTab(savedTab);
+        setupSessionTimer();
+        showToast("Session Restored", `Welcome back, ${currentUser.name}.`);
+    }
+});
+
+
+// ==================== ID CARD LOGIC ====================
+window.onIdCardFrontSelected = function (dropzone, files) {
+    if (!files || !files.length) return;
+    const file = files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const b64 = e.target.result;
+        document.getElementById('company-profile-form').dataset.idCardFrontBase64 = b64;
+        dropzone.innerHTML = `
+            <img src="${b64}" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+            <div style="font-size: 11px; color: var(--text-muted);">Click to change Front Template</div>
+            <input type="file" id="comp-idcard-front-input" accept="image/*" style="display:none;">
+        `;
+        const newInput = dropzone.querySelector('#comp-idcard-front-input');
+        if (newInput) {
+            newInput.addEventListener('change', () => { if (newInput.files.length) window.onIdCardFrontSelected(dropzone, newInput.files); });
+            dropzone.addEventListener('click', () => newInput.click(), { once: true });
+        }
+    };
+    reader.readAsDataURL(file);
+};
+
+window.onIdCardBackSelected = function (dropzone, files) {
+    if (!files || !files.length) return;
+    const file = files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const b64 = e.target.result;
+        document.getElementById('company-profile-form').dataset.idCardBackBase64 = b64;
+        dropzone.innerHTML = `
+            <img src="${b64}" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+            <div style="font-size: 11px; color: var(--text-muted);">Click to change Back Template</div>
+            <input type="file" id="comp-idcard-back-input" accept="image/*" style="display:none;">
+        `;
+        const newInput = dropzone.querySelector('#comp-idcard-back-input');
+        if (newInput) {
+            newInput.addEventListener('change', () => { if (newInput.files.length) window.onIdCardBackSelected(dropzone, newInput.files); });
+            dropzone.addEventListener('click', () => newInput.click(), { once: true });
+        }
+    };
+    reader.readAsDataURL(file);
+};
+
+window.openIdCardModal = function (userId) {
+    const db = getDb();
+    const user = db.users.find(u => u.id === userId);
+    if (!user) return;
+    const cp = (!db.companyProfile || Array.isArray(db.companyProfile)) ? {} : db.companyProfile;
+
+    const frontLogo = document.getElementById('id-card-front-logo');
+    const backLogo = document.getElementById('id-card-back-logo');
+    if (cp.logoBase64) {
+        if(frontLogo) { frontLogo.src = cp.logoBase64; frontLogo.style.display = 'block'; }
+        if(backLogo) { backLogo.src = cp.logoBase64; backLogo.style.display = 'block'; }
+    } else {
+        if(frontLogo) frontLogo.style.display = 'none';
+        if(backLogo) backLogo.style.display = 'none';
+    }
+
+    const frontCompanyName = document.getElementById('id-card-front-company-name');
+    if (frontCompanyName) {
+        if (cp.name) {
+            frontCompanyName.textContent = cp.name;
+            frontCompanyName.style.display = 'block';
+        } else {
+            frontCompanyName.style.display = 'none';
+        }
+    }
+
+    const avatarImg = document.getElementById('id-card-avatar');
+    const avatarPlaceholder = document.getElementById('id-card-avatar-placeholder');
+    if (user.profilePic) {
+        if(avatarImg) { avatarImg.src = user.profilePic; avatarImg.style.display = 'block'; }
+        if(avatarPlaceholder) avatarPlaceholder.style.display = 'none';
+    } else {
+        if(avatarImg) avatarImg.style.display = 'none';
+        if(avatarPlaceholder) avatarPlaceholder.style.display = 'block';
+    }
+
+    const signatureImg = document.getElementById('id-card-signature');
+    const signaturePlaceholder = document.getElementById('id-card-signature-placeholder');
+    if (cp.signatureBase64) {
+        if(signatureImg) { signatureImg.src = cp.signatureBase64; signatureImg.style.display = 'block'; }
+        if(signaturePlaceholder) signaturePlaceholder.style.display = 'none';
+    } else {
+        if(signatureImg) signatureImg.style.display = 'none';
+        if(signaturePlaceholder) signaturePlaceholder.style.display = 'block';
+    }
+
+    document.getElementById('id-card-name').textContent = user.name || '';
+    document.getElementById('id-card-designation').textContent = user.designation || '';
+    document.getElementById('id-card-id').textContent = user.displayId || user.id || '';
+    document.getElementById('id-card-dept').textContent = user.department || 'Operations';
+
+    document.getElementById('id-card-guardian').textContent = user.fatherName || '';
+    document.getElementById('id-card-cnic').textContent = user.cnic || '';
+    document.getElementById('id-card-emergency').textContent = user.emergencyContact || user.phone || '';
+    document.getElementById('id-card-blood').textContent = user.bloodGroup || '';
+
+    let joinDate = user.startDate || '';
+    if (joinDate) {
+        const d = new Date(joinDate);
+        if (!isNaN(d.getTime())) {
+            joinDate = d.toLocaleDateString('en-GB'); // dd/mm/yyyy
+        }
+    }
+    document.getElementById('id-card-join').textContent = joinDate;
+
+    document.getElementById('id-card-address').textContent = cp.address || '';
+    document.getElementById('id-card-company-phone').textContent = cp.phone || '';
+    document.getElementById('id-card-website').textContent = cp.website || '';
+
+    openModal('modal-id-card');
+};
+
+window.printIdCard = function () {
+    document.body.classList.add('printing-modal');
+    window.print();
+    document.body.classList.remove('printing-modal');
+};
+
+
+// ==========================================
+// NEW PRODUCTIVITY MODULE (BU / TES)
+// ==========================================
+
+function getProdSettings() {
+    const db = getDb();
+    if (!db.systemSettings) db.systemSettings = {};
+    if (!db.systemSettings.productivityCategories) {
+        db.systemSettings.productivityCategories = JSON.stringify({
+            businessUnits: [],
+            tesCategories: []
+        });
+    }
+    try {
+        return JSON.parse(db.systemSettings.productivityCategories);
+    } catch(e) {
+        return { businessUnits: [], tesCategories: [] };
+    }
+}
+
+function saveProdSettings(settings) {
+    const db = getDb();
+    if (!db.systemSettings) db.systemSettings = {};
+    db.systemSettings.productivityCategories = JSON.stringify(settings);
+    saveDb(db);
     renderProductivitySettings();
     populateProdDropdowns();
 }
@@ -5300,21 +5495,31 @@ function generateId(prefix) {
 
 window.selectedAdminBuId = null;
 window.selectedAdminTesId = null;
+window.selectedAdminPracticeId = null;
+window.selectedAdminTaskId = null;
 
 window.renderAdminCategoriesConfig = function() {
     const settings = getProdSettings();
 
     // 1. Render Business Units List
     const buList = document.getElementById('admin-grid-bu-list');
+    const btnEditBu = document.getElementById('btn-edit-bu');
+    const btnDelBu = document.getElementById('btn-delete-bu');
     if (buList) {
         buList.innerHTML = '';
         if (settings.businessUnits.length === 0) {
             buList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">No Business Units found.</div>';
+            if (btnEditBu) btnEditBu.style.display = 'none';
+            if (btnDelBu) btnDelBu.style.display = 'none';
+            window.selectedAdminBuId = null;
         } else {
             // Ensure selected ID is valid
             if (!settings.businessUnits.find(b => b.id === window.selectedAdminBuId)) {
                 window.selectedAdminBuId = settings.businessUnits.length > 0 ? settings.businessUnits[0].id : null;
             }
+
+            if (btnEditBu) btnEditBu.style.display = window.selectedAdminBuId ? 'block' : 'none';
+            if (btnDelBu) btnDelBu.style.display = window.selectedAdminBuId ? 'block' : 'none';
 
             settings.businessUnits.forEach(bu => {
                 const isActive = bu.id === window.selectedAdminBuId;
@@ -5324,9 +5529,6 @@ window.renderAdminCategoriesConfig = function() {
                 buList.innerHTML += `
                     <div class="p-2 px-3 mb-2 rounded" style="display: flex; align-items: center; cursor: pointer; ${bgStyle} transition: all 0.2s;" onclick="window.selectedAdminBuId='${bu.id}'; window.renderAdminCategoriesConfig();">
                         <strong style="font-size: 14px; ${textStyle}">${bu.name}</strong>
-                        <div style="margin-left: auto; display: flex; gap: 8px;">
-                            <span class="text-danger" style="cursor: pointer; opacity: 0.7;" onclick="window.deleteBu('${bu.id}'); event.stopPropagation();" title="Delete"><i class="fa-solid fa-trash"></i></span>
-                        </div>
                     </div>
                 `;
             });
@@ -5336,12 +5538,17 @@ window.renderAdminCategoriesConfig = function() {
     // 2. Render Practices List
     const prList = document.getElementById('admin-grid-practices-list');
     const btnAddPractice = document.getElementById('btn-add-practice');
+    const btnEditPractice = document.getElementById('btn-edit-practice');
+    const btnDelPractice = document.getElementById('btn-delete-practice');
     const activeBuName = document.getElementById('grid-active-bu-name');
     if (prList) {
         if (!window.selectedAdminBuId) {
             prList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">Select a Business Unit to view practices</div>';
             if (btnAddPractice) btnAddPractice.style.display = 'none';
+            if (btnEditPractice) btnEditPractice.style.display = 'none';
+            if (btnDelPractice) btnDelPractice.style.display = 'none';
             if (activeBuName) activeBuName.textContent = '';
+            window.selectedAdminPracticeId = null;
         } else {
             const bu = settings.businessUnits.find(b => b.id === window.selectedAdminBuId);
             if (btnAddPractice) btnAddPractice.style.display = 'block';
@@ -5350,12 +5557,25 @@ window.renderAdminCategoriesConfig = function() {
             prList.innerHTML = '';
             if (!bu.practices || bu.practices.length === 0) {
                 prList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">No practices found for this Business Unit.</div>';
+                if (btnEditPractice) btnEditPractice.style.display = 'none';
+                if (btnDelPractice) btnDelPractice.style.display = 'none';
+                window.selectedAdminPracticeId = null;
             } else {
+                if (!bu.practices.find(p => p.id === window.selectedAdminPracticeId)) {
+                    window.selectedAdminPracticeId = bu.practices.length > 0 ? bu.practices[0].id : null;
+                }
+
+                if (btnEditPractice) btnEditPractice.style.display = window.selectedAdminPracticeId ? 'block' : 'none';
+                if (btnDelPractice) btnDelPractice.style.display = window.selectedAdminPracticeId ? 'block' : 'none';
+
                 bu.practices.forEach(p => {
+                    const isActive = p.id === window.selectedAdminPracticeId;
+                    const bgStyle = isActive ? 'background: rgba(15, 52, 132, 0.1); border: 1px solid var(--primary-color);' : 'background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.05);';
+                    const textStyle = isActive ? 'color: var(--primary-color); font-weight: 600;' : 'color: var(--text-color);';
+
                     prList.innerHTML += `
-                        <div class="mb-2 p-2 rounded" style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.05);">
-                            <span>${p.name}</span>
-                            <span class="text-danger" style="cursor: pointer; opacity: 0.7;" onclick="window.deleteBuPractice('${bu.id}', '${p.id}')"><i class="fa-solid fa-trash"></i></span>
+                        <div class="mb-2 p-2 rounded" style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; cursor: pointer; ${bgStyle} transition: all 0.2s;" onclick="window.selectedAdminPracticeId='${p.id}'; window.renderAdminCategoriesConfig();">
+                            <span style="${textStyle}">${p.name}</span>
                         </div>
                     `;
                 });
@@ -5365,14 +5585,22 @@ window.renderAdminCategoriesConfig = function() {
 
     // 3. Render TES Categories List
     const tesList = document.getElementById('admin-grid-tes-list');
+    const btnEditTes = document.getElementById('btn-edit-tes');
+    const btnDelTes = document.getElementById('btn-delete-tes');
     if (tesList) {
         tesList.innerHTML = '';
         if (settings.tesCategories.length === 0) {
             tesList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">No TES Categories found.</div>';
+            if (btnEditTes) btnEditTes.style.display = 'none';
+            if (btnDelTes) btnDelTes.style.display = 'none';
+            window.selectedAdminTesId = null;
         } else {
             if (!settings.tesCategories.find(t => t.id === window.selectedAdminTesId)) {
                 window.selectedAdminTesId = settings.tesCategories.length > 0 ? settings.tesCategories[0].id : null;
             }
+
+            if (btnEditTes) btnEditTes.style.display = window.selectedAdminTesId ? 'block' : 'none';
+            if (btnDelTes) btnDelTes.style.display = window.selectedAdminTesId ? 'block' : 'none';
 
             settings.tesCategories.forEach(tes => {
                 const isActive = tes.id === window.selectedAdminTesId;
@@ -5382,9 +5610,6 @@ window.renderAdminCategoriesConfig = function() {
                 tesList.innerHTML += `
                     <div class="p-2 px-3 mb-2 rounded" style="display: flex; align-items: center; cursor: pointer; ${bgStyle} transition: all 0.2s;" onclick="window.selectedAdminTesId='${tes.id}'; window.renderAdminCategoriesConfig();">
                         <strong style="font-size: 14px; ${textStyle}">${tes.name}</strong>
-                        <div style="margin-left: auto; display: flex; gap: 12px;">
-                            <span class="text-danger" style="cursor: pointer; opacity: 0.7;" onclick="window.deleteTes('${tes.id}'); event.stopPropagation();" title="Delete"><i class="fa-solid fa-trash"></i></span>
-                        </div>
                     </div>
                 `;
             });
@@ -5394,12 +5619,17 @@ window.renderAdminCategoriesConfig = function() {
     // 4. Render Tasks List
     const taskList = document.getElementById('admin-grid-tasks-list');
     const btnAddTask = document.getElementById('btn-add-task');
+    const btnEditTask = document.getElementById('btn-edit-task');
+    const btnDelTask = document.getElementById('btn-delete-task');
     const activeTesName = document.getElementById('grid-active-tes-name');
     if (taskList) {
         if (!window.selectedAdminTesId) {
             taskList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">Select a TES Category to view tasks</div>';
             if (btnAddTask) btnAddTask.style.display = 'none';
+            if (btnEditTask) btnEditTask.style.display = 'none';
+            if (btnDelTask) btnDelTask.style.display = 'none';
             if (activeTesName) activeTesName.textContent = '';
+            window.selectedAdminTaskId = null;
         } else {
             const tes = settings.tesCategories.find(t => t.id === window.selectedAdminTesId);
             if (btnAddTask) btnAddTask.style.display = 'block';
@@ -5408,12 +5638,25 @@ window.renderAdminCategoriesConfig = function() {
             taskList.innerHTML = '';
             if (!tes.tasks || tes.tasks.length === 0) {
                 taskList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">No tasks found for this Category.</div>';
+                if (btnEditTask) btnEditTask.style.display = 'none';
+                if (btnDelTask) btnDelTask.style.display = 'none';
+                window.selectedAdminTaskId = null;
             } else {
+                if (!tes.tasks.find(t => t.id === window.selectedAdminTaskId)) {
+                    window.selectedAdminTaskId = tes.tasks.length > 0 ? tes.tasks[0].id : null;
+                }
+
+                if (btnEditTask) btnEditTask.style.display = window.selectedAdminTaskId ? 'block' : 'none';
+                if (btnDelTask) btnDelTask.style.display = window.selectedAdminTaskId ? 'block' : 'none';
+
                 tes.tasks.forEach(t => {
+                    const isActive = t.id === window.selectedAdminTaskId;
+                    const bgStyle = isActive ? 'background: rgba(0, 200, 83, 0.1); border: 1px solid var(--success);' : 'background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.05);';
+                    const textStyle = isActive ? 'color: var(--success); font-weight: 600;' : 'color: var(--text-color);';
+
                     taskList.innerHTML += `
-                        <div class="mb-2 p-2 rounded" style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.05);">
-                            <span>${t.name}</span>
-                            <span class="text-danger" style="cursor: pointer; opacity: 0.7;" onclick="window.deleteTesTask('${tes.id}', '${t.id}')"><i class="fa-solid fa-trash"></i></span>
+                        <div class="mb-2 p-2 rounded" style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; cursor: pointer; ${bgStyle} transition: all 0.2s;" onclick="window.selectedAdminTaskId='${t.id}'; window.renderAdminCategoriesConfig();">
+                            <span style="${textStyle}">${t.name}</span>
                         </div>
                     `;
                 });
@@ -5452,157 +5695,6 @@ window.addBuModal = function() {
             if (!name) Swal.showValidationMessage('Name is required');
             return name;
         }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const settings = getProdSettings();
-            settings.businessUnits.push({ id: generateId('BU'), name: result.value, practices: [] });
-            saveProdSettings(settings);
-            showToast('Success', 'Business Unit added');
-        }
-    });
-};
-
-window.deleteBu = function(id) {
-    Swal.fire({
-        title: 'Are you sure?',
-        text: "This will delete the Business Unit and all its practices.",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const settings = getProdSettings();
-            settings.businessUnits = settings.businessUnits.filter(bu => bu.id !== id);
-            saveProdSettings(settings);
-            showToast('Deleted', 'Business Unit removed');
-        }
-    });
-};
-
-window.addBuPracticeModal = function(buId) {
-    Swal.fire({
-        title: 'Add Practice',
-        input: 'text',
-        inputPlaceholder: 'Enter Practice name',
-        showCancelButton: true,
-        confirmButtonText: 'Add',
-        preConfirm: (name) => {
-            if (!name) Swal.showValidationMessage('Name is required');
-            return name;
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const settings = getProdSettings();
-            const bu = settings.businessUnits.find(b => b.id === buId);
-            if (bu) {
-                bu.practices.push({ id: generateId('P'), name: result.value });
-                saveProdSettings(settings);
-                showToast('Success', 'Practice added');
-            }
-        }
-    });
-};
-
-window.deleteBuPractice = function(buId, pId) {
-    Swal.fire({
-        title: 'Delete Practice?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Delete'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const settings = getProdSettings();
-            const bu = settings.businessUnits.find(b => b.id === buId);
-            if (bu) {
-                bu.practices = bu.practices.filter(p => p.id !== pId);
-                saveProdSettings(settings);
-                showToast('Deleted', 'Practice removed');
-            }
-        }
-    });
-};
-
-window.addTesModal = function() {
-    Swal.fire({
-        title: 'Add TES Category',
-        input: 'text',
-        inputPlaceholder: 'Enter TES Category name',
-        showCancelButton: true,
-        confirmButtonText: 'Add',
-        preConfirm: (name) => {
-            if (!name) Swal.showValidationMessage('Name is required');
-            return name;
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const settings = getProdSettings();
-            settings.tesCategories.push({ id: generateId('TC'), name: result.value, tasks: [] });
-            saveProdSettings(settings);
-            showToast('Success', 'TES Category added');
-        }
-    });
-};
-
-window.deleteTes = function(id) {
-    Swal.fire({
-        title: 'Are you sure?',
-        text: "This will delete the TES Category and all its tasks.",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const settings = getProdSettings();
-            settings.tesCategories = settings.tesCategories.filter(tc => tc.id !== id);
-            saveProdSettings(settings);
-            showToast('Deleted', 'TES Category removed');
-        }
-    });
-};
-
-window.addTesTaskModal = function(tesId) {
-    Swal.fire({
-        title: 'Add Task',
-        input: 'text',
-        inputPlaceholder: 'Enter Task name',
-        showCancelButton: true,
-        confirmButtonText: 'Add',
-        preConfirm: (name) => {
-            if (!name) Swal.showValidationMessage('Name is required');
-            return name;
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const settings = getProdSettings();
-            const tes = settings.tesCategories.find(t => t.id === tesId);
-            if (tes) {
-                tes.tasks.push({ id: generateId('T'), name: result.value });
-                saveProdSettings(settings);
-                showToast('Success', 'Task added');
-            }
-        }
-    });
-};
-
-window.deleteTesTask = function(tesId, taskId) {
-    Swal.fire({
-        title: 'Delete Task?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Delete'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const settings = getProdSettings();
-            const tes = settings.tesCategories.find(t => t.id === tesId);
-            if (tes) {
-                tes.tasks = tes.tasks.filter(t => t.id !== taskId);
-                saveProdSettings(settings);
-                showToast('Deleted', 'Task removed');
-            }
-        }
-    });
-};
-
 // --------- EMPLOYEE SUBMISSION FORM LOGIC ---------
 window.toggleEptProdType = function() {
     const type = document.querySelector('input[name="ept-prod-type"]:checked')?.value || 'BU';
