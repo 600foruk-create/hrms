@@ -6069,52 +6069,66 @@ function renderStagedProductivityTable() {
     `).join('');
 }
 
-window.submitAllStagedProductivity = function() {
+window.submitAllStagedProductivity = async function() {
     if (window.stagedProductivityLogs.length === 0) {
         return showToast('Error', 'Please add at least one record to submit.', 'error');
     }
 
-    const db = getDb();
-    if (!db.productivity_logs) db.productivity_logs = [];
-    if (!db.productivity_tasks) db.productivity_tasks = [];
+    const payload = window.stagedProductivityLogs.map(entry => {
+        // Compute score percentage directly
+        const dutyFrom = currentUser.dutyFrom || "09:00";
+        const dutyTo = currentUser.dutyTo || "17:00";
+        const breakMins = currentUser.breakMins !== undefined ? parseInt(currentUser.breakMins) : 60;
+        const [fromH, fromM] = dutyFrom.split(':').map(Number);
+        const [toH, toM] = dutyTo.split(':').map(Number);
+        let fromTotalMins = (fromH * 60) + (fromM || 0);
+        let toTotalMins = (toH * 60) + (toM || 0);
+        if (toTotalMins < fromTotalMins) toTotalMins += 24 * 60;
+        let netDutyMins = (toTotalMins - fromTotalMins) - breakMins;
+        if (netDutyMins <= 0) netDutyMins = 420;
+        const percentage = ((entry.totalMins / netDutyMins) * 100).toFixed(1);
 
-    // Create a single main log entry for this submission session based on the first entry's date
-    const mainLogId = generateId('LOG');
-    const firstDate = window.stagedProductivityLogs[0].date;
-    const summaryPracticeName = window.stagedProductivityLogs[0].practiceName !== '-' ? window.stagedProductivityLogs[0].practiceName : window.stagedProductivityLogs[0].subCategoryName;
-
-    db.productivity_logs.unshift({
-        id: mainLogId,
-        employee_id: currentUser.id,
-        practice_id: "Multiple Activities", 
-        log_date: firstDate,
-        created_at: new Date().toISOString()
-    });
-
-    window.stagedProductivityLogs.forEach(entry => {
-        db.productivity_tasks.push({
-            id: generateId('PT'),
-            log_id: mainLogId,
-            task_type: entry.subCategoryName !== '-' ? entry.subCategoryName : entry.practiceName,
-            total_count: entry.electronic + entry.manual,
-            electronic_count: entry.electronic,
-            manual_count: entry.manual,
-            time_minutes: entry.totalMins,
+        return {
+            id: generateId('PRD'),
+            employee_id: currentUser.id,
+            date: entry.date,
+            category: entry.practiceName,
+            sub_category: entry.subCategoryName,
+            electronic_mins: entry.electronic,
+            manual_mins: entry.manual,
+            total_mins: entry.totalMins,
+            score_percentage: parseFloat(percentage),
             notes: entry.notes,
-            doc_path: entry.docPath
-        });
+            doc_path: entry.docPath,
+            created_at: new Date().toISOString()
+        };
     });
 
-    saveDb(db);
-    showToast('Success', 'All productivity entries logged successfully!');
-    
-    window.stagedProductivityLogs = [];
-    renderStagedProductivityTable();
-    closeModal('modal-productivity-form');
-
-    // Re-render views if they are open
-    if (typeof renderMyProductivityLogs === 'function') renderMyProductivityLogs();
-    if (typeof renderManagerProductivityTab === 'function') renderManagerProductivityTab();
+    try {
+        const response = await fetch('backend/api.php?action=save_productivity_batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ logs: payload })
+        });
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+            showToast('Success', 'All productivity entries logged successfully!');
+            window.stagedProductivityLogs = [];
+            renderStagedProductivityTable();
+            closeModal('modal-productivity-form');
+            
+            // Reload global DB to fetch the latest productivity records, then re-render
+            await loadDbFromServer();
+            if (typeof renderMyProductivityLogs === 'function') renderMyProductivityLogs();
+            if (typeof renderManagerProductivityTab === 'function') renderManagerProductivityTab();
+            if (typeof renderAdminProductivityTab === 'function') renderAdminProductivityTab();
+        } else {
+            showToast('Error', result.message || 'Failed to submit productivity', 'error');
+        }
+    } catch (e) {
+        showToast('Error', 'Network error. Please try again.', 'error');
+    }
 };
 
 // Listeners to initialize rendering
@@ -6152,24 +6166,21 @@ window.renderMyProductivityLogs = function() {
     if (!eptTbody && !mgrTbody) return;
     
     const db = getDb();
-    const myLogs = (db.productivity_logs || []).filter(l => String(l.employee_id) === String(currentUser.id));
-    myLogs.sort((a, b) => new Date(b.log_date) - new Date(a.log_date));
+    const myLogs = (db.productivity || []).filter(l => String(l.employee_id) === String(currentUser.id));
+    myLogs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     let html = '';
     if (myLogs.length === 0) {
-        html = '<tr><td colspan="4" class="text-center text-muted">No logs found</td></tr>';
+        html = '<tr><td colspan="5" class="text-center text-muted">No logs found</td></tr>';
     } else {
         myLogs.forEach(log => {
-            const tasks = (db.productivity_tasks || []).filter(t => String(t.log_id) === String(log.id));
-            const totalTime = tasks.reduce((sum, t) => sum + (parseInt(t.time_minutes) || 0), 0);
-            const taskTypes = tasks.map(t => t.task_type).join(', ');
-
             html += `
                 <tr>
-                    <td>${log.log_date}</td>
-                    <td><span class="badge-role" style="background: rgba(15, 52, 132, 0.1); color: var(--primary-color);">${log.practice_id}</span></td>
-                    <td>${taskTypes || '-'}</td>
-                    <td>${totalTime} mins</td>
+                    <td>${log.date}</td>
+                    <td><span class="badge-role" style="background: rgba(15, 52, 132, 0.1); color: var(--primary-color);">${log.category}</span></td>
+                    <td>${log.sub_category || '-'}</td>
+                    <td>${log.total_mins} mins</td>
+                    <td>${log.score_percentage}%</td>
                 </tr>
             `;
         });
@@ -6221,8 +6232,8 @@ window.renderManagerProductivityTab = function() {
         return;
     }
 
-    const teamLogs = (db.productivity_logs || []).filter(l => teamIds.includes(String(l.employee_id)));
-    teamLogs.sort((a, b) => new Date(b.log_date) - new Date(a.log_date));
+    const teamLogs = (db.productivity || []).filter(l => teamIds.includes(String(l.employee_id)));
+    teamLogs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     if (teamLogs.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No team productivity logs found</td></tr>';
@@ -6231,23 +6242,20 @@ window.renderManagerProductivityTab = function() {
 
     teamLogs.forEach(log => {
         const emp = team.find(u => String(u.id) === String(log.employee_id));
-        const tasks = (db.productivity_tasks || []).filter(t => String(t.log_id) === String(log.id));
-        const totalTime = tasks.reduce((sum, t) => sum + (parseInt(t.time_minutes) || 0), 0);
-        const taskTypes = tasks.map(t => t.task_type).join(', ');
 
         tbody.innerHTML += `
             <tr>
-                <td>${log.log_date}</td>
+                <td>${log.date}</td>
                 <td>
                     <div style="display:flex; align-items:center; gap:8px;">
                         <img src="${emp.avatar || 'assets/images/default-avatar.png'}" style="width:24px; height:24px; border-radius:50%; object-fit:cover;">
                         ${emp.name}
                     </div>
                 </td>
-                <td><span class="badge-role" style="background: rgba(15, 52, 132, 0.1); color: var(--primary-color);">${log.practice_id}</span></td>
-                <td>${taskTypes || '-'} (${totalTime} mins)</td>
+                <td><span class="badge-role" style="background: rgba(15, 52, 132, 0.1); color: var(--primary-color);">${log.category}</span></td>
+                <td>${log.sub_category || '-'} (${log.total_mins} mins)</td>
                 <td>
-                    <button class="btn btn-sm btn-outline" onclick="showToast('Info', 'Log details viewing coming soon!')">View</button>
+                    <span style="font-weight:bold; color:var(--primary-color)">${log.score_percentage}%</span>
                 </td>
             </tr>
         `;
@@ -6309,8 +6317,8 @@ window.renderAdminProductivityTab = function() {
         (settings.tesCategories || []).forEach(tc => {
             (tc.tasks || []).forEach(t => allCats.push(t.name));
         });
-        (db.productivity_logs || []).forEach(l => {
-            if (l.practice_id) allCats.push(l.practice_id);
+        (db.productivity || []).forEach(l => {
+            if (l.category) allCats.push(l.category);
         });
         
         [...new Set(allCats)].filter(Boolean).forEach(cat => {
@@ -6325,17 +6333,17 @@ window.renderAdminProductivityTab = function() {
     const selectedEmp = empFilter ? empFilter.value : '';
     const selectedCat = catFilter ? catFilter.value : '';
 
-    let allLogs = (db.productivity_logs || []);
+    let allLogs = (db.productivity || []);
     
     // Apply Filters
     allLogs = allLogs.filter(log => {
-        if (selectedDate && log.log_date !== selectedDate) return false;
+        if (selectedDate && log.date !== selectedDate) return false;
         if (selectedEmp && String(log.employee_id) !== String(selectedEmp)) return false;
-        if (selectedCat && log.practice_id !== selectedCat) return false; // assuming practice_id stores the category
+        if (selectedCat && log.category !== selectedCat) return false;
         return true;
     });
 
-    allLogs.sort((a, b) => new Date(b.log_date) - new Date(a.log_date));
+    allLogs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     const countSpan = document.getElementById('admin-prod-log-count');
     if (countSpan) countSpan.textContent = `Showing ${allLogs.length} logs`;
@@ -6348,16 +6356,9 @@ window.renderAdminProductivityTab = function() {
 
     allLogs.forEach(log => {
         const emp = (db.users || []).find(u => String(u.id) === String(log.employee_id)) || { name: 'Unknown User' };
-        const tasks = (db.productivity_tasks || []).filter(t => String(t.log_id) === String(log.id));
-        const totalTime = tasks.reduce((sum, t) => sum + (parseInt(t.time_minutes) || 0), 0);
-        
-        // Extract unique task types
-        const uniqueTaskTypes = [...new Set(tasks.map(t => t.task_type))];
-        const taskTypeDisplay = uniqueTaskTypes.length > 0 ? uniqueTaskTypes[0] : 'General Task';
-        const taskSubDisplay = uniqueTaskTypes.length > 1 ? `+${uniqueTaskTypes.length - 1} more` : (tasks[0] ? tasks[0].time_minutes + ' mins' : '');
 
-        const hours = Math.floor(totalTime / 60);
-        const mins = totalTime % 60;
+        const hours = Math.floor(log.total_mins / 60);
+        const mins = log.total_mins % 60;
         const durationStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
         
         const shortInitials = (emp.name || 'U').substring(0, 2).toUpperCase();
@@ -6371,18 +6372,18 @@ window.renderAdminProductivityTab = function() {
                             ${shortInitials}
                         </div>
                         <div>
-                            <div style="font-weight: 600; color: var(--text-color);">${log.practice_id || 'Global Ops'}</div>
+                            <div style="font-weight: 600; color: var(--text-color);">${log.category || 'Global Ops'}</div>
                             <div style="font-size: 11px; color: var(--text-secondary);">${emp.name}</div>
                         </div>
                     </div>
                 </td>
                 <td>
-                    <div style="font-weight: 500; color: var(--text-color);">${taskTypeDisplay}</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">${taskSubDisplay}</div>
+                    <div style="font-weight: 500; color: var(--text-color);">${log.sub_category || '-'}</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">${durationStr}</div>
                 </td>
-                <td style="color: var(--text-secondary);">${durationStr}</td>
+                <td style="color: var(--text-secondary); font-weight: 600;">${log.score_percentage}%</td>
                 <td>
-                    <span class="badge-role" style="background: rgba(15, 52, 132, 0.1); color: var(--primary-color); border-radius: 12px; padding: 4px 10px; font-size: 11px;"><i class="fa-solid fa-circle" style="font-size: 6px; margin-right: 4px;"></i> Processing</span>
+                    <span class="badge-role" style="background: rgba(46, 204, 113, 0.1); color: #2ecc71; border-radius: 12px; padding: 4px 10px; font-size: 11px;"><i class="fa-solid fa-check" style="font-size: 8px; margin-right: 4px;"></i> Saved</span>
                 </td>
             </tr>
         `;
@@ -6397,7 +6398,7 @@ window.downloadAdminProdLogsPdf = function() {
     let printHtml = '<html><head><title>Productivity Logs</title>';
     printHtml += '<style>body{font-family:sans-serif;} table{width:100%;border-collapse:collapse;font-size:12px;} th,td{border:1px solid #ddd;padding:8px;text-align:left;} th{background:#f9f9f9;}</style>';
     printHtml += '</head><body><h2>Company Productivity Logs</h2><table>';
-    printHtml += '<thead><tr><th>LOG ID</th><th>EMPLOYEE / PRACTICE</th><th>ACTIVITY TYPE</th><th>DURATION</th><th>STATUS</th></tr></thead><tbody>';
+    printHtml += '<thead><tr><th>LOG ID</th><th>EMPLOYEE / PRACTICE</th><th>ACTIVITY TYPE</th><th>SCORE</th><th>STATUS</th></tr></thead><tbody>';
     
     const rows = document.querySelectorAll('#admin-all-prod-body tr');
     if (rows.length === 0 || (rows.length === 1 && rows[0].innerText.includes('No company'))) {
