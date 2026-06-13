@@ -3074,6 +3074,9 @@ window.openEditEmployeeModal = function (userId, isViewOnly = false) {
 
         document.getElementById('emp-role').value = user ? user.role : "User";
         document.getElementById('emp-status').value = user ? user.status : "Active";
+        document.getElementById('emp-duty-from').value = user && user.dutyFrom ? user.dutyFrom : "09:00";
+        document.getElementById('emp-duty-to').value = user && user.dutyTo ? user.dutyTo : "17:00";
+        document.getElementById('emp-break-mins').value = user && user.breakMins !== undefined ? user.breakMins : 60;
 
         // Fill reporting managers dropdown
         const managerSelect = document.getElementById('emp-manager');
@@ -3240,6 +3243,9 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
     const startDate = document.getElementById('emp-start-date').value;
     const endDate = document.getElementById('emp-end-date').value;
     const salary = document.getElementById('emp-salary').value;
+    const dutyFrom = document.getElementById('emp-duty-from').value;
+    const dutyTo = document.getElementById('emp-duty-to').value;
+    const breakMins = document.getElementById('emp-break-mins').value;
 
     const fatherName = document.getElementById('emp-father-name').value.trim();
     const gender = document.getElementById('emp-gender').value;
@@ -3333,6 +3339,9 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
             user.salary = salary;
             user.bloodGroup = bloodGroup;
             user.designation = designation;
+            user.dutyFrom = dutyFrom;
+            user.dutyTo = dutyTo;
+            user.breakMins = parseInt(breakMins) || 0;
 
             // Bank Details
             user.bankName = bankName;
@@ -3400,6 +3409,9 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
             salary,
             bloodGroup,
             designation,
+            dutyFrom,
+            dutyTo,
+            breakMins: parseInt(breakMins) || 0,
             bankName,
             accountTitle,
             accountNumber,
@@ -5917,12 +5929,33 @@ document.addEventListener('change', function(e) {
 window.stagedProductivityLogs = [];
 
 window.calculateProdScore = function() {
-    // For now, estimated score is Total Minutes * 1 (Basic logic)
+    if (!currentUser) return;
+    
+    // Get duty configuration, default to 09:00 - 17:00 and 60m break if not set
+    const dutyFrom = currentUser.dutyFrom || "09:00";
+    const dutyTo = currentUser.dutyTo || "17:00";
+    const breakMins = currentUser.breakMins !== undefined ? parseInt(currentUser.breakMins) : 60;
+    
+    const [fromH, fromM] = dutyFrom.split(':').map(Number);
+    const [toH, toM] = dutyTo.split(':').map(Number);
+    
+    let fromTotalMins = (fromH * 60) + (fromM || 0);
+    let toTotalMins = (toH * 60) + (toM || 0);
+    
+    // Handle overnight shifts if needed
+    if (toTotalMins < fromTotalMins) {
+        toTotalMins += 24 * 60;
+    }
+    
+    let netDutyMins = (toTotalMins - fromTotalMins) - breakMins;
+    if (netDutyMins <= 0) netDutyMins = 420; // Fallback to 7 hours if invalid config
+    
     const mins = parseInt(document.getElementById('prod-time-spent').value) || 0;
-    const score = mins * 1; 
+    const percentage = ((mins / netDutyMins) * 100).toFixed(1);
+    
     const scoreDisplay = document.getElementById('calc-score-display');
     if (scoreDisplay) {
-        scoreDisplay.textContent = 'Score: ' + score;
+        scoreDisplay.textContent = 'Score: ' + percentage + '%';
         scoreDisplay.style.display = 'inline-block';
     }
 };
@@ -5937,8 +5970,12 @@ window.addStagedProductivity = function() {
     const manual = parseInt(document.getElementById('prod-manual').value) || 0;
     const totalMins = parseInt(document.getElementById('prod-time-spent').value) || 0;
     const notes = document.getElementById('prod-notes').value.trim();
-    const docPath = document.getElementById('prod-doc-path').value.trim();
-
+    
+    const fileInput = document.getElementById('prod-doc-path');
+    let docPath = '-';
+    if (fileInput && fileInput.files && fileInput.files.length > 0) {
+        docPath = fileInput.files[0].name;
+    }
     // Required Validations based on generic use case (At least BU or TES should be selected)
     if (!buId && !tesId) return showToast('Error', 'Please select at least a Business Unit or TES Category', 'error');
     if (!date) return showToast('Error', 'Date is required', 'error');

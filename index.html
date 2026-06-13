@@ -3057,6 +3057,18 @@
                             <option value="Inactive">Inactive</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="emp-duty-from">Duty Time From</label>
+                        <input type="time" id="emp-duty-from" class="form-control" value="09:00">
+                    </div>
+                    <div class="form-group">
+                        <label for="emp-duty-to">Duty Time To</label>
+                        <input type="time" id="emp-duty-to" class="form-control" value="17:00">
+                    </div>
+                    <div class="form-group">
+                        <label for="emp-break-mins">Break Time (Minutes)</label>
+                        <input type="number" id="emp-break-mins" class="form-control" placeholder="e.g. 60" min="0" value="60">
+                    </div>
                 </div>
 
                 <h4 class="section-title">Documents & Media</h4>
@@ -3160,7 +3172,7 @@
                 </div>
                 <div class="form-group">
                     <label>Document Path</label>
-                    <input type="text" id="prod-doc-path" class="form-control" placeholder="Enter path...">
+                    <input type="file" id="prod-doc-path" class="form-control">
                 </div>
             </div>
 
