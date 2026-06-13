@@ -65,7 +65,7 @@ async function syncServer() {
                         localStorage.removeItem(key);
                     }
                 });
-            } catch (e) {}
+            } catch (e) { }
 
             // Cache DB for offline/reload persistence (Strip large base64 data to prevent QuotaExceededError)
             try {
@@ -84,7 +84,7 @@ async function syncServer() {
             } catch (e) {
                 console.warn("Could not cache DB to localStorage. Quota exceeded.", e);
             }
-            
+
             // Apply Global Settings (Theme) immediately upon sync
             if (result.data.systemSettings && result.data.systemSettings.themeColor) {
                 document.documentElement.style.setProperty('--primary', result.data.systemSettings.themeColor);
@@ -145,9 +145,9 @@ async function saveDb(data) {
     } catch (e) {
         console.warn("Could not save to localStorage. Quota exceeded?", e);
     }
-    
+
     if (window.isDemoMode) return true;
-    
+
     // Prevent accidental wipe if data is incomplete
     if (!data || !data.users) {
         console.error("Invalid database state. Aborting network sync.");
@@ -381,7 +381,7 @@ function handleLogin(usernameOrEmail, password) {
             Object.keys(localStorage).forEach(key => {
                 if (!['current_user', 'active_tab', 'hrms_fallback_db'].includes(key)) localStorage.removeItem(key);
             });
-        } catch (e) {}
+        } catch (e) { }
 
         // Set Session
         currentUser = user;
@@ -784,7 +784,7 @@ function renderAdminDashboard() {
 
     const adminTitle = document.getElementById('admin-welcome-title');
     if (adminTitle && currentUser) {
-        adminTitle.innerHTML = `${getGreeting()}, ${currentUser.name}! ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ¢â‚¬Â¹`;
+        adminTitle.innerHTML = `${getGreeting()}, ${currentUser.name}! `;
     }
 
     // Set current date
@@ -1279,16 +1279,16 @@ function renderAdminEmployeesTab() {
     }
 }
 
-window.reactivateEmployee = async function(userId) {
+window.reactivateEmployee = async function (userId) {
     if (!confirm("Are you sure you want to reactivate this employee?")) return;
     const db = getDb();
     const user = db.users.find(u => u.id === userId);
     if (user) {
         user.status = 'Active';
         user.endDate = null;
-        
+
         const saved = await saveDb(db);
-        if(saved) {
+        if (saved) {
             showToast("Employee Reactivated", `${user.name} has been marked as active.`, "success");
             renderAdminEmployeesTab();
         }
@@ -1351,7 +1351,7 @@ function renderAdminAttendanceTab() {
             `;
         });
     }
-    
+
     renderAdminMyAttendance();
     renderAdminAttendanceSlab();
 }
@@ -1368,10 +1368,10 @@ function renderAdminMyAttendance() {
     const db = getDb();
     const tableBody = document.getElementById('admin-my-attendance-table-body');
     tableBody.innerHTML = '';
-    
+
     let logs = db.attendance.filter(l => l.employeeId === currentUser.id);
     logs.sort((a, b) => new Date(b.date) - new Date(a.date));
-    
+
     if (logs.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="4" class="empty-state">No attendance records found.</td></tr>`;
     } else {
@@ -1429,7 +1429,7 @@ function renderAdminLeaveTab() {
             } else {
                 actionBtnHTML = `<span class="text-muted">Reviewed</span>`;
             }
-            
+
             const emp = db.users.find(u => u.id === l.employeeId);
             const empRole = emp ? emp.role : 'Employee';
 
@@ -1797,10 +1797,10 @@ window.saveLeaveType = function (id) {
 // ==================== RENDERING: MANAGER VIEWS ====================
 function renderManagerDashboard() {
     const db = getDb();
-    
+
     const managerTitle = document.getElementById('manager-welcome-title');
     if (managerTitle && currentUser) {
-        managerTitle.innerHTML = `${getGreeting()}, ${currentUser.name}! ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ¢â‚¬Â¹`;
+        managerTitle.innerHTML = `${getGreeting()}, ${currentUser.name}!`;
     }
 
     const teamMembers = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
@@ -1890,7 +1890,7 @@ function renderManagerDashboard() {
         let path = `M ${coords[0].x} ${coords[0].y}`;
         for (let i = 1; i < coords.length; i++) {
             const cpX = coords[i - 1].x + 25;
-            path += ` C ${cpX} ${coords[i-1].y}, ${cpX} ${coords[i].y}, ${coords[i].x} ${coords[i].y}`;
+            path += ` C ${cpX} ${coords[i - 1].y}, ${cpX} ${coords[i].y}, ${coords[i].x} ${coords[i].y}`;
         }
         return path;
     };
@@ -1984,7 +1984,7 @@ function renderManagerDashboard() {
 function renderManagerTeamTab() {
     const db = getDb();
     const teamMembers = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
-    
+
     // Include manager at the top
     const allMembers = [currentUser, ...teamMembers];
 
@@ -1998,7 +1998,7 @@ function renderManagerTeamTab() {
     } else {
         allMembers.forEach(emp => {
             const statusClass = emp.status === 'Active' ? 'badge-active' : 'badge-inactive';
-            
+
             let mgrName = 'N/A';
             if (emp.managerId) {
                 const mgr = db.users.find(u => u.id === emp.managerId || u.email === emp.managerId);
@@ -2031,10 +2031,10 @@ function renderManagerTeamTab() {
 function renderManagerAttendanceTab() {
     const db = getDb();
     const team = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
-    
+
     // Include manager themselves
     const teamEmails = [currentUser.id, ...team.map(t => t.id)];
-    
+
     const filterDate = document.getElementById('manager-attendance-filter-date').value;
 
     const tableBody = document.getElementById('manager-attendance-table-body');
@@ -2117,7 +2117,7 @@ function renderManagerProductivityTab() {
 
 function renderManagerLeaveTab() {
     const db = getDb();
-    
+
     // 1. Render Team Leaves
     const team = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
     const teamEmails = team.map(t => t.id);
@@ -2189,7 +2189,7 @@ function renderManagerLeaveTab() {
         if (balancesBody) {
             balancesBody.innerHTML = '';
             const userRec = db.users.find(u => u.id === currentUser.id);
-            
+
             let balances = userRec?.leaveBalances || [];
             if (balances.length === 0 && db.companyProfile?.leaveTypes) {
                 balances = db.companyProfile.leaveTypes.map(lt => ({ id: lt.id, name: lt.name, balance: lt.days }));
@@ -2222,10 +2222,10 @@ function renderManagerLeaveTab() {
 // ==================== RENDERING: EMPLOYEE VIEWS ====================
 function renderEmployeeDashboard() {
     const db = getDb();
-    
+
     const employeeTitle = document.getElementById('employee-welcome-title');
     if (employeeTitle && currentUser) {
-        employeeTitle.innerHTML = `${getGreeting()}, ${currentUser.name}! ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ¢â‚¬Â¹`;
+        employeeTitle.innerHTML = `${getGreeting()}, ${currentUser.name}!`;
     }
 
     // Top Metric Cards
@@ -2257,7 +2257,7 @@ function renderEmployeeDashboard() {
     // 1. Employee Monthly Attendance Doughnut Chart
     const currentMonthPrefix = today.substring(0, 7);
     const monthlyLogs = db.attendance.filter(a => a.employeeId === currentUser.id && a.date.startsWith(currentMonthPrefix));
-    
+
     let present = monthlyLogs.filter(a => a.status === 'Present').length;
     let late = monthlyLogs.filter(a => a.status === 'Late').length;
     let leave = monthlyLogs.filter(a => a.status === 'On Leave').length;
@@ -2283,7 +2283,7 @@ function renderEmployeeDashboard() {
     }
 
     const doughnutTotalEl = document.getElementById('employee-attendance-doughnut-total');
-    if (doughnutTotalEl) doughnutTotalEl.textContent = total === 1 && present===0 && absent===0 ? 0 : total;
+    if (doughnutTotalEl) doughnutTotalEl.textContent = total === 1 && present === 0 && absent === 0 ? 0 : total;
 
     const lPres = document.getElementById('employee-legend-present-val');
     const lAbs = document.getElementById('employee-legend-absent-val');
@@ -2321,7 +2321,7 @@ function renderEmployeeDashboard() {
         let path = `M ${coords[0].x} ${coords[0].y}`;
         for (let i = 1; i < coords.length; i++) {
             const cpX = coords[i - 1].x + 25;
-            path += ` C ${cpX} ${coords[i-1].y}, ${cpX} ${coords[i].y}, ${coords[i].x} ${coords[i].y}`;
+            path += ` C ${cpX} ${coords[i - 1].y}, ${cpX} ${coords[i].y}, ${coords[i].x} ${coords[i].y}`;
         }
         return path;
     };
@@ -2500,7 +2500,7 @@ function renderEmployeeLeaveTab() {
     if (balancesBody) {
         balancesBody.innerHTML = '';
         const userRec = db.users.find(u => u.id === currentUser.id);
-        
+
         let balances = userRec?.leaveBalances || [];
         if (balances.length === 0 && db.companyProfile?.leaveTypes) {
             balances = db.companyProfile.leaveTypes.map(lt => ({ id: lt.id, name: lt.name, balance: lt.days }));
@@ -2594,7 +2594,7 @@ function openModal(modalId) {
 }
 
 // ==================== ID CARD LOGIC ====================
-window.viewEmployeeCard = function(userId) {
+window.viewEmployeeCard = function (userId) {
     if (typeof window.openIdCardModal === 'function') {
         window.openIdCardModal(userId);
     } else {
@@ -2602,7 +2602,7 @@ window.viewEmployeeCard = function(userId) {
     }
 };
 
-window.printIdCard = function() {
+window.printIdCard = function () {
     window.print();
 };
 
@@ -2689,7 +2689,7 @@ window.openCompanyProfileModal = function () {
     if (document.getElementById('bp-signatory-designation')) {
         document.getElementById('bp-signatory-designation').value = bp.signatoryDesignation || '';
     }
-    
+
     let bankProfile = (!db.bankProfile || Array.isArray(db.bankProfile)) ? {} : db.bankProfile;
     document.getElementById('bp-letter-header').value = bankProfile.bankLetterHeader || 'We, M/s [COMPANY_NAME], kindly request you to transfer the monthly salaries from our company account No. [ACCOUNT_NO] to the individual accounts of our employees as per the details mentioned below:';
     document.getElementById('bp-letter-footer').value = bankProfile.bankLetterFooter || 'We authorize the bank to debit our Company Account No. [ACCOUNT_NO] for the total salary disbursement and transfer the respective net amounts into the employees\' individual bank accounts mentioned above.\nIf any further information or documentation is required, please let us know.\nThank you for your cooperation.\nSincerely,';
@@ -2887,13 +2887,13 @@ let ctx = null;
 function initSignaturePad() {
     const canvas = document.getElementById('signature-pad');
     if (!canvas) return;
-    
+
     // Reset canvas context
     ctx = canvas.getContext('2d');
     ctx.lineWidth = 3;
     ctx.lineCap = 'round';
     ctx.strokeStyle = '#0f3484';
-    
+
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -2941,7 +2941,7 @@ function initSignaturePad() {
         }
 
         const dataURL = canvas.toDataURL('image/png');
-        
+
         document.getElementById('company-profile-form').dataset.signatureBase64 = dataURL;
         const signatureDropzone = document.getElementById('dropzone-company-signature');
         if (signatureDropzone) {
@@ -2958,16 +2958,16 @@ function initSignaturePad() {
                 signatureDropzone.onclick = () => newInput.click();
             }
         }
-        
+
         closeAllModals();
-        
+
         const db = getDb();
         const cp = (!db.companyProfile || Array.isArray(db.companyProfile)) ? {} : db.companyProfile;
         cp.signatureBase64 = dataURL;
         db.companyProfile = cp;
         await saveDb(db);
         applyCompanyProfile(db);
-        
+
         showToast("Signature Saved", "Signature has been saved successfully.");
     };
 }
@@ -3195,24 +3195,24 @@ window.openEditEmployeeModal = function (userId, isViewOnly = false) {
     }
 };
 
-window.updateEmployeeLeaveBalance = function(empId, leaveId) {
+window.updateEmployeeLeaveBalance = function (empId, leaveId) {
     const db = getDb();
     const user = db.users.find(u => u.id === empId);
     if (!user) return;
-    
+
     const input = document.getElementById(`leave-bal-${leaveId}`);
     if (!input) return;
-    
+
     const newTotal = parseInt(input.value) || 0;
     const existing = user.leaveBalances.find(b => b.id === leaveId);
-    
+
     if (existing) {
         const oldTotal = existing.total !== undefined ? existing.total : existing.balance;
         const diff = newTotal - oldTotal;
         existing.total = newTotal;
         existing.balance = Math.max(0, existing.balance + diff);
     }
-    
+
     saveDb(db);
     showToast("Success", "Leave balance updated successfully.");
     openEmployeeModal(empId); // Refresh modal
@@ -3429,7 +3429,7 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
 
         // RESTful API Sync
         const saved = await saveUserOnServer(newUser);
-        if(saved) {
+        if (saved) {
             showToast("Created", `New user profile created for ${name} (ID: ${actualId}).`);
             logAudit(`Created new employee profile: ${name} (${role}, ID: ${actualId}).`);
             closeAllModals();
@@ -3502,7 +3502,7 @@ function processLeaveReview(status) {
 
         showToast("Leave Evaluation", `Leave request marked as ${newStatus}.`);
         logAudit(`Leave request (${leave.type}) for ${leave.employeeName} marked as ${newStatus}.`, false);
-        
+
         let notificationMsg = `Your leave request for ${leave.startDate} has been ${newStatus}. Manager Remarks: ${comments || 'None'}`;
         if (newStatus === 'Waiting for Admin Approval') {
             notificationMsg = `Your leave request for ${leave.startDate} has been approved by your Manager and is now waiting for Admin approval. Remarks: ${comments || 'None'}`;
@@ -3525,7 +3525,7 @@ function processLeaveReview(status) {
                 }
             }
         }
-        
+
         saveDb(db);
     }
 
@@ -3832,10 +3832,10 @@ document.addEventListener('submit', async (e) => {
     if (!e.target || !e.target.id) return;
     const formId = e.target.id;
     const settingsForms = ['company-profile-form', 'settings-theme-form', 'settings-email-form', 'settings-whatsapp-form', 'settings-biometric-form', 'settings-manager-rights-form'];
-    
+
     if (settingsForms.includes(formId)) {
         e.preventDefault();
-        
+
         if (formId === 'settings-theme-form') {
             const themeColor = document.getElementById('theme-color').value;
             const db = getDb();
@@ -3912,15 +3912,15 @@ document.addEventListener('submit', async (e) => {
     }
 });
 
-window.saveBankProfile = async function() {
+window.saveBankProfile = async function () {
     const db = getDb();
     if (!db) return;
-    
+
     if (!db.bankProfile || Array.isArray(db.bankProfile)) {
         db.bankProfile = {};
     }
     const bp = db.bankProfile;
-    
+
     bp.bankName = document.getElementById('bp-bank-name').value;
     bp.bankBranchCode = document.getElementById('bp-branch-code').value;
     bp.bankAccountNo = document.getElementById('bp-account-no').value;
@@ -3928,58 +3928,58 @@ window.saveBankProfile = async function() {
     if (document.getElementById('bp-signatory-designation')) {
         bp.signatoryDesignation = document.getElementById('bp-signatory-designation').value;
     }
-    
+
     bp.bankLetterHeader = document.getElementById('bp-letter-header').value;
     bp.bankLetterFooter = document.getElementById('bp-letter-footer').value;
-    
+
     showToast("Bank Profile", "Bank settings and letter text saved successfully.");
     saveDb(db); // Background sync
 };
 
-window.savePayrollLockSettings = async function() {
+window.savePayrollLockSettings = async function () {
     const db = getDb();
     if (!db) return;
-    
+
     if (!db.systemSettings) {
         db.systemSettings = {};
     }
     const sysSettings = db.systemSettings;
-    
+
     sysSettings.payrollLockEnabled = document.getElementById('payroll-lock-enabled').checked;
     sysSettings.payrollLockDate = parseInt(document.getElementById('payroll-lock-date').value) || 1;
     sysSettings.payrollLockStartDate = document.getElementById('payroll-lock-start-date').value;
     sysSettings.payrollLockEndDate = document.getElementById('payroll-lock-end-date').value;
-    
+
     showToast("Payroll Restrictions", "Strict payroll limits saved successfully.");
     saveDb(db); // Background sync
 };
 
-window.saveLeaveApprovalSettings = async function() {
+window.saveLeaveApprovalSettings = async function () {
     const db = getDb();
     if (!db) return;
-    
+
     if (!db.systemSettings) {
         db.systemSettings = {};
     }
     const sysSettings = db.systemSettings;
-    
+
     sysSettings.leaveApprovedByAdmin = document.getElementById('leave-approval-by-admin').checked;
-    
+
     showToast("Leave Approvals", "Leave approval settings saved successfully.");
     saveDb(db); // Background sync
 };
 
-window.saveProductivitySettings = async function() {
+window.saveProductivitySettings = async function () {
     const db = getDb();
     if (!db) return;
-    
+
     if (!db.systemSettings) {
         db.systemSettings = {};
     }
     const sysSettings = db.systemSettings;
-    
+
     sysSettings.showEmployeeLogsToAdmin = document.getElementById('prod-show-emp-admin').checked;
-    
+
     showToast("Productivity Settings", "Settings saved successfully.");
     saveDb(db);
 };
@@ -3991,7 +3991,7 @@ document.addEventListener('click', async (e) => {
         const defaultTheme = '#5f3bf6';
         document.getElementById('theme-color').value = defaultTheme;
         document.getElementById('theme-color-hex').textContent = defaultTheme;
-        
+
         const db = getDb();
         if (!db.systemSettings) db.systemSettings = {};
         db.systemSettings.themeColor = defaultTheme;
@@ -4003,8 +4003,8 @@ document.addEventListener('click', async (e) => {
     // Biometric Test Button
     if (e.target && e.target.closest('#btn-test-biometric')) {
         const ip = document.getElementById('bio-ip').value;
-        if(!ip) return showToast("Error", "Please enter Machine IP address first.", "error");
-        
+        if (!ip) return showToast("Error", "Please enter Machine IP address first.", "error");
+
         showToast("Testing Connection...", `Attempting to ping ${ip}`, "info");
         setTimeout(() => {
             showToast("Connection Failed", "Unable to reach the machine. Check IP and network connection.", "error");
@@ -4449,7 +4449,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         f.addEventListener('submit', e => { e.preventDefault(); });
     });
     await syncServer();
-    
+
     // One-time clear of productivity data
     const db = getDb();
     if (db && !db.productivity_cleared) {
@@ -4888,7 +4888,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 // Use PNG for signatures to preserve transparency
                 const dataURL = canvas.toDataURL('image/png');
-                
+
                 dropzone.innerHTML = `
                     <img src="${dataURL}" alt="Signature" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
                     <div style="font-size: 11px; color: var(--text-muted);">Click to change signature</div>
@@ -5048,7 +5048,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
-                
+
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
                 window.tempProfilePic = dataUrl;
 
@@ -5143,7 +5143,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (prevSession) {
 
         currentUser = JSON.parse(prevSession);
-        
+
         // Apply Custom Theme if exists
         const cachedDb = JSON.parse(localStorage.getItem('hrms_fallback_db') || '{}');
         const sysSettings = cachedDb.systemSettings || {};
@@ -5152,7 +5152,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             document.documentElement.style.setProperty('--primary', '#5f3bf6'); // Default
         }
-        
+
         const authPanel = document.getElementById('auth-panel');
         const appShell = document.getElementById('app-shell');
         if (authPanel) {
@@ -5225,11 +5225,11 @@ window.openIdCardModal = function (userId) {
     const frontLogo = document.getElementById('id-card-front-logo');
     const backLogo = document.getElementById('id-card-back-logo');
     if (cp.logoBase64) {
-        if(frontLogo) { frontLogo.src = cp.logoBase64; frontLogo.style.display = 'block'; }
-        if(backLogo) { backLogo.src = cp.logoBase64; backLogo.style.display = 'block'; }
+        if (frontLogo) { frontLogo.src = cp.logoBase64; frontLogo.style.display = 'block'; }
+        if (backLogo) { backLogo.src = cp.logoBase64; backLogo.style.display = 'block'; }
     } else {
-        if(frontLogo) frontLogo.style.display = 'none';
-        if(backLogo) backLogo.style.display = 'none';
+        if (frontLogo) frontLogo.style.display = 'none';
+        if (backLogo) backLogo.style.display = 'none';
     }
 
     const frontCompanyName = document.getElementById('id-card-front-company-name');
@@ -5245,21 +5245,21 @@ window.openIdCardModal = function (userId) {
     const avatarImg = document.getElementById('id-card-avatar');
     const avatarPlaceholder = document.getElementById('id-card-avatar-placeholder');
     if (user.profilePic) {
-        if(avatarImg) { avatarImg.src = user.profilePic; avatarImg.style.display = 'block'; }
-        if(avatarPlaceholder) avatarPlaceholder.style.display = 'none';
+        if (avatarImg) { avatarImg.src = user.profilePic; avatarImg.style.display = 'block'; }
+        if (avatarPlaceholder) avatarPlaceholder.style.display = 'none';
     } else {
-        if(avatarImg) avatarImg.style.display = 'none';
-        if(avatarPlaceholder) avatarPlaceholder.style.display = 'block';
+        if (avatarImg) avatarImg.style.display = 'none';
+        if (avatarPlaceholder) avatarPlaceholder.style.display = 'block';
     }
 
     const signatureImg = document.getElementById('id-card-signature');
     const signaturePlaceholder = document.getElementById('id-card-signature-placeholder');
     if (cp.signatureBase64) {
-        if(signatureImg) { signatureImg.src = cp.signatureBase64; signatureImg.style.display = 'block'; }
-        if(signaturePlaceholder) signaturePlaceholder.style.display = 'none';
+        if (signatureImg) { signatureImg.src = cp.signatureBase64; signatureImg.style.display = 'block'; }
+        if (signaturePlaceholder) signaturePlaceholder.style.display = 'none';
     } else {
-        if(signatureImg) signatureImg.style.display = 'none';
-        if(signaturePlaceholder) signaturePlaceholder.style.display = 'block';
+        if (signatureImg) signatureImg.style.display = 'none';
+        if (signaturePlaceholder) signaturePlaceholder.style.display = 'block';
     }
 
     document.getElementById('id-card-name').textContent = user.name || '';
@@ -5310,7 +5310,7 @@ function getProdSettings() {
     }
     try {
         return JSON.parse(db.systemSettings.productivityCategories);
-    } catch(e) {
+    } catch (e) {
         return { businessUnits: [], tesCategories: [] };
     }
 }
@@ -5333,7 +5333,7 @@ window.selectedAdminTesId = null;
 window.selectedAdminPracticeId = null;
 window.selectedAdminTaskId = null;
 
-window.renderAdminCategoriesConfig = function() {
+window.renderAdminCategoriesConfig = function () {
     const settings = getProdSettings();
 
     // 1. Render Business Units List
@@ -5388,7 +5388,7 @@ window.renderAdminCategoriesConfig = function() {
             const bu = settings.businessUnits.find(b => b.id === window.selectedAdminBuId);
             if (btnAddPractice) btnAddPractice.style.display = 'block';
             if (activeBuName) activeBuName.textContent = `(for ${bu.name})`;
-            
+
             prList.innerHTML = '';
             if (!bu.practices || bu.practices.length === 0) {
                 prList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">No practices found for this Business Unit.</div>';
@@ -5469,7 +5469,7 @@ window.renderAdminCategoriesConfig = function() {
             const tes = settings.tesCategories.find(t => t.id === window.selectedAdminTesId);
             if (btnAddTask) btnAddTask.style.display = 'block';
             if (activeTesName) activeTesName.textContent = `(for ${tes.name})`;
-            
+
             taskList.innerHTML = '';
             if (!tes.tasks || tes.tasks.length === 0) {
                 taskList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">No tasks found for this Category.</div>';
@@ -5500,11 +5500,11 @@ window.renderAdminCategoriesConfig = function() {
     }
 };
 
-window.renderProductivitySettings = function() {
+window.renderProductivitySettings = function () {
     if (window.renderAdminCategoriesConfig) window.renderAdminCategoriesConfig();
 };
 
-window.toggleTree = function(id) {
+window.toggleTree = function (id) {
     const children = document.getElementById('children-' + id);
     const icon = document.getElementById('icon-' + id);
     if (children) {
@@ -5519,7 +5519,7 @@ window.toggleTree = function(id) {
 };
 
 // --------- ADMIN ACTIONS ---------
-window.addBuModal = function() {
+window.addBuModal = function () {
     Swal.fire({
         title: 'Add Business Unit',
         input: 'text',
@@ -5540,7 +5540,7 @@ window.addBuModal = function() {
     });
 };
 
-window.deleteSelectedBu = function() {
+window.deleteSelectedBu = function () {
     const id = window.selectedAdminBuId;
     if (!id) return;
     Swal.fire({
@@ -5560,7 +5560,7 @@ window.deleteSelectedBu = function() {
     });
 };
 
-window.editSelectedBu = function() {
+window.editSelectedBu = function () {
     const id = window.selectedAdminBuId;
     if (!id) return;
     const settings = getProdSettings();
@@ -5586,7 +5586,7 @@ window.editSelectedBu = function() {
     });
 };
 
-window.addBuPracticeModal = function(buId) {
+window.addBuPracticeModal = function (buId) {
     Swal.fire({
         title: 'Add Practice',
         input: 'text',
@@ -5610,7 +5610,7 @@ window.addBuPracticeModal = function(buId) {
     });
 };
 
-window.deleteSelectedPractice = function() {
+window.deleteSelectedPractice = function () {
     const buId = window.selectedAdminBuId;
     const pId = window.selectedAdminPracticeId;
     if (!buId || !pId) return;
@@ -5633,7 +5633,7 @@ window.deleteSelectedPractice = function() {
     });
 };
 
-window.editSelectedPractice = function() {
+window.editSelectedPractice = function () {
     const buId = window.selectedAdminBuId;
     const pId = window.selectedAdminPracticeId;
     if (!buId || !pId) return;
@@ -5662,7 +5662,7 @@ window.editSelectedPractice = function() {
     });
 };
 
-window.addTesModal = function() {
+window.addTesModal = function () {
     Swal.fire({
         title: 'Add TES Category',
         input: 'text',
@@ -5683,7 +5683,7 @@ window.addTesModal = function() {
     });
 };
 
-window.deleteSelectedTes = function() {
+window.deleteSelectedTes = function () {
     const id = window.selectedAdminTesId;
     if (!id) return;
     Swal.fire({
@@ -5703,7 +5703,7 @@ window.deleteSelectedTes = function() {
     });
 };
 
-window.editSelectedTes = function() {
+window.editSelectedTes = function () {
     const id = window.selectedAdminTesId;
     if (!id) return;
     const settings = getProdSettings();
@@ -5729,7 +5729,7 @@ window.editSelectedTes = function() {
     });
 };
 
-window.addTesTaskModal = function(tesId) {
+window.addTesTaskModal = function (tesId) {
     Swal.fire({
         title: 'Add Task',
         input: 'text',
@@ -5753,7 +5753,7 @@ window.addTesTaskModal = function(tesId) {
     });
 };
 
-window.deleteSelectedTask = function() {
+window.deleteSelectedTask = function () {
     const tesId = window.selectedAdminTesId;
     const taskId = window.selectedAdminTaskId;
     if (!tesId || !taskId) return;
@@ -5776,7 +5776,7 @@ window.deleteSelectedTask = function() {
     });
 };
 
-window.editSelectedTask = function() {
+window.editSelectedTask = function () {
     const tesId = window.selectedAdminTesId;
     const taskId = window.selectedAdminTaskId;
     if (!tesId || !taskId) return;
@@ -5805,7 +5805,7 @@ window.editSelectedTask = function() {
     });
 };
 // --------- EMPLOYEE SUBMISSION FORM LOGIC ---------
-window.toggleEptProdType = function() {
+window.toggleEptProdType = function () {
     const type = document.querySelector('input[name="ept-prod-type"]:checked')?.value || 'BU';
     if (type === 'BU') {
         document.getElementById('ept-fields-bu').style.display = 'block';
@@ -5816,7 +5816,7 @@ window.toggleEptProdType = function() {
     }
 };
 
-window.toggleProdTypeFields = function() {
+window.toggleProdTypeFields = function () {
     const type = document.querySelector('input[name="prod-type"]:checked')?.value || 'BU';
     if (type === 'BU') {
         document.getElementById('prod-fields-bu').style.display = 'block';
@@ -5827,19 +5827,19 @@ window.toggleProdTypeFields = function() {
     }
 };
 
-window.populateProdDropdowns = function() {
+window.populateProdDropdowns = function () {
     const settings = getProdSettings();
-    
+
     // EPT (Inline)
     const eptBuSelect = document.getElementById('ept-bu-select');
     const eptTesSelect = document.getElementById('ept-tes-select');
-    
+
     if (eptBuSelect) {
-        eptBuSelect.innerHTML = '<option value="">-- Select Business Unit --</option>' + 
+        eptBuSelect.innerHTML = '<option value="">-- Select Business Unit --</option>' +
             settings.businessUnits.map(bu => `<option value="${bu.id}">${bu.name}</option>`).join('');
     }
     if (eptTesSelect) {
-        eptTesSelect.innerHTML = '<option value="">-- Select TES Category --</option>' + 
+        eptTesSelect.innerHTML = '<option value="">-- Select TES Category --</option>' +
             settings.tesCategories.map(tes => `<option value="${tes.id}">${tes.name}</option>`).join('');
     }
 
@@ -5847,21 +5847,21 @@ window.populateProdDropdowns = function() {
     const prodBuSelect = document.getElementById('prod-bu-select');
     const prodTesSelect = document.getElementById('prod-tes-select');
     if (prodBuSelect) {
-        prodBuSelect.innerHTML = '<option value="">-- Select Business Unit --</option>' + 
+        prodBuSelect.innerHTML = '<option value="">-- Select Business Unit --</option>' +
             settings.businessUnits.map(bu => `<option value="${bu.id}">${bu.name}</option>`).join('');
     }
     if (prodTesSelect) {
-        prodTesSelect.innerHTML = '<option value="">-- Select TES Category --</option>' + 
+        prodTesSelect.innerHTML = '<option value="">-- Select TES Category --</option>' +
             settings.tesCategories.map(tes => `<option value="${tes.id}">${tes.name}</option>`).join('');
     }
 };
 
-window.onEptBuChange = function() {
+window.onEptBuChange = function () {
     const settings = getProdSettings();
     const buId = document.getElementById('ept-bu-select').value;
     const bu = settings.businessUnits.find(b => b.id === buId);
     const optionsContainer = document.getElementById('ept-bu-practices-options');
-    
+
     document.querySelector('#ept-bu-practices-multiselect .selected-text').textContent = 'Select Practices';
     if (!bu) {
         optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">Select a Business Unit first</div>';
@@ -5871,18 +5871,18 @@ window.onEptBuChange = function() {
         optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">No practices found in this Business Unit</div>';
         return;
     }
-    
+
     optionsContainer.innerHTML = bu.practices.map(p => `
         <label><input type="checkbox" value="${p.id}" data-text="${p.name}"> ${p.name}</label>
     `).join('');
 };
 
-window.onEptTesChange = function() {
+window.onEptTesChange = function () {
     const settings = getProdSettings();
     const tesId = document.getElementById('ept-tes-select').value;
     const tes = settings.tesCategories.find(t => t.id === tesId);
     const optionsContainer = document.getElementById('ept-tes-tasks-options');
-    
+
     document.querySelector('#ept-tes-tasks-multiselect .selected-text').textContent = 'Select Tasks';
     if (!tes) {
         optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">Select a TES Category first</div>';
@@ -5892,19 +5892,19 @@ window.onEptTesChange = function() {
         optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">No tasks found in this Category</div>';
         return;
     }
-    
+
     optionsContainer.innerHTML = tes.tasks.map(t => `
         <label><input type="checkbox" value="${t.id}" data-text="${t.name}"> ${t.name}</label>
     `).join('');
 };
 
 // Same for Modal if needed
-window.onProdBuChange = function() {
+window.onProdBuChange = function () {
     const settings = getProdSettings();
     const buId = document.getElementById('prod-bu-select').value;
     const bu = settings.businessUnits.find(b => b.id === buId);
     const optionsContainer = document.getElementById('prod-bu-practices-options');
-    
+
     document.querySelector('#prod-bu-practices-multiselect .selected-text').textContent = 'Select Practices';
     if (!bu) {
         optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">Select a Business Unit first</div>';
@@ -5913,12 +5913,12 @@ window.onProdBuChange = function() {
     optionsContainer.innerHTML = bu.practices.map(p => `<label><input type="checkbox" value="${p.id}" data-text="${p.name}"> ${p.name}</label>`).join('');
 };
 
-window.onProdTesChange = function() {
+window.onProdTesChange = function () {
     const settings = getProdSettings();
     const tesId = document.getElementById('prod-tes-select').value;
     const tes = settings.tesCategories.find(t => t.id === tesId);
     const optionsContainer = document.getElementById('prod-tes-tasks-options');
-    
+
     document.querySelector('#prod-tes-tasks-multiselect .selected-text').textContent = 'Select Tasks';
     if (!tes) {
         optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">Select a TES Category first</div>';
@@ -5928,7 +5928,7 @@ window.onProdTesChange = function() {
 };
 
 // Multi-select custom logic (bind to all checkboxes in our custom multiselects)
-document.addEventListener('change', function(e) {
+document.addEventListener('change', function (e) {
     if (e.target.matches('.custom-multiselect input[type="checkbox"]')) {
         const container = e.target.closest('.custom-multiselect');
         const selectedTextSpan = container.querySelector('.selected-text');
@@ -5946,31 +5946,31 @@ document.addEventListener('change', function(e) {
 // Productivity Staging Logic
 window.stagedProductivityLogs = [];
 
-window.calculateProdScore = function() {
+window.calculateProdScore = function () {
     if (!currentUser) return;
-    
+
     // Get duty configuration, default to 09:00 - 17:00 and 60m break if not set
     const dutyFrom = currentUser.dutyFrom || "09:00";
     const dutyTo = currentUser.dutyTo || "17:00";
     const breakMins = currentUser.breakMins !== undefined ? parseInt(currentUser.breakMins) : 60;
-    
+
     const [fromH, fromM] = dutyFrom.split(':').map(Number);
     const [toH, toM] = dutyTo.split(':').map(Number);
-    
+
     let fromTotalMins = (fromH * 60) + (fromM || 0);
     let toTotalMins = (toH * 60) + (toM || 0);
-    
+
     // Handle overnight shifts if needed
     if (toTotalMins < fromTotalMins) {
         toTotalMins += 24 * 60;
     }
-    
+
     let netDutyMins = (toTotalMins - fromTotalMins) - breakMins;
     if (netDutyMins <= 0) netDutyMins = 420; // Fallback to 7 hours if invalid config
-    
+
     const mins = parseInt(document.getElementById('prod-time-spent').value) || 0;
     const percentage = ((mins / netDutyMins) * 100).toFixed(1);
-    
+
     const scoreDisplay = document.getElementById('calc-score-display');
     if (scoreDisplay) {
         scoreDisplay.textContent = 'Score: ' + percentage + '%';
@@ -5978,17 +5978,17 @@ window.calculateProdScore = function() {
     }
 };
 
-window.addStagedProductivity = function() {
+window.addStagedProductivity = function () {
     const buId = document.getElementById('prod-bu-select').value;
     const date = document.getElementById('prod-form-date').value || new Date().toISOString().split('T')[0];
     const tesId = document.getElementById('prod-tes-select').value;
-    
+
     // Numbers
     const electronic = parseInt(document.getElementById('prod-electronic').value) || 0;
     const manual = parseInt(document.getElementById('prod-manual').value) || 0;
     const totalMins = parseInt(document.getElementById('prod-time-spent').value) || 0;
     const notes = document.getElementById('prod-notes').value.trim();
-    
+
     const fileInput = document.getElementById('prod-doc-path');
     let docPath = '-';
     if (fileInput && fileInput.files && fileInput.files.length > 0) {
@@ -6039,7 +6039,7 @@ window.addStagedProductivity = function() {
     };
 
     window.stagedProductivityLogs.push(entry);
-    
+
     // Clear inputs for next entry
     document.getElementById('prod-electronic').value = '';
     document.getElementById('prod-manual').value = '';
@@ -6048,14 +6048,14 @@ window.addStagedProductivity = function() {
     document.getElementById('prod-doc-path').value = '';
     document.querySelectorAll('.custom-multiselect input[type="checkbox"]').forEach(c => c.checked = false);
     document.querySelectorAll('.custom-multiselect .selected-text').forEach(s => s.textContent = 'Select');
-    
+
     const scoreDisplay = document.getElementById('calc-score-display');
     if (scoreDisplay) scoreDisplay.style.display = 'none';
 
     renderStagedProductivityTable();
 };
 
-window.removeStagedProductivity = function(index) {
+window.removeStagedProductivity = function (index) {
     window.stagedProductivityLogs.splice(index, 1);
     renderStagedProductivityTable();
 };
@@ -6063,12 +6063,12 @@ window.removeStagedProductivity = function(index) {
 function renderStagedProductivityTable() {
     const tbody = document.getElementById('prod-staging-body');
     if (!tbody) return;
-    
+
     if (window.stagedProductivityLogs.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No Record Found.</td></tr>';
         return;
     }
-    
+
     tbody.innerHTML = window.stagedProductivityLogs.map((log, index) => `
         <tr>
             <td>${log.practiceName}</td>
@@ -6087,7 +6087,7 @@ function renderStagedProductivityTable() {
     `).join('');
 }
 
-window.submitAllStagedProductivity = async function() {
+window.submitAllStagedProductivity = async function () {
     if (window.stagedProductivityLogs.length === 0) {
         return showToast('Error', 'Please add at least one record to submit.', 'error');
     }
@@ -6129,13 +6129,13 @@ window.submitAllStagedProductivity = async function() {
             body: JSON.stringify({ logs: payload })
         });
         const result = await response.json();
-        
+
         if (result.status === 'success') {
             showToast('Success', 'All productivity entries logged successfully!');
             window.stagedProductivityLogs = [];
             renderStagedProductivityTable();
             closeModal('modal-productivity-form');
-            
+
             // Reload global DB to fetch the latest productivity records, then re-render
             await loadDbFromServer();
             if (typeof renderMyProductivityLogs === 'function') renderMyProductivityLogs();
@@ -6154,7 +6154,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         renderProductivitySettings();
         populateProdDropdowns();
-        
+
         // Setup simple custom multiselect dropdown logic
         document.querySelectorAll('.multiselect-select-box').forEach(box => {
             box.addEventListener('click', (e) => {
@@ -6177,12 +6177,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --------- RENDER PRODUCTIVITY LOGS ---------
 
-window.renderMyProductivityLogs = function() {
+window.renderMyProductivityLogs = function () {
     const eptTbody = document.getElementById('ept-my-logs-body');
     const mgrTbody = document.getElementById('manager-my-logs-body');
-    
+
     if (!eptTbody && !mgrTbody) return;
-    
+
     const db = getDb();
     const myLogs = (db.productivity || []).filter(l => String(l.employee_id) === String(currentUser.id));
     myLogs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -6192,7 +6192,7 @@ window.renderMyProductivityLogs = function() {
         html = '<tr><td colspan="5" class="text-center text-muted">No logs found</td></tr>';
     } else {
         myLogs.forEach(log => {
-            const docLink = log.doc_path && log.doc_path !== '-' 
+            const docLink = log.doc_path && log.doc_path !== '-'
                 ? `<a href="#" onclick="showToast('Document', '${log.doc_path}', 'info'); return false;" style="text-decoration: underline; color: var(--primary-color);">${log.doc_path}</a>`
                 : '-';
             html += `
@@ -6214,14 +6214,14 @@ window.renderMyProductivityLogs = function() {
     if (mgrTbody) mgrTbody.innerHTML = html;
 };
 
-window.switchManagerProdTab = function(tabId) {
+window.switchManagerProdTab = function (tabId) {
     document.querySelectorAll('#manager-tab-productivity .btn-sub-tab').forEach(btn => {
         btn.classList.remove('active');
         if (btn.getAttribute('data-subtab') === tabId) {
             btn.classList.add('active');
         }
     });
-    
+
     document.querySelectorAll('#manager-tab-productivity .sub-tab-content').forEach(content => {
         content.classList.remove('active');
         content.style.display = 'none';
@@ -6238,15 +6238,15 @@ window.switchManagerProdTab = function(tabId) {
     }
 };
 
-window.renderManagerProductivityTab = function() {
+window.renderManagerProductivityTab = function () {
     const tbody = document.getElementById('manager-team-prod-body');
     if (!tbody) return;
     tbody.innerHTML = '';
     const db = getDb();
-    
+
     // Find team
-    const team = (db.users || []).filter(u => 
-        (u.role === 'User' || u.role === 'Employee') && 
+    const team = (db.users || []).filter(u =>
+        (u.role === 'User' || u.role === 'Employee') &&
         (String(u.managerId) === String(currentUser.id) || u.managerId === currentUser.name || u.managerId === currentUser.email)
     );
     const teamIds = team.map(t => String(t.id));
@@ -6266,7 +6266,7 @@ window.renderManagerProductivityTab = function() {
 
     teamLogs.forEach(log => {
         const emp = team.find(u => String(u.id) === String(log.employee_id));
-        const docLink = log.doc_path && log.doc_path !== '-' 
+        const docLink = log.doc_path && log.doc_path !== '-'
             ? `<a href="#" onclick="showToast('Document', '${log.doc_path}', 'info'); return false;" style="text-decoration: underline; color: var(--primary-color);">${log.doc_path}</a>`
             : '-';
 
@@ -6296,7 +6296,7 @@ window.renderManagerProductivityTab = function() {
     });
 };
 
-window.renderEmployeeProductivityTab = function() {
+window.renderEmployeeProductivityTab = function () {
     if (window.renderMyProductivityLogs) {
         window.renderMyProductivityLogs();
     }
@@ -6313,18 +6313,18 @@ function renderEmployeeProductivityTab() {
 
 // --------- ADMIN PRODUCTIVITY TAB ---------
 
-window.renderAdminProductivityTab = function() {
+window.renderAdminProductivityTab = function () {
     const tbody = document.getElementById('admin-all-prod-body');
     if (!tbody) return;
-    
+
     const db = getDb();
     const settings = getSystemSettings();
-    
+
     // Setup Filter Dropdowns if empty
     const dateFilter = document.getElementById('admin-log-filter-date');
     const empFilter = document.getElementById('admin-log-filter-employee');
     const catFilter = document.getElementById('admin-log-filter-category');
-    
+
     // Default to today if date is empty
     if (dateFilter && !dateFilter.value) {
         const today = new Date();
@@ -6333,7 +6333,7 @@ window.renderAdminProductivityTab = function() {
         const dd = String(today.getDate()).padStart(2, '0');
         dateFilter.value = `${yyyy}-${mm}-${dd}`;
     }
-    
+
     if (empFilter && empFilter.options.length <= 1) {
         (db.users || []).forEach(u => {
             const opt = document.createElement('option');
@@ -6342,7 +6342,7 @@ window.renderAdminProductivityTab = function() {
             empFilter.appendChild(opt);
         });
     }
-    
+
     if (catFilter && catFilter.options.length <= 1) {
         let allCats = [];
         (settings.businessUnits || []).forEach(bu => {
@@ -6354,7 +6354,7 @@ window.renderAdminProductivityTab = function() {
         (db.productivity || []).forEach(l => {
             if (l.category) allCats.push(l.category);
         });
-        
+
         [...new Set(allCats)].filter(Boolean).forEach(cat => {
             const opt = document.createElement('option');
             opt.value = cat;
@@ -6368,7 +6368,7 @@ window.renderAdminProductivityTab = function() {
     const selectedCat = catFilter ? catFilter.value : '';
 
     let allLogs = (db.productivity || []);
-    
+
     const showEmpToAdmin = settings.showEmployeeLogsToAdmin === 'true' || settings.showEmployeeLogsToAdmin === true;
 
     // Apply Filters
@@ -6376,12 +6376,12 @@ window.renderAdminProductivityTab = function() {
         if (selectedDate && log.date !== selectedDate) return false;
         if (selectedEmp && String(log.employee_id) !== String(selectedEmp)) return false;
         if (selectedCat && log.category !== selectedCat) return false;
-        
+
         if (!showEmpToAdmin) {
             const emp = (db.users || []).find(u => String(u.id) === String(log.employee_id));
             if (emp && (emp.role === 'User' || emp.role === 'Employee')) return false;
         }
-        
+
         return true;
     });
 
@@ -6402,9 +6402,9 @@ window.renderAdminProductivityTab = function() {
         const hours = Math.floor(log.total_mins / 60);
         const mins = log.total_mins % 60;
         const durationStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
-        
+
         const shortInitials = (emp.name || 'U').substring(0, 2).toUpperCase();
-        const docLink = log.doc_path && log.doc_path !== '-' 
+        const docLink = log.doc_path && log.doc_path !== '-'
             ? `<a href="#" onclick="showToast('Document', '${log.doc_path}', 'info'); return false;" style="text-decoration: underline; color: var(--primary-color);">${log.doc_path}</a>`
             : '-';
 
@@ -6441,12 +6441,12 @@ function renderAdminProductivityTab() {
     if (window.renderAdminProductivityTab) window.renderAdminProductivityTab();
 }
 
-window.downloadAdminProdLogsPdf = function() {
+window.downloadAdminProdLogsPdf = function () {
     let printHtml = '<html><head><title>Productivity Logs</title>';
     printHtml += '<style>body{font-family:sans-serif;} table{width:100%;border-collapse:collapse;font-size:12px;} th,td{border:1px solid #ddd;padding:8px;text-align:left;} th{background:#f9f9f9;}</style>';
     printHtml += '</head><body><h2>Company Productivity Logs</h2><table>';
     printHtml += '<thead><tr><th>LOG ID</th><th>DATE</th><th>EMPLOYEE / PRACTICE</th><th>ACTIVITY TYPE</th><th>ELECT.</th><th>MANUAL</th><th>DURATION</th><th>DOCUMENTS</th><th>SCORE</th></tr></thead><tbody>';
-    
+
     const rows = document.querySelectorAll('#admin-all-prod-body tr');
     if (rows.length === 0 || (rows.length === 1 && rows[0].innerText.includes('No company'))) {
         printHtml += '<tr><td colspan="9">No logs found</td></tr>';
@@ -6467,9 +6467,9 @@ window.downloadAdminProdLogsPdf = function() {
             </tr>`;
         });
     }
-    
+
     printHtml += '</tbody></table></body></html>';
-    
+
     const printWindow = window.open('', '_blank');
     printWindow.document.write(printHtml);
     printWindow.document.close();
