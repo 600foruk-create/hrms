@@ -1527,6 +1527,9 @@ function renderAdminSettingsTab() {
     if (document.getElementById('leave-approval-by-admin')) {
         document.getElementById('leave-approval-by-admin').checked = !!sysSettings.leaveApprovedByAdmin;
     }
+    if (document.getElementById('prod-show-emp-admin')) {
+        document.getElementById('prod-show-emp-admin').checked = sysSettings.showEmployeeLogsToAdmin === 'true' || sysSettings.showEmployeeLogsToAdmin === true;
+    }
 
     // Populate Company Profile Inline Form
     if (typeof window.openCompanyProfileModal === 'function') {
@@ -3966,6 +3969,21 @@ window.saveLeaveApprovalSettings = async function() {
     saveDb(db); // Background sync
 };
 
+window.saveProductivitySettings = async function() {
+    const db = getDb();
+    if (!db) return;
+    
+    if (!db.systemSettings) {
+        db.systemSettings = {};
+    }
+    const sysSettings = db.systemSettings;
+    
+    sysSettings.showEmployeeLogsToAdmin = document.getElementById('prod-show-emp-admin').checked;
+    
+    showToast("Productivity Settings", "Settings saved successfully.");
+    saveDb(db);
+};
+
 // Settings Event Delegation (Click actions like Reset/Test)
 document.addEventListener('click', async (e) => {
     // Reset Theme Button
@@ -6174,13 +6192,19 @@ window.renderMyProductivityLogs = function() {
         html = '<tr><td colspan="5" class="text-center text-muted">No logs found</td></tr>';
     } else {
         myLogs.forEach(log => {
+            const docLink = log.doc_path && log.doc_path !== '-' 
+                ? `<a href="#" onclick="showToast('Document', '${log.doc_path}', 'info'); return false;" style="text-decoration: underline; color: var(--primary-color);">${log.doc_path}</a>`
+                : '-';
             html += `
                 <tr>
                     <td>${log.date}</td>
                     <td><span class="badge-role" style="background: rgba(15, 52, 132, 0.1); color: var(--primary-color);">${log.category}</span></td>
                     <td>${log.sub_category || '-'}</td>
+                    <td>${log.electronic_mins || 0} mins</td>
+                    <td>${log.manual_mins || 0} mins</td>
                     <td>${log.total_mins} mins</td>
-                    <td>${log.score_percentage}%</td>
+                    <td>${docLink}</td>
+                    <td><span style="font-weight:bold; color:var(--primary-color)">${log.score_percentage}%</span></td>
                 </tr>
             `;
         });
@@ -6242,6 +6266,9 @@ window.renderManagerProductivityTab = function() {
 
     teamLogs.forEach(log => {
         const emp = team.find(u => String(u.id) === String(log.employee_id));
+        const docLink = log.doc_path && log.doc_path !== '-' 
+            ? `<a href="#" onclick="showToast('Document', '${log.doc_path}', 'info'); return false;" style="text-decoration: underline; color: var(--primary-color);">${log.doc_path}</a>`
+            : '-';
 
         tbody.innerHTML += `
             <tr>
@@ -6253,7 +6280,14 @@ window.renderManagerProductivityTab = function() {
                     </div>
                 </td>
                 <td><span class="badge-role" style="background: rgba(15, 52, 132, 0.1); color: var(--primary-color);">${log.category}</span></td>
-                <td>${log.sub_category || '-'} (${log.total_mins} mins)</td>
+                <td>${log.sub_category || '-'}</td>
+                <td>${log.electronic_mins || 0} mins</td>
+                <td>${log.manual_mins || 0} mins</td>
+                <td>${log.total_mins} mins</td>
+                <td>${docLink}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline" onclick="showToast('Info', 'Log details viewing coming soon!')">View</button>
+                </td>
                 <td>
                     <span style="font-weight:bold; color:var(--primary-color)">${log.score_percentage}%</span>
                 </td>
@@ -6335,11 +6369,19 @@ window.renderAdminProductivityTab = function() {
 
     let allLogs = (db.productivity || []);
     
+    const showEmpToAdmin = settings.showEmployeeLogsToAdmin === 'true' || settings.showEmployeeLogsToAdmin === true;
+
     // Apply Filters
     allLogs = allLogs.filter(log => {
         if (selectedDate && log.date !== selectedDate) return false;
         if (selectedEmp && String(log.employee_id) !== String(selectedEmp)) return false;
         if (selectedCat && log.category !== selectedCat) return false;
+        
+        if (!showEmpToAdmin) {
+            const emp = (db.users || []).find(u => String(u.id) === String(log.employee_id));
+            if (emp && (emp.role === 'User' || emp.role === 'Employee')) return false;
+        }
+        
         return true;
     });
 
@@ -6362,10 +6404,14 @@ window.renderAdminProductivityTab = function() {
         const durationStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
         
         const shortInitials = (emp.name || 'U').substring(0, 2).toUpperCase();
+        const docLink = log.doc_path && log.doc_path !== '-' 
+            ? `<a href="#" onclick="showToast('Document', '${log.doc_path}', 'info'); return false;" style="text-decoration: underline; color: var(--primary-color);">${log.doc_path}</a>`
+            : '-';
 
         tbody.innerHTML += `
             <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
                 <td style="font-weight: 500; color: var(--primary-color);">#LOG-${log.id}</td>
+                <td>${log.date}</td>
                 <td>
                     <div style="display:flex; align-items:center; gap:12px;">
                         <div style="width: 32px; height: 32px; border-radius: 6px; background: var(--primary-color); color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">
@@ -6377,14 +6423,15 @@ window.renderAdminProductivityTab = function() {
                         </div>
                     </div>
                 </td>
+                <td>${log.sub_category || '-'}</td>
+                <td>${log.electronic_mins || 0} mins</td>
+                <td>${log.manual_mins || 0} mins</td>
+                <td style="color: var(--text-secondary);">${durationStr}</td>
+                <td>${docLink}</td>
                 <td>
-                    <div style="font-weight: 500; color: var(--text-color);">${log.sub_category || '-'}</div>
-                    <div style="font-size: 11px; color: var(--text-secondary);">${durationStr}</div>
+                    <button class="btn btn-sm btn-outline" onclick="showToast('Info', 'Log details viewing coming soon!')">View</button>
                 </td>
-                <td style="color: var(--text-secondary); font-weight: 600;">${log.score_percentage}%</td>
-                <td>
-                    <span class="badge-role" style="background: rgba(46, 204, 113, 0.1); color: #2ecc71; border-radius: 12px; padding: 4px 10px; font-size: 11px;"><i class="fa-solid fa-check" style="font-size: 8px; margin-right: 4px;"></i> Saved</span>
-                </td>
+                <td style="color: var(--primary-color); font-weight: bold;">${log.score_percentage}%</td>
             </tr>
         `;
     });
@@ -6398,16 +6445,26 @@ window.downloadAdminProdLogsPdf = function() {
     let printHtml = '<html><head><title>Productivity Logs</title>';
     printHtml += '<style>body{font-family:sans-serif;} table{width:100%;border-collapse:collapse;font-size:12px;} th,td{border:1px solid #ddd;padding:8px;text-align:left;} th{background:#f9f9f9;}</style>';
     printHtml += '</head><body><h2>Company Productivity Logs</h2><table>';
-    printHtml += '<thead><tr><th>LOG ID</th><th>EMPLOYEE / PRACTICE</th><th>ACTIVITY TYPE</th><th>SCORE</th><th>STATUS</th></tr></thead><tbody>';
+    printHtml += '<thead><tr><th>LOG ID</th><th>DATE</th><th>EMPLOYEE / PRACTICE</th><th>ACTIVITY TYPE</th><th>ELECT.</th><th>MANUAL</th><th>DURATION</th><th>DOCUMENTS</th><th>SCORE</th></tr></thead><tbody>';
     
     const rows = document.querySelectorAll('#admin-all-prod-body tr');
     if (rows.length === 0 || (rows.length === 1 && rows[0].innerText.includes('No company'))) {
-        printHtml += '<tr><td colspan="5">No logs found</td></tr>';
+        printHtml += '<tr><td colspan="9">No logs found</td></tr>';
     } else {
         rows.forEach(r => {
             const cells = r.querySelectorAll('td');
-            if (cells.length < 5) return;
-            printHtml += `<tr><td>${cells[0].innerText}</td><td>${cells[1].innerText.replace(/\n/g, ' - ')}</td><td>${cells[2].innerText.replace(/\n/g, ' - ')}</td><td>${cells[3].innerText}</td><td>${cells[4].innerText}</td></tr>`;
+            if (cells.length < 10) return;
+            printHtml += `<tr>
+                <td>${cells[0].innerText}</td>
+                <td>${cells[1].innerText}</td>
+                <td>${cells[2].innerText.replace(/\n/g, ' - ')}</td>
+                <td>${cells[3].innerText}</td>
+                <td>${cells[4].innerText}</td>
+                <td>${cells[5].innerText}</td>
+                <td>${cells[6].innerText}</td>
+                <td>${cells[7].innerText}</td>
+                <td>${cells[9].innerText}</td>
+            </tr>`;
         });
     }
     

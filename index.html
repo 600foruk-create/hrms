@@ -1667,10 +1667,15 @@
                                             <thead style="background: transparent; border-bottom: 1px solid var(--border-color);">
                                                 <tr>
                                                     <th style="font-weight: 600; color: var(--text-secondary); border: none;">LOG ID</th>
+                                                    <th style="font-weight: 600; color: var(--text-secondary); border: none;">DATE</th>
                                                     <th style="font-weight: 600; color: var(--text-secondary); border: none;">UNIT / OPERATOR</th>
                                                     <th style="font-weight: 600; color: var(--text-secondary); border: none;">ACTIVITY TYPE</th>
+                                                    <th style="font-weight: 600; color: var(--text-secondary); border: none;">ELECT.</th>
+                                                    <th style="font-weight: 600; color: var(--text-secondary); border: none;">MANUAL</th>
                                                     <th style="font-weight: 600; color: var(--text-secondary); border: none;">DURATION</th>
-                                                    <th style="font-weight: 600; color: var(--text-secondary); border: none;">STATUS</th>
+                                                    <th style="font-weight: 600; color: var(--text-secondary); border: none;">DOCUMENTS</th>
+                                                    <th style="font-weight: 600; color: var(--text-secondary); border: none;">ACTION</th>
+                                                    <th style="font-weight: 600; color: var(--text-secondary); border: none;">SCORE</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="admin-all-prod-body">
@@ -2018,6 +2023,18 @@
                                         <span style="font-weight: 500;">Require Admin Approval after Manager</span>
                                         <label class="theme-switch" style="margin: 0;">
                                             <input type="checkbox" id="leave-approval-by-admin" onchange="if(window.saveLeaveApprovalSettings) window.saveLeaveApprovalSettings();">
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <!-- Productivity Settings Row -->
+                                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; padding: 15px 20px; border-top: 1px solid var(--border-color);">
+                                    <h3 style="margin: 0; font-size: 15px; display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-chart-line text-primary"></i> Productivity Settings</h3>
+                                    <div style="display: flex; align-items: center; gap: 15px;">
+                                        <span style="font-weight: 500;">Show Employee Logs to Admin</span>
+                                        <label class="theme-switch" style="margin: 0;">
+                                            <input type="checkbox" id="prod-show-emp-admin" onchange="if(window.saveProductivitySettings) window.saveProductivitySettings();">
                                             <span class="slider"></span>
                                         </label>
                                     </div>
@@ -2392,8 +2409,13 @@
                                                 <th>Date</th>
                                                 <th>Employee</th>
                                                 <th>Practice</th>
-                                                <th>Total Work</th>
+                                                <th>Task Details</th>
+                                                <th>Electronic</th>
+                                                <th>Manual</th>
+                                                <th>Total Time</th>
+                                                <th>Documents</th>
                                                 <th>Action</th>
+                                                <th>Score</th>
                                             </tr>
                                         </thead>
                                         <tbody id="manager-team-prod-body">
@@ -2787,8 +2809,12 @@
                                             <tr>
                                                 <th>Date</th>
                                                 <th>Practice</th>
-                                                <th>Tasks Added</th>
+                                                <th>Task Details</th>
+                                                <th>Electronic</th>
+                                                <th>Manual</th>
                                                 <th>Total Time</th>
+                                                <th>Documents</th>
+                                                <th>Score</th>
                                             </tr>
                                         </thead>
                                         <tbody id="ept-my-logs-body">
