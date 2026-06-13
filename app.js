@@ -6157,10 +6157,10 @@ window.submitAllStagedProductivity = async function () {
             showToast('Success', 'All productivity entries logged successfully!');
             window.stagedProductivityLogs = [];
             renderStagedProductivityTable();
-            closeModal('modal-productivity-form');
+            closeAllModals();
 
             // Reload global DB to fetch the latest productivity records, then re-render
-            await loadDbFromServer();
+            await syncServer();
             if (typeof renderMyProductivityLogs === 'function') renderMyProductivityLogs();
             if (typeof renderManagerProductivityTab === 'function') renderManagerProductivityTab();
             if (typeof renderAdminProductivityTab === 'function') renderAdminProductivityTab();
