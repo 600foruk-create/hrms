@@ -592,7 +592,7 @@ window.renderMyPayslips = function() {
     
     let history = db.payrollHistory || [];
     // Filter for current user only
-    history = history.filter(h => h.userId === currentUser.id);
+    history = history.filter(h => String(h.userId) === String(currentUser.id));
     
     // Sort by most recent
     history.sort((a, b) => new Date(b.processedAt) - new Date(a.processedAt));
