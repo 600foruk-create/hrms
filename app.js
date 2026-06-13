@@ -6443,14 +6443,7 @@ window.renderAdminProductivityTab = function () {
     const empFilter = document.getElementById('admin-log-filter-employee');
     const catFilter = document.getElementById('admin-log-filter-category');
 
-    // Default to today if date is empty
-    if (dateFilter && !dateFilter.value) {
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
-        dateFilter.value = `${yyyy}-${mm}-${dd}`;
-    }
+    // No default date filter, show all by default
 
     if (empFilter && empFilter.options.length <= 1) {
         (db.users || []).forEach(u => {
