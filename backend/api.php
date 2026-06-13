@@ -822,6 +822,29 @@ elseif ($action === 'save_all') {
         $pdo->rollBack();
         echo json_encode(["status" => "error", "message" => "Failed to save productivity logs: " . $e->getMessage()]);
     }
+} elseif ($action === 'upload_productivity_doc') {
+    if (!isset($_FILES['document'])) {
+        die(json_encode(["status" => "error", "message" => "No file uploaded."]));
+    }
+    
+    $file = $_FILES['document'];
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        die(json_encode(["status" => "error", "message" => "File upload error code: " . $file['error']]));
+    }
+    
+    $uploadDir = 'uploads/productivity/';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0777, true);
+    }
+    
+    $filename = time() . '_' . preg_replace("/[^a-zA-Z0-9.-]/", "_", basename($file['name']));
+    $targetPath = $uploadDir . $filename;
+    
+    if (move_uploaded_file($file['tmp_name'], $targetPath)) {
+        echo json_encode(["status" => "success", "path" => "backend/" . $targetPath]);
+    } else {
+        echo json_encode(["status" => "error", "message" => "Failed to move uploaded file."]);
+    }
 } else {
     echo json_encode(["status" => "error", "message" => "Invalid action specified."]);
 }

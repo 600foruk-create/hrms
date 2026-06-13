@@ -5978,7 +5978,7 @@ window.calculateProdScore = function () {
     }
 };
 
-window.addStagedProductivity = function () {
+window.addStagedProductivity = async function () {
     const buId = document.getElementById('prod-bu-select').value;
     const date = document.getElementById('prod-form-date').value || new Date().toISOString().split('T')[0];
     const tesId = document.getElementById('prod-tes-select').value;
@@ -5989,15 +5989,38 @@ window.addStagedProductivity = function () {
     const totalMins = parseInt(document.getElementById('prod-time-spent').value) || 0;
     const notes = document.getElementById('prod-notes').value.trim();
 
-    const fileInput = document.getElementById('prod-doc-path');
-    let docPath = '-';
-    if (fileInput && fileInput.files && fileInput.files.length > 0) {
-        docPath = fileInput.files[0].name;
-    }
     // Required Validations based on generic use case (At least BU or TES should be selected)
     if (!buId && !tesId) return showToast('Error', 'Please select at least a Business Unit or TES Category', 'error');
     if (!date) return showToast('Error', 'Date is required', 'error');
     if (totalMins <= 0) return showToast('Error', 'Total Minutes must be > 0', 'error');
+
+    const fileInput = document.getElementById('prod-doc-path');
+    let docPath = '-';
+    if (fileInput && fileInput.files && fileInput.files.length > 0) {
+        const addBtn = document.querySelector('button[onclick="window.addStagedProductivity()"]') || document.getElementById('btn-add-staged-prod');
+        if (addBtn) { addBtn.disabled = true; addBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...'; }
+        
+        const formData = new FormData();
+        formData.append('document', fileInput.files[0]);
+        try {
+            const uploadRes = await fetch('backend/api.php?action=upload_productivity_doc', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await uploadRes.json();
+            if (result.status === 'success') {
+                docPath = result.path;
+            } else {
+                if (addBtn) { addBtn.disabled = false; addBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Add Entry'; }
+                return showToast('Error', 'Document upload failed: ' + result.message, 'error');
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            if (addBtn) { addBtn.disabled = false; addBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Add Entry'; }
+            return showToast('Error', 'An error occurred while uploading the document.', 'error');
+        }
+        if (addBtn) { addBtn.disabled = false; addBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Add Entry'; }
+    }
 
     const settings = getProdSettings();
     let practiceName = '-';
@@ -6193,7 +6216,7 @@ window.renderMyProductivityLogs = function () {
     } else {
         myLogs.forEach(log => {
             const docLink = log.doc_path && log.doc_path !== '-'
-                ? `<a href="#" onclick="showToast('Document', '${log.doc_path}', 'info'); return false;" style="text-decoration: underline; color: var(--primary-color);">${log.doc_path}</a>`
+                ? `<a href="${log.doc_path}" target="_blank" style="text-decoration: underline; color: var(--primary-color);"><i class="fa-solid fa-file"></i> View Doc</a>`
                 : '-';
             html += `
                 <tr>
@@ -6267,7 +6290,7 @@ window.renderManagerProductivityTab = function () {
     teamLogs.forEach(log => {
         const emp = team.find(u => String(u.id) === String(log.employee_id));
         const docLink = log.doc_path && log.doc_path !== '-'
-            ? `<a href="#" onclick="showToast('Document', '${log.doc_path}', 'info'); return false;" style="text-decoration: underline; color: var(--primary-color);">${log.doc_path}</a>`
+            ? `<a href="${log.doc_path}" target="_blank" style="text-decoration: underline; color: var(--primary-color);"><i class="fa-solid fa-file"></i> View Doc</a>`
             : '-';
 
         tbody.innerHTML += `
@@ -6405,7 +6428,7 @@ window.renderAdminProductivityTab = function () {
 
         const shortInitials = (emp.name || 'U').substring(0, 2).toUpperCase();
         const docLink = log.doc_path && log.doc_path !== '-'
-            ? `<a href="#" onclick="showToast('Document', '${log.doc_path}', 'info'); return false;" style="text-decoration: underline; color: var(--primary-color);">${log.doc_path}</a>`
+            ? `<a href="${log.doc_path}" target="_blank" style="text-decoration: underline; color: var(--primary-color);"><i class="fa-solid fa-file"></i> View Doc</a>`
             : '-';
 
         tbody.innerHTML += `
