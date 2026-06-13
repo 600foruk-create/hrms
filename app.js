@@ -5903,28 +5903,26 @@ window.onProdBuChange = function () {
     const settings = getProdSettings();
     const buId = document.getElementById('prod-bu-select').value;
     const bu = settings.businessUnits.find(b => b.id === buId);
-    const optionsContainer = document.getElementById('prod-bu-practices-options');
+    const optionsContainer = document.getElementById('prod-bu-practices-select');
 
-    document.querySelector('#prod-bu-practices-multiselect .selected-text').textContent = 'Select Practices';
     if (!bu) {
-        optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">Select a Business Unit first</div>';
+        optionsContainer.innerHTML = '<option value="">-- Select Practice --</option>';
         return;
     }
-    optionsContainer.innerHTML = bu.practices.map(p => `<label><input type="checkbox" value="${p.id}" data-text="${p.name}"> ${p.name}</label>`).join('');
+    optionsContainer.innerHTML = '<option value="">-- Select Practice --</option>' + bu.practices.map(p => `<option value="${p.id}" data-text="${p.name}">${p.name}</option>`).join('');
 };
 
 window.onProdTesChange = function () {
     const settings = getProdSettings();
     const tesId = document.getElementById('prod-tes-select').value;
     const tes = settings.tesCategories.find(t => t.id === tesId);
-    const optionsContainer = document.getElementById('prod-tes-tasks-options');
+    const optionsContainer = document.getElementById('prod-tes-tasks-select');
 
-    document.querySelector('#prod-tes-tasks-multiselect .selected-text').textContent = 'Select Tasks';
     if (!tes) {
-        optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">Select a TES Category first</div>';
+        optionsContainer.innerHTML = '<option value="">-- Select Task --</option>';
         return;
     }
-    optionsContainer.innerHTML = tes.tasks.map(t => `<label><input type="checkbox" value="${t.id}" data-text="${t.name}"> ${t.name}</label>`).join('');
+    optionsContainer.innerHTML = '<option value="">-- Select Task --</option>' + tes.tasks.map(t => `<option value="${t.id}" data-text="${t.name}">${t.name}</option>`).join('');
 };
 
 // Multi-select custom logic (bind to all checkboxes in our custom multiselects)
@@ -6032,10 +6030,9 @@ window.addStagedProductivity = async function () {
     if (buId) {
         const bu = settings.businessUnits.find(b => b.id === buId);
         practiceName = bu ? bu.name : '-';
-        const checked = Array.from(document.querySelectorAll('#prod-bu-practices-options input[type="checkbox"]:checked'));
-        selectedPracticeItems = checked.map(c => c.getAttribute('data-text'));
-        if (selectedPracticeItems.length > 0) {
-            practiceName += ' (' + selectedPracticeItems.join(', ') + ')';
+        const practiceSelect = document.getElementById('prod-bu-practices-select');
+        if (practiceSelect && practiceSelect.value) {
+            practiceName += ' (' + practiceSelect.options[practiceSelect.selectedIndex].text + ')';
         }
     }
 
@@ -6043,10 +6040,9 @@ window.addStagedProductivity = async function () {
     if (tesId) {
         const tes = settings.tesCategories.find(t => t.id === tesId);
         subCategoryName = tes ? tes.name : '-';
-        const checked = Array.from(document.querySelectorAll('#prod-tes-tasks-options input[type="checkbox"]:checked'));
-        selectedTaskItems = checked.map(c => c.getAttribute('data-text'));
-        if (selectedTaskItems.length > 0) {
-            subCategoryName += ' (' + selectedTaskItems.join(', ') + ')';
+        const taskSelect = document.getElementById('prod-tes-tasks-select');
+        if (taskSelect && taskSelect.value) {
+            subCategoryName += ' (' + taskSelect.options[taskSelect.selectedIndex].text + ')';
         }
     }
 
@@ -6069,8 +6065,8 @@ window.addStagedProductivity = async function () {
     document.getElementById('prod-time-spent').value = '';
     document.getElementById('prod-notes').value = '';
     document.getElementById('prod-doc-path').value = '';
-    document.querySelectorAll('.custom-multiselect input[type="checkbox"]').forEach(c => c.checked = false);
-    document.querySelectorAll('.custom-multiselect .selected-text').forEach(s => s.textContent = 'Select');
+    if (document.getElementById('prod-bu-practices-select')) document.getElementById('prod-bu-practices-select').value = '';
+    if (document.getElementById('prod-tes-tasks-select')) document.getElementById('prod-tes-tasks-select').value = '';
 
     const scoreDisplay = document.getElementById('calc-score-display');
     if (scoreDisplay) scoreDisplay.style.display = 'none';
@@ -6172,6 +6168,29 @@ window.submitAllStagedProductivity = async function () {
     }
 };
 
+window.deleteProductivityLog = async function(id) {
+    if (!confirm("Are you sure you want to delete this log?")) return;
+    try {
+        const response = await fetch('backend/api.php?action=delete_productivity_log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id })
+        });
+        const result = await response.json();
+        if (result.status === 'success') {
+            showToast('Deleted', 'Log deleted successfully.', 'success');
+            await syncServer();
+            if (typeof renderMyProductivityLogs === 'function') renderMyProductivityLogs();
+            if (typeof renderManagerProductivityTab === 'function') renderManagerProductivityTab();
+            if (typeof renderAdminProductivityTab === 'function') renderAdminProductivityTab();
+        } else {
+            showToast('Error', result.message, 'error');
+        }
+    } catch (e) {
+        showToast('Error', 'Failed to delete log.', 'error');
+    }
+};
+
 // Listeners to initialize rendering
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
@@ -6206,13 +6225,32 @@ window.renderMyProductivityLogs = function () {
 
     if (!eptTbody && !mgrTbody) return;
 
+    const eptFilterDate = document.getElementById('ept-my-logs-filter-date')?.value;
+    const mgrFilterDate = document.getElementById('mgr-my-logs-filter-date')?.value;
+    const activeFilterDate = document.getElementById('manager-tab-productivity') && !document.getElementById('manager-tab-productivity').classList.contains('hidden') ? mgrFilterDate : eptFilterDate;
+
     const db = getDb();
-    const myLogs = (db.productivity || []).filter(l => String(l.employee_id) === String(currentUser.id));
+    let myLogs = (db.productivity || []).filter(l => String(l.employee_id) === String(currentUser.id));
+    
+    let totalScore = 0;
+    if (activeFilterDate) {
+        myLogs = myLogs.filter(l => l.date === activeFilterDate);
+    }
+    
+    myLogs.forEach(log => {
+        totalScore += parseFloat(log.score_percentage) || 0;
+    });
+    
+    if (totalScore > 100) totalScore = 100;
+    
+    if (document.getElementById('ept-daily-score-display')) document.getElementById('ept-daily-score-display').textContent = `Total Score: ${totalScore.toFixed(1)}%`;
+    if (document.getElementById('mgr-daily-score-display')) document.getElementById('mgr-daily-score-display').textContent = `Total Score: ${totalScore.toFixed(1)}%`;
+
     myLogs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     let html = '';
     if (myLogs.length === 0) {
-        html = '<tr><td colspan="5" class="text-center text-muted">No logs found</td></tr>';
+        html = '<tr><td colspan="9" class="text-center text-muted">No logs found</td></tr>';
     } else {
         myLogs.forEach(log => {
             const docLink = log.doc_path && log.doc_path !== '-'
@@ -6228,6 +6266,11 @@ window.renderMyProductivityLogs = function () {
                     <td>${log.total_mins} mins</td>
                     <td>${docLink}</td>
                     <td><span style="font-weight:bold; color:var(--primary-color)">${log.score_percentage}%</span></td>
+                    <td>
+                        <button class="btn btn-outline" style="border:none; color:var(--danger); padding:4px;" onclick="window.deleteProductivityLog('${log.id}')" title="Delete Log">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
                 </tr>
             `;
         });
@@ -6412,6 +6455,14 @@ window.renderAdminProductivityTab = function () {
 
     const countSpan = document.getElementById('admin-prod-log-count');
     if (countSpan) countSpan.textContent = `Showing ${allLogs.length} logs`;
+    
+    let totalScore = 0;
+    allLogs.forEach(log => {
+        totalScore += parseFloat(log.score_percentage) || 0;
+    });
+    if (totalScore > 100) totalScore = 100;
+    
+    if (document.getElementById('admin-daily-score-display')) document.getElementById('admin-daily-score-display').textContent = `Total Score: ${totalScore.toFixed(1)}%`;
 
     tbody.innerHTML = '';
     if (allLogs.length === 0) {

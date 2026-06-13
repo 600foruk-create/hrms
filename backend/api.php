@@ -845,6 +845,19 @@ elseif ($action === 'save_all') {
     } else {
         echo json_encode(["status" => "error", "message" => "Failed to move uploaded file."]);
     }
+} elseif ($action === 'delete_productivity_log') {
+    $inputJSON = file_get_contents('php://input');
+    $data = json_decode($inputJSON, true);
+    if (!$data || !isset($data['id'])) {
+        die(json_encode(["status" => "error", "message" => "Invalid JSON payload"]));
+    }
+    try {
+        $stmt = $pdo->prepare("DELETE FROM productivity WHERE id = ?");
+        $stmt->execute([$data['id']]);
+        echo json_encode(["status" => "success"]);
+    } catch (Exception $e) {
+        echo json_encode(["status" => "error", "message" => "Failed to delete log: " . $e->getMessage()]);
+    }
 } else {
     echo json_encode(["status" => "error", "message" => "Invalid action specified."]);
 }
