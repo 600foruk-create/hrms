@@ -5977,101 +5977,104 @@ window.calculateProdScore = function () {
 };
 
 window.addStagedProductivity = async function () {
-    const buId = document.getElementById('prod-bu-select').value;
-    const date = document.getElementById('prod-form-date').value || new Date().toISOString().split('T')[0];
-    const tesId = document.getElementById('prod-tes-select').value;
+    try {
+        const buId = document.getElementById('prod-bu-select').value;
+        const date = document.getElementById('prod-form-date').value || new Date().toISOString().split('T')[0];
+        const tesId = document.getElementById('prod-tes-select').value;
 
-    // Numbers
-    const electronic = parseInt(document.getElementById('prod-electronic').value) || 0;
-    const manual = parseInt(document.getElementById('prod-manual').value) || 0;
-    const totalMins = parseInt(document.getElementById('prod-time-spent').value) || 0;
-    const notes = document.getElementById('prod-notes').value.trim();
+        // Numbers
+        const electronic = parseInt(document.getElementById('prod-electronic').value) || 0;
+        const manual = parseInt(document.getElementById('prod-manual').value) || 0;
+        const totalMins = parseInt(document.getElementById('prod-time-spent').value) || 0;
+        const notes = document.getElementById('prod-notes').value.trim();
 
-    // Required Validations based on generic use case (At least BU or TES should be selected)
-    if (!buId && !tesId) return showToast('Error', 'Please select at least a Business Unit or TES Category', 'error');
-    if (!date) return showToast('Error', 'Date is required', 'error');
-    if (totalMins <= 0) return showToast('Error', 'Total Minutes must be > 0', 'error');
+        // Required Validations based on generic use case (At least BU or TES should be selected)
+        if (!buId && !tesId) return showToast('Error', 'Please select at least a Business Unit or TES Category', 'error');
+        if (!date) return showToast('Error', 'Date is required', 'error');
+        if (totalMins <= 0) return showToast('Error', 'Total Minutes must be > 0', 'error');
 
-    const fileInput = document.getElementById('prod-doc-path');
-    let docPath = '-';
-    if (fileInput && fileInput.files && fileInput.files.length > 0) {
-        const addBtn = document.querySelector('button[onclick="window.addStagedProductivity()"]') || document.getElementById('btn-add-staged-prod');
-        if (addBtn) { addBtn.disabled = true; addBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...'; }
-        
-        const formData = new FormData();
-        formData.append('document', fileInput.files[0]);
-        try {
-            const uploadRes = await fetch('backend/api.php?action=upload_productivity_doc', {
-                method: 'POST',
-                body: formData
-            });
-            const result = await uploadRes.json();
-            if (result.status === 'success') {
-                docPath = result.path;
-            } else {
+        const fileInput = document.getElementById('prod-doc-path');
+        let docPath = '-';
+        if (fileInput && fileInput.files && fileInput.files.length > 0) {
+            const addBtn = document.querySelector('button[onclick="window.addStagedProductivity()"]') || document.getElementById('btn-add-staged-prod');
+            if (addBtn) { addBtn.disabled = true; addBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...'; }
+            
+            const formData = new FormData();
+            formData.append('document', fileInput.files[0]);
+            try {
+                const uploadRes = await fetch('backend/api.php?action=upload_productivity_doc', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await uploadRes.json();
+                if (result.status === 'success') {
+                    docPath = result.path;
+                } else {
+                    if (addBtn) { addBtn.disabled = false; addBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Add Entry'; }
+                    return showToast('Error', 'Document upload failed: ' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
                 if (addBtn) { addBtn.disabled = false; addBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Add Entry'; }
-                return showToast('Error', 'Document upload failed: ' + result.message, 'error');
+                return showToast('Error', 'An error occurred while uploading the document.', 'error');
             }
-        } catch (error) {
-            console.error('Upload error:', error);
             if (addBtn) { addBtn.disabled = false; addBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Add Entry'; }
-            return showToast('Error', 'An error occurred while uploading the document.', 'error');
         }
-        if (addBtn) { addBtn.disabled = false; addBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Add Entry'; }
-    }
 
-    const settings = getProdSettings();
-    let practiceName = '-';
-    let subCategoryName = '-';
-    let selectedPracticeItems = [];
-    let selectedTaskItems = [];
+        const settings = getProdSettings();
+        let practiceName = '-';
+        let subCategoryName = '-';
 
-    // BU Data
-    if (buId) {
-        const bu = settings.businessUnits.find(b => b.id === buId);
-        practiceName = bu ? bu.name : '-';
-        const practiceSelect = document.getElementById('prod-bu-practices-select');
-        if (practiceSelect && practiceSelect.value) {
-            practiceName += ' (' + practiceSelect.options[practiceSelect.selectedIndex].text + ')';
+        // BU Data
+        if (buId) {
+            const bu = settings.businessUnits.find(b => String(b.id) === String(buId));
+            practiceName = bu ? bu.name : '-';
+            const practiceSelect = document.getElementById('prod-bu-practices-select');
+            if (practiceSelect && practiceSelect.value) {
+                practiceName += ' (' + practiceSelect.options[practiceSelect.selectedIndex].text + ')';
+            }
         }
-    }
 
-    // TES Data
-    if (tesId) {
-        const tes = settings.tesCategories.find(t => t.id === tesId);
-        subCategoryName = tes ? tes.name : '-';
-        const taskSelect = document.getElementById('prod-tes-tasks-select');
-        if (taskSelect && taskSelect.value) {
-            subCategoryName += ' (' + taskSelect.options[taskSelect.selectedIndex].text + ')';
+        // TES Data
+        if (tesId) {
+            const tes = settings.tesCategories.find(t => String(t.id) === String(tesId));
+            subCategoryName = tes ? tes.name : '-';
+            const taskSelect = document.getElementById('prod-tes-tasks-select');
+            if (taskSelect && taskSelect.value) {
+                subCategoryName += ' (' + taskSelect.options[taskSelect.selectedIndex].text + ')';
+            }
         }
+
+        const entry = {
+            date: date,
+            practiceName: practiceName,
+            subCategoryName: subCategoryName,
+            electronic: electronic,
+            manual: manual,
+            totalMins: totalMins,
+            notes: notes,
+            docPath: docPath
+        };
+
+        window.stagedProductivityLogs.push(entry);
+
+        // Clear inputs for next entry
+        document.getElementById('prod-electronic').value = '';
+        document.getElementById('prod-manual').value = '';
+        document.getElementById('prod-time-spent').value = '';
+        document.getElementById('prod-notes').value = '';
+        document.getElementById('prod-doc-path').value = '';
+        if (document.getElementById('prod-bu-practices-select')) document.getElementById('prod-bu-practices-select').value = '';
+        if (document.getElementById('prod-tes-tasks-select')) document.getElementById('prod-tes-tasks-select').value = '';
+
+        const scoreDisplay = document.getElementById('calc-score-display');
+        if (scoreDisplay) scoreDisplay.style.display = 'none';
+
+        renderStagedProductivityTable();
+    } catch (e) {
+        console.error("Error in addStagedProductivity:", e);
+        showToast('Error', e.message, 'error');
     }
-
-    const entry = {
-        date: date,
-        practiceName: practiceName,
-        subCategoryName: subCategoryName,
-        electronic: electronic,
-        manual: manual,
-        totalMins: totalMins,
-        notes: notes,
-        docPath: docPath
-    };
-
-    window.stagedProductivityLogs.push(entry);
-
-    // Clear inputs for next entry
-    document.getElementById('prod-electronic').value = '';
-    document.getElementById('prod-manual').value = '';
-    document.getElementById('prod-time-spent').value = '';
-    document.getElementById('prod-notes').value = '';
-    document.getElementById('prod-doc-path').value = '';
-    if (document.getElementById('prod-bu-practices-select')) document.getElementById('prod-bu-practices-select').value = '';
-    if (document.getElementById('prod-tes-tasks-select')) document.getElementById('prod-tes-tasks-select').value = '';
-
-    const scoreDisplay = document.getElementById('calc-score-display');
-    if (scoreDisplay) scoreDisplay.style.display = 'none';
-
-    renderStagedProductivityTable();
 };
 
 window.removeStagedProductivity = function (index) {
