@@ -1689,6 +1689,10 @@ window.openEditLeaveBalancesModal = function (userId) {
         container.innerHTML = '<p class="text-secondary text-center">No leave policies defined globally.</p>';
     }
 
+    leaveTypes.forEach((lt, index) => {
+        let balance = lt.days;
+        if (user.leaveBalances) {
+
             const ub = user.leaveBalances.find((b, bIndex) => {
                 let bName = b.name || b.leaveType || b.type || b.leave_type || b.title;
                 if (!bName && typeof b.id === 'string' && !b.id.startsWith('L') && isNaN(b.id) && !b.id.startsWith('U_')) bName = b.id;
