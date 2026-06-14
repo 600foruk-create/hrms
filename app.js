@@ -1689,17 +1689,14 @@ window.openEditLeaveBalancesModal = function (userId) {
         container.innerHTML = '<p class="text-secondary text-center">No leave policies defined globally.</p>';
     }
 
-    leaveTypes.forEach(lt => {
-        let balance = lt.days;
-        if (user.leaveBalances) {
-            const ub = user.leaveBalances.find(b => {
+            const ub = user.leaveBalances.find((b, bIndex) => {
                 let bName = b.name || b.leaveType || b.type || b.leave_type || b.title;
-                if (!bName && typeof b.id === 'string' && !b.id.startsWith('L') && isNaN(b.id)) bName = b.id;
+                if (!bName && typeof b.id === 'string' && !b.id.startsWith('L') && isNaN(b.id) && !b.id.startsWith('U_')) bName = b.id;
                 if (!bName) {
-                    const strVal = Object.values(b).find(v => typeof v === 'string' && isNaN(v) && v !== 'Unknown');
+                    const strVal = Object.values(b).find(v => typeof v === 'string' && isNaN(v) && v !== 'Unknown' && !v.startsWith('U_'));
                     if (strVal) bName = strVal;
                 }
-                return b.id === lt.id || bName === lt.name || b.name === lt.name;
+                return b.id === lt.id || bName === lt.name || b.name === lt.name || bIndex === index;
             });
             if (ub) balance = ub.balance;
         }
@@ -1727,18 +1724,18 @@ window.saveIndividualLeaveBalances = function () {
     if (!user.leaveBalances) user.leaveBalances = [];
 
     const leaveTypes = db.companyProfile?.leaveTypes || [];
-    leaveTypes.forEach(lt => {
+    leaveTypes.forEach((lt, index) => {
         const input = document.getElementById(`modal-leave-bal-${lt.id}`);
         if (input) {
             const newTotal = parseInt(input.value) || 0;
-            const existing = user.leaveBalances.find(b => {
+            const existing = user.leaveBalances.find((b, bIndex) => {
                 let bName = b.name || b.leaveType || b.type || b.leave_type || b.title;
-                if (!bName && typeof b.id === 'string' && !b.id.startsWith('L') && isNaN(b.id)) bName = b.id;
+                if (!bName && typeof b.id === 'string' && !b.id.startsWith('L') && isNaN(b.id) && !b.id.startsWith('U_')) bName = b.id;
                 if (!bName) {
-                    const strVal = Object.values(b).find(v => typeof v === 'string' && isNaN(v) && v !== 'Unknown');
+                    const strVal = Object.values(b).find(v => typeof v === 'string' && isNaN(v) && v !== 'Unknown' && !v.startsWith('U_'));
                     if (strVal) bName = strVal;
                 }
-                return b.id === lt.id || bName === lt.name || b.name === lt.name;
+                return b.id === lt.id || bName === lt.name || b.name === lt.name || bIndex === index;
             });
             if (existing) {
                 const oldTotal = existing.total !== undefined ? existing.total : (existing.balance !== undefined ? existing.balance : 0);
@@ -2220,15 +2217,19 @@ function renderManagerLeaveTab() {
             if (balances.length === 0) {
                 balancesBody.innerHTML = `<tr><td colspan="3" class="empty-state">No balances set.</td></tr>`;
             } else {
-                balances.forEach(b => {
+                balances.forEach((b, index) => {
                     let bName = b.name || b.leaveType || b.type || b.leave_type || b.title;
-                    if (!bName && typeof b.id === 'string' && !b.id.startsWith('L') && isNaN(b.id)) bName = b.id;
+                    if (!bName && typeof b.id === 'string' && !b.id.startsWith('L') && isNaN(b.id) && !b.id.startsWith('U_')) bName = b.id;
                     if (!bName) {
-                        const strVal = Object.values(b).find(v => typeof v === 'string' && isNaN(v) && v !== 'Unknown');
+                        const strVal = Object.values(b).find(v => typeof v === 'string' && isNaN(v) && v !== 'Unknown' && !v.startsWith('U_'));
                         if (strVal) bName = strVal;
                     }
                     
-                    const globalType = (db.companyProfile?.leaveTypes || []).find(lt => lt.id === b.id || lt.name === bName || lt.name === b.name);
+                    let globalType = (db.companyProfile?.leaveTypes || []).find(lt => lt.id === b.id || lt.name === bName || lt.name === b.name);
+                    if (!globalType && db.companyProfile?.leaveTypes && db.companyProfile.leaveTypes[index]) {
+                        globalType = db.companyProfile.leaveTypes[index];
+                    }
+
                     if (!bName && globalType) bName = globalType.name;
                     bName = bName || 'Unknown';
                     
@@ -2541,15 +2542,19 @@ function renderEmployeeLeaveTab() {
         if (balances.length === 0) {
             balancesBody.innerHTML = `<tr><td colspan="3" class="empty-state">No balances set.</td></tr>`;
         } else {
-            balances.forEach(b => {
+            balances.forEach((b, index) => {
                 let bName = b.name || b.leaveType || b.type || b.leave_type || b.title;
-                if (!bName && typeof b.id === 'string' && !b.id.startsWith('L') && isNaN(b.id)) bName = b.id;
+                if (!bName && typeof b.id === 'string' && !b.id.startsWith('L') && isNaN(b.id) && !b.id.startsWith('U_')) bName = b.id;
                 if (!bName) {
-                    const strVal = Object.values(b).find(v => typeof v === 'string' && isNaN(v) && v !== 'Unknown');
+                    const strVal = Object.values(b).find(v => typeof v === 'string' && isNaN(v) && v !== 'Unknown' && !v.startsWith('U_'));
                     if (strVal) bName = strVal;
                 }
 
-                const globalType = (db.companyProfile?.leaveTypes || []).find(lt => lt.id === b.id || lt.name === bName || lt.name === b.name);
+                let globalType = (db.companyProfile?.leaveTypes || []).find(lt => lt.id === b.id || lt.name === bName || lt.name === b.name);
+                if (!globalType && db.companyProfile?.leaveTypes && db.companyProfile.leaveTypes[index]) {
+                    globalType = db.companyProfile.leaveTypes[index];
+                }
+
                 if (!bName && globalType) bName = globalType.name;
                 bName = bName || 'Unknown';
 
@@ -3554,16 +3559,19 @@ function processLeaveReview(status) {
             // Deduct from leave balance
             const user = db.users.find(u => u.id === leave.employeeId);
             if (user && user.leaveBalances) {
-                const bal = user.leaveBalances.find(b => {
+                const bal = user.leaveBalances.find((b, bIndex) => {
                     let bName = b.name || b.leaveType || b.type || b.leave_type || b.title;
-                    if (!bName && typeof b.id === 'string' && !b.id.startsWith('L') && isNaN(b.id)) bName = b.id;
+                    if (!bName && typeof b.id === 'string' && !b.id.startsWith('L') && isNaN(b.id) && !b.id.startsWith('U_')) bName = b.id;
                     if (!bName) {
-                        const strVal = Object.values(b).find(v => typeof v === 'string' && isNaN(v) && v !== 'Unknown');
+                        const strVal = Object.values(b).find(v => typeof v === 'string' && isNaN(v) && v !== 'Unknown' && !v.startsWith('U_'));
                         if (strVal) bName = strVal;
                     }
                     
                     if (!bName) {
-                        const globalType = (db.companyProfile?.leaveTypes || []).find(lt => lt.id === b.id);
+                        let globalType = (db.companyProfile?.leaveTypes || []).find(lt => lt.id === b.id);
+                        if (!globalType && db.companyProfile?.leaveTypes && db.companyProfile.leaveTypes[bIndex]) {
+                            globalType = db.companyProfile.leaveTypes[bIndex];
+                        }
                         if (globalType) bName = globalType.name;
                     }
                     
