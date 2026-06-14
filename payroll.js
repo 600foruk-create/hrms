@@ -580,62 +580,84 @@ window.printIndividualPayslip = function() {
 };
 
 window.renderMyPayslips = function() {
-    const db = getDb();
-    if (!db || !currentUser) return;
-    
-    const tbodyManager = document.getElementById('manager-mypayslips-tbody');
-    const tbodyEmployee = document.getElementById('employee-mypayslips-tbody');
-    
-    const tbody = currentUser.role === 'Manager' ? tbodyManager : tbodyEmployee;
-    if (!tbody) return;
+    try {
+        const db = getDb();
+        if (!db || !currentUser) return;
+        
+        const tbodyManager = document.getElementById('manager-mypayslips-tbody');
+        const tbodyEmployee = document.getElementById('employee-mypayslips-tbody');
+        
+        const tbody = String(currentUser.role).trim().toLowerCase() === 'manager' ? tbodyManager : tbodyEmployee;
+        if (!tbody) return;
 
-    tbody.innerHTML = '';
-    
-    let history = db.payrollHistory || [];
-    // Filter for current user only
-    history = history.filter(h => String(h.userId) === String(currentUser.id));
-    
-    // Sort by most recent
-    history.sort((a, b) => new Date(b.processedAt) - new Date(a.processedAt));
+        tbody.innerHTML = '';
+        
+        let history = db.payrollHistory || [];
+        // Filter for current user only
+        history = history.filter(h => String(h.userId) === String(currentUser.id));
+        
+        // Sort by most recent
+        history.sort((a, b) => new Date(b.processedAt || 0) - new Date(a.processedAt || 0));
 
-    if (history.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No salary slips found.</td></tr>';
-        return;
+        if (history.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted" style="padding: 20px;">No salary slips found.</td></tr>';
+            return;
+        }
+
+        history.forEach(record => {
+            try {
+                // Calculate dynamic net pay exactly like Admin view
+                const basic = parseInt(currentUser.salary) || 0;
+                const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
+                let profile = db.salaryProfiles ? db.salaryProfiles.find(p => String(p.userId) === String(record.userId)) : null;
+                
+                let allowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
+                let deductions = profile && profile.isCustomSlab ? (profile.deductions || []) : (globalSlab.deductions || []);
+                
+                if (!Array.isArray(allowances)) allowances = [];
+                if (!Array.isArray(deductions)) deductions = [];
+                
+                let fixedAll = 0;
+                allowances.forEach(a => { fixedAll += (a.type === 'percentage') ? (basic * (parseFloat(a.value)||0)) / 100 : (parseFloat(a.value)||0); });
+                
+                let fixedDed = 0;
+                deductions.forEach(d => { fixedDed += (d.type === 'percentage') ? (basic * (parseFloat(d.value)||0)) / 100 : (parseFloat(d.value)||0); });
+
+                const totalDed = fixedDed + (parseFloat(record.absencyDeduction) || 0) + (parseFloat(record.loanDeduction) || 0) + (parseFloat(record.otherDeduction) || 0);
+                const totalAdd = fixedAll + (parseFloat(record.bonus) || 0);
+                const dynamicNetPay = basic + totalAdd - totalDed;
+                
+                let monthStr = "Unknown Month";
+                if (record.startDate) {
+                    const d = new Date(record.startDate);
+                    if (!isNaN(d)) {
+                        monthStr = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                    }
+                }
+
+                tbody.innerHTML += `
+                    <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                        <td style="font-weight: 500;">${monthStr}</td>
+                        <td><span class="badge-role" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">Generated</span></td>
+                        <td style="font-weight: bold; color: var(--text-color);">Rs ${Math.round(dynamicNetPay).toLocaleString()}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline" style="color: var(--primary-color); border-color: var(--primary-color);" onclick="window.openPayslipModal('${record.id}')">
+                                <i class="fa-solid fa-eye"></i> View Slip
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            } catch (innerErr) {
+                console.error("Error rendering payslip row:", innerErr);
+            }
+        });
+        
+        if (tbody.innerHTML.trim() === '') {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted" style="padding: 20px;">No salary slips found or error loading data.</td></tr>';
+        }
+    } catch (err) {
+        console.error("Error in renderMyPayslips:", err);
     }
-
-    history.forEach(record => {
-        // Calculate dynamic net pay exactly like Admin view
-        const basic = parseInt(currentUser.salary) || 0;
-        const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
-        let profile = db.salaryProfiles?.find(p => p.userId === record.userId);
-        let allowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
-        let deductions = profile && profile.isCustomSlab ? (profile.deductions || []) : (globalSlab.deductions || []);
-        
-        let fixedAll = 0;
-        allowances.forEach(a => { fixedAll += (a.type === 'percentage') ? (basic * (parseFloat(a.value)||0)) / 100 : (parseFloat(a.value)||0); });
-        
-        let fixedDed = 0;
-        deductions.forEach(d => { fixedDed += (d.type === 'percentage') ? (basic * (parseFloat(d.value)||0)) / 100 : (parseFloat(d.value)||0); });
-
-        const totalDed = fixedDed + (parseFloat(record.absencyDeduction) || 0) + (parseFloat(record.loanDeduction) || 0) + (parseFloat(record.otherDeduction) || 0);
-        const totalAdd = fixedAll + (parseFloat(record.bonus) || 0);
-        const dynamicNetPay = basic + totalAdd - totalDed;
-        
-        const monthStr = new Date(record.startDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-        
-        tbody.innerHTML += `
-            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                <td style="font-weight: 500;">${monthStr}</td>
-                <td><span class="badge-role" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">Generated</span></td>
-                <td style="font-weight: bold; color: var(--text-color);">Rs ${Math.round(dynamicNetPay).toLocaleString()}</td>
-                <td>
-                    <button class="btn btn-sm btn-outline" style="color: var(--primary-color); border-color: var(--primary-color);" onclick="window.openPayslipModal('${record.id}')">
-                        <i class="fa-solid fa-eye"></i> View Slip
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
 };
 
 window.openBankLetterModal = function() {
