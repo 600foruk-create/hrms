@@ -2234,7 +2234,7 @@ function renderManagerLeaveTab() {
                         globalType = db.companyProfile.leaveTypes[index];
                     }
 
-                    if (!bName && globalType) bName = globalType.name;
+                    if (globalType) bName = globalType.name;
                     bName = bName || 'Unknown';
                     
                     let total = b.total !== undefined ? b.total : (globalType ? globalType.days : b.balance);
@@ -2559,7 +2559,7 @@ function renderEmployeeLeaveTab() {
                     globalType = db.companyProfile.leaveTypes[index];
                 }
 
-                if (!bName && globalType) bName = globalType.name;
+                if (globalType) bName = globalType.name;
                 bName = bName || 'Unknown';
 
                 let total = b.total !== undefined ? b.total : (globalType ? globalType.days : b.balance);
