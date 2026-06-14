@@ -2203,12 +2203,13 @@ function renderManagerLeaveTab() {
                 balancesBody.innerHTML = `<tr><td colspan="3" class="empty-state">No balances set.</td></tr>`;
             } else {
                 balances.forEach(b => {
-                    const globalType = (db.companyProfile?.leaveTypes || []).find(lt => lt.id === b.id || lt.name === b.name);
+                    const bName = b.name || b.leaveType || b.type || 'Unknown';
+                    const globalType = (db.companyProfile?.leaveTypes || []).find(lt => lt.id === b.id || lt.name === bName);
                     let total = b.total !== undefined ? b.total : (globalType ? globalType.days : b.balance);
-                    if (total < b.balance) total = b.balance;
+                    if (total === undefined || total < b.balance) total = b.balance;
                     balancesBody.innerHTML += `
                         <tr>
-                            <td class="bold">${b.name}</td>
+                            <td class="bold">${bName}</td>
                             <td style="text-align:right">${total}</td>
                             <td style="text-align:right"><span class="badge-status" style="background:var(--bg-glass); color:var(--text-main); border:1px solid var(--border-color);">${b.balance}</span></td>
                         </tr>
@@ -2514,12 +2515,13 @@ function renderEmployeeLeaveTab() {
             balancesBody.innerHTML = `<tr><td colspan="3" class="empty-state">No balances set.</td></tr>`;
         } else {
             balances.forEach(b => {
-                const globalType = (db.companyProfile?.leaveTypes || []).find(lt => lt.id === b.id || lt.name === b.name);
+                const bName = b.name || b.leaveType || b.type || 'Unknown';
+                const globalType = (db.companyProfile?.leaveTypes || []).find(lt => lt.id === b.id || lt.name === bName);
                 let total = b.total !== undefined ? b.total : (globalType ? globalType.days : b.balance);
-                if (total < b.balance) total = b.balance;
+                if (total === undefined || total < b.balance) total = b.balance;
                 balancesBody.innerHTML += `
                     <tr>
-                        <td class="bold">${b.name}</td>
+                        <td class="bold">${bName}</td>
                         <td style="text-align:right">${total}</td>
                         <td style="text-align:right"><span class="badge-status" style="background:var(--bg-glass); color:var(--text-main); border:1px solid var(--border-color);">${b.balance}</span></td>
                     </tr>
