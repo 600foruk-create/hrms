@@ -1551,66 +1551,6 @@ window.confirmAndProcessPayroll = function() {
     if (window.switchPayrollSubTab) window.switchPayrollSubTab('history');
 };
 
-// --- 4. Employee/Manager My Payslips ---
-window.renderMyPayslips = function() {
-    const db = getDb();
-    if (!db || !window.currentUser) return;
-
-    let targetTbody;
-    if (window.currentUser.role === 'Manager') {
-        targetTbody = document.getElementById('manager-mypayslips-tbody');
-    } else {
-        targetTbody = document.getElementById('employee-mypayslips-tbody');
-    }
-    
-    if (!targetTbody) return;
-    targetTbody.innerHTML = '';
-
-    const history = (db.payrollHistory || []).filter(r => String(r.userId) === String(window.currentUser.id));
-    history.sort((a, b) => new Date(b.processedAt) - new Date(a.processedAt));
-
-    if (history.length === 0) {
-        targetTbody.innerHTML = `<tr><td colspan="4" class="empty-state">No processed salary slips found yet.</td></tr>`;
-        return;
-    }
-
-    const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
-    const basic = parseInt(window.currentUser?.salary) || 0;
-
-    history.forEach(record => {
-        const d = new Date(record.endDate || record.processedAt || new Date());
-        const monthName = d.toLocaleString('default', { month: 'long', year: 'numeric' });
-        
-        let profile = db.salaryProfiles?.find(p => p.userId === record.userId);
-        let allowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
-        let deductions = profile && profile.isCustomSlab ? (profile.deductions || []) : (globalSlab.deductions || []);
-        
-        let fixedAll = 0;
-        allowances.forEach(a => { fixedAll += (a.type === 'percentage') ? (basic * (parseFloat(a.value)||0)) / 100 : (parseFloat(a.value)||0); });
-        
-        let fixedDed = 0;
-        deductions.forEach(d => { fixedDed += (d.type === 'percentage') ? (basic * (parseFloat(d.value)||0)) / 100 : (parseFloat(d.value)||0); });
-
-        const totalDed = fixedDed + (parseFloat(record.absencyDeduction) || 0) + (parseFloat(record.loanDeduction) || 0) + (parseFloat(record.otherDeduction) || 0);
-        const totalAdd = fixedAll + (parseFloat(record.bonus) || 0);
-        const dynamicNetPay = basic + totalAdd - totalDed;
-        
-        const netPay = Math.round(dynamicNetPay).toLocaleString();
-        
-        targetTbody.innerHTML += `
-            <tr>
-                <td>${monthName}</td>
-                <td><span class="badge-role approved">Processed</span></td>
-                <td style="font-weight: 700;">Rs ${netPay}</td>
-                <td>
-                    <button class="btn btn-outline" style="padding: 4px 10px; font-size: 12px;" onclick="window.openPayslipModal('${record.id}')">
-                        <i class="fa-solid fa-file-invoice"></i> View Slip
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
-};
 
 // Hook into existing switchTab
 const _originalSwitchTab = window.switchTab;
