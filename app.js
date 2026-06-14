@@ -1804,7 +1804,6 @@ window.saveLeaveType = function (id) {
         if (lt) {
             lt.name = name;
             lt.days = days;
-            lt.allowance = days; // Required for api.php MySQL syncing
             saveDb(db);
             logAudit("Updated leave type: " + name);
             showToast("Success", "Leave type saved.");
@@ -4100,8 +4099,7 @@ document.getElementById('settings-add-leave-type-form').addEventListener('submit
     db.companyProfile.leaveTypes.push({
         id: 'L' + Date.now(),
         name: name,
-        days: days,
-        allowance: days // Required for api.php MySQL syncing
+        days: days
     });
 
     saveDb(db);
