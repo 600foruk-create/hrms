@@ -710,7 +710,7 @@ function switchTab(tabId) {
 
     // Toggle role outer views
     const views = ['admin-view', 'manager-view', 'employee-view'];
-    let roleStr = currentUser.role.toLowerCase();
+    let roleStr = String(currentUser.role).trim().toLowerCase();
     if (roleStr === 'user') roleStr = 'employee';
 
     views.forEach(v => {

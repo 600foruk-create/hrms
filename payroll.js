@@ -587,6 +587,13 @@ window.renderMyPayslips = function() {
         const tbodyManager = document.getElementById('manager-mypayslips-tbody');
         const tbodyEmployee = document.getElementById('employee-mypayslips-tbody');
         
+        // Forcibly add active class to subtab contents to bypass cached index.html
+        const managerSubtab = document.getElementById('subtab-content-manager-payslips-my');
+        if (managerSubtab) managerSubtab.classList.add('active');
+        
+        const employeeSubtab = document.getElementById('subtab-content-employee-payslips-my');
+        if (employeeSubtab) employeeSubtab.classList.add('active');
+        
         const tbody = String(currentUser.role).trim().toLowerCase() === 'manager' ? tbodyManager : tbodyEmployee;
         if (!tbody) return;
 
