@@ -1564,7 +1564,7 @@ function renderLeaveTypes() {
                         <input type="text" class="form-control" id="lt-name-${lt.id}" value="${lt.name}" disabled style="background: transparent; border: 1px solid transparent; color: var(--text-color); box-shadow: none; padding: 5px; text-align: center; width: 100%;">
                     </td>
                     <td style="text-align: center;">
-                        <input type="number" class="form-control" id="lt-days-${lt.id}" value="${lt.days}" disabled style="background: transparent; border: 1px solid transparent; color: var(--text-color); box-shadow: none; padding: 5px; text-align: center; width: 100%;">
+                        <input type="number" class="form-control" id="lt-days-${lt.id}" value="${lt.days !== undefined ? lt.days : (lt.yearlyAllowance !== undefined ? lt.yearlyAllowance : (lt.total !== undefined ? lt.total : (lt.allowance !== undefined ? lt.allowance : 0)))}" disabled style="background: transparent; border: 1px solid transparent; color: var(--text-color); box-shadow: none; padding: 5px; text-align: center; width: 100%;">
                     </td>
                     <td style="text-align: center;">
                         <button type="button" class="btn-action-circle text-info" id="btn-edit-${lt.id}" onclick="enableEditLeaveType('${lt.id}')" tooltip="Edit">
