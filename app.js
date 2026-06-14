@@ -724,7 +724,7 @@ function switchTab(tabId) {
     // Toggle tab sub-views
     const tabSelector = `${roleStr}-tab-${tabId}`;
 
-    document.querySelectorAll(`#${roleStr}-view .tab-view`).forEach(tab => {
+    document.querySelectorAll(`.tab-view`).forEach(tab => {
         if (tab.id === tabSelector) {
             tab.classList.add('active');
         } else {
@@ -5998,7 +5998,7 @@ window.addStagedProductivity = async function () {
         if (fileInput && fileInput.files && fileInput.files.length > 0) {
             const addBtn = document.querySelector('button[onclick="window.addStagedProductivity()"]') || document.getElementById('btn-add-staged-prod');
             if (addBtn) { addBtn.disabled = true; addBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...'; }
-            
+
             const formData = new FormData();
             formData.append('document', fileInput.files[0]);
             try {
@@ -6171,7 +6171,7 @@ window.submitAllStagedProductivity = async function () {
     }
 };
 
-window.deleteProductivityLog = async function(id) {
+window.deleteProductivityLog = async function (id) {
     if (!confirm("Are you sure you want to delete this log?")) return;
     try {
         const response = await fetch('backend/api.php?action=delete_productivity_log', {
@@ -6234,18 +6234,18 @@ window.renderMyProductivityLogs = function () {
 
     const db = getDb();
     let myLogs = (db.productivity || []).filter(l => String(l.employee_id) === String(currentUser.id));
-    
+
     let totalScore = 0;
     if (activeFilterDate) {
         myLogs = myLogs.filter(l => l.date === activeFilterDate);
     }
-    
+
     myLogs.forEach(log => {
         totalScore += parseFloat(log.score_percentage) || 0;
     });
-    
+
     if (totalScore > 100) totalScore = 100;
-    
+
     if (document.getElementById('ept-daily-score-display')) document.getElementById('ept-daily-score-display').textContent = `Total Score: ${totalScore.toFixed(1)}%`;
     if (document.getElementById('mgr-daily-score-display')) document.getElementById('mgr-daily-score-display').textContent = `Total Score: ${totalScore.toFixed(1)}%`;
 
@@ -6377,7 +6377,7 @@ window.renderManagerProductivityTab = function () {
             const docLink = log.doc_path && log.doc_path !== '-'
                 ? `<a href="${log.doc_path}" target="_blank" style="text-decoration: underline; color: var(--primary-color);"><i class="fa-solid fa-file"></i> View</a>`
                 : '-';
-            
+
             childRowsHtml += `
                 <tr style="background: rgba(0,0,0,0.02); font-size: 12px;">
                     <td style="padding: 0;">
@@ -6404,7 +6404,7 @@ window.renderManagerProductivityTab = function () {
     });
 };
 
-window.toggleProdGroup = function(groupId) {
+window.toggleProdGroup = function (groupId) {
     const row = document.getElementById(groupId);
     if (row) {
         if (row.style.display === 'none') {
@@ -6503,7 +6503,7 @@ window.renderAdminProductivityTab = function () {
 
     const countSpan = document.getElementById('admin-prod-log-count');
     if (countSpan) countSpan.textContent = `Showing ${allLogs.length} logs`;
-    
+
     // Group logs by employee and date
     const groupedLogs = {};
     allLogs.forEach(log => {
@@ -6524,7 +6524,7 @@ window.renderAdminProductivityTab = function () {
     Object.values(groupedLogs).forEach(group => {
         totalScore += group.totalScore > 100 ? 100 : group.totalScore;
     });
-    
+
     if (document.getElementById('admin-daily-score-display')) document.getElementById('admin-daily-score-display').textContent = `Total Score: ${totalScore.toFixed(1)}%`;
 
     tbody.innerHTML = '';
@@ -6567,7 +6567,7 @@ window.renderAdminProductivityTab = function () {
             const docLink = log.doc_path && log.doc_path !== '-'
                 ? `<a href="${log.doc_path}" target="_blank" style="text-decoration: underline; color: var(--primary-color);"><i class="fa-solid fa-file"></i> View</a>`
                 : '-';
-            
+
             childRowsHtml += `
                 <tr style="background: rgba(0,0,0,0.02); font-size: 12px;">
                     <td style="padding: 0;">
