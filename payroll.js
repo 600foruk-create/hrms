@@ -102,8 +102,8 @@ window.renderPayrollHistory = function() {
         let fixedDed = 0;
         deductions.forEach(d => { fixedDed += (d.type === 'percentage') ? (basic * (parseFloat(d.value)||0)) / 100 : (parseFloat(d.value)||0); });
 
-        const totalDed = fixedDed + (record.absencyDeduction || 0) + (record.loanDeduction || 0) + (record.otherDeduction || 0);
-        const totalAdd = fixedAll + (record.bonus || 0);
+        const totalDed = fixedDed + (parseFloat(record.absencyDeduction) || 0) + (parseFloat(record.loanDeduction) || 0) + (parseFloat(record.otherDeduction) || 0);
+        const totalAdd = fixedAll + (parseFloat(record.bonus) || 0);
         const dynamicNetPay = basic + totalAdd - totalDed;
         
         const processedDate = new Date(record.processedAt).toLocaleDateString();
@@ -193,8 +193,8 @@ window.openMonthlySummaryModal = function() {
         let fixedDed = 0;
         deductions.forEach(d => { fixedDed += (d.type === 'percentage') ? (basic * (parseFloat(d.value)||0)) / 100 : (parseFloat(d.value)||0); });
 
-        const totalDed = fixedDed + (record.absencyDeduction || 0) + (record.loanDeduction || 0) + (record.otherDeduction || 0);
-        const totalAdd = fixedAll + (record.bonus || 0); 
+        const totalDed = fixedDed + (parseFloat(record.absencyDeduction) || 0) + (parseFloat(record.loanDeduction) || 0) + (parseFloat(record.otherDeduction) || 0);
+        const totalAdd = fixedAll + (parseFloat(record.bonus) || 0); 
         const dynamicNetPay = basic + totalAdd - totalDed;
         
         grandTotalBasic += basic;
@@ -359,12 +359,12 @@ window.openPayslipModal = function(recordId) {
         totalAllow += computed;
     });
     
-    if (record.bonus > 0) {
+    if ((parseFloat(record.bonus) || 0) > 0) {
         allowHtml += `<tr style="border-bottom: 1px solid #f1f5f9;">
             <td style="padding: 5px 15px; border-right: 1px solid #e2e8f0;">Bonus / Arrears</td>
-            <td style="padding: 5px 15px; font-weight: 600; text-align: right; width: 130px;">Rs ${Math.round(record.bonus).toLocaleString()}</td>
+            <td style="padding: 5px 15px; font-weight: 600; text-align: right; width: 130px;">Rs ${Math.round(parseFloat(record.bonus) || 0).toLocaleString()}</td>
         </tr>`;
-        totalAllow += record.bonus;
+        totalAllow += (parseFloat(record.bonus) || 0);
     }
     
     // Days Calculation
@@ -375,7 +375,8 @@ window.openPayslipModal = function(recordId) {
     
     // If absencyDeduction > 0, calculate absent days based on (Basic / daysInMonth)
     const perDaySalary = basicSalary / daysInMonth;
-    const absentDays = record.absencyDeduction > 0 && perDaySalary > 0 ? Math.round(record.absencyDeduction / perDaySalary) : 0;
+    const absDeduct = parseFloat(record.absencyDeduction) || 0;
+    const absentDays = absDeduct > 0 && perDaySalary > 0 ? Math.round(absDeduct / perDaySalary) : 0;
     const presentDays = daysInMonth - absentDays;
     
     let dedHtml = ``;
@@ -391,26 +392,26 @@ window.openPayslipModal = function(recordId) {
         totalDed += computed;
     });
     
-    if (record.absencyDeduction > 0) {
+    if ((parseFloat(record.absencyDeduction) || 0) > 0) {
         dedHtml += `<tr style="border-bottom: 1px solid #f1f5f9;">
             <td style="padding: 5px 15px; border-right: 1px solid #e2e8f0;">Absents (${absentDays} Days) <span style="font-size: 10px; color: #94a3b8;"><br/>(Basic / ${daysInMonth} * ${absentDays})</span></td>
-            <td style="padding: 5px 15px; font-weight: 600; text-align: right; width: 130px;">Rs ${Math.round(record.absencyDeduction).toLocaleString()}</td>
+            <td style="padding: 5px 15px; font-weight: 600; text-align: right; width: 130px;">Rs ${Math.round(parseFloat(record.absencyDeduction) || 0).toLocaleString()}</td>
         </tr>`;
-        totalDed += record.absencyDeduction;
+        totalDed += (parseFloat(record.absencyDeduction) || 0);
     }
-    if (record.loanDeduction > 0) {
+    if ((parseFloat(record.loanDeduction) || 0) > 0) {
         dedHtml += `<tr style="border-bottom: 1px solid #f1f5f9;">
             <td style="padding: 5px 15px; border-right: 1px solid #e2e8f0;">Loan Installment</td>
-            <td style="padding: 5px 15px; font-weight: 600; text-align: right; width: 130px;">Rs ${Math.round(record.loanDeduction).toLocaleString()}</td>
+            <td style="padding: 5px 15px; font-weight: 600; text-align: right; width: 130px;">Rs ${Math.round(parseFloat(record.loanDeduction) || 0).toLocaleString()}</td>
         </tr>`;
-        totalDed += record.loanDeduction;
+        totalDed += (parseFloat(record.loanDeduction) || 0);
     }
-    if (record.otherDeduction > 0) {
+    if ((parseFloat(record.otherDeduction) || 0) > 0) {
         dedHtml += `<tr style="border-bottom: 1px solid #f1f5f9;">
             <td style="padding: 5px 15px; border-right: 1px solid #e2e8f0;">Other Deductions</td>
-            <td style="padding: 5px 15px; font-weight: 600; text-align: right; width: 130px;">Rs ${Math.round(record.otherDeduction).toLocaleString()}</td>
+            <td style="padding: 5px 15px; font-weight: 600; text-align: right; width: 130px;">Rs ${Math.round(parseFloat(record.otherDeduction) || 0).toLocaleString()}</td>
         </tr>`;
-        totalDed += record.otherDeduction;
+        totalDed += (parseFloat(record.otherDeduction) || 0);
     }
 
     const empStatus = user?.status || 'Active';
@@ -616,8 +617,8 @@ window.renderMyPayslips = function() {
         let fixedDed = 0;
         deductions.forEach(d => { fixedDed += (d.type === 'percentage') ? (basic * (parseFloat(d.value)||0)) / 100 : (parseFloat(d.value)||0); });
 
-        const totalDed = fixedDed + (record.absencyDeduction || 0) + (record.loanDeduction || 0) + (record.otherDeduction || 0);
-        const totalAdd = fixedAll + (record.bonus || 0);
+        const totalDed = fixedDed + (parseFloat(record.absencyDeduction) || 0) + (parseFloat(record.loanDeduction) || 0) + (parseFloat(record.otherDeduction) || 0);
+        const totalAdd = fixedAll + (parseFloat(record.bonus) || 0);
         const dynamicNetPay = basic + totalAdd - totalDed;
         
         const monthStr = new Date(record.startDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -761,8 +762,8 @@ window.updateBankLetterPreview = function() {
         let fixedDed = 0;
         pDeductions.forEach(d => { fixedDed += (d.type === 'percentage') ? (basic * (parseFloat(d.value)||0)) / 100 : (parseFloat(d.value)||0); });
 
-        let allowances = fixedAll + (h.bonus || 0);
-        let deductions = fixedDed + (h.absencyDeduction || 0) + (h.loanDeduction || h.loanEmi || 0) + (h.otherDeduction || 0);
+        let allowances = fixedAll + (parseFloat(h.bonus) || 0);
+        let deductions = fixedDed + (parseFloat(h.absencyDeduction) || 0) + (parseFloat(h.loanDeduction) || parseFloat(h.loanEmi) || 0) + (parseFloat(h.otherDeduction) || 0);
         let netSalary = basic + allowances - deductions;
 
         grandBasic += basic;
@@ -1568,8 +1569,8 @@ window.renderMyPayslips = function() {
         let fixedDed = 0;
         deductions.forEach(d => { fixedDed += (d.type === 'percentage') ? (basic * (parseFloat(d.value)||0)) / 100 : (parseFloat(d.value)||0); });
 
-        const totalDed = fixedDed + (record.absencyDeduction || 0) + (record.loanDeduction || 0) + (record.otherDeduction || 0);
-        const totalAdd = fixedAll + (record.bonus || 0);
+        const totalDed = fixedDed + (parseFloat(record.absencyDeduction) || 0) + (parseFloat(record.loanDeduction) || 0) + (parseFloat(record.otherDeduction) || 0);
+        const totalAdd = fixedAll + (parseFloat(record.bonus) || 0);
         const dynamicNetPay = basic + totalAdd - totalDed;
         
         const netPay = Math.round(dynamicNetPay).toLocaleString();
