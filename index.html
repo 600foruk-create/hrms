@@ -3982,6 +3982,33 @@
             <!-- Content injected via JS -->
         </div>
     </div>
+
+    <!-- OTP Verification Modal -->
+    <div id="modal-otp-verification" class="modal hidden" style="max-width: 400px; z-index: 10005;">
+        <div class="modal-header">
+            <h3>2-Step Verification</h3>
+            <div class="modal-header-controls">
+                <button class="modal-close" onclick="closeOtpModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        <div class="modal-body" style="text-align: center; padding: 30px 20px;">
+            <div style="font-size: 40px; color: var(--primary-color); margin-bottom: 15px;">
+                <i class="fa-solid fa-envelope-circle-check"></i>
+            </div>
+            <h4 style="margin-bottom: 10px; color: var(--text-dark);">Enter Verification Code</h4>
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;" id="otp-message">
+                A 6-digit code has been sent to your email. Please enter it below to verify.
+            </p>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <input type="text" id="otp-input" class="form-control" style="text-align: center; font-size: 24px; letter-spacing: 5px; font-weight: bold; width: 80%; margin: 0 auto;" placeholder="------" maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            </div>
+            <button id="btn-verify-otp" class="btn btn-primary" style="width: 80%;" onclick="submitOtp()">Verify Code</button>
+            <div style="margin-top: 15px; font-size: 12px;">
+                <a href="#" onclick="resendOtp()" style="color: var(--primary-color); text-decoration: none;">Didn't receive the code? Resend</a>
+            </div>
+        </div>
+    </div>
+    <script src="app.js?v=6.9.11"></script>
 </body>
 
 </html>

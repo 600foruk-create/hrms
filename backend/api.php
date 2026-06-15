@@ -254,6 +254,14 @@ try {
     
     // Clean up old table if it exists
     $pdo->exec("DROP TABLE IF EXISTS `asset_issues`");
+    
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `otps` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `user_email` varchar(150) NOT NULL,
+        `otp_code` varchar(10) NOT NULL,
+        `expires_at` int(11) NOT NULL,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
 } catch (Exception $e) {
     // Ignore if unsupported (e.g. SQLite doesn't support ENGINE=InnoDB)
@@ -324,6 +332,13 @@ try {
         } catch (Exception $e) {}
         
         $pdo->exec("DROP TABLE IF EXISTS `asset_issues`");
+        
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `otps` (
+            `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+            `user_email` TEXT NOT NULL,
+            `otp_code` TEXT NOT NULL,
+            `expires_at` INTEGER NOT NULL
+        )");
     } catch (Exception $e2) {
         error_log("Failed to create company_profile table: " . $e2->getMessage());
     }
@@ -335,6 +350,74 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 $action = $_GET['action'] ?? '';
+
+if ($action === 'send_otp') {
+    $inputJSON = file_get_contents('php://input');
+    $data = json_decode($inputJSON, true);
+    $email = $data['email'] ?? '';
+    if (!$email) {
+        echo json_encode(["status" => "error", "message" => "Email is required"]);
+        exit;
+    }
+    
+    $otp = sprintf("%06d", mt_rand(1, 999999));
+    $expires = time() + (5 * 60); // 5 minutes
+    
+    try {
+        $stmt = $pdo->prepare("INSERT INTO otps (user_email, otp_code, expires_at) VALUES (?, ?, ?)");
+        $stmt->execute([$email, $otp, $expires]);
+        
+        // Send email
+        $subject = "Your 2-Step Verification Code";
+        $message = "Your verification code is: $otp\n\nThis code will expire in 5 minutes.";
+        $headers = "From: noreply@" . $_SERVER['HTTP_HOST'];
+        
+        if (mail($email, $subject, $message, $headers)) {
+            echo json_encode(["status" => "success", "message" => "OTP sent"]);
+        } else {
+            // Fallback for local testing if mail() fails
+            echo json_encode(["status" => "success", "message" => "OTP generated (mail failed)", "dev_otp" => $otp]);
+        }
+    } catch (Exception $e) {
+        echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+    }
+    exit;
+}
+
+if ($action === 'verify_otp') {
+    $inputJSON = file_get_contents('php://input');
+    $data = json_decode($inputJSON, true);
+    $email = $data['email'] ?? '';
+    $otp = $data['otp'] ?? '';
+    
+    if (!$email || !$otp) {
+        echo json_encode(["status" => "error", "message" => "Email and OTP are required"]);
+        exit;
+    }
+    
+    try {
+        $stmt = $pdo->prepare("SELECT id, otp_code, expires_at FROM otps WHERE user_email = ? ORDER BY id DESC LIMIT 1");
+        $stmt->execute([$email]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($row) {
+            if (time() > $row['expires_at']) {
+                echo json_encode(["status" => "error", "message" => "OTP has expired"]);
+            } else if ($row['otp_code'] === $otp) {
+                // Success
+                $pdo->exec("DELETE FROM otps WHERE user_email = " . $pdo->quote($email));
+                echo json_encode(["status" => "success", "message" => "OTP verified"]);
+            } else {
+                echo json_encode(["status" => "error", "message" => "Invalid OTP"]);
+            }
+        } else {
+            echo json_encode(["status" => "error", "message" => "No OTP found for this email"]);
+        }
+    } catch (Exception $e) {
+        echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+    }
+    exit;
+}
 
 if ($action === 'load_all') {
     try {

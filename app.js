@@ -353,6 +353,76 @@ function populateLoginDropdown() {
     }
 }
 
+let otpState = {
+    purpose: '',
+    email: '',
+    userId: '',
+    callback: null
+};
+
+async function openOtpModal(purpose, email, userId, callback) {
+    otpState = { purpose, email, userId, callback };
+    document.getElementById('otp-input').value = '';
+    document.getElementById('modal-otp-verification').classList.remove('hidden');
+    document.getElementById('modal-backdrop').classList.remove('hidden');
+    await resendOtp();
+}
+
+window.closeOtpModal = function() {
+    document.getElementById('modal-otp-verification').classList.add('hidden');
+    document.getElementById('modal-backdrop').classList.add('hidden');
+    otpState.callback = null;
+};
+
+window.submitOtp = async function() {
+    const otp = document.getElementById('otp-input').value;
+    if (otp.length !== 6) {
+        showToast("Error", "Please enter a valid 6-digit OTP", "error");
+        return;
+    }
+    
+    try {
+        const response = await fetch('backend/api.php?action=verify_otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: otpState.email, otp: otp })
+        });
+        const res = await response.json();
+        if (res.status === 'success') {
+            closeOtpModal();
+            if (otpState.callback) otpState.callback(true);
+        } else {
+            showToast("Error", res.message || "Invalid OTP", "error");
+        }
+    } catch (e) {
+        showToast("Error", "Failed to verify OTP", "error");
+    }
+};
+
+window.resendOtp = async function() {
+    const msgEl = document.getElementById('otp-message');
+    msgEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending code...';
+    try {
+        const response = await fetch('backend/api.php?action=send_otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: otpState.email })
+        });
+        const res = await response.json();
+        if (res.status === 'success') {
+            msgEl.innerHTML = 'A 6-digit code has been sent to your email. Please enter it below to verify.';
+            showToast("Success", "OTP sent successfully", "success");
+            if (res.dev_otp) console.log("DEV OTP: " + res.dev_otp); // For testing if mail fails
+        } else {
+            msgEl.innerHTML = '<span style="color:red;">Failed to send OTP.</span>';
+            showToast("Error", res.message || "Failed to send OTP", "error");
+        }
+    } catch (e) {
+        msgEl.innerHTML = '<span style="color:red;">Network error sending OTP.</span>';
+        showToast("Error", "Failed to send OTP", "error");
+    }
+};
+
 function handleLogin(usernameOrEmail, password) {
     try {
         const db = getDb();
@@ -376,61 +446,71 @@ function handleLogin(usernameOrEmail, password) {
             return;
         }
 
-        // Final quota sweep
-        try {
-            Object.keys(localStorage).forEach(key => {
-                if (!['current_user', 'active_tab', 'hrms_fallback_db'].includes(key)) localStorage.removeItem(key);
+        const completeLogin = () => {
+            // Final quota sweep
+            try {
+                Object.keys(localStorage).forEach(key => {
+                    if (!['current_user', 'active_tab', 'hrms_fallback_db'].includes(key)) localStorage.removeItem(key);
+                });
+            } catch (e) { }
+
+            // Set Session
+            currentUser = user;
+            const sessionUser = { ...user };
+            delete sessionUser.documents; // Remove huge base64 arrays to save localStorage space
+            delete sessionUser.profileImageBase64;
+            delete sessionUser.profilePic;
+            localStorage.setItem('current_user', JSON.stringify(sessionUser));
+
+            // Auto Mark Attendance for Employee on Login
+            if (user.role === 'User') {
+                markAutoAttendance(user);
+            }
+
+            logAudit(`Logged in successfully to ${user.role} Portal.`);
+
+            // Transition UI
+            const authPanel = document.getElementById('auth-panel');
+            const appShell = document.getElementById('app-shell');
+            if (authPanel) {
+                authPanel.classList.add('hidden');
+                authPanel.style.setProperty('display', 'none', 'important');
+            }
+            if (appShell) {
+                appShell.classList.remove('hidden');
+                appShell.style.setProperty('display', 'flex', 'important');
+            }
+            document.body.classList.remove('login-view');
+
+            // Clear search if exists
+            const searchBox = document.getElementById('global-search');
+            if (searchBox) searchBox.value = "";
+
+            // Apply Custom Theme if exists
+            const sysSettings = db.systemSettings || {};
+            if (sysSettings.themeColor) {
+                document.documentElement.style.setProperty('--primary', sysSettings.themeColor);
+            } else {
+                document.documentElement.style.setProperty('--primary', '#5f3bf6'); // Default
+            }
+
+            // Reset Navigation
+            activeTab = 'dashboard';
+            renderSidebar();
+            applyCompanyProfile(db);
+            switchTab('dashboard');
+            setupSessionTimer();
+
+            showToast("Welcome Back", `Successfully signed in as ${user.name}.`);
+        };
+
+        if (user.twoFactorEnabled) {
+            openOtpModal('login', user.email, user.id, (success) => {
+                if (success) completeLogin();
             });
-        } catch (e) { }
-
-        // Set Session
-        currentUser = user;
-        const sessionUser = { ...user };
-        delete sessionUser.documents; // Remove huge base64 arrays to save localStorage space
-        delete sessionUser.profileImageBase64;
-        delete sessionUser.profilePic;
-        localStorage.setItem('current_user', JSON.stringify(sessionUser));
-
-        // Auto Mark Attendance for Employee on Login
-        if (user.role === 'User') {
-            markAutoAttendance(user);
-        }
-
-        logAudit(`Logged in successfully to ${user.role} Portal.`);
-
-        // Transition UI
-        const authPanel = document.getElementById('auth-panel');
-        const appShell = document.getElementById('app-shell');
-        if (authPanel) {
-            authPanel.classList.add('hidden');
-            authPanel.style.setProperty('display', 'none', 'important');
-        }
-        if (appShell) {
-            appShell.classList.remove('hidden');
-            appShell.style.setProperty('display', 'flex', 'important');
-        }
-        document.body.classList.remove('login-view');
-
-        // Clear search if exists
-        const searchBox = document.getElementById('global-search');
-        if (searchBox) searchBox.value = "";
-
-        // Apply Custom Theme if exists
-        const sysSettings = db.systemSettings || {};
-        if (sysSettings.themeColor) {
-            document.documentElement.style.setProperty('--primary', sysSettings.themeColor);
         } else {
-            document.documentElement.style.setProperty('--primary', '#5f3bf6'); // Default
+            completeLogin();
         }
-
-        // Reset Navigation
-        activeTab = 'dashboard';
-        renderSidebar();
-        applyCompanyProfile(db);
-        switchTab('dashboard');
-        setupSessionTimer();
-
-        showToast("Welcome Back", `Successfully signed in as ${user.name}.`);
     } catch (e) {
         console.error("handleLogin error: ", e);
         showToast("Error", "An unexpected login error occurred.", "error");
@@ -4757,10 +4837,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         const db = getDb();
         const user = db.users.find(u => u.id === currentUser.id);
         if (user) {
-            user.twoFactorEnabled = !user.twoFactorEnabled;
-            currentUser.twoFactorEnabled = user.twoFactorEnabled;
-            saveDb(db);
-            showToast("Success", "2-Step Verification turned " + (user.twoFactorEnabled ? "ON" : "OFF"), "success");
+            const purpose = user.twoFactorEnabled ? 'disable' : 'enable';
+            openOtpModal(purpose, user.email, user.id, (success) => {
+                if (success) {
+                    user.twoFactorEnabled = !user.twoFactorEnabled;
+                    currentUser.twoFactorEnabled = user.twoFactorEnabled;
+                    saveDb(db);
+                    showToast("Success", "2-Step Verification turned " + (user.twoFactorEnabled ? "ON" : "OFF"), "success");
+                }
+            });
         }
     });
 
