@@ -48,48 +48,26 @@ function renderAssetsInventory() {
         return;
     }
     
-    const grouped = {};
-    db.assets.forEach(a => {
-        const cat = a.category || 'Uncategorized';
-        if (!grouped[cat]) grouped[cat] = [];
-        grouped[cat].push(a);
-    });
-
     let html = '';
-    
-    Object.keys(grouped).forEach(cat => {
-        let totalQty = 0;
-        grouped[cat].forEach(a => totalQty += parseInt(a.quantity) || 1);
+    db.assets.forEach(a => {
+        let statusBadge = '';
+        if (a.status === 'Available') statusBadge = '<span class="badge bg-success">Available</span>';
+        else if (a.status === 'Issued') statusBadge = '<span class="badge bg-warning text-dark">Issued</span>';
+        else statusBadge = `<span class="badge bg-secondary">${a.status}</span>`;
         
-        html += `<tr class="table-primary"><td colspan="7" style="background:var(--primary-light); color:var(--primary-dark); padding: 10px;"><strong><i class="fa-solid fa-folder-open"></i> ${cat}</strong> (Total Items: ${totalQty})</td></tr>`;
-        
-        grouped[cat].forEach(a => {
-            const qty = parseInt(a.quantity) || 1;
-            let issuedQty = 0;
-            if (db.assetIssues) {
-                db.assetIssues.filter(i => i.asset_id === a.id && i.status === 'Issued').forEach(i => issuedQty += parseInt(i.quantity) || 1);
-            }
-            const availQty = qty - issuedQty;
-            
-            let statusBadge = '';
-            if (availQty === qty) statusBadge = `<span class="badge bg-success">Available (${availQty})</span>`;
-            else if (availQty === 0) statusBadge = '<span class="badge bg-warning text-dark">Fully Issued</span>';
-            else statusBadge = `<span class="badge bg-info text-dark">Partially Issued (Avail: ${availQty})</span>`;
-            
-            html += `
-                <tr>
-                    <td><strong>${a.id}</strong></td>
-                    <td>${a.category || '-'}</td>
-                    <td>${a.name || '-'}${qty > 1 ? ` <span class="badge bg-secondary" style="font-size: 10px; margin-left: 5px;">x${qty}</span>` : ''}</td>
-                    <td>${a.serial_number || '-'}</td>
-                    <td>${a.purchase_date ? window.formatDate ? window.formatDate(a.purchase_date) : a.purchase_date : '-'}</td>
-                    <td>${statusBadge}</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteAsset('${a.id}')"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                </tr>
-            `;
-        });
+        html += `
+            <tr>
+                <td><strong>${a.id}</strong></td>
+                <td>${a.category || '-'}</td>
+                <td>${a.name || '-'}</td>
+                <td>${a.serial_number || '-'}</td>
+                <td>${a.purchase_date ? window.formatDate ? window.formatDate(a.purchase_date) : a.purchase_date : '-'}</td>
+                <td>${statusBadge}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteAsset('${a.id}')"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>
+        `;
     });
     tbody.innerHTML = html;
 }
@@ -137,7 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 purchase_date: document.getElementById('add-asset-purchase-date').value,
                 name: document.getElementById('add-asset-name').value,
                 serial_number: document.getElementById('add-asset-serial').value,
-                quantity: parseInt(document.getElementById('add-asset-quantity').value) || 1,
                 status: 'Available'
             };
             
@@ -217,29 +194,14 @@ window.filterAvailableAssets = function() {
     
     if (!cat || !db.assets) return;
     
-    const available = db.assets.filter(a => {
-        if (a.category !== cat) return false;
-        const qty = parseInt(a.quantity) || 1;
-        let issuedQty = 0;
-        if (db.assetIssues) {
-            db.assetIssues.filter(i => i.asset_id === a.id && i.status === 'Active').forEach(i => issuedQty += parseInt(i.quantity) || 1);
-        }
-        return (qty - issuedQty) > 0;
-    });
-    
+    const available = db.assets.filter(a => a.category === cat && a.status === 'Available');
     if (available.length === 0) {
         itemSelect.innerHTML = '<option value="">No available assets in this category</option>';
         return;
     }
     
     available.forEach(a => {
-        const qty = parseInt(a.quantity) || 1;
-        let issuedQty = 0;
-        if (db.assetIssues) {
-            db.assetIssues.filter(i => i.asset_id === a.id && i.status === 'Active').forEach(i => issuedQty += parseInt(i.quantity) || 1);
-        }
-        const availQty = qty - issuedQty;
-        itemSelect.innerHTML += `<option value="${a.id}">${a.name} ${a.serial_number ? `[${a.serial_number}]` : ''} (Avail: ${availQty})</option>`;
+        itemSelect.innerHTML += `<option value="${a.id}">${a.name} [${a.serial_number}]</option>`;
     });
 };
 
@@ -250,31 +212,16 @@ window.submitIssueAsset = function() {
     const assetId = document.getElementById('issue-asset-item').value;
     const issueDate = document.getElementById('issue-asset-date').value;
     const notes = document.getElementById('issue-asset-notes').value;
-    const issueQty = parseInt(document.getElementById('issue-asset-quantity').value) || 1;
     
-    if (!empId || !assetId || !issueDate || issueQty < 1) {
-        if (window.showToast) window.showToast('Please fill all required fields correctly', 'error');
+    if (!empId || !assetId || !issueDate) {
+        if (window.showToast) window.showToast('Please fill all required fields', 'error');
         return;
     }
     
+    // Mark Asset as Issued
     const asset = db.assets.find(a => a.id === assetId);
-    if (!asset) return;
-    
-    const qty = parseInt(asset.quantity) || 1;
-    let currentlyIssued = 0;
-    if (db.assetIssues) {
-        db.assetIssues.filter(i => i.asset_id === asset.id && i.status === 'Active').forEach(i => currentlyIssued += parseInt(i.quantity) || 1);
-    }
-    
-    if (issueQty > (qty - currentlyIssued)) {
-        if (window.showToast) window.showToast(`Cannot issue ${issueQty}. Only ${qty - currentlyIssued} available.`, 'error');
-        return;
-    }
-    
-    if (qty === (currentlyIssued + issueQty)) {
+    if (asset) {
         asset.status = 'Issued';
-    } else {
-        asset.status = 'Partially Issued';
     }
     
     // Create Issue Record
@@ -285,7 +232,6 @@ window.submitIssueAsset = function() {
         issue_date: issueDate,
         return_date: null,
         notes: notes,
-        quantity: issueQty,
         status: 'Active'
     };
     
@@ -293,7 +239,7 @@ window.submitIssueAsset = function() {
     db.assetIssues.push(issueRecord);
     
     if (window.saveDb) window.saveDb(db);
-    if (window.showToast) window.showToast(`Asset Issued Successfully (${issueQty})`, 'success');
+    if (window.showToast) window.showToast('Asset Issued Successfully', 'success');
     
     // Refresh Form and jump to tracker
     renderAssetsIssueForm();
@@ -332,8 +278,7 @@ function renderAssetsReport() {
         
         const asset = db.assets ? db.assets.find(a => a.id === ai.asset_id) : null;
         const catName = asset ? asset.category : 'Unknown';
-        const qty = parseInt(ai.quantity) || 1;
-        const assetName = asset ? `${asset.name} <span class="badge bg-secondary" style="font-size: 10px;">x${qty}</span>` : 'Unknown';
+        const assetName = asset ? asset.name : 'Unknown';
         const serialNo = asset ? asset.serial_number : 'Unknown';
         
         let statusBadge = ai.status === 'Active' 
@@ -377,17 +322,7 @@ window.returnAsset = function(issueId) {
     // Mark Asset as Available again
     const asset = db.assets.find(a => a.id === issueRecord.asset_id);
     if (asset) {
-        const qty = parseInt(asset.quantity) || 1;
-        let currentlyIssued = 0;
-        if (db.assetIssues) {
-            db.assetIssues.filter(i => i.asset_id === asset.id && i.status === 'Active').forEach(i => currentlyIssued += parseInt(i.quantity) || 1);
-        }
-        
-        if (currentlyIssued === 0) {
-            asset.status = 'Available';
-        } else {
-            asset.status = 'Partially Issued';
-        }
+        asset.status = 'Available';
     }
     
     if (window.saveDb) window.saveDb(db);
@@ -420,8 +355,7 @@ window.renderEmployeeAssetsTab = function() {
     myIssues.forEach(ai => {
         const asset = db.assets ? db.assets.find(a => a.id === ai.asset_id) : null;
         const catName = asset ? asset.category : 'Unknown';
-        const qty = parseInt(ai.quantity) || 1;
-        const assetName = asset ? `${asset.name} <span class="badge bg-secondary" style="font-size: 10px;">x${qty}</span>` : 'Unknown';
+        const assetName = asset ? asset.name : 'Unknown';
         const serialNo = asset ? asset.serial_number : 'Unknown';
         
         let statusBadge = ai.status === 'Active' 
@@ -441,75 +375,4 @@ window.renderEmployeeAssetsTab = function() {
     });
     
     tbody.innerHTML = html;
-};
-
-// --- Category Management ---
-window.openManageAssetCategoriesModal = function() {
-    renderManageAssetCategories();
-    document.getElementById('modal-manage-asset-categories').classList.remove('hidden');
-    document.getElementById('modal-overlay').classList.remove('hidden');
-};
-
-window.renderManageAssetCategories = function() {
-    const db = window.getDb ? window.getDb() : window.db;
-    const tbody = document.getElementById('manage-asset-categories-body');
-    if (!tbody) return;
-    
-    let categories = [];
-    if (db.systemSettings && Array.isArray(db.systemSettings.assetCategories)) {
-        categories = db.systemSettings.assetCategories;
-    }
-    
-    if (categories.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="2" class="text-center text-muted">No categories found</td></tr>';
-        return;
-    }
-    
-    let html = '';
-    categories.forEach(c => {
-        html += `
-            <tr>
-                <td><strong>${c}</strong></td>
-                <td style="text-align: center;">
-                    <button class="btn btn-sm btn-icon text-danger" onclick="deleteAssetCategory('${c}')"><i class="fa-solid fa-trash"></i></button>
-                </td>
-            </tr>
-        `;
-    });
-    tbody.innerHTML = html;
-};
-
-window.addAssetCategory = function() {
-    const db = window.getDb ? window.getDb() : window.db;
-    const input = document.getElementById('new-asset-category-input');
-    const newCat = input.value.trim();
-    if (!newCat) return;
-    
-    if (!db.systemSettings.assetCategories || !Array.isArray(db.systemSettings.assetCategories)) {
-        db.systemSettings.assetCategories = [];
-    }
-    
-    if (db.systemSettings.assetCategories.includes(newCat)) {
-        if (window.showToast) window.showToast('Category already exists', 'error');
-        return;
-    }
-    
-    db.systemSettings.assetCategories.push(newCat);
-    if (window.saveDb) window.saveDb(db);
-    
-    input.value = '';
-    renderManageAssetCategories();
-    if (window.showToast) window.showToast('Category added', 'success');
-};
-
-window.deleteAssetCategory = function(catName) {
-    if (!confirm(`Are you sure you want to delete category '${catName}'?`)) return;
-    
-    const db = window.getDb ? window.getDb() : window.db;
-    if (db.systemSettings && Array.isArray(db.systemSettings.assetCategories)) {
-        db.systemSettings.assetCategories = db.systemSettings.assetCategories.filter(c => c !== catName);
-        if (window.saveDb) window.saveDb(db);
-        renderManageAssetCategories();
-        if (window.showToast) window.showToast('Category deleted', 'success');
-    }
 };
