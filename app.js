@@ -21,7 +21,7 @@ const TASK_SUBCATEGORIES = {
 // ==================== DATABASE ENGINE (Hostinger PHP Backend) ====================
 const API_URL = 'backend/api.php';
 window.dbLoaded = false;
-window.hrmsDatabase = { users: [], weights: {}, leaves: [], practices: [], manager_practices: [], productivity_logs: [], productivity_tasks: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [], globalSalarySettings: { allowances: [], deductions: [] } };
+window.hrmsDatabase = { users: [], weights: {}, leaves: [], practices: [], manager_practices: [], productivity: [], productivity_tasks: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [], globalSalarySettings: { allowances: [], deductions: [] } };
 
 async function syncServer() {
     let success = false;
@@ -50,7 +50,7 @@ async function syncServer() {
             };
 
             result.data.leaves = cleanList(result.data.leaves, 'employeeId');
-            result.data.productivity_logs = cleanList(result.data.productivity_logs, 'employee_id');
+            result.data.productivity = cleanList(result.data.productivity, 'employee_id');
             result.data.attendance = cleanList(result.data.attendance, 'employeeId');
             result.data.payrollHistory = cleanList(result.data.payrollHistory, 'userId');
 
@@ -768,7 +768,7 @@ function refreshTabContent(tabId) {
 // ==================== RENDERING: ADMIN VIEWS ====================
 window.quickApproveTask = function (id, status) {
     const db = getDb();
-    const sub = (db.productivity_logs || []).find(p => p.id === id);
+    const sub = (db.productivity || []).find(p => p.id === id);
     if (sub) {
         sub.status = status;
         showToast("Review Complete", `Productivity log has been marked as ${status}.`);
@@ -797,7 +797,7 @@ function renderAdminDashboard() {
     const employees = db.users.filter(u => u.role === 'User' || u.role === 'Employee');
     const managers = db.users.filter(u => u.role === 'Manager');
     const pendingLeaves = db.leaves.filter(l => l.status === 'Pending').length;
-    const pendingProductivity = (db.productivity_logs || []).filter(p => p.status === 'Pending').length;
+    const pendingProductivity = (db.productivity || []).filter(p => p.status === 'Pending').length;
     const totalPendingApprovals = pendingLeaves + pendingProductivity;
 
     // Attendance % Today
@@ -810,8 +810,8 @@ function renderAdminDashboard() {
     const attendancePct = totalEmpCount > 0 ? Math.round((presentTodayCount / totalEmpCount) * 100) : 0;
 
     // Tasks Submitted / Completed
-    const tasksSubmitted = (db.productivity_logs || []).length;
-    const tasksCompleted = (db.productivity_logs || []).filter(p => p.status === 'Approved').length;
+    const tasksSubmitted = (db.productivity || []).length;
+    const tasksCompleted = (db.productivity || []).filter(p => p.status === 'Approved').length;
     const completionRate = tasksSubmitted > 0 ? Math.round((tasksCompleted / tasksSubmitted) * 100) : 0;
 
     // Apply Metrics to Cards
@@ -872,8 +872,8 @@ function renderAdminDashboard() {
         d.setDate(d.getDate() - i);
         last7Days.push(d.toISOString().split('T')[0]);
     }
-    const dailySubmitted = last7Days.map(day => (db.productivity_logs || []).filter(p => p.date === day).length);
-    const dailyCompleted = last7Days.map(day => (db.productivity_logs || []).filter(p => p.date === day && p.status === 'Approved').length);
+    const dailySubmitted = last7Days.map(day => (db.productivity || []).filter(p => p.date === day).length);
+    const dailyCompleted = last7Days.map(day => (db.productivity || []).filter(p => p.date === day && p.status === 'Approved').length);
 
     const maxVal = Math.max(5, ...dailySubmitted, ...dailyCompleted);
     const getSvgY = (val) => 95 - (val / maxVal) * 80;
@@ -933,8 +933,8 @@ function renderAdminDashboard() {
     const approvalsListEl = document.getElementById('admin-task-approvals-list');
     if (approvalsListEl) {
         approvalsListEl.innerHTML = '';
-        const pendingTasks = (db.productivity_logs || []).filter(p => p.status === 'Pending');
-        const approvedTasks = (db.productivity_logs || []).filter(p => p.status === 'Approved');
+        const pendingTasks = (db.productivity || []).filter(p => p.status === 'Pending');
+        const approvedTasks = (db.productivity || []).filter(p => p.status === 'Approved');
         const displayTasks = [...pendingTasks, ...approvedTasks].slice(0, 3);
 
         if (displayTasks.length === 0) {
@@ -988,7 +988,7 @@ function renderAdminDashboard() {
     const recentTasksTableBody = document.getElementById('admin-recent-tasks-table-body');
     if (recentTasksTableBody) {
         recentTasksTableBody.innerHTML = '';
-        let list = [...(db.productivity_logs || [])];
+        let list = [...(db.productivity || [])];
         const activeFilter = pillsContainer ? pillsContainer.querySelector('.pill-btn.active').dataset.filter : 'All';
         if (activeFilter !== 'All') {
             list = list.filter(item => item.status === activeFilter);
@@ -1043,7 +1043,7 @@ function renderAdminDashboard() {
         depts.forEach(d => {
             const deptUsers = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (d.managerId ? u.managerId === d.managerId : (!u.managerId || u.managerId === 'U1')));
             const deptUserIds = deptUsers.map(u => u.id);
-            const deptTasks = (db.productivity_logs || []).filter(p => deptUserIds.includes(p.employeeId));
+            const deptTasks = (db.productivity || []).filter(p => deptUserIds.includes((p.employee_id || p.employeeId)));
 
             const completed = deptTasks.filter(p => p.status === 'Approved').length;
             const pending = deptTasks.filter(p => p.status === 'Pending').length;
@@ -1836,7 +1836,7 @@ function renderManagerDashboard() {
 
     // Pending Approvals
     const pendingLeaves = db.leaves.filter(l => teamEmails.includes(l.employeeId) && l.status === 'Pending').length;
-    const pendingProd = (db.productivity_logs || []).filter(p => teamEmails.includes(p.employeeId) && p.status === 'Pending').length;
+    const pendingProd = (db.productivity || []).filter(p => teamEmails.includes((p.employee_id || p.employeeId)) && p.status === 'Pending').length;
     const totalPending = pendingLeaves + pendingProd;
 
     document.getElementById('manager-metric-team-size').textContent = teamSize;
@@ -1895,8 +1895,8 @@ function renderManagerDashboard() {
         xaxisLabels.push(`<span>${displayDate}</span>`);
     }
 
-    const dailySub = last7Days.map(day => (db.productivity_logs || []).filter(p => p.date === day && teamEmails.includes(p.employeeId)).length);
-    const dailyComp = last7Days.map(day => (db.productivity_logs || []).filter(p => p.date === day && p.status === 'Approved' && teamEmails.includes(p.employeeId)).length);
+    const dailySub = last7Days.map(day => (db.productivity || []).filter(p => p.date === day && teamEmails.includes((p.employee_id || p.employeeId))).length);
+    const dailyComp = last7Days.map(day => (db.productivity || []).filter(p => p.date === day && p.status === 'Approved' && teamEmails.includes((p.employee_id || p.employeeId))).length);
 
     const maxVal = Math.max(5, ...dailySub, ...dailyComp);
     const getSvgY = (val) => 95 - (val / maxVal) * 80;
@@ -1946,7 +1946,7 @@ function renderManagerDashboard() {
     // Manager Personal Stats
     const myAttToday = db.attendance.find(a => a.employeeId === currentUser.id && a.date === today);
     const myAttStatus = myAttToday ? myAttToday.status : 'Absent';
-    const myProdSubmissions = (db.productivity_logs || []).filter(p => p.employeeId === currentUser.id && p.status === 'Approved');
+    const myProdSubmissions = (db.productivity || []).filter(p => (p.employee_id || p.employeeId) === currentUser.id && p.status === 'Approved');
     const myTotalScore = myProdSubmissions.length > 0 ? Math.round(myProdSubmissions.reduce((sum, p) => sum + p.score, 0) / myProdSubmissions.length) : 0;
 
     const elAtt = document.getElementById('manager-personal-attendance');
@@ -1982,7 +1982,7 @@ function renderManagerDashboard() {
                 `;
             });
 
-            const pendingProdList = (db.productivity_logs || []).filter(p => teamEmails.includes(p.employeeId) && p.status === 'Pending');
+            const pendingProdList = (db.productivity || []).filter(p => teamEmails.includes((p.employee_id || p.employeeId)) && p.status === 'Pending');
             pendingProdList.forEach(p => {
                 approvalsList.innerHTML += `
                     <div class="prod-review-card" style="padding: 10px; margin-bottom:10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
@@ -2279,7 +2279,7 @@ function renderEmployeeDashboard() {
     }
 
     // Avg Productivity
-    const myProdSubmissions = (db.productivity_logs || []).filter(p => p.employeeId === currentUser.id && p.status === 'Approved');
+    const myProdSubmissions = (db.productivity || []).filter(p => (p.employee_id || p.employeeId) === currentUser.id && p.status === 'Approved');
     const myTotalScore = myProdSubmissions.length > 0 ? Math.round(myProdSubmissions.reduce((sum, p) => sum + p.score, 0) / myProdSubmissions.length) : 0;
     document.getElementById('employee-metric-avg-prod').textContent = myTotalScore;
 
@@ -2338,9 +2338,9 @@ function renderEmployeeDashboard() {
         xaxisLabels.push(`<span>${displayDate}</span>`);
     }
 
-    const dailySub = last7Days.map(day => (db.productivity_logs || []).filter(p => p.date === day && p.employeeId === currentUser.id).length);
-    const dailyApp = last7Days.map(day => (db.productivity_logs || []).filter(p => p.date === day && p.status === 'Approved' && p.employeeId === currentUser.id).length);
-    const dailyRej = last7Days.map(day => (db.productivity_logs || []).filter(p => p.date === day && p.status === 'Rejected' && p.employeeId === currentUser.id).length);
+    const dailySub = last7Days.map(day => (db.productivity || []).filter(p => p.date === day && (p.employee_id || p.employeeId) === currentUser.id).length);
+    const dailyApp = last7Days.map(day => (db.productivity || []).filter(p => p.date === day && p.status === 'Approved' && (p.employee_id || p.employeeId) === currentUser.id).length);
+    const dailyRej = last7Days.map(day => (db.productivity || []).filter(p => p.date === day && p.status === 'Rejected' && (p.employee_id || p.employeeId) === currentUser.id).length);
 
     const maxVal = Math.max(5, ...dailySub, ...dailyApp, ...dailyRej);
     const getSvgY = (val) => 95 - (val / maxVal) * 80;
@@ -3358,7 +3358,7 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
                 // Migrate leave records
                 (db.leaves || []).forEach(l => { if (l.employeeId === oldId) l.employeeId = newId; });
                 // Migrate productivity records
-                (db.productivity_logs || []).forEach(p => { if (p.employee_id === oldId) p.employee_id = newId; });
+                (db.productivity || []).forEach(p => { if (p.employee_id === oldId) p.employee_id = newId; });
                 // Migrate payroll history
                 (db.payrollHistory || []).forEach(ph => { if (ph.userId === oldId) ph.userId = newId; });
                 // Migrate salary profiles
@@ -3875,7 +3875,7 @@ window.deleteEmployee = function (userId) {
 
             // Clean up dependencies
             db.leaves = db.leaves.filter(l => l.employeeId !== userId);
-            db.productivity_logs = (db.productivity_logs || []).filter(p => p.employee_id !== userId);
+            db.productivity = (db.productivity || []).filter(p => p.employee_id !== userId);
             db.attendance = db.attendance.filter(a => a.employeeId !== userId);
 
             saveDb(db);
@@ -4256,7 +4256,7 @@ function generateReport(roleContext) {
 
     if (reportType === 'productivity') {
         // Filter submissions
-        let logs = (db.productivity_logs || []).filter(p => empIds.includes(p.employeeId));
+        let logs = (db.productivity || []).filter(p => empIds.includes((p.employee_id || p.employeeId)));
         logs = logs.filter(p => {
             const pDate = new Date(p.date);
             return pDate >= start && pDate <= end;
@@ -4517,7 +4517,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // One-time clear of productivity data
     const db = getDb();
     if (db && !db.productivity_cleared) {
-        db.productivity_logs = [];
+        db.productivity = [];
         db.productivity_tasks = [];
         db.practices = [];
         db.manager_practices = [];
@@ -6297,7 +6297,7 @@ window.renderMyProductivityLogs = function () {
     const activeFilterDate = document.getElementById('manager-tab-productivity') && !document.getElementById('manager-tab-productivity').classList.contains('hidden') ? mgrFilterDate : eptFilterDate;
 
     const db = getDb();
-    let myLogs = (db.productivity_logs || []).filter(l => String(l.employee_id || l.employeeId) === String(currentUser.id));
+    let myLogs = (db.productivity || []).filter(l => String(l.employee_id || l.employeeId) === String(currentUser.id));
 
     let totalScore = 0;
     if (activeFilterDate) {
@@ -6389,7 +6389,7 @@ window.renderManagerProductivityTab = function () {
         return;
     }
 
-    const teamLogs = (db.productivity_logs || []).filter(l => teamIds.includes(String(l.employee_id || l.employeeId)));
+    const teamLogs = (db.productivity || []).filter(l => teamIds.includes(String(l.employee_id || l.employeeId)));
     teamLogs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     if (teamLogs.length === 0) {
@@ -6529,7 +6529,7 @@ window.renderAdminProductivityTab = function () {
         (settings.tesCategories || []).forEach(tc => {
             (tc.tasks || []).forEach(t => allCats.push(t.name));
         });
-        (db.productivity_logs || []).forEach(l => {
+        (db.productivity || []).forEach(l => {
             if (l.category) allCats.push(l.category);
         });
 
@@ -6545,7 +6545,7 @@ window.renderAdminProductivityTab = function () {
     const selectedEmp = empFilter ? empFilter.value : '';
     const selectedCat = catFilter ? catFilter.value : '';
 
-    let allLogs = (db.productivity_logs || []);
+    let allLogs = (db.productivity || []);
 
     const showEmpToAdmin = settings.showEmployeeLogsToAdmin === 'true' || settings.showEmployeeLogsToAdmin === true;
 
