@@ -6297,7 +6297,7 @@ window.renderMyProductivityLogs = function () {
     const activeFilterDate = document.getElementById('manager-tab-productivity') && !document.getElementById('manager-tab-productivity').classList.contains('hidden') ? mgrFilterDate : eptFilterDate;
 
     const db = getDb();
-    let myLogs = (db.productivity || []).filter(l => String(l.employee_id) === String(currentUser.id));
+    let myLogs = (db.productivity_logs || []).filter(l => String(l.employee_id || l.employeeId) === String(currentUser.id));
 
     let totalScore = 0;
     if (activeFilterDate) {
@@ -6389,7 +6389,7 @@ window.renderManagerProductivityTab = function () {
         return;
     }
 
-    const teamLogs = (db.productivity || []).filter(l => teamIds.includes(String(l.employee_id)));
+    const teamLogs = (db.productivity_logs || []).filter(l => teamIds.includes(String(l.employee_id || l.employeeId)));
     teamLogs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     if (teamLogs.length === 0) {
@@ -6529,7 +6529,7 @@ window.renderAdminProductivityTab = function () {
         (settings.tesCategories || []).forEach(tc => {
             (tc.tasks || []).forEach(t => allCats.push(t.name));
         });
-        (db.productivity || []).forEach(l => {
+        (db.productivity_logs || []).forEach(l => {
             if (l.category) allCats.push(l.category);
         });
 
@@ -6545,18 +6545,18 @@ window.renderAdminProductivityTab = function () {
     const selectedEmp = empFilter ? empFilter.value : '';
     const selectedCat = catFilter ? catFilter.value : '';
 
-    let allLogs = (db.productivity || []);
+    let allLogs = (db.productivity_logs || []);
 
     const showEmpToAdmin = settings.showEmployeeLogsToAdmin === 'true' || settings.showEmployeeLogsToAdmin === true;
 
     // Apply Filters
     allLogs = allLogs.filter(log => {
         if (selectedDate && log.date !== selectedDate) return false;
-        if (selectedEmp && String(log.employee_id) !== String(selectedEmp)) return false;
+        if (selectedEmp && String(log.employee_id || log.employeeId) !== String(selectedEmp)) return false;
         if (selectedCat && log.category !== selectedCat) return false;
 
         if (!showEmpToAdmin) {
-            const emp = (db.users || []).find(u => String(u.id) === String(log.employee_id));
+            const emp = (db.users || []).find(u => String(u.id) === String(log.employee_id || log.employeeId));
             if (emp && (emp.role === 'User' || emp.role === 'Employee')) return false;
         }
 
@@ -6571,10 +6571,11 @@ window.renderAdminProductivityTab = function () {
     // Group logs by employee and date
     const groupedLogs = {};
     allLogs.forEach(log => {
-        const key = `${log.employee_id}_${log.date}`;
+        const empId = log.employee_id || log.employeeId;
+        const key = `${empId}_${log.date}`;
         if (!groupedLogs[key]) {
             groupedLogs[key] = {
-                employee_id: log.employee_id,
+                employee_id: empId,
                 date: log.date,
                 totalScore: 0,
                 logs: []
