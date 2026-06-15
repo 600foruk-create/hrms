@@ -247,6 +247,9 @@ try {
         `issues` TEXT DEFAULT NULL,
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    
+    // Clean up old table if it exists
+    $pdo->exec("DROP TABLE IF EXISTS `asset_issues`");
 
 } catch (Exception $e) {
     // Ignore if unsupported (e.g. SQLite doesn't support ENGINE=InnoDB)
@@ -311,6 +314,8 @@ try {
             `status` TEXT DEFAULT 'Available',
             `issues` TEXT
         )");
+        
+        $pdo->exec("DROP TABLE IF EXISTS `asset_issues`");
     } catch (Exception $e2) {
         error_log("Failed to create company_profile table: " . $e2->getMessage());
     }
