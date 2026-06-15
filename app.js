@@ -748,6 +748,7 @@ function refreshTabContent(tabId) {
         else if (tabId === 'announcements') renderAdminAnnouncementsTab();
         else if (tabId === 'settings') renderAdminSettingsTab();
         else if (tabId === 'reports') initAdminReportsTab();
+        else if (tabId === 'assets') { if(window.renderAdminAssetsTab) renderAdminAssetsTab(); }
     } else if (role === 'Manager') {
         if (tabId === 'dashboard') renderManagerDashboard();
         else if (tabId === 'team') renderManagerTeamTab();
@@ -756,12 +757,14 @@ function refreshTabContent(tabId) {
         else if (tabId === 'leave') renderManagerLeaveTab();
         else if (tabId === 'reports') initManagerReportsTab();
         else if (tabId === 'mypayslips') { if (window.renderMyPayslips) window.renderMyPayslips(); }
+        else if (tabId === 'assets') { if (window.renderEmployeeAssetsTab) window.renderEmployeeAssetsTab(); }
     } else { // Employee
         if (tabId === 'dashboard') renderEmployeeDashboard();
         else if (tabId === 'attendance') renderEmployeeAttendanceTab();
         else if (tabId === 'productivity') renderEmployeeProductivityTab();
         else if (tabId === 'leave') renderEmployeeLeaveTab();
         else if (tabId === 'mypayslips') { if (window.renderMyPayslips) window.renderMyPayslips(); }
+        else if (tabId === 'assets') { if (window.renderEmployeeAssetsTab) window.renderEmployeeAssetsTab(); }
     }
 }
 

@@ -65,6 +65,43 @@
         </div>
     </div>
 
+    <!-- 14. Add New Asset Modal -->
+    <div id="modal-add-asset" class="modal hidden" style="max-width: 600px;">
+        <div class="modal-header">
+            <h3>Add New Asset</h3>
+            <div class="modal-header-controls">
+                <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        <div class="modal-body">
+            <form id="form-add-asset">
+                <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Asset Category *</label>
+                        <select id="add-asset-category" class="form-control" required>
+                            <option value="">-- Select Category --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Purchase Date</label>
+                        <input type="date" id="add-asset-purchase-date" class="form-control">
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Asset Name / Model *</label>
+                        <input type="text" id="add-asset-name" class="form-control" placeholder="E.g. Dell Latitude 5420" required>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Serial Number / Reg No / Asset Tag *</label>
+                        <input type="text" id="add-asset-serial" class="form-control" placeholder="E.g. XYZ12345" required>
+                    </div>
+                </div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary">Save Asset</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <style>
         /* Print Styles */
         @media print {
@@ -1688,6 +1725,134 @@
 
 
                     <!-- Admin Reports Tab -->
+                    <!-- Admin Assets Tab -->
+                    <div id="admin-tab-assets" class="tab-view">
+                        <div class="view-header">
+                            <div>
+                                <h1>Company Assets Management</h1>
+                                <p class="text-secondary">Track company assets and manage employee issuances.</p>
+                            </div>
+                        </div>
+
+                        <!-- Assets Tabs Navigation -->
+                        <div class="sub-tab-nav mb-4 mt-4">
+                            <button class="btn-sub-tab active" data-subtab="admin-assets-inventory" onclick="if(window.renderAdminAssetsTab) window.renderAdminAssetsTab('inventory')">
+                                <i class="fa-solid fa-boxes-stacked"></i> Asset Inventory
+                            </button>
+                            <button class="btn-sub-tab" data-subtab="admin-assets-issue" onclick="if(window.renderAdminAssetsTab) window.renderAdminAssetsTab('issue')">
+                                <i class="fa-solid fa-hand-holding-hand"></i> Issue Asset
+                            </button>
+                            <button class="btn-sub-tab" data-subtab="admin-assets-report" onclick="if(window.renderAdminAssetsTab) window.renderAdminAssetsTab('report')">
+                                <i class="fa-solid fa-clipboard-list"></i> Issued Assets Report
+                            </button>
+                        </div>
+
+                        <div>
+                            <!-- Sub Tab 1: Asset Inventory -->
+                            <div id="subtab-content-admin-assets-inventory" class="sub-tab-content active">
+                                <div class="section-card bg-glass">
+                                    <div class="section-card-header" style="justify-content: space-between; display: flex;">
+                                        <h3 style="font-size: 16px; font-weight: 700; margin: 0;">Asset Master List</h3>
+                                        <button class="btn btn-primary" onclick="if(window.openAddAssetModal) window.openAddAssetModal()"><i class="fa-solid fa-plus"></i> Add New Asset</button>
+                                    </div>
+                                    <div class="table-container">
+                                        <table class="data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Asset ID</th>
+                                                    <th>Category</th>
+                                                    <th>Asset Name</th>
+                                                    <th>Serial No / Reg</th>
+                                                    <th>Purchase Date</th>
+                                                    <th>Status</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="admin-assets-inventory-body">
+                                                <tr><td colspan="7" class="text-center text-muted">No assets found</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sub Tab 2: Issue Asset -->
+                            <div id="subtab-content-admin-assets-issue" class="sub-tab-content">
+                                <div class="section-card bg-glass" style="max-width: 800px; margin: 0 auto;">
+                                    <div class="section-card-header">
+                                        <h3 style="font-size: 16px; font-weight: 700; margin: 0;">Issue an Asset to Employee</h3>
+                                    </div>
+                                    <form id="form-issue-asset" style="padding: 20px;">
+                                        <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
+                                            <div class="form-group">
+                                                <label>Select Employee *</label>
+                                                <select id="issue-asset-employee" class="form-control" required></select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Date of Issue *</label>
+                                                <input type="date" id="issue-asset-date" class="form-control" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Asset Category *</label>
+                                                <select id="issue-asset-category" class="form-control" required onchange="if(window.filterAvailableAssets) window.filterAvailableAssets()">
+                                                    <option value="">-- Select Category --</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Available Asset *</label>
+                                                <select id="issue-asset-item" class="form-control" required>
+                                                    <option value="">-- Select Category First --</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group" style="grid-column: span 2;">
+                                                <label>Notes / Condition / Accessories</label>
+                                                <textarea id="issue-asset-notes" class="form-control" rows="2" placeholder="E.g., Laptop bag and charger included. Minor scratch on lid."></textarea>
+                                            </div>
+                                        </div>
+                                        <div style="text-align: right; margin-top: 20px;">
+                                            <button type="button" class="btn btn-primary" onclick="if(window.submitIssueAsset) window.submitIssueAsset()"><i class="fa-solid fa-check"></i> Issue Asset</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Sub Tab 3: Issued Assets Report -->
+                            <div id="subtab-content-admin-assets-report" class="sub-tab-content">
+                                <div class="section-card bg-glass">
+                                    <div class="section-card-header" style="justify-content: space-between; display: flex;">
+                                        <h3 style="font-size: 16px; font-weight: 700; margin: 0;">Issued Assets Tracker</h3>
+                                        <div style="display: flex; gap: 10px;">
+                                            <select id="filter-asset-status" class="form-control" style="width: auto; padding: 4px 8px;" onchange="if(window.renderAdminAssetsTab) window.renderAdminAssetsTab('report')">
+                                                <option value="Active">Currently Issued</option>
+                                                <option value="Returned">Returned History</option>
+                                                <option value="All">All Records</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="table-container">
+                                        <table class="data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Employee</th>
+                                                    <th>Asset Category</th>
+                                                    <th>Asset Name</th>
+                                                    <th>Serial / Reg</th>
+                                                    <th>Issue Date</th>
+                                                    <th>Return Date</th>
+                                                    <th>Status</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="admin-assets-report-body">
+                                                <tr><td colspan="8" class="text-center text-muted">No records found</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="admin-tab-reports" class="tab-view">
                         <div class="view-header">
                             <div>
@@ -2922,6 +3087,36 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Employee My Assets Tab -->
+                    <div id="employee-tab-assets" class="tab-view">
+                        <div class="view-header">
+                            <div>
+                                <h1>My Assets</h1>
+                                <p class="text-secondary">View the company assets currently assigned to you</p>
+                            </div>
+                        </div>
+
+                        <div class="section-card bg-glass">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Category</th>
+                                            <th>Asset Name</th>
+                                            <th>Serial No / Reg</th>
+                                            <th>Issue Date</th>
+                                            <th>Return Date</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="employee-assets-body">
+                                        <tr><td colspan="6" class="text-center text-muted">Loading assets...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
             </main>
@@ -3636,6 +3831,7 @@
         document.write('<script src="app.js?v=' + cacheBuster + '"><\/script>');
         document.write('<script src="payroll.js?v=' + cacheBuster + '"><\/script>');
         document.write('<script src="productivity.js?v=' + cacheBuster + '"><\/script>');
+        document.write('<script src="assets.js?v=' + cacheBuster + '"><\/script>');
     </script>
     <!-- Employee ID Card Modal -->
     <!-- Employee ID Card Modal -->
