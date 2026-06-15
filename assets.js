@@ -74,13 +74,15 @@ function renderAssetsInventory() {
 
 window.openAddAssetModal = function() {
     const db = window.getDb ? window.getDb() : window.db;
-    const catSelect = document.getElementById('add-asset-category');
+    const catList = document.getElementById('asset-categories-list');
     
-    catSelect.innerHTML = '<option value="">-- Select Category --</option>';
-    if (db.systemSettings.assetCategories) {
-        db.systemSettings.assetCategories.forEach(c => {
-            catSelect.innerHTML += `<option value="${c}">${c}</option>`;
-        });
+    if (catList) {
+        catList.innerHTML = '';
+        if (db.systemSettings.assetCategories) {
+            db.systemSettings.assetCategories.forEach(c => {
+                catList.innerHTML += `<option value="${c}">`;
+            });
+        }
     }
     
     document.getElementById('form-add-asset').reset();
@@ -95,9 +97,11 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const db = window.getDb ? window.getDb() : window.db;
             
+            const categoryInput = document.getElementById('add-asset-category').value.trim();
+            
             const newAsset = {
                 id: 'AST-' + new Date().getTime().toString().slice(-6),
-                category: document.getElementById('add-asset-category').value,
+                category: categoryInput,
                 purchase_date: document.getElementById('add-asset-purchase-date').value,
                 name: document.getElementById('add-asset-name').value,
                 serial_number: document.getElementById('add-asset-serial').value,
@@ -106,6 +110,10 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (!db.assets) db.assets = [];
             db.assets.push(newAsset);
+            
+            if (categoryInput && !db.systemSettings.assetCategories.includes(categoryInput)) {
+                db.systemSettings.assetCategories.push(categoryInput);
+            }
             
             if (window.saveDb) window.saveDb();
             if (window.showToast) window.showToast('Asset added successfully', 'success');

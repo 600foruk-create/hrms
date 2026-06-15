@@ -244,17 +244,7 @@ try {
         `serial_number` varchar(150) DEFAULT NULL,
         `purchase_date` varchar(50) DEFAULT NULL,
         `status` varchar(50) DEFAULT 'Available',
-        PRIMARY KEY (`id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-
-    $pdo->exec("CREATE TABLE IF NOT EXISTS `asset_issues` (
-        `id` varchar(100) NOT NULL,
-        `asset_id` varchar(100) NOT NULL,
-        `employee_id` varchar(100) NOT NULL,
-        `issue_date` varchar(50) DEFAULT NULL,
-        `return_date` varchar(50) DEFAULT NULL,
-        `notes` text DEFAULT NULL,
-        `status` varchar(50) DEFAULT 'Active',
+        `issues` TEXT DEFAULT NULL,
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
@@ -318,17 +308,8 @@ try {
             `name` TEXT,
             `serial_number` TEXT,
             `purchase_date` TEXT,
-            `status` TEXT DEFAULT 'Available'
-        )");
-
-        $pdo->exec("CREATE TABLE IF NOT EXISTS `asset_issues` (
-            `id` TEXT PRIMARY KEY,
-            `asset_id` TEXT NOT NULL,
-            `employee_id` TEXT NOT NULL,
-            `issue_date` TEXT,
-            `return_date` TEXT,
-            `notes` TEXT,
-            `status` TEXT DEFAULT 'Active'
+            `status` TEXT DEFAULT 'Available',
+            `issues` TEXT
         )");
     } catch (Exception $e2) {
         error_log("Failed to create company_profile table: " . $e2->getMessage());
@@ -445,15 +426,21 @@ if ($action === 'load_all') {
         // Fetch Assets
         try {
             $stmt = $pdo->query("SELECT * FROM assets");
-            $dbState['assets'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) { $dbState['assets'] = []; }
-
-        // Fetch Asset Issues
-        try {
-            $stmt = $pdo->query("SELECT * FROM asset_issues");
-            $dbState['assetIssues'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) { $dbState['assetIssues'] = []; }
-
+            $dbState['assets'] = [];
+            $dbState['assetIssues'] = [];
+            foreach($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                if (!empty($row['issues'])) {
+                    $issues = json_decode($row['issues'], true);
+                    if (is_array($issues)) {
+                        foreach($issues as $issue) {
+                            $dbState['assetIssues'][] = $issue;
+                        }
+                    }
+                }
+                unset($row['issues']);
+                $dbState['assets'][] = $row;
+            }
+        } catch (Exception $e) { $dbState['assets'] = []; $dbState['assetIssues'] = []; }
 
         // Fetch Notifications
         try {
@@ -775,20 +762,25 @@ elseif ($action === 'save_all') {
         try {
             $pdo->exec("DELETE FROM assets");
             if (!empty($data['assets'])) {
-                $stmt = $pdo->prepare("INSERT INTO assets (id, category, name, serial_number, purchase_date, status) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO assets (id, category, name, serial_number, purchase_date, status, issues) VALUES (?, ?, ?, ?, ?, ?, ?)");
                 foreach ($data['assets'] as $a) {
-                    $stmt->execute([$a['id'], $a['category'] ?? '', $a['name'] ?? '', $a['serial_number'] ?? '', $a['purchase_date'] ?? '', $a['status'] ?? 'Available']);
-                }
-            }
-        } catch (Exception $e) {}
-
-        // Sync Asset Issues
-        try {
-            $pdo->exec("DELETE FROM asset_issues");
-            if (!empty($data['assetIssues'])) {
-                $stmt = $pdo->prepare("INSERT INTO asset_issues (id, asset_id, employee_id, issue_date, return_date, notes, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
-                foreach ($data['assetIssues'] as $ai) {
-                    $stmt->execute([$ai['id'], $ai['asset_id'], $ai['employee_id'], $ai['issue_date'] ?? '', $ai['return_date'] ?? '', $ai['notes'] ?? '', $ai['status'] ?? 'Active']);
+                    $myIssues = [];
+                    if (!empty($data['assetIssues'])) {
+                        foreach ($data['assetIssues'] as $issue) {
+                            if ($issue['asset_id'] === $a['id']) {
+                                $myIssues[] = $issue;
+                            }
+                        }
+                    }
+                    $stmt->execute([
+                        $a['id'], 
+                        $a['category'] ?? '', 
+                        $a['name'] ?? '', 
+                        $a['serial_number'] ?? '', 
+                        $a['purchase_date'] ?? '', 
+                        $a['status'] ?? 'Available',
+                        json_encode($myIssues)
+                    ]);
                 }
             }
         } catch (Exception $e) {}

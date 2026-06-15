@@ -2724,3 +2724,4 @@ body.light-mode .flex-table-card .data-table thead th {
   left: 35%;
 }
 
+.sub-tab-content { display: none; } .sub-tab-content.active { display: block; }
