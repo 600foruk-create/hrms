@@ -353,6 +353,29 @@ function populateLoginDropdown() {
     }
 }
 
+async function loadApiConfigs() {
+    try {
+        const response = await fetch('backend/api.php?action=load_api_configs');
+        const res = await response.json();
+        if (res.status === 'success' && res.data) {
+            const emailConfig = res.data.find(c => c.config_type === 'email');
+            if (emailConfig) {
+                const provEl = document.getElementById('email-api-provider');
+                const keyEl = document.getElementById('email-api-key');
+                const senderEl = document.getElementById('email-api-sender');
+                if (provEl) provEl.value = emailConfig.provider || 'smtp';
+                if (keyEl) keyEl.value = emailConfig.api_key || '';
+                if (senderEl) senderEl.value = emailConfig.sender || '';
+            }
+            // Add WhatsApp/IPs logic here later if needed
+        }
+    } catch (e) {
+        console.error("Failed to load API configs", e);
+    }
+}
+// Load configs on startup
+loadApiConfigs();
+
 let otpState = {
     purpose: '',
     email: '',
@@ -363,9 +386,15 @@ let otpState = {
 async function openOtpModal(purpose, email, userId, callback) {
     otpState = { purpose, email, userId, callback };
     document.getElementById('otp-input').value = '';
+    
+    // Reset UI for manual send
+    const msgEl = document.getElementById('otp-message');
+    msgEl.innerHTML = 'Click the button below to send a 6-digit code to your registered email address.';
+    document.getElementById('btn-request-otp').classList.remove('hidden');
+    document.getElementById('otp-entry-section').classList.add('hidden');
+    
     document.getElementById('modal-otp-verification').classList.remove('hidden');
     document.getElementById('modal-backdrop').classList.remove('hidden');
-    await resendOtp();
 }
 
 window.closeOtpModal = function() {
@@ -401,7 +430,12 @@ window.submitOtp = async function() {
 
 window.resendOtp = async function() {
     const msgEl = document.getElementById('otp-message');
-    msgEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending code...';
+    const reqBtn = document.getElementById('btn-request-otp');
+    
+    reqBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+    reqBtn.disabled = true;
+    msgEl.innerHTML = 'Sending code...';
+    
     try {
         const response = await fetch('backend/api.php?action=send_otp', {
             method: 'POST',
@@ -409,6 +443,12 @@ window.resendOtp = async function() {
             body: JSON.stringify({ email: otpState.email })
         });
         const res = await response.json();
+        
+        reqBtn.classList.add('hidden');
+        document.getElementById('otp-entry-section').classList.remove('hidden');
+        reqBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send Code';
+        reqBtn.disabled = false;
+        
         if (res.status === 'success') {
             msgEl.innerHTML = 'A 6-digit code has been sent to your email. Please enter it below to verify.';
             showToast("Success", "OTP sent successfully", "success");
@@ -418,6 +458,8 @@ window.resendOtp = async function() {
             showToast("Error", res.message || "Failed to send OTP", "error");
         }
     } catch (e) {
+        reqBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send Code';
+        reqBtn.disabled = false;
         msgEl.innerHTML = '<span style="color:red;">Network error sending OTP.</span>';
         showToast("Error", "Failed to send OTP", "error");
     }
@@ -3993,15 +4035,38 @@ document.addEventListener('submit', async (e) => {
             await saveDb(db);
         }
         else if (formId === 'settings-email-form') {
+            const provider = document.getElementById('email-api-provider').value;
+            const key = document.getElementById('email-api-key').value;
+            const sender = document.getElementById('email-api-sender').value;
+
+            // Save locally
             const db = getDb();
             if (!db.settings) db.settings = {};
-            db.settings.emailApi = {
-                provider: document.getElementById('email-api-provider').value,
-                key: document.getElementById('email-api-key').value,
-                sender: document.getElementById('email-api-sender').value
-            };
-            showToast("Email API Saved", "Email API configuration has been updated.");
+            db.settings.emailApi = { provider, key, sender };
             await saveDb(db);
+
+            // Save to new API Config Table
+            try {
+                const req = await fetch('backend/api.php?action=save_api_config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        config_type: 'email',
+                        provider: provider,
+                        api_key: key,
+                        sender: sender,
+                        extra: ''
+                    })
+                });
+                const res = await req.json();
+                if (res.status === 'success') {
+                    showToast("Email API Saved", "Email API configuration has been securely updated.");
+                } else {
+                    showToast("Error", res.message || "Failed to save Email API", "error");
+                }
+            } catch (e) {
+                showToast("Error", "Network error saving API config", "error");
+            }
         }
         else if (formId === 'settings-whatsapp-form') {
             const db = getDb();

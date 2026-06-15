@@ -262,6 +262,16 @@ try {
         `expires_at` int(11) NOT NULL,
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `api_configs` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `config_type` varchar(50) NOT NULL,
+        `provider` varchar(100) DEFAULT NULL,
+        `api_key` varchar(255) DEFAULT NULL,
+        `sender` varchar(150) DEFAULT NULL,
+        `extra` text DEFAULT NULL,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
 } catch (Exception $e) {
     // Ignore if unsupported (e.g. SQLite doesn't support ENGINE=InnoDB)
@@ -339,6 +349,15 @@ try {
             `otp_code` TEXT NOT NULL,
             `expires_at` INTEGER NOT NULL
         )");
+        
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `api_configs` (
+            `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+            `config_type` TEXT NOT NULL,
+            `provider` TEXT,
+            `api_key` TEXT,
+            `sender` TEXT,
+            `extra` TEXT
+        )");
     } catch (Exception $e2) {
         error_log("Failed to create company_profile table: " . $e2->getMessage());
     }
@@ -370,7 +389,15 @@ if ($action === 'send_otp') {
         // Send email
         $subject = "Your 2-Step Verification Code";
         $message = "Your verification code is: $otp\n\nThis code will expire in 5 minutes.";
+        // Fetch custom sender if configured
         $headers = "From: noreply@" . $_SERVER['HTTP_HOST'];
+        try {
+            $configStmt = $pdo->query("SELECT sender FROM api_configs WHERE config_type = 'email' LIMIT 1");
+            $configRow = $configStmt->fetch(PDO::FETCH_ASSOC);
+            if ($configRow && !empty($configRow['sender'])) {
+                $headers = "From: " . $configRow['sender'];
+            }
+        } catch (Exception $e) {}
         
         if (mail($email, $subject, $message, $headers)) {
             echo json_encode(["status" => "success", "message" => "OTP sent"]);
@@ -413,6 +440,44 @@ if ($action === 'verify_otp') {
         } else {
             echo json_encode(["status" => "error", "message" => "No OTP found for this email"]);
         }
+    } catch (Exception $e) {
+        echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+    }
+    exit;
+}
+
+if ($action === 'save_api_config') {
+    $inputJSON = file_get_contents('php://input');
+    $data = json_decode($inputJSON, true);
+    $type = $data['config_type'] ?? '';
+    
+    if (!$type) {
+        echo json_encode(["status" => "error", "message" => "Config type is required"]);
+        exit;
+    }
+    
+    try {
+        $stmt = $pdo->prepare("SELECT id FROM api_configs WHERE config_type = ?");
+        $stmt->execute([$type]);
+        if ($stmt->fetch()) {
+            $update = $pdo->prepare("UPDATE api_configs SET provider = ?, api_key = ?, sender = ?, extra = ? WHERE config_type = ?");
+            $update->execute([$data['provider'] ?? '', $data['api_key'] ?? '', $data['sender'] ?? '', $data['extra'] ?? '', $type]);
+        } else {
+            $insert = $pdo->prepare("INSERT INTO api_configs (config_type, provider, api_key, sender, extra) VALUES (?, ?, ?, ?, ?)");
+            $insert->execute([$type, $data['provider'] ?? '', $data['api_key'] ?? '', $data['sender'] ?? '', $data['extra'] ?? '']);
+        }
+        echo json_encode(["status" => "success", "message" => "Configuration saved"]);
+    } catch (Exception $e) {
+        echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+    }
+    exit;
+}
+
+if ($action === 'load_api_configs') {
+    try {
+        $stmt = $pdo->query("SELECT * FROM api_configs");
+        $configs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode(["status" => "success", "data" => $configs]);
     } catch (Exception $e) {
         echo json_encode(["status" => "error", "message" => $e->getMessage()]);
     }

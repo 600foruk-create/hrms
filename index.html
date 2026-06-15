@@ -3995,20 +3995,25 @@
             <div style="font-size: 40px; color: var(--primary-color); margin-bottom: 15px;">
                 <i class="fa-solid fa-envelope-circle-check"></i>
             </div>
-            <h4 style="margin-bottom: 10px; color: var(--text-dark);">Enter Verification Code</h4>
+            <h4 style="margin-bottom: 10px; color: var(--text-dark);">2-Step Verification</h4>
             <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;" id="otp-message">
-                A 6-digit code has been sent to your email. Please enter it below to verify.
+                Click the button below to send a 6-digit code to your registered email address.
             </p>
-            <div class="form-group" style="margin-bottom: 20px;">
-                <input type="text" id="otp-input" class="form-control" style="text-align: center; font-size: 24px; letter-spacing: 5px; font-weight: bold; width: 80%; margin: 0 auto;" placeholder="------" maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-            </div>
-            <button id="btn-verify-otp" class="btn btn-primary" style="width: 80%;" onclick="submitOtp()">Verify Code</button>
-            <div style="margin-top: 15px; font-size: 12px;">
-                <a href="#" onclick="resendOtp()" style="color: var(--primary-color); text-decoration: none;">Didn't receive the code? Resend</a>
+            
+            <button id="btn-request-otp" class="btn btn-primary" style="width: 80%; margin-bottom: 15px;" onclick="resendOtp()"><i class="fa-solid fa-paper-plane"></i> Send Code</button>
+            
+            <div id="otp-entry-section" class="hidden">
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <input type="text" id="otp-input" class="form-control" style="text-align: center; font-size: 24px; letter-spacing: 5px; font-weight: bold; width: 80%; margin: 0 auto;" placeholder="------" maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                </div>
+                <button id="btn-verify-otp" class="btn btn-primary" style="width: 80%;" onclick="submitOtp()">Verify Code</button>
+                <div style="margin-top: 15px; font-size: 12px;">
+                    <a href="#" onclick="resendOtp()" style="color: var(--primary-color); text-decoration: none;">Didn't receive the code? Resend</a>
+                </div>
             </div>
         </div>
     </div>
-    <script src="app.js?v=6.9.11"></script>
+    <script src="app.js?v=6.9.12"></script>
 </body>
 
 </html>
