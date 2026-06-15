@@ -73,21 +73,31 @@ function renderAssetsInventory() {
 }
 
 window.openAddAssetModal = function() {
-    const db = window.getDb ? window.getDb() : window.db;
-    const catList = document.getElementById('asset-categories-list');
-    
-    if (catList) {
-        catList.innerHTML = '';
-        if (db.systemSettings.assetCategories) {
-            db.systemSettings.assetCategories.forEach(c => {
-                catList.innerHTML += `<option value="${c}">`;
-            });
+    try {
+        const db = window.getDb ? window.getDb() : window.db;
+        const catList = document.getElementById('asset-categories-list');
+        
+        if (catList) {
+            catList.innerHTML = '';
+            if (db && db.systemSettings && db.systemSettings.assetCategories && Array.isArray(db.systemSettings.assetCategories)) {
+                db.systemSettings.assetCategories.forEach(c => {
+                    catList.innerHTML += `<option value="${c}">`;
+                });
+            }
         }
+        
+        const form = document.getElementById('form-add-asset');
+        if (form) form.reset();
+        
+        const modal = document.getElementById('modal-add-asset');
+        const overlay = document.getElementById('modal-overlay');
+        
+        if (modal) modal.classList.remove('hidden');
+        if (overlay) overlay.classList.remove('hidden');
+    } catch (error) {
+        console.error('Error opening Add Asset modal:', error);
+        alert('Could not open modal: ' + error.message);
     }
-    
-    document.getElementById('form-add-asset').reset();
-    document.getElementById('modal-add-asset').classList.remove('hidden');
-    document.getElementById('modal-overlay').classList.remove('hidden');
 };
 
 document.addEventListener('DOMContentLoaded', () => {
