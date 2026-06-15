@@ -7,6 +7,7 @@ function initAssetsDB() {
     
     if (!db.assets) db.assets = [];
     if (!db.assetIssues) db.assetIssues = [];
+    if (!db.systemSettings) db.systemSettings = {};
     if (!db.systemSettings.assetCategories) {
         db.systemSettings.assetCategories = ['Laptops', 'Mobile Phones', 'Vehicles', 'Furniture', 'Accessories'];
     }
