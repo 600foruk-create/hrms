@@ -3204,9 +3204,31 @@
                     <button type="button" class="btn" style="background-color: var(--danger); color: white; border: none; padding: 8px 32px; border-radius: 4px; cursor: pointer;" onclick="if(window.addStagedProductivity) window.addStagedProductivity()">Add</button>
                 </div>
             </div>
+
+            <!-- Row 5: Staging Table -->
+            <div class="table-container" style="max-height: 250px; overflow-y: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Sub Category</th>
+                            <th>Electronic</th>
+                            <th>Manual/Paper</th>
+                            <th>Total Time</th>
+                            <th>Activity</th>
+                            <th>Document Path</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="prod-staging-body">
+                        <tr><td colspan="8" class="text-center text-muted">No Record Found.</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
         <div class="modal-footer" style="justify-content: flex-end;">
             <button type="button" class="btn btn-outline modal-close">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="if(window.submitAllStagedProductivity) window.submitAllStagedProductivity()">Submit All</button>
         </div>
     </div>
 

@@ -6110,6 +6110,65 @@ window.addStagedProductivity = async function () {
             docPath: docPath
         };
 
+        window.stagedProductivityLogs.push(entry);
+
+        // Clear inputs for next entry
+        document.getElementById('prod-electronic').value = '';
+        document.getElementById('prod-manual').value = '';
+        document.getElementById('prod-time-spent').value = '';
+        document.getElementById('prod-notes').value = '';
+        document.getElementById('prod-doc-path').value = '';
+        if (document.getElementById('prod-bu-practices-select')) document.getElementById('prod-bu-practices-select').value = '';
+        if (document.getElementById('prod-tes-tasks-select')) document.getElementById('prod-tes-tasks-select').value = '';
+
+        const scoreDisplay = document.getElementById('calc-score-display');
+        if (scoreDisplay) scoreDisplay.style.display = 'none';
+
+        renderStagedProductivityTable();
+    } catch (e) {
+        console.error("Error in addStagedProductivity:", e);
+        showToast('Error', e.message, 'error');
+    }
+};
+
+window.removeStagedProductivity = function (index) {
+    window.stagedProductivityLogs.splice(index, 1);
+    renderStagedProductivityTable();
+};
+
+function renderStagedProductivityTable() {
+    const tbody = document.getElementById('prod-staging-body');
+    if (!tbody) return;
+
+    if (window.stagedProductivityLogs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No Record Found.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = window.stagedProductivityLogs.map((log, index) => `
+        <tr>
+            <td>${log.practiceName}</td>
+            <td>${log.subCategoryName}</td>
+            <td>${log.electronic}</td>
+            <td>${log.manual}</td>
+            <td>${log.totalMins}</td>
+            <td>${log.notes || '-'}</td>
+            <td>${log.docPath || '-'}</td>
+            <td>
+                <button type="button" class="btn btn-sm btn-outline" style="color: var(--danger); border-color: var(--danger);" onclick="window.removeStagedProductivity(${index})">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+window.submitAllStagedProductivity = async function () {
+    if (window.stagedProductivityLogs.length === 0) {
+        return showToast('Error', 'Please add at least one record to submit.', 'error');
+    }
+
+    const payload = window.stagedProductivityLogs.map(entry => {
         // Compute score percentage directly
         const dutyFrom = currentUser.dutyFrom || "09:00";
         const dutyTo = currentUser.dutyTo || "17:00";
@@ -6123,7 +6182,7 @@ window.addStagedProductivity = async function () {
         if (netDutyMins <= 0) netDutyMins = 420;
         const percentage = ((entry.totalMins / netDutyMins) * 100).toFixed(1);
 
-        const finalLog = {
+        return {
             id: generateId('PRD'),
             employee_id: currentUser.id,
             date: entry.date,
@@ -6137,48 +6196,32 @@ window.addStagedProductivity = async function () {
             doc_path: entry.docPath,
             created_at: new Date().toISOString()
         };
+    });
 
-        const addBtn = document.querySelector('button[onclick="if(window.addStagedProductivity) window.addStagedProductivity()"]') || document.querySelector('button[onclick*="addStagedProductivity"]');
-        if (addBtn) { addBtn.disabled = true; addBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...'; }
-
+    try {
         const response = await fetch('backend/api.php?action=save_productivity_batch', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ logs: [finalLog] })
+            body: JSON.stringify({ logs: payload })
         });
         const result = await response.json();
 
         if (result.status === 'success') {
-            showToast('Success', 'Productivity entry logged successfully!');
-            // Clear inputs for next entry
-            document.getElementById('prod-electronic').value = '';
-            document.getElementById('prod-manual').value = '';
-            document.getElementById('prod-time-spent').value = '';
-            document.getElementById('prod-notes').value = '';
-            document.getElementById('prod-doc-path').value = '';
-            if (document.getElementById('prod-bu-practices-select')) document.getElementById('prod-bu-practices-select').value = '';
-            if (document.getElementById('prod-tes-tasks-select')) document.getElementById('prod-tes-tasks-select').value = '';
-
-            const scoreDisplay = document.getElementById('calc-score-display');
-            if (scoreDisplay) scoreDisplay.style.display = 'none';
-
+            showToast('Success', 'All productivity entries logged successfully!');
+            window.stagedProductivityLogs = [];
+            renderStagedProductivityTable();
             closeAllModals();
 
             // Reload global DB to fetch the latest productivity records, then re-render
             await syncServer();
             if (typeof renderMyProductivityLogs === 'function') renderMyProductivityLogs();
             if (typeof renderManagerProductivityTab === 'function') renderManagerProductivityTab();
+            if (typeof renderAdminProductivityTab === 'function') renderAdminProductivityTab();
         } else {
-            showToast('Error', 'Failed to save productivity logs: ' + result.message, 'error');
+            showToast('Error', result.message || 'Failed to submit productivity', 'error');
         }
-
-        if (addBtn) { addBtn.disabled = false; addBtn.innerHTML = 'Add'; }
-
     } catch (e) {
-        console.error("Error in addStagedProductivity:", e);
-        showToast('Error', e.message, 'error');
-        const addBtn = document.querySelector('button[onclick*="addStagedProductivity"]');
-        if (addBtn) { addBtn.disabled = false; addBtn.innerHTML = 'Add'; }
+        showToast('Error', 'Network error. Please try again.', 'error');
     }
 };
 
