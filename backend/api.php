@@ -386,7 +386,12 @@ if ($action === 'load_all') {
             $sysSettings = $stmt->fetchAll(PDO::FETCH_ASSOC);
             $dbState['systemSettings'] = (object)[];
             foreach ($sysSettings as $row) {
-                $dbState['systemSettings']->{$row['setting_key']} = $row['setting_value'];
+                $val = json_decode($row['setting_value'], true);
+                if (json_last_error() === JSON_ERROR_NONE && !is_numeric($row['setting_value'])) {
+                    $dbState['systemSettings']->{$row['setting_key']} = $val;
+                } else {
+                    $dbState['systemSettings']->{$row['setting_key']} = $row['setting_value'];
+                }
             }
         } catch (Exception $e) {
             $dbState['systemSettings'] = (object)[];
@@ -797,6 +802,8 @@ elseif ($action === 'save_all') {
             foreach ($data['systemSettings'] as $k => $v) {
                 if (is_bool($v)) {
                     $v = $v ? 'true' : 'false';
+                } elseif (is_array($v) || is_object($v)) {
+                    $v = json_encode($v);
                 }
                 $stmt->execute([$k, (string)$v]);
             }

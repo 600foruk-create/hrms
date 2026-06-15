@@ -8,7 +8,7 @@ function initAssetsDB() {
     if (!db.assets) db.assets = [];
     if (!db.assetIssues) db.assetIssues = [];
     if (!db.systemSettings) db.systemSettings = {};
-    if (!db.systemSettings.assetCategories) {
+    if (!db.systemSettings.assetCategories || !Array.isArray(db.systemSettings.assetCategories)) {
         db.systemSettings.assetCategories = ['Laptops', 'Mobile Phones', 'Vehicles', 'Furniture', 'Accessories'];
     }
 }
@@ -121,6 +121,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!db.assets) db.assets = [];
             db.assets.push(newAsset);
             
+            if (categoryInput && (!db.systemSettings.assetCategories || !Array.isArray(db.systemSettings.assetCategories))) {
+                db.systemSettings.assetCategories = [];
+            }
             if (categoryInput && !db.systemSettings.assetCategories.includes(categoryInput)) {
                 db.systemSettings.assetCategories.push(categoryInput);
             }
