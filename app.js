@@ -4724,6 +4724,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             profileMenu.classList.toggle('hidden');
             const notifPanel = document.getElementById('notifications-panel');
             if (notifPanel) notifPanel.classList.add('hidden');
+            
+            // Update 2FA status badge
+            const badge2FA = document.getElementById('2fa-status-badge');
+            if (badge2FA) {
+                if (currentUser.twoFactorEnabled) {
+                    badge2FA.textContent = 'On';
+                    badge2FA.className = 'badge bg-success ms-2';
+                } else {
+                    badge2FA.textContent = 'Off';
+                    badge2FA.className = 'badge bg-secondary ms-2';
+                }
+            }
         });
     }
 
@@ -4732,12 +4744,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (profileMenu) profileMenu.classList.add('hidden');
         viewUserProfile(currentUser.id);
     });
-    safeAddListener('btn-go-settings', 'click', () => {
+    safeAddListener('btn-view-id-card', 'click', () => {
         if (profileMenu) profileMenu.classList.add('hidden');
-        if (currentUser.role === 'Admin') {
-            switchTab('settings');
+        if (typeof window.openIdCardModal === 'function') {
+            window.openIdCardModal(currentUser.id);
         } else {
-            showToast("Permissions", "Settings panels are restricted to Admin role.", "warning");
+            showToast("Error", "ID Card feature is not available.", "error");
+        }
+    });
+    safeAddListener('btn-toggle-2fa', 'click', () => {
+        if (profileMenu) profileMenu.classList.add('hidden');
+        const db = getDb();
+        const user = db.users.find(u => u.id === currentUser.id);
+        if (user) {
+            user.twoFactorEnabled = !user.twoFactorEnabled;
+            currentUser.twoFactorEnabled = user.twoFactorEnabled;
+            saveDb(db);
+            showToast("Success", "2-Step Verification turned " + (user.twoFactorEnabled ? "ON" : "OFF"), "success");
         }
     });
 
