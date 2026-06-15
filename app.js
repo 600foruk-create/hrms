@@ -6503,7 +6503,7 @@ window.renderAdminProductivityTab = function () {
     if (!tbody) return;
 
     const db = getDb();
-    const settings = getSystemSettings();
+    const settings = db.systemSettings || {};
 
     // Setup Filter Dropdowns if empty
     const dateFilter = document.getElementById('admin-log-filter-date');
