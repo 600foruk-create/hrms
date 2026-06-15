@@ -5412,8 +5412,8 @@ window.renderAdminCategoriesConfig = function () {
 
             settings.businessUnits.forEach(bu => {
                 const isActive = bu.id === window.selectedAdminBuId;
-                const bgStyle = isActive ? 'background: rgba(15, 52, 132, 0.1); border-left: 3px solid var(--primary-color);' : 'background: rgba(0,0,0,0.02); border-left: 3px solid transparent;';
-                const textStyle = isActive ? 'color: var(--primary-color); font-weight: 600;' : 'color: var(--text-color);';
+                const bgStyle = isActive ? 'background: linear-gradient(0deg, rgba(255,255,255,0.85), rgba(255,255,255,0.85)), var(--primary); border-left: 3px solid var(--primary);' : 'background: rgba(0,0,0,0.02); border-left: 3px solid transparent;';
+                const textStyle = isActive ? 'color: var(--primary); font-weight: 600;' : 'color: var(--text-color);';
 
                 buList.innerHTML += `
                     <div class="p-2 px-3 mb-2 rounded" style="display: flex; align-items: center; cursor: pointer; ${bgStyle} transition: all 0.2s;" onclick="window.selectedAdminBuId='${bu.id}'; window.renderAdminCategoriesConfig();">
@@ -5459,8 +5459,8 @@ window.renderAdminCategoriesConfig = function () {
 
                 bu.practices.forEach(p => {
                     const isActive = p.id === window.selectedAdminPracticeId;
-                    const bgStyle = isActive ? 'background: rgba(15, 52, 132, 0.1); border: 1px solid var(--primary-color);' : 'background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.05);';
-                    const textStyle = isActive ? 'color: var(--primary-color); font-weight: 600;' : 'color: var(--text-color);';
+                    const bgStyle = isActive ? 'background: linear-gradient(0deg, rgba(255,255,255,0.85), rgba(255,255,255,0.85)), var(--primary); border-left: 3px solid var(--primary);' : 'background: rgba(0,0,0,0.02); border-left: 3px solid transparent;';
+                    const textStyle = isActive ? 'color: var(--primary); font-weight: 600;' : 'color: var(--text-color);';
 
                     prList.innerHTML += `
                         <div class="mb-2 p-2 rounded" style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; cursor: pointer; ${bgStyle} transition: all 0.2s;" onclick="window.selectedAdminPracticeId='${p.id}'; window.renderAdminCategoriesConfig();">
@@ -5493,8 +5493,8 @@ window.renderAdminCategoriesConfig = function () {
 
             settings.tesCategories.forEach(tes => {
                 const isActive = tes.id === window.selectedAdminTesId;
-                const bgStyle = isActive ? 'background: rgba(0, 200, 83, 0.1); border-left: 3px solid var(--success);' : 'background: rgba(0,0,0,0.02); border-left: 3px solid transparent;';
-                const textStyle = isActive ? 'color: var(--success); font-weight: 600;' : 'color: var(--text-color);';
+                const bgStyle = isActive ? 'background: linear-gradient(0deg, rgba(255,255,255,0.85), rgba(255,255,255,0.85)), var(--primary); border-left: 3px solid var(--primary);' : 'background: rgba(0,0,0,0.02); border-left: 3px solid transparent;';
+                const textStyle = isActive ? 'color: var(--primary); font-weight: 600;' : 'color: var(--text-color);';
 
                 tesList.innerHTML += `
                     <div class="p-2 px-3 mb-2 rounded" style="display: flex; align-items: center; cursor: pointer; ${bgStyle} transition: all 0.2s;" onclick="window.selectedAdminTesId='${tes.id}'; window.renderAdminCategoriesConfig();">
@@ -5540,8 +5540,8 @@ window.renderAdminCategoriesConfig = function () {
 
                 tes.tasks.forEach(t => {
                     const isActive = t.id === window.selectedAdminTaskId;
-                    const bgStyle = isActive ? 'background: rgba(0, 200, 83, 0.1); border: 1px solid var(--success);' : 'background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.05);';
-                    const textStyle = isActive ? 'color: var(--success); font-weight: 600;' : 'color: var(--text-color);';
+                    const bgStyle = isActive ? 'background: linear-gradient(0deg, rgba(255,255,255,0.85), rgba(255,255,255,0.85)), var(--primary); border-left: 3px solid var(--primary);' : 'background: rgba(0,0,0,0.02); border-left: 3px solid transparent;';
+                    const textStyle = isActive ? 'color: var(--primary); font-weight: 600;' : 'color: var(--text-color);';
 
                     taskList.innerHTML += `
                         <div class="mb-2 p-2 rounded" style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; cursor: pointer; ${bgStyle} transition: all 0.2s;" onclick="window.selectedAdminTaskId='${t.id}'; window.renderAdminCategoriesConfig();">
