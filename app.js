@@ -4514,18 +4514,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     await syncServer();
 
-    // One-time clear of productivity data
-    const db = getDb();
-    if (db && !db.productivity_cleared) {
-        db.productivity = [];
-        db.productivity_tasks = [];
-        db.practices = [];
-        db.manager_practices = [];
-        db.productivity_cleared = true;
-        saveDb(db);
-        console.log("Productivity data cleared!");
-    }
     // Set background image from DB state if available
+    const db = getDb();
     if (db && db.login_bg) {
         const authPanel = document.getElementById('auth-panel');
         if (authPanel) {
