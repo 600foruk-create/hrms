@@ -2723,5 +2723,3 @@ body.light-mode .flex-table-card .data-table thead th {
   content: 'ON';
   left: 35%;
 }
-
-.sub-tab-content { display: none; } .sub-tab-content.active { display: block; }

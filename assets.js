@@ -26,8 +26,8 @@ window.renderAdminAssetsTab = function(subtab = 'inventory') {
     document.querySelectorAll('.btn-sub-tab[data-subtab^="admin-assets-"]').forEach(btn => btn.classList.remove('active'));
     document.querySelector(`.btn-sub-tab[data-subtab="admin-assets-${subtab}"]`)?.classList.add('active');
     
-    document.querySelectorAll('.sub-tab-content[id^="subtab-content-admin-assets-"]').forEach(el => el.classList.remove('active'));
-    document.getElementById(`subtab-content-admin-assets-${subtab}`)?.classList.add('active');
+    document.querySelectorAll('.sub-tab-content[id^="subtab-content-admin-assets-"]').forEach(el => el.classList.add('hidden'));
+    document.getElementById(`subtab-content-admin-assets-${subtab}`)?.classList.remove('hidden');
     
     if (subtab === 'inventory') {
         renderAssetsInventory();
