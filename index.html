@@ -85,19 +85,55 @@
                         <label>Purchase Date</label>
                         <input type="date" id="add-asset-purchase-date" class="form-control">
                     </div>
-                    <div class="form-group" style="grid-column: span 2;">
+                    <div class="form-group">
                         <label>Asset Name / Model *</label>
                         <input type="text" id="add-asset-name" class="form-control" placeholder="E.g. Dell Latitude 5420" required>
                     </div>
+                    <div class="form-group">
+                        <label>Quantity *</label>
+                        <input type="number" id="add-asset-quantity" class="form-control" min="1" value="1" required>
+                    </div>
                     <div class="form-group" style="grid-column: span 2;">
-                        <label>Serial Number / Reg No / Asset Tag *</label>
-                        <input type="text" id="add-asset-serial" class="form-control" placeholder="E.g. XYZ12345" required>
+                        <label>Serial Number / Reg No / Asset Tag (Leave empty if bulk item)</label>
+                        <input type="text" id="add-asset-serial" class="form-control" placeholder="E.g. XYZ12345">
                     </div>
                 </div>
                 <div style="text-align: right; margin-top: 20px;">
                     <button type="submit" class="btn btn-primary">Save Asset</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- 15. Manage Asset Categories Modal -->
+    <div id="modal-manage-asset-categories" class="modal hidden" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3>Manage Asset Categories</h3>
+            <div class="modal-header-controls">
+                <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        <div class="modal-body">
+            <div class="form-group mb-3">
+                <label>Add New Category</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="new-asset-category-input" class="form-control" placeholder="E.g. Printers">
+                    <button class="btn btn-primary" onclick="if(window.addAssetCategory) window.addAssetCategory()">Add</button>
+                </div>
+            </div>
+            <div class="table-container" style="max-height: 300px; overflow-y: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Category Name</th>
+                            <th style="width: 80px; text-align: center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="manage-asset-categories-body">
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -1752,7 +1788,10 @@
                                 <div class="section-card bg-glass">
                                     <div class="section-card-header" style="justify-content: space-between; display: flex;">
                                         <h3 style="font-size: 16px; font-weight: 700; margin: 0;">Asset Master List</h3>
-                                        <button class="btn btn-primary" onclick="if(window.openAddAssetModal) window.openAddAssetModal()"><i class="fa-solid fa-plus"></i> Add New Asset</button>
+                                        <div style="display: flex; gap: 10px;">
+                                            <button class="btn btn-outline" onclick="if(window.openManageAssetCategoriesModal) window.openManageAssetCategoriesModal()"><i class="fa-solid fa-list"></i> Manage Categories</button>
+                                            <button class="btn btn-primary" onclick="if(window.openAddAssetModal) window.openAddAssetModal()"><i class="fa-solid fa-plus"></i> Add New Asset</button>
+                                        </div>
                                     </div>
                                     <div class="table-container">
                                         <table class="data-table">
@@ -1802,6 +1841,10 @@
                                                 <select id="issue-asset-item" class="form-control" required>
                                                     <option value="">-- Select Category First --</option>
                                                 </select>
+                                            </div>
+                                            <div class="form-group" style="grid-column: span 2;">
+                                                <label>Quantity to Issue *</label>
+                                                <input type="number" id="issue-asset-quantity" class="form-control" min="1" value="1" required>
                                             </div>
                                             <div class="form-group" style="grid-column: span 2;">
                                                 <label>Notes / Condition / Accessories</label>

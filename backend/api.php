@@ -245,11 +245,15 @@ try {
         `purchase_date` varchar(50) DEFAULT NULL,
         `status` varchar(50) DEFAULT 'Available',
         `issues` TEXT DEFAULT NULL,
+        `quantity` int(11) DEFAULT 1,
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
     
     try {
         $pdo->exec("ALTER TABLE `assets` ADD COLUMN `issues` TEXT DEFAULT NULL");
+    } catch (Exception $e) {}
+    try {
+        $pdo->exec("ALTER TABLE `assets` ADD COLUMN `quantity` int(11) DEFAULT 1");
     } catch (Exception $e) {}
     
     // Clean up old table if it exists
@@ -316,11 +320,15 @@ try {
             `serial_number` TEXT,
             `purchase_date` TEXT,
             `status` TEXT DEFAULT 'Available',
-            `issues` TEXT
+            `issues` TEXT,
+            `quantity` INTEGER DEFAULT 1
         )");
         
         try {
             $pdo->exec("ALTER TABLE `assets` ADD COLUMN `issues` TEXT");
+        } catch (Exception $e) {}
+        try {
+            $pdo->exec("ALTER TABLE `assets` ADD COLUMN `quantity` INTEGER DEFAULT 1");
         } catch (Exception $e) {}
         
         $pdo->exec("DROP TABLE IF EXISTS `asset_issues`");
@@ -780,7 +788,7 @@ elseif ($action === 'save_all') {
         try {
             $pdo->exec("DELETE FROM assets");
             if (!empty($data['assets'])) {
-                $stmt = $pdo->prepare("INSERT INTO assets (id, category, name, serial_number, purchase_date, status, issues) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO assets (id, category, name, serial_number, purchase_date, status, issues, quantity) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
                 foreach ($data['assets'] as $a) {
                     $myIssues = [];
                     if (!empty($data['assetIssues'])) {
@@ -797,7 +805,8 @@ elseif ($action === 'save_all') {
                         $a['serial_number'] ?? '', 
                         $a['purchase_date'] ?? '', 
                         $a['status'] ?? 'Available',
-                        json_encode($myIssues)
+                        json_encode($myIssues),
+                        $a['quantity'] ?? 1
                     ]);
                 }
             }
