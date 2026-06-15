@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 db.systemSettings.assetCategories.push(categoryInput);
             }
             
-            if (window.saveDb) window.saveDb();
+            if (window.saveDb) window.saveDb(db);
             if (window.showToast) window.showToast('Asset added successfully', 'success');
             
             document.getElementById('modal-add-asset').classList.add('hidden');
@@ -151,7 +151,7 @@ window.deleteAsset = function(id) {
     }
     
     db.assets = db.assets.filter(a => a.id !== id);
-    if (window.saveDb) window.saveDb();
+    if (window.saveDb) window.saveDb(db);
     if (window.showToast) window.showToast('Asset deleted', 'success');
     renderAssetsInventory();
 };
@@ -238,7 +238,7 @@ window.submitIssueAsset = function() {
     if (!db.assetIssues) db.assetIssues = [];
     db.assetIssues.push(issueRecord);
     
-    if (window.saveDb) window.saveDb();
+    if (window.saveDb) window.saveDb(db);
     if (window.showToast) window.showToast('Asset Issued Successfully', 'success');
     
     // Refresh Form and jump to tracker
@@ -325,7 +325,7 @@ window.returnAsset = function(issueId) {
         asset.status = 'Available';
     }
     
-    if (window.saveDb) window.saveDb();
+    if (window.saveDb) window.saveDb(db);
     if (window.showToast) window.showToast('Asset marked as returned', 'success');
     
     renderAssetsReport();
