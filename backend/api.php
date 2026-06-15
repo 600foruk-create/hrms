@@ -248,6 +248,10 @@ try {
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
     
+    try {
+        $pdo->exec("ALTER TABLE `assets` ADD COLUMN `issues` TEXT DEFAULT NULL");
+    } catch (Exception $e) {}
+    
     // Clean up old table if it exists
     $pdo->exec("DROP TABLE IF EXISTS `asset_issues`");
 
@@ -314,6 +318,10 @@ try {
             `status` TEXT DEFAULT 'Available',
             `issues` TEXT
         )");
+        
+        try {
+            $pdo->exec("ALTER TABLE `assets` ADD COLUMN `issues` TEXT");
+        } catch (Exception $e) {}
         
         $pdo->exec("DROP TABLE IF EXISTS `asset_issues`");
     } catch (Exception $e2) {
