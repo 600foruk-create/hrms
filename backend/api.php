@@ -330,6 +330,7 @@ try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS `assets` (
             `id` TEXT PRIMARY KEY,
             `category` TEXT,
+            `sub_category` TEXT,
             `name` TEXT,
             `serial_number` TEXT,
             `purchase_date` TEXT,
@@ -339,6 +340,9 @@ try {
         
         try {
             $pdo->exec("ALTER TABLE `assets` ADD COLUMN `issues` TEXT");
+        } catch (Exception $e) {}
+        try {
+            $pdo->exec("ALTER TABLE `assets` ADD COLUMN `sub_category` TEXT");
         } catch (Exception $e) {}
         
         $pdo->exec("DROP TABLE IF EXISTS `asset_issues`");

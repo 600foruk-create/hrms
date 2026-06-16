@@ -77,27 +77,78 @@
             <form id="form-add-asset">
                 <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group">
-                        <label>Asset Category *</label>
-                        <input type="text" id="add-asset-category" class="form-control" placeholder="E.g. Laptops, Vehicles" required list="asset-categories-list">
-                        <datalist id="asset-categories-list"></datalist>
+                        <label>Main Category *</label>
+                        <select id="add-asset-category" class="form-control" required onchange="if(window.populateAssetSubCategories) window.populateAssetSubCategories(this.value, 'add-asset-sub-category')">
+                            <option value="">-- Select Main Category --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Sub Category *</label>
+                        <select id="add-asset-sub-category" class="form-control" required>
+                            <option value="">-- Select Sub Category --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Asset Name / Model *</label>
+                        <input type="text" id="add-asset-name" class="form-control" placeholder="E.g. Dell Latitude 5420" required>
                     </div>
                     <div class="form-group">
                         <label>Purchase Date</label>
                         <input type="date" id="add-asset-purchase-date" class="form-control">
                     </div>
-                    <div class="form-group" style="grid-column: span 2;">
-                        <label>Asset Name / Model *</label>
-                        <input type="text" id="add-asset-name" class="form-control" placeholder="E.g. Dell Latitude 5420" required>
+                    <div class="form-group">
+                        <label>Serial Number / Reg No</label>
+                        <input type="text" id="add-asset-serial" class="form-control" placeholder="Leave blank for bulk items">
                     </div>
-                    <div class="form-group" style="grid-column: span 2;">
-                        <label>Serial Number / Reg No / Asset Tag *</label>
-                        <input type="text" id="add-asset-serial" class="form-control" placeholder="E.g. XYZ12345" required>
+                    <div class="form-group">
+                        <label>Quantity *</label>
+                        <input type="number" id="add-asset-quantity" class="form-control" value="1" min="1" required>
                     </div>
                 </div>
                 <div style="text-align: right; margin-top: 20px;">
                     <button type="submit" class="btn btn-primary">Save Asset</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- 14B. Manage Asset Categories Modal -->
+    <div id="modal-manage-asset-categories" class="modal hidden" style="max-width: 600px;">
+        <div class="modal-header">
+            <h3>Manage Asset Categories</h3>
+            <div class="modal-header-controls">
+                <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        <div class="modal-body">
+            <form id="form-add-asset-category">
+                <div class="form-grid" style="grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end;">
+                    <div class="form-group mb-0">
+                        <label>Main Category *</label>
+                        <input type="text" id="new-asset-main-cat" class="form-control" placeholder="E.g. Electronics" required>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label>Sub Category *</label>
+                        <input type="text" id="new-asset-sub-cat" class="form-control" placeholder="E.g. Laptop" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="height: 42px;">Add</button>
+                </div>
+            </form>
+            <hr style="margin: 15px 0;">
+            <div class="table-container" style="max-height: 300px; overflow-y: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Main Category</th>
+                            <th>Sub Categories</th>
+                            <th style="width: 80px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="asset-categories-tbody">
+                        <tr><td colspan="3" class="text-center text-muted">No categories found</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -1750,7 +1801,10 @@
                                 <div class="section-card bg-glass">
                                     <div class="section-card-header" style="justify-content: space-between; display: flex;">
                                         <h3 style="font-size: 16px; font-weight: 700; margin: 0;">Asset Master List</h3>
-                                        <button class="btn btn-primary" onclick="if(window.openAddAssetModal) window.openAddAssetModal()"><i class="fa-solid fa-plus"></i> Add New Asset</button>
+                                        <div>
+                                            <button class="btn btn-outline" onclick="if(window.openManageAssetCategoriesModal) window.openManageAssetCategoriesModal()" style="margin-right: 10px;"><i class="fa-solid fa-list"></i> Manage Categories</button>
+                                            <button class="btn btn-primary" onclick="if(window.openAddAssetModal) window.openAddAssetModal()"><i class="fa-solid fa-plus"></i> Add New Asset</button>
+                                        </div>
                                     </div>
                                     <div class="table-container">
                                         <table class="data-table">

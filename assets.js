@@ -8,8 +8,22 @@ function initAssetsDB() {
     if (!db.assets) db.assets = [];
     if (!db.assetIssues) db.assetIssues = [];
     if (!db.systemSettings) db.systemSettings = {};
+    
+    // Migrate old flat categories to new structured format
     if (!db.systemSettings.assetCategories || !Array.isArray(db.systemSettings.assetCategories)) {
-        db.systemSettings.assetCategories = ['Laptops', 'Mobile Phones', 'Vehicles', 'Furniture', 'Accessories'];
+        db.systemSettings.assetCategories = [
+            { name: 'Laptops', subCategories: ['Standard', 'High Performance'] },
+            { name: 'Mobile Phones', subCategories: ['Android', 'iOS'] },
+            { name: 'Vehicles', subCategories: ['Car', 'Bike'] },
+            { name: 'Furniture', subCategories: ['Desk', 'Chair'] },
+            { name: 'Accessories', subCategories: ['Mouse', 'Keyboard', 'Headset'] }
+        ];
+    } else if (db.systemSettings.assetCategories.length > 0 && typeof db.systemSettings.assetCategories[0] === 'string') {
+        // Convert array of strings to array of objects
+        const newCats = db.systemSettings.assetCategories.map(cat => {
+            return { name: cat, subCategories: ['General'] };
+        });
+        db.systemSettings.assetCategories = newCats;
     }
 }
 
@@ -55,10 +69,12 @@ function renderAssetsInventory() {
         else if (a.status === 'Issued') statusBadge = '<span class="badge bg-warning text-dark">Issued</span>';
         else statusBadge = `<span class="badge bg-secondary">${a.status}</span>`;
         
+        const catDisplay = a.sub_category ? `${a.category} > ${a.sub_category}` : (a.category || '-');
+        
         html += `
             <tr>
                 <td><strong>${a.id}</strong></td>
-                <td>${a.category || '-'}</td>
+                <td>${catDisplay}</td>
                 <td>${a.name || '-'}</td>
                 <td>${a.serial_number || '-'}</td>
                 <td>${a.purchase_date ? window.formatDate ? window.formatDate(a.purchase_date) : a.purchase_date : '-'}</td>
@@ -75,19 +91,24 @@ function renderAssetsInventory() {
 window.openAddAssetModal = function() {
     try {
         const db = window.getDb ? window.getDb() : window.db;
-        const catList = document.getElementById('asset-categories-list');
+        const catList = document.getElementById('add-asset-category');
+        const subCatList = document.getElementById('add-asset-sub-category');
         
         if (catList) {
-            catList.innerHTML = '';
+            catList.innerHTML = '<option value="">-- Select Main Category --</option>';
             if (db && db.systemSettings && db.systemSettings.assetCategories && Array.isArray(db.systemSettings.assetCategories)) {
                 db.systemSettings.assetCategories.forEach(c => {
-                    catList.innerHTML += `<option value="${c}">`;
+                    catList.innerHTML += `<option value="${c.name}">${c.name}</option>`;
                 });
             }
+        }
+        if (subCatList) {
+            subCatList.innerHTML = '<option value="">-- Select Sub Category --</option>';
         }
         
         const form = document.getElementById('form-add-asset');
         if (form) form.reset();
+        document.getElementById('add-asset-quantity').value = 1;
         
         const modal = document.getElementById('modal-add-asset');
         const overlay = document.getElementById('modal-overlay');
@@ -100,6 +121,22 @@ window.openAddAssetModal = function() {
     }
 };
 
+window.populateAssetSubCategories = function(mainCat, subCatElementId) {
+    const db = window.getDb ? window.getDb() : window.db;
+    const subCatList = document.getElementById(subCatElementId);
+    if (!subCatList) return;
+    
+    subCatList.innerHTML = '<option value="">-- Select Sub Category --</option>';
+    if (!mainCat) return;
+    
+    const category = db.systemSettings.assetCategories.find(c => c.name === mainCat);
+    if (category && category.subCategories) {
+        category.subCategories.forEach(sub => {
+            subCatList.innerHTML += `<option value="${sub}">${sub}</option>`;
+        });
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     const formAddAsset = document.getElementById('form-add-asset');
     if (formAddAsset) {
@@ -108,28 +145,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const db = window.getDb ? window.getDb() : window.db;
             
             const categoryInput = document.getElementById('add-asset-category').value.trim();
-            
-            const newAsset = {
-                id: 'AST-' + new Date().getTime().toString().slice(-6),
-                category: categoryInput,
-                purchase_date: document.getElementById('add-asset-purchase-date').value,
-                name: document.getElementById('add-asset-name').value,
-                serial_number: document.getElementById('add-asset-serial').value,
-                status: 'Available'
-            };
+            const subCategoryInput = document.getElementById('add-asset-sub-category').value.trim();
+            const quantity = parseInt(document.getElementById('add-asset-quantity').value) || 1;
             
             if (!db.assets) db.assets = [];
-            db.assets.push(newAsset);
             
-            if (categoryInput && (!db.systemSettings.assetCategories || !Array.isArray(db.systemSettings.assetCategories))) {
-                db.systemSettings.assetCategories = [];
-            }
-            if (categoryInput && !db.systemSettings.assetCategories.includes(categoryInput)) {
-                db.systemSettings.assetCategories.push(categoryInput);
+            for (let i = 0; i < quantity; i++) {
+                const newAsset = {
+                    id: 'AST-' + new Date().getTime().toString().slice(-6) + (quantity > 1 ? `-${i+1}` : ''),
+                    category: categoryInput,
+                    sub_category: subCategoryInput,
+                    purchase_date: document.getElementById('add-asset-purchase-date').value,
+                    name: document.getElementById('add-asset-name').value,
+                    serial_number: document.getElementById('add-asset-serial').value,
+                    status: 'Available'
+                };
+                db.assets.push(newAsset);
             }
             
             if (window.saveDb) window.saveDb(db);
-            if (window.showToast) window.showToast('Asset added successfully', 'success');
+            if (window.showToast) window.showToast(`${quantity} Asset(s) added successfully`, 'success');
             
             document.getElementById('modal-add-asset').classList.add('hidden');
             document.getElementById('modal-overlay').classList.add('hidden');
@@ -173,7 +208,7 @@ function renderAssetsIssueForm() {
     catSelect.innerHTML = '<option value="">-- Select Category --</option>';
     if (db.systemSettings.assetCategories) {
         db.systemSettings.assetCategories.forEach(c => {
-            catSelect.innerHTML += `<option value="${c}">${c}</option>`;
+            catSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
         });
     }
     
@@ -375,4 +410,89 @@ window.renderEmployeeAssetsTab = function() {
     });
     
     tbody.innerHTML = html;
+};
+
+window.openManageAssetCategoriesModal = function() {
+    try {
+        const modal = document.getElementById('modal-manage-asset-categories');
+        const overlay = document.getElementById('modal-overlay');
+        if (modal) modal.classList.remove('hidden');
+        if (overlay) overlay.classList.remove('hidden');
+        renderAssetCategoriesTable();
+    } catch (e) { console.error(e); }
+};
+
+window.saveAssetCategory = function(e) {
+    if (e) e.preventDefault();
+    const db = window.getDb ? window.getDb() : window.db;
+    const mainCat = document.getElementById('new-asset-main-cat').value.trim();
+    const subCat = document.getElementById('new-asset-sub-cat').value.trim();
+
+    if (!mainCat || !subCat) return;
+
+    if (!db.systemSettings.assetCategories) db.systemSettings.assetCategories = [];
+
+    let category = db.systemSettings.assetCategories.find(c => c.name.toLowerCase() === mainCat.toLowerCase());
+    if (!category) {
+        category = { name: mainCat, subCategories: [] };
+        db.systemSettings.assetCategories.push(category);
+    }
+
+    if (!category.subCategories.find(s => s.toLowerCase() === subCat.toLowerCase())) {
+        category.subCategories.push(subCat);
+    }
+
+    if (window.saveDb) window.saveDb(db);
+    if (window.showToast) window.showToast('Category saved successfully', 'success');
+    document.getElementById('new-asset-sub-cat').value = '';
+    renderAssetCategoriesTable();
+    
+    // Refresh dropdowns if Add Asset modal is open
+    const catList = document.getElementById('add-asset-category');
+    if (catList && catList.options.length > 0) {
+        let hasIt = false;
+        for (let i = 0; i < catList.options.length; i++) {
+            if (catList.options[i].value === category.name) hasIt = true;
+        }
+        if (!hasIt) catList.innerHTML += `<option value="${category.name}">${category.name}</option>`;
+    }
+};
+
+window.renderAssetCategoriesTable = function() {
+    const db = window.getDb ? window.getDb() : window.db;
+    const tbody = document.getElementById('asset-categories-tbody');
+    if (!tbody) return;
+
+    let html = '';
+    if (db.systemSettings.assetCategories) {
+        db.systemSettings.assetCategories.forEach(c => {
+            html += `<tr><td><strong>${c.name}</strong></td><td>`;
+            c.subCategories.forEach(sub => {
+                html += `<span class='badge bg-secondary' style='margin-right:5px; margin-bottom:5px; display:inline-block;'>${sub} <i class='fa-solid fa-xmark' style='cursor:pointer; margin-left:3px;' onclick='deleteAssetSubCategory("${c.name}", "${sub}")'></i></span>`;
+            });
+            html += `</td><td><button class='btn btn-sm btn-outline-danger' onclick='deleteAssetMainCategory("${c.name}")'><i class='fa-solid fa-trash'></i></button></td></tr>`;
+        });
+    }
+    tbody.innerHTML = html || '<tr><td colspan="3" class="text-center text-muted">No categories found</td></tr>';
+};
+
+window.deleteAssetMainCategory = function(mainCat) {
+    if (!confirm('Delete this main category and all its sub-categories?')) return;
+    const db = window.getDb ? window.getDb() : window.db;
+    db.systemSettings.assetCategories = db.systemSettings.assetCategories.filter(c => c.name !== mainCat);
+    if (window.saveDb) window.saveDb(db);
+    if (window.showToast) window.showToast('Category deleted', 'success');
+    renderAssetCategoriesTable();
+};
+
+window.deleteAssetSubCategory = function(mainCat, subCat) {
+    if (!confirm('Delete this sub-category?')) return;
+    const db = window.getDb ? window.getDb() : window.db;
+    const category = db.systemSettings.assetCategories.find(c => c.name === mainCat);
+    if (category) {
+        category.subCategories = category.subCategories.filter(s => s !== subCat);
+    }
+    if (window.saveDb) window.saveDb(db);
+    if (window.showToast) window.showToast('Sub-category deleted', 'success');
+    renderAssetCategoriesTable();
 };
