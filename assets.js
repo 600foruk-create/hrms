@@ -52,41 +52,113 @@ window.renderAdminAssetsTab = function(subtab = 'inventory') {
     }
 };
 
-function renderAssetsInventory() {
+window.renderAssetsInventory = function() {
     const db = window.getDb ? window.getDb() : window.db;
-    const tbody = document.getElementById('admin-assets-inventory-body');
-    if (!tbody) return;
+    const mainPane = document.getElementById('inventory-pane-main-cat');
+    if (!mainPane) return;
     
-    if (!db.assets || db.assets.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No assets found</td></tr>';
+    let html = '';
+    if (db.systemSettings.assetCategories && db.systemSettings.assetCategories.length > 0) {
+        db.systemSettings.assetCategories.forEach(c => {
+            html += `<li style="padding: 12px 15px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background=''" onclick="selectMainCategoryBox('${c.name}')"><i class="fa-solid fa-folder" style="color: #666; margin-right: 8px;"></i> <strong>${c.name}</strong></li>`;
+        });
+    } else {
+        html = '<li style="padding: 15px; text-align: center; color: #999;">No categories found</li>';
+    }
+    mainPane.innerHTML = html;
+    
+    // Reset Sub and Assets
+    const subPane = document.getElementById('inventory-pane-sub-cat');
+    if (subPane) subPane.innerHTML = '<li style="padding: 15px; text-align: center; color: #999; font-style: italic;">Select a Main Category</li>';
+    
+    const assetsPane = document.getElementById('inventory-pane-assets-content');
+    if (assetsPane) assetsPane.innerHTML = '<div style="text-align: center; color: #999; font-style: italic; margin-top: 20px;">Select a Sub Category to view assets</div>';
+    
+    const title = document.getElementById('inventory-pane-assets-title');
+    if (title) title.innerText = 'Assets';
+}
+
+window.selectMainCategoryBox = function(mainCat) {
+    const db = window.getDb ? window.getDb() : window.db;
+    const subPane = document.getElementById('inventory-pane-sub-cat');
+    if (!subPane) return;
+    
+    const category = db.systemSettings.assetCategories.find(c => c.name === mainCat);
+    let html = '';
+    if (category && category.subCategories && category.subCategories.length > 0) {
+        category.subCategories.forEach(sub => {
+            html += `<li style="padding: 12px 15px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background=''" onclick="selectSubCategoryBox('${mainCat}', '${sub}')"><i class="fa-solid fa-folder-open" style="color: #666; margin-right: 8px;"></i> ${sub}</li>`;
+        });
+    } else {
+        html = '<li style="padding: 15px; text-align: center; color: #999;">No sub-categories</li>';
+    }
+    subPane.innerHTML = html;
+    
+    // Reset Assets
+    document.getElementById('inventory-pane-assets-content').innerHTML = '<div style="text-align: center; color: #999; font-style: italic; margin-top: 20px;">Select a Sub Category to view assets</div>';
+    document.getElementById('inventory-pane-assets-title').innerText = 'Assets';
+};
+
+window.selectSubCategoryBox = function(mainCat, subCat) {
+    const db = window.getDb ? window.getDb() : window.db;
+    const assetsPane = document.getElementById('inventory-pane-assets-content');
+    if (!assetsPane) return;
+    
+    document.getElementById('inventory-pane-assets-title').innerHTML = `Assets <span class="badge bg-secondary">${subCat}</span>`;
+    
+    if (!db.assets) db.assets = [];
+    const filteredAssets = db.assets.filter(a => a.category === mainCat && a.sub_category === subCat);
+    
+    if (filteredAssets.length === 0) {
+        assetsPane.innerHTML = '<div style="text-align: center; color: #999; margin-top: 20px;">No assets found in this sub-category</div>';
         return;
     }
     
+    // Group by Name
+    const grouped = {};
+    filteredAssets.forEach(a => {
+        const name = a.name || 'Unnamed Asset';
+        if (!grouped[name]) grouped[name] = [];
+        grouped[name].push(a);
+    });
+    
     let html = '';
-    db.assets.forEach(a => {
-        let statusBadge = '';
-        if (a.status === 'Available') statusBadge = '<span class="badge bg-success">Available</span>';
-        else if (a.status === 'Issued') statusBadge = '<span class="badge bg-warning text-dark">Issued</span>';
-        else statusBadge = `<span class="badge bg-secondary">${a.status}</span>`;
-        
-        const catDisplay = a.sub_category ? `${a.category} > ${a.sub_category}` : (a.category || '-');
+    for (const [name, items] of Object.entries(grouped)) {
+        const availableCount = items.filter(i => i.status === 'Available').length;
         
         html += `
-            <tr>
-                <td><strong>${a.id}</strong></td>
-                <td>${catDisplay}</td>
-                <td>${a.name || '-'}</td>
-                <td>${a.serial_number || '-'}</td>
-                <td>${a.purchase_date ? window.formatDate ? window.formatDate(a.purchase_date) : a.purchase_date : '-'}</td>
+        <div style="border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; margin-bottom: 10px; overflow: hidden;">
+            <div style="padding: 12px 15px; background: rgba(0,0,0,0.02); display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                <div style="font-weight: 600;"><i class="fa-solid fa-box" style="color: var(--primary-color); margin-right: 8px;"></i> ${name}</div>
+                <div>
+                    <span class="badge bg-primary" style="margin-right: 5px;">Total: ${items.length}</span>
+                    <span class="badge bg-success">Available: ${availableCount}</span>
+                </div>
+            </div>
+            <div class="hidden" style="padding: 0; border-top: 1px solid rgba(0,0,0,0.05);">
+                <table class="data-table" style="margin: 0; box-shadow: none;">
+                    <thead><tr><th>ID</th><th>Serial No</th><th>Status</th><th style="width: 50px;"></th></tr></thead>
+                    <tbody>`;
+        
+        items.forEach(a => {
+            let statusBadge = '';
+            if (a.status === 'Available') statusBadge = '<span class="badge bg-success" style="font-size: 10px;">Available</span>';
+            else if (a.status === 'Issued') statusBadge = '<span class="badge bg-warning text-dark" style="font-size: 10px;">Issued</span>';
+            else statusBadge = `<span class="badge bg-secondary" style="font-size: 10px;">${a.status}</span>`;
+            
+            html += `<tr>
+                <td style="font-size: 12px;">${a.id}</td>
+                <td style="font-size: 12px;">${a.serial_number || '-'}</td>
                 <td>${statusBadge}</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteAsset('${a.id}')"><i class="fa-solid fa-trash"></i></button>
-                </td>
-            </tr>
-        `;
-    });
-    tbody.innerHTML = html;
-}
+                <td><button class="btn btn-sm btn-outline-danger" onclick="deleteAsset('${a.id}')" style="padding: 2px 6px;"><i class="fa-solid fa-trash" style="font-size: 10px;"></i></button></td>
+            </tr>`;
+        });
+        
+        html += `</tbody></table></div></div>`;
+    }
+    
+    assetsPane.innerHTML = html;
+};
 
 window.openAddAssetModal = function() {
     try {
