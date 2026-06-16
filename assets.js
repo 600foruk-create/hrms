@@ -170,8 +170,9 @@ function renderAssetsPane() {
         <div style="border: 1px solid var(--border-color, rgba(0,0,0,0.1)); border-radius: 6px; margin-bottom: 10px; overflow: hidden;">
             <div style="padding: 8px 12px; background: var(--bg-hover, rgba(0,0,0,0.02)); display: flex; justify-content: space-between; align-items: center; cursor: pointer; color: var(--text-primary);" onclick="this.nextElementSibling.classList.toggle('hidden')">
                 <div style="font-weight: 600;"><i class="fa-solid fa-box" style="color: var(--primary); margin-right: 8px;"></i> ${name}</div>
-                <div>
+                <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="background: var(--bg-surface, rgba(0,0,0,0.1)); color: var(--text-primary); font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700;" title="Available Quantity">${availableCount}</span>
+                    <button class="btn btn-sm btn-icon" style="padding: 2px 6px; color: var(--primary);" onclick="event.stopPropagation(); addInlineAsset('${name.replace(/'/g, "\\'")}')" title="Add More"><i class="fa-solid fa-plus" style="font-size: 10px;"></i></button>
                 </div>
             </div>`;
             
@@ -386,7 +387,7 @@ window.deleteInlineSubCat = function() {
     window.renderAssetsInventory();
 };
 
-window.addInlineAsset = function() {
+window.addInlineAsset = function(prefillName = null) {
     if (!window.selectedMainCategory || !window.selectedSubCategory) {
         if (window.showToast) window.showToast('Please select a Main and Sub Category first to add an asset', 'warning');
         return;
@@ -404,6 +405,11 @@ window.addInlineAsset = function() {
             setTimeout(() => {
                 const subSel = document.getElementById('add-asset-sub-category');
                 if (subSel) subSel.value = window.selectedSubCategory;
+                
+                if (prefillName) {
+                    const nameInput = document.getElementById('add-asset-name');
+                    if (nameInput) nameInput.value = prefillName;
+                }
             }, 50);
         }
     }, 100);
