@@ -913,7 +913,7 @@ window.addBulkAssetRow = function(data = {}) {
             </select>
         </td>
         <td style="padding: 4px;">
-            <select class="form-control sub-cat-select" style="font-size: 12px; padding: 4px;">
+            <select class="form-control sub-cat-select" style="font-size: 12px; padding: 4px;" onchange="window.populateBulkAssetNames('${rowId}')">
                 ${window.generateSubCatOptions(data.mainCat, data.subCat)}
             </select>
         </td>
@@ -937,6 +937,7 @@ window.addBulkAssetRow = function(data = {}) {
     
     tbody.appendChild(tr);
     window.checkBulkQtyLock(rowId);
+    window.populateBulkAssetNames(rowId);
 };
 
 window.updateBulkSubCat = function(rowId) {
