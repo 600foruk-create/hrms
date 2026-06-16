@@ -422,58 +422,80 @@ window.openManageAssetCategoriesModal = function() {
     } catch (e) { console.error(e); }
 };
 
-window.saveAssetCategory = function(e) {
+window.saveAssetMainCategory = function(e) {
     if (e) e.preventDefault();
     const db = window.getDb ? window.getDb() : window.db;
     const mainCat = document.getElementById('new-asset-main-cat').value.trim();
-    const subCat = document.getElementById('new-asset-sub-cat').value.trim();
 
-    if (!mainCat || !subCat) return;
-
+    if (!mainCat) return;
     if (!db.systemSettings.assetCategories) db.systemSettings.assetCategories = [];
 
     let category = db.systemSettings.assetCategories.find(c => c.name.toLowerCase() === mainCat.toLowerCase());
     if (!category) {
         category = { name: mainCat, subCategories: [] };
         db.systemSettings.assetCategories.push(category);
+        
+        if (window.saveDb) window.saveDb(db);
+        if (window.showToast) window.showToast('Main Category created', 'success');
+        document.getElementById('new-asset-main-cat').value = '';
+        renderAssetCategoriesTable();
+    } else {
+        if (window.showToast) window.showToast('This Main Category already exists', 'error');
     }
+};
 
-    if (!category.subCategories.find(s => s.toLowerCase() === subCat.toLowerCase())) {
-        category.subCategories.push(subCat);
-    }
+window.saveAssetSubCategory = function(e) {
+    if (e) e.preventDefault();
+    const db = window.getDb ? window.getDb() : window.db;
+    const mainCat = document.getElementById('select-asset-main-cat').value;
+    const subCat = document.getElementById('new-asset-sub-cat').value.trim();
 
-    if (window.saveDb) window.saveDb(db);
-    if (window.showToast) window.showToast('Category saved successfully', 'success');
-    document.getElementById('new-asset-sub-cat').value = '';
-    renderAssetCategoriesTable();
-    
-    // Refresh dropdowns if Add Asset modal is open
-    const catList = document.getElementById('add-asset-category');
-    if (catList && catList.options.length > 0) {
-        let hasIt = false;
-        for (let i = 0; i < catList.options.length; i++) {
-            if (catList.options[i].value === category.name) hasIt = true;
+    if (!mainCat || !subCat) return;
+
+    let category = db.systemSettings.assetCategories.find(c => c.name === mainCat);
+    if (category) {
+        if (!category.subCategories) category.subCategories = [];
+        if (!category.subCategories.find(s => s.toLowerCase() === subCat.toLowerCase())) {
+            category.subCategories.push(subCat);
+            if (window.saveDb) window.saveDb(db);
+            if (window.showToast) window.showToast('Sub Category added', 'success');
+            document.getElementById('new-asset-sub-cat').value = '';
+            renderAssetCategoriesTable();
+        } else {
+            if (window.showToast) window.showToast('Sub Category already exists under this Main Category', 'error');
         }
-        if (!hasIt) catList.innerHTML += `<option value="${category.name}">${category.name}</option>`;
     }
 };
 
 window.renderAssetCategoriesTable = function() {
     const db = window.getDb ? window.getDb() : window.db;
     const tbody = document.getElementById('asset-categories-tbody');
+    const selectMainCat = document.getElementById('select-asset-main-cat');
+    
+    if (selectMainCat) {
+        selectMainCat.innerHTML = '<option value="">-- Select Main Category --</option>';
+    }
+
     if (!tbody) return;
 
     let html = '';
-    if (db.systemSettings.assetCategories) {
+    if (db.systemSettings.assetCategories && db.systemSettings.assetCategories.length > 0) {
         db.systemSettings.assetCategories.forEach(c => {
-            html += `<tr><td><strong>${c.name}</strong></td><td>`;
-            c.subCategories.forEach(sub => {
-                html += `<span class='badge bg-secondary' style='margin-right:5px; margin-bottom:5px; display:inline-block;'>${sub} <i class='fa-solid fa-xmark' style='cursor:pointer; margin-left:3px;' onclick='deleteAssetSubCategory("${c.name}", "${sub}")'></i></span>`;
-            });
-            html += `</td><td><button class='btn btn-sm btn-outline-danger' onclick='deleteAssetMainCategory("${c.name}")'><i class='fa-solid fa-trash'></i></button></td></tr>`;
+            if (selectMainCat) {
+                selectMainCat.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+            }
+            html += `<tr><td style="vertical-align: top; width: 30%;"><strong>${c.name}</strong></td><td style="vertical-align: top;">`;
+            if (c.subCategories && c.subCategories.length > 0) {
+                c.subCategories.forEach(sub => {
+                    html += `<span class='badge bg-secondary' style='margin-right:5px; margin-bottom:5px; display:inline-block; font-weight: 500;'>${sub} <i class='fa-solid fa-xmark' style='cursor:pointer; margin-left:5px; color: #ffcccc;' onclick='deleteAssetSubCategory("${c.name}", "${sub}")'></i></span>`;
+                });
+            } else {
+                html += `<span class="text-muted" style="font-size: 12px;">No sub-categories</span>`;
+            }
+            html += `</td><td style="vertical-align: top;"><button class='btn btn-sm btn-outline-danger' onclick='deleteAssetMainCategory("${c.name}")'><i class='fa-solid fa-trash'></i></button></td></tr>`;
         });
     }
-    tbody.innerHTML = html || '<tr><td colspan="3" class="text-center text-muted">No categories found</td></tr>';
+    tbody.innerHTML = html || '<tr><td colspan="3" class="text-center text-muted">No categories found. Create a Main Category first.</td></tr>';
 };
 
 window.deleteAssetMainCategory = function(mainCat) {
