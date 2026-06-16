@@ -70,9 +70,9 @@ function renderMainPane() {
     if (db.systemSettings.assetCategories && db.systemSettings.assetCategories.length > 0) {
         db.systemSettings.assetCategories.forEach(c => {
             const isActive = window.selectedMainCategory === c.name;
-            const bg = isActive ? 'var(--primary-color)' : '';
-            const color = isActive ? '#fff' : '#333';
-            const iconColor = isActive ? '#fff' : '#666';
+            const bg = isActive ? 'var(--primary)' : '';
+            const color = isActive ? '#fff' : 'var(--text-primary)';
+            const iconColor = isActive ? '#fff' : 'var(--text-secondary)';
             const hover = isActive ? '' : `onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background=''"`;
             
             html += `<li style="padding: 12px 15px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s; background: ${bg}; color: ${color};" ${hover} onclick="selectMainCategoryBox('${c.name}')"><i class="fa-solid fa-folder" style="color: ${iconColor}; margin-right: 8px;"></i> <strong>${c.name}</strong></li>`;
@@ -98,9 +98,9 @@ function renderSubPane() {
     if (category && category.subCategories && category.subCategories.length > 0) {
         category.subCategories.forEach(sub => {
             const isActive = window.selectedSubCategory === sub;
-            const bg = isActive ? 'var(--primary-color)' : '';
-            const color = isActive ? '#fff' : '#333';
-            const iconColor = isActive ? '#fff' : '#666';
+            const bg = isActive ? 'var(--primary)' : '';
+            const color = isActive ? '#fff' : 'var(--text-primary)';
+            const iconColor = isActive ? '#fff' : 'var(--text-secondary)';
             const hover = isActive ? '' : `onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background=''"`;
 
             html += `<li style="padding: 12px 15px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s; background: ${bg}; color: ${color};" ${hover} onclick="selectSubCategoryBox('${window.selectedMainCategory}', '${sub}')"><i class="fa-solid fa-folder-open" style="color: ${iconColor}; margin-right: 8px;"></i> ${sub}</li>`;
@@ -148,7 +148,7 @@ function renderAssetsPane() {
         html += `
         <div style="border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; margin-bottom: 10px; overflow: hidden;">
             <div style="padding: 12px 15px; background: rgba(0,0,0,0.02); display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.classList.toggle('hidden')">
-                <div style="font-weight: 600;"><i class="fa-solid fa-box" style="color: var(--primary-color); margin-right: 8px;"></i> ${name}</div>
+                <div style="font-weight: 600;"><i class="fa-solid fa-box" style="color: var(--primary); margin-right: 8px;"></i> ${name}</div>
                 <div>
                     <span class="badge bg-primary" style="margin-right: 5px;">Total: ${items.length}</span>
                     <span class="badge bg-success">Available: ${availableCount}</span>
