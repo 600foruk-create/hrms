@@ -52,7 +52,16 @@ window.renderAdminAssetsTab = function(subtab = 'inventory') {
     }
 };
 
+window.selectedMainCategory = null;
+window.selectedSubCategory = null;
+
 window.renderAssetsInventory = function() {
+    renderMainPane();
+    renderSubPane();
+    renderAssetsPane();
+}
+
+function renderMainPane() {
     const db = window.getDb ? window.getDb() : window.db;
     const mainPane = document.getElementById('inventory-pane-main-cat');
     if (!mainPane) return;
@@ -60,54 +69,64 @@ window.renderAssetsInventory = function() {
     let html = '';
     if (db.systemSettings.assetCategories && db.systemSettings.assetCategories.length > 0) {
         db.systemSettings.assetCategories.forEach(c => {
-            html += `<li style="padding: 12px 15px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background=''" onclick="selectMainCategoryBox('${c.name}')"><i class="fa-solid fa-folder" style="color: #666; margin-right: 8px;"></i> <strong>${c.name}</strong></li>`;
+            const isActive = window.selectedMainCategory === c.name;
+            const bg = isActive ? 'var(--primary-color)' : '';
+            const color = isActive ? '#fff' : '#333';
+            const iconColor = isActive ? '#fff' : '#666';
+            const hover = isActive ? '' : `onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background=''"`;
+            
+            html += `<li style="padding: 12px 15px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s; background: ${bg}; color: ${color};" ${hover} onclick="selectMainCategoryBox('${c.name}')"><i class="fa-solid fa-folder" style="color: ${iconColor}; margin-right: 8px;"></i> <strong>${c.name}</strong></li>`;
         });
     } else {
         html = '<li style="padding: 15px; text-align: center; color: #999;">No categories found</li>';
     }
     mainPane.innerHTML = html;
-    
-    // Reset Sub and Assets
-    const subPane = document.getElementById('inventory-pane-sub-cat');
-    if (subPane) subPane.innerHTML = '<li style="padding: 15px; text-align: center; color: #999; font-style: italic;">Select a Main Category</li>';
-    
-    const assetsPane = document.getElementById('inventory-pane-assets-content');
-    if (assetsPane) assetsPane.innerHTML = '<div style="text-align: center; color: #999; font-style: italic; margin-top: 20px;">Select a Sub Category to view assets</div>';
-    
-    const title = document.getElementById('inventory-pane-assets-title');
-    if (title) title.innerText = 'Assets';
 }
 
-window.selectMainCategoryBox = function(mainCat) {
+function renderSubPane() {
     const db = window.getDb ? window.getDb() : window.db;
     const subPane = document.getElementById('inventory-pane-sub-cat');
     if (!subPane) return;
     
-    const category = db.systemSettings.assetCategories.find(c => c.name === mainCat);
+    if (!window.selectedMainCategory) {
+        subPane.innerHTML = '<li style="padding: 15px; text-align: center; color: #999; font-style: italic;">Select a Main Category</li>';
+        return;
+    }
+
+    const category = db.systemSettings.assetCategories.find(c => c.name === window.selectedMainCategory);
     let html = '';
     if (category && category.subCategories && category.subCategories.length > 0) {
         category.subCategories.forEach(sub => {
-            html += `<li style="padding: 12px 15px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background=''" onclick="selectSubCategoryBox('${mainCat}', '${sub}')"><i class="fa-solid fa-folder-open" style="color: #666; margin-right: 8px;"></i> ${sub}</li>`;
+            const isActive = window.selectedSubCategory === sub;
+            const bg = isActive ? 'var(--primary-color)' : '';
+            const color = isActive ? '#fff' : '#333';
+            const iconColor = isActive ? '#fff' : '#666';
+            const hover = isActive ? '' : `onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background=''"`;
+
+            html += `<li style="padding: 12px 15px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s; background: ${bg}; color: ${color};" ${hover} onclick="selectSubCategoryBox('${window.selectedMainCategory}', '${sub}')"><i class="fa-solid fa-folder-open" style="color: ${iconColor}; margin-right: 8px;"></i> ${sub}</li>`;
         });
     } else {
         html = '<li style="padding: 15px; text-align: center; color: #999;">No sub-categories</li>';
     }
     subPane.innerHTML = html;
-    
-    // Reset Assets
-    document.getElementById('inventory-pane-assets-content').innerHTML = '<div style="text-align: center; color: #999; font-style: italic; margin-top: 20px;">Select a Sub Category to view assets</div>';
-    document.getElementById('inventory-pane-assets-title').innerText = 'Assets';
-};
+}
 
-window.selectSubCategoryBox = function(mainCat, subCat) {
+function renderAssetsPane() {
     const db = window.getDb ? window.getDb() : window.db;
     const assetsPane = document.getElementById('inventory-pane-assets-content');
+    const title = document.getElementById('inventory-pane-assets-title');
     if (!assetsPane) return;
     
-    document.getElementById('inventory-pane-assets-title').innerHTML = `Assets <span class="badge bg-secondary">${subCat}</span>`;
+    if (!window.selectedMainCategory || !window.selectedSubCategory) {
+        if (title) title.innerText = 'Assets';
+        assetsPane.innerHTML = '<div style="text-align: center; color: #999; font-style: italic; margin-top: 20px;">Select a Sub Category to view assets</div>';
+        return;
+    }
+
+    if (title) title.innerHTML = `Assets`;
     
     if (!db.assets) db.assets = [];
-    const filteredAssets = db.assets.filter(a => a.category === mainCat && a.sub_category === subCat);
+    const filteredAssets = db.assets.filter(a => a.category === window.selectedMainCategory && a.sub_category === window.selectedSubCategory);
     
     if (filteredAssets.length === 0) {
         assetsPane.innerHTML = '<div style="text-align: center; color: #999; margin-top: 20px;">No assets found in this sub-category</div>';
@@ -158,6 +177,184 @@ window.selectSubCategoryBox = function(mainCat, subCat) {
     }
     
     assetsPane.innerHTML = html;
+}
+
+window.selectMainCategoryBox = function(mainCat) {
+    window.selectedMainCategory = mainCat;
+    window.selectedSubCategory = null;
+    window.renderAssetsInventory();
+};
+
+window.selectSubCategoryBox = function(mainCat, subCat) {
+    window.selectedMainCategory = mainCat;
+    window.selectedSubCategory = subCat;
+    window.renderAssetsInventory();
+};
+
+// --- Inline Management Functions ---
+
+window.addInlineMainCat = function() {
+    const db = window.getDb ? window.getDb() : window.db;
+    const name = prompt('Enter new Main Category name:');
+    if (!name || !name.trim()) return;
+    if (!db.systemSettings.assetCategories) db.systemSettings.assetCategories = [];
+    if (db.systemSettings.assetCategories.find(c => c.name.toLowerCase() === name.trim().toLowerCase())) {
+        if (window.showToast) window.showToast('Main Category already exists', 'error');
+        return;
+    }
+    db.systemSettings.assetCategories.push({ name: name.trim(), subCategories: [] });
+    if (window.saveDb) window.saveDb(db);
+    if (window.showToast) window.showToast('Main Category created', 'success');
+    window.selectedMainCategory = name.trim();
+    window.selectedSubCategory = null;
+    window.renderAssetsInventory();
+};
+
+window.editInlineMainCat = function() {
+    if (!window.selectedMainCategory) {
+        if (window.showToast) window.showToast('Please select a Main Category to edit', 'warning');
+        return;
+    }
+    const db = window.getDb ? window.getDb() : window.db;
+    const category = db.systemSettings.assetCategories.find(c => c.name === window.selectedMainCategory);
+    if (!category) return;
+    
+    const newName = prompt('Enter new name for Main Category:', category.name);
+    if (!newName || !newName.trim() || newName.trim() === category.name) return;
+    
+    if (db.systemSettings.assetCategories.find(c => c.name.toLowerCase() === newName.trim().toLowerCase())) {
+        if (window.showToast) window.showToast('A Main Category with this name already exists', 'error');
+        return;
+    }
+    
+    category.name = newName.trim();
+    // Also update all assets
+    if (db.assets) {
+        db.assets.forEach(a => {
+            if (a.category === window.selectedMainCategory) a.category = newName.trim();
+        });
+    }
+    
+    if (window.saveDb) window.saveDb(db);
+    if (window.showToast) window.showToast('Main Category renamed', 'success');
+    window.selectedMainCategory = newName.trim();
+    window.renderAssetsInventory();
+};
+
+window.deleteInlineMainCat = function() {
+    if (!window.selectedMainCategory) {
+        if (window.showToast) window.showToast('Please select a Main Category to delete', 'warning');
+        return;
+    }
+    if (!confirm(`Are you sure you want to delete "${window.selectedMainCategory}" and all its sub-categories? (Assets will not be deleted)`)) return;
+    
+    const db = window.getDb ? window.getDb() : window.db;
+    db.systemSettings.assetCategories = db.systemSettings.assetCategories.filter(c => c.name !== window.selectedMainCategory);
+    if (window.saveDb) window.saveDb(db);
+    if (window.showToast) window.showToast('Main Category deleted', 'success');
+    window.selectedMainCategory = null;
+    window.selectedSubCategory = null;
+    window.renderAssetsInventory();
+};
+
+window.addInlineSubCat = function() {
+    if (!window.selectedMainCategory) {
+        if (window.showToast) window.showToast('Please select a Main Category first', 'warning');
+        return;
+    }
+    const db = window.getDb ? window.getDb() : window.db;
+    const category = db.systemSettings.assetCategories.find(c => c.name === window.selectedMainCategory);
+    if (!category) return;
+    
+    const name = prompt(`Enter new Sub Category name under "${window.selectedMainCategory}":`);
+    if (!name || !name.trim()) return;
+    
+    if (!category.subCategories) category.subCategories = [];
+    if (category.subCategories.find(s => s.toLowerCase() === name.trim().toLowerCase())) {
+        if (window.showToast) window.showToast('Sub Category already exists', 'error');
+        return;
+    }
+    category.subCategories.push(name.trim());
+    if (window.saveDb) window.saveDb(db);
+    if (window.showToast) window.showToast('Sub Category created', 'success');
+    window.selectedSubCategory = name.trim();
+    window.renderAssetsInventory();
+};
+
+window.editInlineSubCat = function() {
+    if (!window.selectedMainCategory || !window.selectedSubCategory) {
+        if (window.showToast) window.showToast('Please select a Sub Category to edit', 'warning');
+        return;
+    }
+    const db = window.getDb ? window.getDb() : window.db;
+    const category = db.systemSettings.assetCategories.find(c => c.name === window.selectedMainCategory);
+    if (!category || !category.subCategories) return;
+    
+    const newName = prompt('Enter new name for Sub Category:', window.selectedSubCategory);
+    if (!newName || !newName.trim() || newName.trim() === window.selectedSubCategory) return;
+    
+    if (category.subCategories.find(s => s.toLowerCase() === newName.trim().toLowerCase())) {
+        if (window.showToast) window.showToast('A Sub Category with this name already exists', 'error');
+        return;
+    }
+    
+    const idx = category.subCategories.indexOf(window.selectedSubCategory);
+    if (idx !== -1) category.subCategories[idx] = newName.trim();
+    
+    // Update assets
+    if (db.assets) {
+        db.assets.forEach(a => {
+            if (a.category === window.selectedMainCategory && a.sub_category === window.selectedSubCategory) {
+                a.sub_category = newName.trim();
+            }
+        });
+    }
+    
+    if (window.saveDb) window.saveDb(db);
+    if (window.showToast) window.showToast('Sub Category renamed', 'success');
+    window.selectedSubCategory = newName.trim();
+    window.renderAssetsInventory();
+};
+
+window.deleteInlineSubCat = function() {
+    if (!window.selectedMainCategory || !window.selectedSubCategory) {
+        if (window.showToast) window.showToast('Please select a Sub Category to delete', 'warning');
+        return;
+    }
+    if (!confirm(`Are you sure you want to delete "${window.selectedSubCategory}"?`)) return;
+    
+    const db = window.getDb ? window.getDb() : window.db;
+    const category = db.systemSettings.assetCategories.find(c => c.name === window.selectedMainCategory);
+    if (category && category.subCategories) {
+        category.subCategories = category.subCategories.filter(s => s !== window.selectedSubCategory);
+    }
+    if (window.saveDb) window.saveDb(db);
+    if (window.showToast) window.showToast('Sub Category deleted', 'success');
+    window.selectedSubCategory = null;
+    window.renderAssetsInventory();
+};
+
+window.addInlineAsset = function() {
+    if (!window.selectedMainCategory || !window.selectedSubCategory) {
+        if (window.showToast) window.showToast('Please select a Main and Sub Category first to add an asset', 'warning');
+        return;
+    }
+    
+    if (window.openAddAssetModal) window.openAddAssetModal();
+    setTimeout(() => {
+        const mainSel = document.getElementById('add-asset-category');
+        if (mainSel) {
+            mainSel.value = window.selectedMainCategory;
+            // trigger change to populate sub categories
+            const ev = new Event('change');
+            mainSel.dispatchEvent(ev);
+            
+            setTimeout(() => {
+                const subSel = document.getElementById('add-asset-sub-category');
+                if (subSel) subSel.value = window.selectedSubCategory;
+            }, 50);
+        }
+    }, 100);
 };
 
 window.openAddAssetModal = function() {

@@ -1818,33 +1818,48 @@
                             <!-- Sub Tab 1: Asset Inventory -->
                             <div id="subtab-content-admin-assets-inventory" class="sub-tab-content">
                                 <div class="section-card bg-glass">
-                                    <div class="section-card-header" style="justify-content: space-between; display: flex;">
-                                        <h3 style="font-size: 16px; font-weight: 700; margin: 0;">Asset Master List</h3>
-                                        <div>
-                                            <button class="btn btn-outline" onclick="if(window.openManageAssetCategoriesModal) window.openManageAssetCategoriesModal()" style="margin-right: 10px;"><i class="fa-solid fa-list"></i> Manage Categories</button>
-                                            <button class="btn btn-primary" onclick="if(window.openAddAssetModal) window.openAddAssetModal()"><i class="fa-solid fa-plus"></i> Add New Asset</button>
+                                    <div class="section-card-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 15px;">
+                                        <div style="display: flex;">
+                                            <h3 style="font-size: 16px; font-weight: 700; margin: 0;">Asset Master List</h3>
                                         </div>
                                     </div>
                                     <div class="table-container" style="padding: 0;">
                                         <div style="display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 0; min-height: 400px; border: 1px solid rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden;">
                                             <!-- Pane 1: Main Categories -->
                                             <div style="background: rgba(0,0,0,0.02); border-right: 1px solid rgba(0,0,0,0.05);">
-                                                <div style="padding: 10px 15px; font-weight: 600; border-bottom: 1px solid rgba(0,0,0,0.05); background: rgba(0,0,0,0.03);">Main Categories</div>
+                                                <div style="padding: 10px 15px; font-weight: 600; border-bottom: 1px solid rgba(0,0,0,0.05); background: rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center;">
+                                                    <span>Main Categories</span>
+                                                    <div>
+                                                        <button class="btn btn-sm btn-outline-primary" style="padding: 2px 6px; margin-right: 2px;" onclick="addInlineMainCat()" title="Add"><i class="fa-solid fa-plus" style="font-size: 10px;"></i></button>
+                                                        <button class="btn btn-sm btn-outline-secondary" style="padding: 2px 6px; margin-right: 2px;" onclick="editInlineMainCat()" title="Edit"><i class="fa-solid fa-pen" style="font-size: 10px;"></i></button>
+                                                        <button class="btn btn-sm btn-outline-danger" style="padding: 2px 6px;" onclick="deleteInlineMainCat()" title="Delete"><i class="fa-solid fa-trash" style="font-size: 10px;"></i></button>
+                                                    </div>
+                                                </div>
                                                 <ul id="inventory-pane-main-cat" style="list-style: none; margin: 0; padding: 0;">
                                                     <li style="padding: 15px; text-align: center; color: #666;">Loading...</li>
                                                 </ul>
                                             </div>
                                             <!-- Pane 2: Sub Categories -->
                                             <div style="background: rgba(0,0,0,0.01); border-right: 1px solid rgba(0,0,0,0.05);">
-                                                <div style="padding: 10px 15px; font-weight: 600; border-bottom: 1px solid rgba(0,0,0,0.05); background: rgba(0,0,0,0.03);">Sub Categories</div>
+                                                <div style="padding: 10px 15px; font-weight: 600; border-bottom: 1px solid rgba(0,0,0,0.05); background: rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center;">
+                                                    <span>Sub Categories</span>
+                                                    <div>
+                                                        <button class="btn btn-sm btn-outline-primary" style="padding: 2px 6px; margin-right: 2px;" onclick="addInlineSubCat()" title="Add"><i class="fa-solid fa-plus" style="font-size: 10px;"></i></button>
+                                                        <button class="btn btn-sm btn-outline-secondary" style="padding: 2px 6px; margin-right: 2px;" onclick="editInlineSubCat()" title="Edit"><i class="fa-solid fa-pen" style="font-size: 10px;"></i></button>
+                                                        <button class="btn btn-sm btn-outline-danger" style="padding: 2px 6px;" onclick="deleteInlineSubCat()" title="Delete"><i class="fa-solid fa-trash" style="font-size: 10px;"></i></button>
+                                                    </div>
+                                                </div>
                                                 <ul id="inventory-pane-sub-cat" style="list-style: none; margin: 0; padding: 0;">
                                                     <li style="padding: 15px; text-align: center; color: #999; font-style: italic;">Select a Main Category</li>
                                                 </ul>
                                             </div>
                                             <!-- Pane 3: Assets Grouped -->
                                             <div style="background: #fff; position: relative;">
-                                                <div style="padding: 10px 15px; font-weight: 600; border-bottom: 1px solid rgba(0,0,0,0.05); background: rgba(0,0,0,0.03); display: flex; justify-content: space-between;">
+                                                <div style="padding: 10px 15px; font-weight: 600; border-bottom: 1px solid rgba(0,0,0,0.05); background: rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center;">
                                                     <span id="inventory-pane-assets-title">Assets</span>
+                                                    <div>
+                                                        <button class="btn btn-sm btn-primary" style="padding: 2px 8px; font-size: 11px;" onclick="addInlineAsset()" title="Add New Asset"><i class="fa-solid fa-plus" style="margin-right: 4px;"></i>Add Asset</button>
+                                                    </div>
                                                 </div>
                                                 <div id="inventory-pane-assets-content" style="padding: 15px; max-height: 400px; overflow-y: auto;">
                                                     <div style="text-align: center; color: #999; font-style: italic; margin-top: 20px;">Select a Sub Category to view assets</div>
