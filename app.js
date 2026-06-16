@@ -363,9 +363,12 @@ async function loadApiConfigs() {
                 const provEl = document.getElementById('email-api-provider');
                 const keyEl = document.getElementById('email-api-key');
                 const senderEl = document.getElementById('email-api-sender');
+                const extraEl = document.getElementById('email-api-extra');
+                
                 if (provEl) provEl.value = emailConfig.provider || 'smtp';
                 if (keyEl) keyEl.value = emailConfig.api_key || '';
                 if (senderEl) senderEl.value = emailConfig.sender || '';
+                if (extraEl) extraEl.value = emailConfig.extra || '';
             }
             // Add WhatsApp/IPs logic here later if needed
         }
@@ -4038,11 +4041,12 @@ document.addEventListener('submit', async (e) => {
             const provider = document.getElementById('email-api-provider').value;
             const key = document.getElementById('email-api-key').value;
             const sender = document.getElementById('email-api-sender').value;
+            const extra = document.getElementById('email-api-extra') ? document.getElementById('email-api-extra').value : '';
 
             // Save locally
             const db = getDb();
             if (!db.settings) db.settings = {};
-            db.settings.emailApi = { provider, key, sender };
+            db.settings.emailApi = { provider, key, sender, extra };
             await saveDb(db);
 
             // Save to new API Config Table
@@ -4055,7 +4059,7 @@ document.addEventListener('submit', async (e) => {
                         provider: provider,
                         api_key: key,
                         sender: sender,
-                        extra: ''
+                        extra: extra
                     })
                 });
                 const res = await req.json();
