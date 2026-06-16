@@ -167,11 +167,11 @@ function renderAssetsPane() {
         const availableCount = items.filter(i => i.status === 'Available').length;
         
         html += `
-        <div style="border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; margin-bottom: 10px; overflow: hidden;">
-            <div style="padding: 8px 12px; background: rgba(0,0,0,0.02); display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.classList.toggle('hidden')">
+        <div style="border: 1px solid var(--border-color, rgba(0,0,0,0.1)); border-radius: 6px; margin-bottom: 10px; overflow: hidden;">
+            <div style="padding: 8px 12px; background: var(--bg-hover, rgba(0,0,0,0.02)); display: flex; justify-content: space-between; align-items: center; cursor: pointer; color: var(--text-primary);" onclick="this.nextElementSibling.classList.toggle('hidden')">
                 <div style="font-weight: 600;"><i class="fa-solid fa-box" style="color: var(--primary); margin-right: 8px;"></i> ${name}</div>
                 <div>
-                    <span style="background: rgba(0,0,0,0.1); color: var(--text-primary); font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700;" title="Available Quantity">${availableCount}</span>
+                    <span style="background: var(--bg-surface, rgba(0,0,0,0.1)); color: var(--text-primary); font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700;" title="Available Quantity">${availableCount}</span>
                 </div>
             </div>`;
             
@@ -179,7 +179,7 @@ function renderAssetsPane() {
         const serialItems = items.filter(i => i.serial_number && i.serial_number.trim() !== '');
         
         if (serialItems.length > 0 || noSerialItems.length > 0) {
-            html += `<div class="hidden" style="padding: 0; border-top: 1px solid rgba(0,0,0,0.05);">
+            html += `<div class="hidden" style="padding: 0; border-top: 1px solid var(--border-color, rgba(0,0,0,0.05));">
                 <table class="data-table" style="margin: 0; box-shadow: none;">
                     <thead><tr><th>ID</th><th>Serial No</th><th>Status</th><th style="width: 50px;"></th></tr></thead>
                     <tbody>`;
