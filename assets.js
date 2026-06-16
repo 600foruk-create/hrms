@@ -75,7 +75,7 @@ function renderMainPane() {
             const iconColor = isActive ? '#fff' : 'var(--text-secondary)';
             const hover = isActive ? '' : `onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background=''"`;
             
-            html += `<li style="padding: 12px 15px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s; background: ${bg}; color: ${color};" ${hover} onclick="selectMainCategoryBox('${c.name}')"><i class="fa-solid fa-folder" style="color: ${iconColor}; margin-right: 8px;"></i> <strong>${c.name}</strong></li>`;
+            html += `<li style="padding: 8px 12px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s; background: ${bg}; color: ${color};" ${hover} onclick="selectMainCategoryBox('${c.name}')"><i class="fa-solid fa-folder" style="color: ${iconColor}; margin-right: 8px;"></i> <strong>${c.name}</strong></li>`;
         });
     } else {
         html = '<li style="padding: 15px; text-align: center; color: #999;">No categories found</li>';
@@ -103,7 +103,7 @@ function renderSubPane() {
             const iconColor = isActive ? '#fff' : 'var(--text-secondary)';
             const hover = isActive ? '' : `onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background=''"`;
 
-            html += `<li style="padding: 12px 15px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s; background: ${bg}; color: ${color};" ${hover} onclick="selectSubCategoryBox('${window.selectedMainCategory}', '${sub}')"><i class="fa-solid fa-folder-open" style="color: ${iconColor}; margin-right: 8px;"></i> ${sub}</li>`;
+            html += `<li style="padding: 8px 12px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s; background: ${bg}; color: ${color};" ${hover} onclick="selectSubCategoryBox('${window.selectedMainCategory}', '${sub}')"><i class="fa-solid fa-folder-open" style="color: ${iconColor}; margin-right: 8px;"></i> ${sub}</li>`;
         });
     } else {
         html = '<li style="padding: 15px; text-align: center; color: #999;">No sub-categories</li>';
@@ -147,7 +147,7 @@ function renderAssetsPane() {
         
         html += `
         <div style="border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; margin-bottom: 10px; overflow: hidden;">
-            <div style="padding: 12px 15px; background: rgba(0,0,0,0.02); display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.classList.toggle('hidden')">
+            <div style="padding: 8px 12px; background: rgba(0,0,0,0.02); display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.classList.toggle('hidden')">
                 <div style="font-weight: 600;"><i class="fa-solid fa-box" style="color: var(--primary); margin-right: 8px;"></i> ${name}</div>
                 <div>
                     <span class="badge bg-primary" style="margin-right: 5px;">Total: ${items.length}</span>
