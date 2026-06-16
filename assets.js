@@ -56,6 +56,21 @@ window.selectedMainCategory = null;
 window.selectedSubCategory = null;
 
 window.renderAssetsInventory = function() {
+    const db = window.getDb ? window.getDb() : window.db;
+    
+    // Auto-select first Main Category if none selected
+    if (!window.selectedMainCategory && db.systemSettings && db.systemSettings.assetCategories && db.systemSettings.assetCategories.length > 0) {
+        window.selectedMainCategory = db.systemSettings.assetCategories[0].name;
+    }
+    
+    // Auto-select first Sub Category if Main is selected but Sub is not
+    if (window.selectedMainCategory && !window.selectedSubCategory) {
+        const category = db.systemSettings.assetCategories.find(c => c.name === window.selectedMainCategory);
+        if (category && category.subCategories && category.subCategories.length > 0) {
+            window.selectedSubCategory = category.subCategories[0];
+        }
+    }
+
     renderMainPane();
     renderSubPane();
     renderAssetsPane();
