@@ -917,9 +917,11 @@ window.addBulkAssetRow = function(data = {}) {
                 ${window.generateSubCatOptions(data.mainCat, data.subCat)}
             </select>
         </td>
-        <td style="padding: 4px;">
-            <input type="text" class="form-control asset-name" list="asset-names-${rowId}" style="font-size: 12px; padding: 4px;" value="${data.name || ''}" placeholder="Brand/Model" onfocus="window.populateBulkAssetNames('${rowId}')">
-            <datalist id="asset-names-${rowId}"></datalist>
+        <td style="padding: 4px; position: relative;">
+            <select class="form-control asset-name-select" style="font-size: 12px; padding: 4px;" onchange="window.handleBulkAssetNameChange('${rowId}')">
+                <option value="">-- Select Brand --</option>
+            </select>
+            <input type="text" class="form-control asset-name-input hidden" style="font-size: 12px; padding: 4px;" value="${data.name || ''}" placeholder="Type new brand..." onblur="window.handleBulkAssetNameBlur('${rowId}')">
         </td>
         <td style="padding: 4px;">
             <input type="text" class="form-control asset-serial" style="font-size: 12px; padding: 4px;" value="${data.serial || ''}" placeholder="Comma separated" oninput="window.checkBulkQtyLock('${rowId}')">
@@ -952,21 +954,71 @@ window.populateBulkAssetNames = function(rowId) {
     if (!row) return;
     const mainCat = row.querySelector('select:first-child').value;
     const subCat = row.querySelector('.sub-cat-select').value;
-    const datalist = document.getElementById(`asset-names-${rowId}`);
+    const select = row.querySelector('.asset-name-select');
+    const input = row.querySelector('.asset-name-input');
     
-    if (!datalist) return;
+    if (!select) return;
     
     const db = window.getDb ? window.getDb() : window.db;
-    if (!db.assets) return;
     
     const names = new Set();
-    db.assets.forEach(a => {
-        if (a.category === mainCat && a.sub_category === subCat && a.name) {
-            names.add(a.name);
-        }
-    });
+    if (db.assets) {
+        db.assets.forEach(a => {
+            if (a.category === mainCat && a.sub_category === subCat && a.name) {
+                names.add(a.name);
+            }
+        });
+    }
     
-    datalist.innerHTML = Array.from(names).map(name => `<option value="${name.replace(/"/g, '&quot;')}">`).join('');
+    let currentVal = select.value;
+    if (select.classList.contains('hidden')) {
+        currentVal = input.value.trim();
+    }
+    
+    let html = '<option value="">-- Select Brand --</option>';
+    Array.from(names).forEach(name => {
+        html += `<option value="${name.replace(/"/g, '&quot;')}">${name}</option>`;
+    });
+    html += '<option value="__NEW__" style="font-weight:bold; color:var(--primary);">+ Type New Brand...</option>';
+    
+    select.innerHTML = html;
+    
+    if (names.has(currentVal) || currentVal === '') {
+        select.value = currentVal;
+        select.classList.remove('hidden');
+        input.classList.add('hidden');
+    } else {
+        select.classList.add('hidden');
+        input.classList.remove('hidden');
+        input.value = currentVal;
+    }
+};
+
+window.handleBulkAssetNameChange = function(rowId) {
+    const row = document.getElementById(rowId);
+    if (!row) return;
+    const select = row.querySelector('.asset-name-select');
+    const input = row.querySelector('.asset-name-input');
+    
+    if (select.value === '__NEW__') {
+        select.classList.add('hidden');
+        input.classList.remove('hidden');
+        input.value = '';
+        input.focus();
+    }
+};
+
+window.handleBulkAssetNameBlur = function(rowId) {
+    const row = document.getElementById(rowId);
+    if (!row) return;
+    const select = row.querySelector('.asset-name-select');
+    const input = row.querySelector('.asset-name-input');
+    
+    if (input.value.trim() === '') {
+        input.classList.add('hidden');
+        select.classList.remove('hidden');
+        select.value = '';
+    }
 };
 
 window.checkBulkQtyLock = function(rowId) {
@@ -993,7 +1045,15 @@ window.duplicateBulkAssetRow = function(rowId) {
     
     const mainCat = row.querySelector('select:first-child').value;
     const subCat = row.querySelector('.sub-cat-select').value;
-    const name = row.querySelector('.asset-name').value;
+    
+    const select = row.querySelector('.asset-name-select');
+    const input = row.querySelector('.asset-name-input');
+    let name = '';
+    if (!select.classList.contains('hidden')) {
+        name = select.value;
+    } else {
+        name = input.value;
+    }
     
     window.addBulkAssetRow({
         mainCat: mainCat,
@@ -1035,7 +1095,16 @@ window.saveBulkAssets = function() {
     rows.forEach(row => {
         const mainCat = row.querySelector('select:first-child').value;
         const subCat = row.querySelector('.sub-cat-select').value;
-        const name = row.querySelector('.asset-name').value.trim();
+        
+        const select = row.querySelector('.asset-name-select');
+        const input = row.querySelector('.asset-name-input');
+        let name = '';
+        if (!select.classList.contains('hidden')) {
+            name = select.value;
+        } else {
+            name = input.value.trim();
+        }
+        
         const serialStr = row.querySelector('.asset-serial').value.trim();
         const serials = serialStr.split(/[\n,]+/).map(s => s.trim()).filter(s => s !== '');
         const qty = parseInt(row.querySelector('.asset-qty').value) || 1;
