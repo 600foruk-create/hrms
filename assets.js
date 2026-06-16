@@ -90,7 +90,13 @@ function renderMainPane() {
             const iconColor = isActive ? '#fff' : 'var(--text-secondary)';
             const hover = isActive ? '' : `onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background=''"`;
             
-            html += `<li style="padding: 8px 12px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s; background: ${bg}; color: ${color};" ${hover} onclick="selectMainCategoryBox('${c.name}')"><i class="fa-solid fa-folder" style="color: ${iconColor}; margin-right: 8px;"></i> <strong>${c.name}</strong></li>`;
+            let availableCount = 0;
+            if (db.assets) {
+                availableCount = db.assets.filter(a => a.category === c.name && a.status === 'Available').length;
+            }
+            const countBadge = `<span style="background: ${isActive ? 'rgba(255,255,255,0.2)' : 'rgba(16, 185, 129, 0.15)'}; color: ${isActive ? '#fff' : '#10b981'}; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${availableCount} Avail</span>`;
+
+            html += `<li style="padding: 8px 12px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s; background: ${bg}; color: ${color}; display: flex; justify-content: space-between; align-items: center;" ${hover} onclick="selectMainCategoryBox('${c.name}')"><div><i class="fa-solid fa-folder" style="color: ${iconColor}; margin-right: 8px;"></i> <strong>${c.name}</strong></div>${countBadge}</li>`;
         });
     } else {
         html = '<li style="padding: 15px; text-align: center; color: #999;">No categories found</li>';
@@ -118,7 +124,13 @@ function renderSubPane() {
             const iconColor = isActive ? '#fff' : 'var(--text-secondary)';
             const hover = isActive ? '' : `onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background=''"`;
 
-            html += `<li style="padding: 8px 12px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s; background: ${bg}; color: ${color};" ${hover} onclick="selectSubCategoryBox('${window.selectedMainCategory}', '${sub}')"><i class="fa-solid fa-folder-open" style="color: ${iconColor}; margin-right: 8px;"></i> ${sub}</li>`;
+            let availableCount = 0;
+            if (db.assets) {
+                availableCount = db.assets.filter(a => a.category === window.selectedMainCategory && a.sub_category === sub && a.status === 'Available').length;
+            }
+            const countBadge = `<span style="background: ${isActive ? 'rgba(255,255,255,0.2)' : 'rgba(16, 185, 129, 0.15)'}; color: ${isActive ? '#fff' : '#10b981'}; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${availableCount} Avail</span>`;
+
+            html += `<li style="padding: 8px 12px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s; background: ${bg}; color: ${color}; display: flex; justify-content: space-between; align-items: center;" ${hover} onclick="selectSubCategoryBox('${window.selectedMainCategory}', '${sub}')"><div><i class="fa-solid fa-folder-open" style="color: ${iconColor}; margin-right: 8px;"></i> ${sub}</div>${countBadge}</li>`;
         });
     } else {
         html = '<li style="padding: 15px; text-align: center; color: #999;">No sub-categories</li>';
@@ -165,8 +177,8 @@ function renderAssetsPane() {
             <div style="padding: 8px 12px; background: rgba(0,0,0,0.02); display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.classList.toggle('hidden')">
                 <div style="font-weight: 600;"><i class="fa-solid fa-box" style="color: var(--primary); margin-right: 8px;"></i> ${name}</div>
                 <div>
-                    <span class="badge bg-primary" style="margin-right: 5px;">Total: ${items.length}</span>
-                    <span class="badge bg-success">Available: ${availableCount}</span>
+                    <span style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600; margin-right: 5px;">Total: ${items.length}</span>
+                    <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Available: ${availableCount}</span>
                 </div>
             </div>
             <div class="hidden" style="padding: 0; border-top: 1px solid rgba(0,0,0,0.05);">
