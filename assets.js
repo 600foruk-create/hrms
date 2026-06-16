@@ -90,13 +90,7 @@ function renderMainPane() {
             const iconColor = isActive ? '#fff' : 'var(--text-secondary)';
             const hover = isActive ? '' : `onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background=''"`;
             
-            let availableCount = 0;
-            if (db.assets) {
-                availableCount = db.assets.filter(a => a.category === c.name && a.status === 'Available').length;
-            }
-            const countBadge = `<span style="background: ${isActive ? 'rgba(255,255,255,0.2)' : 'rgba(16, 185, 129, 0.15)'}; color: ${isActive ? '#fff' : '#10b981'}; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${availableCount} Avail</span>`;
-
-            html += `<li style="padding: 8px 12px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s; background: ${bg}; color: ${color}; display: flex; justify-content: space-between; align-items: center;" ${hover} onclick="selectMainCategoryBox('${c.name}')"><div><i class="fa-solid fa-folder" style="color: ${iconColor}; margin-right: 8px;"></i> <strong>${c.name}</strong></div>${countBadge}</li>`;
+            html += `<li style="padding: 8px 12px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s; background: ${bg}; color: ${color}; display: flex; justify-content: space-between; align-items: center;" ${hover} onclick="selectMainCategoryBox('${c.name}')"><div><i class="fa-solid fa-folder" style="color: ${iconColor}; margin-right: 8px;"></i> <strong>${c.name}</strong></div></li>`;
         });
     } else {
         html = '<li style="padding: 15px; text-align: center; color: #999;">No categories found</li>';
@@ -128,7 +122,7 @@ function renderSubPane() {
             if (db.assets) {
                 availableCount = db.assets.filter(a => a.category === window.selectedMainCategory && a.sub_category === sub && a.status === 'Available').length;
             }
-            const countBadge = `<span style="background: ${isActive ? 'rgba(255,255,255,0.2)' : 'rgba(16, 185, 129, 0.15)'}; color: ${isActive ? '#fff' : '#10b981'}; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${availableCount} Avail</span>`;
+            const countBadge = `<span style="background: ${isActive ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}; color: ${isActive ? '#fff' : 'var(--text-primary)'}; font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700;" title="Available Quantity">${availableCount}</span>`;
 
             html += `<li style="padding: 8px 12px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s; background: ${bg}; color: ${color}; display: flex; justify-content: space-between; align-items: center;" ${hover} onclick="selectSubCategoryBox('${window.selectedMainCategory}', '${sub}')"><div><i class="fa-solid fa-folder-open" style="color: ${iconColor}; margin-right: 8px;"></i> ${sub}</div>${countBadge}</li>`;
         });
@@ -177,30 +171,61 @@ function renderAssetsPane() {
             <div style="padding: 8px 12px; background: rgba(0,0,0,0.02); display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="this.nextElementSibling.classList.toggle('hidden')">
                 <div style="font-weight: 600;"><i class="fa-solid fa-box" style="color: var(--primary); margin-right: 8px;"></i> ${name}</div>
                 <div>
-                    <span style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600; margin-right: 5px;">Total: ${items.length}</span>
-                    <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Available: ${availableCount}</span>
+                    <span style="background: rgba(0,0,0,0.1); color: var(--text-primary); font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700;" title="Available Quantity">${availableCount}</span>
                 </div>
-            </div>
-            <div class="hidden" style="padding: 0; border-top: 1px solid rgba(0,0,0,0.05);">
+            </div>`;
+            
+        const noSerialItems = items.filter(i => !i.serial_number || i.serial_number.trim() === '');
+        const serialItems = items.filter(i => i.serial_number && i.serial_number.trim() !== '');
+        
+        if (serialItems.length > 0 || noSerialItems.length > 0) {
+            html += `<div class="hidden" style="padding: 0; border-top: 1px solid rgba(0,0,0,0.05);">
                 <table class="data-table" style="margin: 0; box-shadow: none;">
                     <thead><tr><th>ID</th><th>Serial No</th><th>Status</th><th style="width: 50px;"></th></tr></thead>
                     <tbody>`;
-        
-        items.forEach(a => {
-            let statusBadge = '';
-            if (a.status === 'Available') statusBadge = '<span class="badge bg-success" style="font-size: 10px;">Available</span>';
-            else if (a.status === 'Issued') statusBadge = '<span class="badge bg-warning text-dark" style="font-size: 10px;">Issued</span>';
-            else statusBadge = `<span class="badge bg-secondary" style="font-size: 10px;">${a.status}</span>`;
             
-            html += `<tr>
-                <td style="font-size: 12px;">${a.id}</td>
-                <td style="font-size: 12px;">${a.serial_number || '-'}</td>
-                <td>${statusBadge}</td>
-                <td><button class="btn btn-sm btn-outline-danger" onclick="deleteAsset('${a.id}')" style="padding: 2px 6px;"><i class="fa-solid fa-trash" style="font-size: 10px;"></i></button></td>
-            </tr>`;
-        });
+            if (noSerialItems.length > 0) {
+                const noSerialGroups = {};
+                noSerialItems.forEach(i => {
+                    if (!noSerialGroups[i.status]) noSerialGroups[i.status] = [];
+                    noSerialGroups[i.status].push(i);
+                });
+                
+                for (const [status, groupItems] of Object.entries(noSerialGroups)) {
+                    let statusBadge = '';
+                    if (status === 'Available') statusBadge = `<span class="badge bg-success" style="font-size: 10px;">Available (Qty: ${groupItems.length})</span>`;
+                    else if (status === 'Issued') statusBadge = `<span class="badge bg-warning text-dark" style="font-size: 10px;">Issued (Qty: ${groupItems.length})</span>`;
+                    else statusBadge = `<span class="badge bg-secondary" style="font-size: 10px;">${status} (Qty: ${groupItems.length})</span>`;
+                    
+                    html += `<tr>
+                        <td style="font-size: 12px; color: #999; font-style: italic;">Auto</td>
+                        <td style="font-size: 12px; color: #999; font-style: italic;">N/A</td>
+                        <td>${statusBadge}</td>
+                        <td>
+                            ${status === 'Available' ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteAsset('${groupItems[0].id}')" style="padding: 2px 6px;" title="Delete 1 Unit"><i class="fa-solid fa-trash" style="font-size: 10px;"></i></button>` : `<span style="font-size: 10px; color: #999;">-</span>`}
+                        </td>
+                    </tr>`;
+                }
+            }
+            
+            serialItems.forEach(a => {
+                let statusBadge = '';
+                if (a.status === 'Available') statusBadge = '<span class="badge bg-success" style="font-size: 10px;">Available</span>';
+                else if (a.status === 'Issued') statusBadge = '<span class="badge bg-warning text-dark" style="font-size: 10px;">Issued</span>';
+                else statusBadge = `<span class="badge bg-secondary" style="font-size: 10px;">${a.status}</span>`;
+                
+                html += `<tr>
+                    <td style="font-size: 12px;">${a.id}</td>
+                    <td style="font-size: 12px;">${a.serial_number}</td>
+                    <td>${statusBadge}</td>
+                    <td><button class="btn btn-sm btn-outline-danger" onclick="deleteAsset('${a.id}')" style="padding: 2px 6px;"><i class="fa-solid fa-trash" style="font-size: 10px;"></i></button></td>
+                </tr>`;
+            });
+            
+            html += `</tbody></table></div>`;
+        }
         
-        html += `</tbody></table></div></div>`;
+        html += `</div>`;
     }
     
     assetsPane.innerHTML = html;
