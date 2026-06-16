@@ -921,7 +921,7 @@ window.addBulkAssetRow = function(data = {}) {
             <input type="text" class="form-control asset-name" style="font-size: 12px; padding: 4px;" value="${data.name || ''}" placeholder="Brand/Model">
         </td>
         <td style="padding: 4px;">
-            <input type="text" class="form-control asset-serial" style="font-size: 12px; padding: 4px;" value="${data.serial || ''}" placeholder="Serial No" oninput="window.checkBulkQtyLock('${rowId}')">
+            <input type="text" class="form-control asset-serial" style="font-size: 12px; padding: 4px;" value="${data.serial || ''}" placeholder="Comma separated" oninput="window.checkBulkQtyLock('${rowId}')">
         </td>
         <td style="padding: 4px;">
             <input type="number" class="form-control asset-qty" style="font-size: 12px; padding: 4px;" value="${data.qty || 1}" min="1">
@@ -951,8 +951,10 @@ window.checkBulkQtyLock = function(rowId) {
     const serialInput = row.querySelector('.asset-serial');
     const qtyInput = row.querySelector('.asset-qty');
     
-    if (serialInput.value.trim() !== '') {
-        qtyInput.value = 1;
+    const serials = serialInput.value.split(/[\n,]+/).map(s => s.trim()).filter(s => s !== '');
+    
+    if (serials.length > 0) {
+        qtyInput.value = serials.length;
         qtyInput.setAttribute('readonly', 'true');
         qtyInput.style.backgroundColor = 'var(--bg-hover)';
     } else {
@@ -1010,7 +1012,8 @@ window.saveBulkAssets = function() {
         const mainCat = row.querySelector('select:first-child').value;
         const subCat = row.querySelector('.sub-cat-select').value;
         const name = row.querySelector('.asset-name').value.trim();
-        const serial = row.querySelector('.asset-serial').value.trim();
+        const serialStr = row.querySelector('.asset-serial').value.trim();
+        const serials = serialStr.split(/[\n,]+/).map(s => s.trim()).filter(s => s !== '');
         const qty = parseInt(row.querySelector('.asset-qty').value) || 1;
         
         if (!mainCat || !subCat || !name) {
@@ -1021,18 +1024,36 @@ window.saveBulkAssets = function() {
             row.style.border = '';
         }
         
-        for (let i = 0; i < qty; i++) {
-            assetsToAdd.push({
-                id: 'AST-' + Date.now() + '-' + Math.floor(Math.random() * 100000) + '-' + i,
-                name: name,
-                category: mainCat,
-                sub_category: subCat,
-                serial_number: serial, // If qty > 1 and serial provided, all will have same serial (which is illogical, but UI locks qty=1 if serial is present so it's safe)
-                purchase_date: purchaseDate,
-                invoice_number: invoiceNumber,
-                status: 'Available',
-                issue_history: []
-            });
+        if (serials.length > 0) {
+            // Using parsed serials, exact quantity matched above
+            for (let i = 0; i < serials.length; i++) {
+                assetsToAdd.push({
+                    id: 'AST-' + Date.now() + '-' + Math.floor(Math.random() * 100000) + '-' + i,
+                    name: name,
+                    category: mainCat,
+                    sub_category: subCat,
+                    serial_number: serials[i],
+                    purchase_date: purchaseDate,
+                    invoice_number: invoiceNumber,
+                    status: 'Available',
+                    issue_history: []
+                });
+            }
+        } else {
+            // No serial numbers, add empty serial generic items
+            for (let i = 0; i < qty; i++) {
+                assetsToAdd.push({
+                    id: 'AST-' + Date.now() + '-' + Math.floor(Math.random() * 100000) + '-' + i,
+                    name: name,
+                    category: mainCat,
+                    sub_category: subCat,
+                    serial_number: '',
+                    purchase_date: purchaseDate,
+                    invoice_number: invoiceNumber,
+                    status: 'Available',
+                    issue_history: []
+                });
+            }
         }
     });
     
