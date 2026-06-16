@@ -918,7 +918,8 @@ window.addBulkAssetRow = function(data = {}) {
             </select>
         </td>
         <td style="padding: 4px;">
-            <input type="text" class="form-control asset-name" style="font-size: 12px; padding: 4px;" value="${data.name || ''}" placeholder="Brand/Model">
+            <input type="text" class="form-control asset-name" list="asset-names-${rowId}" style="font-size: 12px; padding: 4px;" value="${data.name || ''}" placeholder="Brand/Model" onfocus="window.populateBulkAssetNames('${rowId}')">
+            <datalist id="asset-names-${rowId}"></datalist>
         </td>
         <td style="padding: 4px;">
             <input type="text" class="form-control asset-serial" style="font-size: 12px; padding: 4px;" value="${data.serial || ''}" placeholder="Comma separated" oninput="window.checkBulkQtyLock('${rowId}')">
@@ -943,6 +944,29 @@ window.updateBulkSubCat = function(rowId) {
     const subCatSelect = row.querySelector('.sub-cat-select');
     
     subCatSelect.innerHTML = window.generateSubCatOptions(mainCatSelect.value);
+    window.populateBulkAssetNames(rowId);
+};
+
+window.populateBulkAssetNames = function(rowId) {
+    const row = document.getElementById(rowId);
+    if (!row) return;
+    const mainCat = row.querySelector('select:first-child').value;
+    const subCat = row.querySelector('.sub-cat-select').value;
+    const datalist = document.getElementById(`asset-names-${rowId}`);
+    
+    if (!datalist) return;
+    
+    const db = window.getDb ? window.getDb() : window.db;
+    if (!db.assets) return;
+    
+    const names = new Set();
+    db.assets.forEach(a => {
+        if (a.category === mainCat && a.sub_category === subCat && a.name) {
+            names.add(a.name);
+        }
+    });
+    
+    datalist.innerHTML = Array.from(names).map(name => `<option value="${name.replace(/"/g, '&quot;')}">`).join('');
 };
 
 window.checkBulkQtyLock = function(rowId) {
