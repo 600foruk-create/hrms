@@ -240,6 +240,7 @@ try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS `assets` (
         `id` varchar(100) NOT NULL,
         `category` varchar(150) DEFAULT NULL,
+        `sub_category` varchar(150) DEFAULT NULL,
         `name` varchar(255) DEFAULT NULL,
         `serial_number` varchar(150) DEFAULT NULL,
         `purchase_date` varchar(50) DEFAULT NULL,
@@ -250,6 +251,9 @@ try {
     
     try {
         $pdo->exec("ALTER TABLE `assets` ADD COLUMN `issues` TEXT DEFAULT NULL");
+    } catch (Exception $e) {}
+    try {
+        $pdo->exec("ALTER TABLE `assets` ADD COLUMN `sub_category` varchar(150) DEFAULT NULL");
     } catch (Exception $e) {}
     
     // Clean up old table if it exists
@@ -1026,7 +1030,7 @@ elseif ($action === 'save_all') {
         try {
             $pdo->exec("DELETE FROM assets");
             if (!empty($data['assets'])) {
-                $stmt = $pdo->prepare("INSERT INTO assets (id, category, name, serial_number, purchase_date, status, issues) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO assets (id, category, sub_category, name, serial_number, purchase_date, status, issues) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
                 foreach ($data['assets'] as $a) {
                     $myIssues = [];
                     if (!empty($data['assetIssues'])) {
@@ -1039,6 +1043,7 @@ elseif ($action === 'save_all') {
                     $stmt->execute([
                         $a['id'], 
                         $a['category'] ?? '', 
+                        $a['sub_category'] ?? '',
                         $a['name'] ?? '', 
                         $a['serial_number'] ?? '', 
                         $a['purchase_date'] ?? '', 
