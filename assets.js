@@ -845,3 +845,218 @@ window.deleteAssetSubCategory = function(mainCat, subCat) {
     if (window.showToast) window.showToast('Sub-category deleted', 'success');
     renderAssetCategoriesTable();
 };
+
+// --- Bulk Add Assets Logic ---
+
+window.openBulkAddAssetModal = function() {
+    const db = window.getDb ? window.getDb() : window.db;
+    const modal = document.getElementById('modal-bulk-add-asset');
+    const overlay = document.getElementById('modal-overlay');
+    
+    if (modal) modal.classList.remove('hidden');
+    if (overlay) overlay.classList.remove('hidden');
+    
+    // Set default date to today
+    const dateInput = document.getElementById('bulk-asset-purchase-date');
+    if (dateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+    }
+    
+    document.getElementById('bulk-asset-invoice').value = '';
+    
+    // Clear grid and add one empty row
+    const tbody = document.getElementById('bulk-asset-grid-body');
+    if (tbody) {
+        tbody.innerHTML = '';
+        window.addBulkAssetRow();
+    }
+};
+
+window.generateMainCatOptions = function(selectedValue = '') {
+    const db = window.getDb ? window.getDb() : window.db;
+    let html = '<option value="">-- Select --</option>';
+    if (db.systemSettings && db.systemSettings.assetCategories) {
+        db.systemSettings.assetCategories.forEach(c => {
+            html += `<option value="${c.name}" ${selectedValue === c.name ? 'selected' : ''}>${c.name}</option>`;
+        });
+    }
+    return html;
+};
+
+window.generateSubCatOptions = function(mainCatName, selectedValue = '') {
+    const db = window.getDb ? window.getDb() : window.db;
+    let html = '<option value="">-- Select --</option>';
+    if (!mainCatName) return html;
+    
+    const category = db.systemSettings.assetCategories.find(c => c.name === mainCatName);
+    if (category && category.subCategories) {
+        category.subCategories.forEach(sub => {
+            html += `<option value="${sub}" ${selectedValue === sub ? 'selected' : ''}>${sub}</option>`;
+        });
+    }
+    return html;
+};
+
+window.addBulkAssetRow = function(data = {}) {
+    const tbody = document.getElementById('bulk-asset-grid-body');
+    if (!tbody) return;
+    
+    const rowId = 'row_' + Math.random().toString(36).substr(2, 9);
+    const tr = document.createElement('tr');
+    tr.id = rowId;
+    
+    tr.innerHTML = `
+        <td style="padding: 4px;">
+            <select class="form-control" style="font-size: 12px; padding: 4px;" onchange="window.updateBulkSubCat('${rowId}')">
+                ${window.generateMainCatOptions(data.mainCat)}
+            </select>
+        </td>
+        <td style="padding: 4px;">
+            <select class="form-control sub-cat-select" style="font-size: 12px; padding: 4px;">
+                ${window.generateSubCatOptions(data.mainCat, data.subCat)}
+            </select>
+        </td>
+        <td style="padding: 4px;">
+            <input type="text" class="form-control asset-name" style="font-size: 12px; padding: 4px;" value="${data.name || ''}" placeholder="Brand/Model">
+        </td>
+        <td style="padding: 4px;">
+            <input type="text" class="form-control asset-serial" style="font-size: 12px; padding: 4px;" value="${data.serial || ''}" placeholder="Serial No" oninput="window.checkBulkQtyLock('${rowId}')">
+        </td>
+        <td style="padding: 4px;">
+            <input type="number" class="form-control asset-qty" style="font-size: 12px; padding: 4px;" value="${data.qty || 1}" min="1">
+        </td>
+        <td style="padding: 4px; text-align: center;">
+            <button class="btn btn-sm btn-icon" style="color: var(--primary);" onclick="window.duplicateBulkAssetRow('${rowId}')" title="Duplicate Row"><i class="fa-solid fa-copy"></i></button>
+            <button class="btn btn-sm btn-icon" style="color: var(--danger);" onclick="window.removeBulkAssetRow('${rowId}')" title="Remove Row"><i class="fa-solid fa-xmark"></i></button>
+        </td>
+    `;
+    
+    tbody.appendChild(tr);
+    window.checkBulkQtyLock(rowId);
+};
+
+window.updateBulkSubCat = function(rowId) {
+    const row = document.getElementById(rowId);
+    if (!row) return;
+    const mainCatSelect = row.querySelector('select:first-child');
+    const subCatSelect = row.querySelector('.sub-cat-select');
+    
+    subCatSelect.innerHTML = window.generateSubCatOptions(mainCatSelect.value);
+};
+
+window.checkBulkQtyLock = function(rowId) {
+    const row = document.getElementById(rowId);
+    if (!row) return;
+    const serialInput = row.querySelector('.asset-serial');
+    const qtyInput = row.querySelector('.asset-qty');
+    
+    if (serialInput.value.trim() !== '') {
+        qtyInput.value = 1;
+        qtyInput.setAttribute('readonly', 'true');
+        qtyInput.style.backgroundColor = 'var(--bg-hover)';
+    } else {
+        qtyInput.removeAttribute('readonly');
+        qtyInput.style.backgroundColor = '';
+    }
+};
+
+window.duplicateBulkAssetRow = function(rowId) {
+    const row = document.getElementById(rowId);
+    if (!row) return;
+    
+    const mainCat = row.querySelector('select:first-child').value;
+    const subCat = row.querySelector('.sub-cat-select').value;
+    const name = row.querySelector('.asset-name').value;
+    
+    window.addBulkAssetRow({
+        mainCat: mainCat,
+        subCat: subCat,
+        name: name,
+        serial: '',
+        qty: 1
+    });
+};
+
+window.removeBulkAssetRow = function(rowId) {
+    const row = document.getElementById(rowId);
+    if (row) {
+        row.remove();
+        // If grid is empty, add one row back
+        const tbody = document.getElementById('bulk-asset-grid-body');
+        if (tbody && tbody.children.length === 0) {
+            window.addBulkAssetRow();
+        }
+    }
+};
+
+window.saveBulkAssets = function() {
+    const db = window.getDb ? window.getDb() : window.db;
+    const tbody = document.getElementById('bulk-asset-grid-body');
+    const rows = tbody.querySelectorAll('tr');
+    
+    const purchaseDate = document.getElementById('bulk-asset-purchase-date').value;
+    const invoiceNumber = document.getElementById('bulk-asset-invoice').value.trim();
+    
+    if (!purchaseDate) {
+        if (window.showToast) window.showToast('Please select a purchase date.', 'error');
+        return;
+    }
+    
+    let hasErrors = false;
+    let assetsToAdd = [];
+    
+    rows.forEach(row => {
+        const mainCat = row.querySelector('select:first-child').value;
+        const subCat = row.querySelector('.sub-cat-select').value;
+        const name = row.querySelector('.asset-name').value.trim();
+        const serial = row.querySelector('.asset-serial').value.trim();
+        const qty = parseInt(row.querySelector('.asset-qty').value) || 1;
+        
+        if (!mainCat || !subCat || !name) {
+            row.style.border = '1px solid var(--danger)';
+            hasErrors = true;
+            return;
+        } else {
+            row.style.border = '';
+        }
+        
+        for (let i = 0; i < qty; i++) {
+            assetsToAdd.push({
+                id: 'AST-' + Date.now() + '-' + Math.floor(Math.random() * 100000) + '-' + i,
+                name: name,
+                category: mainCat,
+                sub_category: subCat,
+                serial_number: serial, // If qty > 1 and serial provided, all will have same serial (which is illogical, but UI locks qty=1 if serial is present so it's safe)
+                purchase_date: purchaseDate,
+                invoice_number: invoiceNumber,
+                status: 'Available',
+                issue_history: []
+            });
+        }
+    });
+    
+    if (hasErrors) {
+        if (window.showToast) window.showToast('Please fill all required fields (Category, Sub Category, Name).', 'error');
+        return;
+    }
+    
+    if (assetsToAdd.length === 0) {
+        if (window.showToast) window.showToast('No valid assets to add.', 'warning');
+        return;
+    }
+    
+    if (!db.assets) db.assets = [];
+    db.assets.push(...assetsToAdd);
+    
+    if (window.saveDb) window.saveDb(db);
+    if (window.showToast) window.showToast(`${assetsToAdd.length} assets added successfully!`, 'success');
+    
+    const modal = document.getElementById('modal-bulk-add-asset');
+    const overlay = document.getElementById('modal-overlay');
+    if (modal) modal.classList.add('hidden');
+    if (overlay) overlay.classList.add('hidden');
+    
+    if (window.renderAssetsInventory) window.renderAssetsInventory();
+};
+

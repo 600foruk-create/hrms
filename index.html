@@ -112,6 +112,51 @@
         </div>
     </div>
 
+    <!-- 14C. Bulk Add Asset Modal -->
+    <div id="modal-bulk-add-asset" class="modal hidden" style="max-width: 950px; width: 95%;">
+        <div class="modal-header">
+            <h3>Bulk Add Assets</h3>
+            <div class="modal-header-controls">
+                <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        <div class="modal-body">
+            <div style="display: flex; gap: 15px; margin-bottom: 15px; background: var(--bg-hover, rgba(0,0,0,0.02)); padding: 10px; border-radius: 6px; border: 1px solid var(--border-color, rgba(0,0,0,0.05));">
+                <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                    <label>Purchase Date *</label>
+                    <input type="date" id="bulk-asset-purchase-date" class="form-control" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                    <label>Invoice / Reference #</label>
+                    <input type="text" id="bulk-asset-invoice" class="form-control" placeholder="Optional">
+                </div>
+            </div>
+            
+            <div style="overflow-x: auto; border: 1px solid var(--border-color, rgba(0,0,0,0.05)); border-radius: 6px;">
+                <table class="data-table" style="margin: 0; min-width: 800px; box-shadow: none;">
+                    <thead style="background: var(--bg-surface, rgba(0,0,0,0.02));">
+                        <tr>
+                            <th style="width: 160px; padding: 8px 10px;">Main Category*</th>
+                            <th style="width: 160px; padding: 8px 10px;">Sub Category*</th>
+                            <th style="width: 200px; padding: 8px 10px;">Asset Name / Brand*</th>
+                            <th style="width: 160px; padding: 8px 10px;">Serial No</th>
+                            <th style="width: 80px; padding: 8px 10px;">Qty*</th>
+                            <th style="width: 80px; padding: 8px 10px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bulk-asset-grid-body">
+                        <!-- Rows dynamically added via JS -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                <button class="btn btn-sm btn-secondary" onclick="if(window.addBulkAssetRow) window.addBulkAssetRow()"><i class="fa-solid fa-plus"></i> Add Row</button>
+                <button class="btn btn-primary" onclick="if(window.saveBulkAssets) window.saveBulkAssets()"><i class="fa-solid fa-save"></i> Save All Assets</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 14B. Manage Asset Categories Modal -->
     <div id="modal-manage-asset-categories" class="modal hidden" style="max-width: 650px;">
         <div class="modal-header">
@@ -1821,6 +1866,9 @@
                                     <div class="section-card-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 15px;">
                                         <div style="display: flex;">
                                             <h3 style="font-size: 16px; font-weight: 700; margin: 0;">Asset Master List</h3>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-sm btn-secondary" onclick="if(window.openBulkAddAssetModal) window.openBulkAddAssetModal()"><i class="fa-solid fa-file-import" style="margin-right: 5px;"></i> Bulk Import</button>
                                         </div>
                                     </div>
                                     <div class="table-container" style="padding: 0;">
