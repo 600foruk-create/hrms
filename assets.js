@@ -551,7 +551,7 @@ function renderAssetsIssueForm() {
     const reqBody = document.getElementById('admin-asset-requests-body');
     if (reqBody) {
         if (!db.assetRequests || db.assetRequests.length === 0) {
-            reqBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No pending requests</td></tr>';
+            reqBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No pending requests</td></tr>';
             return;
         }
         
@@ -559,7 +559,7 @@ function renderAssetsIssueForm() {
         pending.sort((a, b) => new Date(a.request_date) - new Date(b.request_date));
         
         if (pending.length === 0) {
-            reqBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No pending requests</td></tr>';
+            reqBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No pending requests</td></tr>';
             return;
         }
         
@@ -574,6 +574,7 @@ function renderAssetsIssueForm() {
                     <td><strong>${empName}</strong></td>
                     <td>${r.requested_category}</td>
                     <td>${r.requested_sub_category}</td>
+                    <td>${r.requested_asset || '-'}</td>
                     <td>${r.reason}</td>
                     <td>
                         <button class="btn btn-sm btn-outline-success" onclick="window.approveAssetRequest('${r.id}')"><i class="fa-solid fa-check"></i> Approve</button>
@@ -594,7 +595,11 @@ window.approveAssetRequest = function(reqId) {
     document.getElementById('issue-asset-request-id').value = req.id;
     document.getElementById('issue-asset-employee').value = req.employee_id;
     document.getElementById('issue-asset-category').value = req.requested_category;
-    document.getElementById('issue-asset-notes').value = "Fulfilling request: " + req.reason;
+    let notes = "Fulfilling request: " + req.reason;
+    if (req.requested_asset) {
+        notes += "\nRequested Specific Asset: " + req.requested_asset;
+    }
+    document.getElementById('issue-asset-notes').value = notes;
     
     // Scroll to the issue form
     document.getElementById('form-issue-asset').scrollIntoView({ behavior: 'smooth' });
@@ -791,9 +796,9 @@ window.renderEmployeeAssetsTab = function(subTabId = 'my_assets') {
     const db = window.getDb ? window.getDb() : window.db;
     
     if (!currentUser) return;
-
-    // Toggle Sub Tabs UI
-    const tabContainer = document.getElementById('employee-tab-assets');
+    
+    const pfx = (currentUser.role === 'Manager') ? 'mgr' : 'emp';
+    const tabContainer = document.getElementById(currentUser.role === 'Manager' ? 'manager-tab-assets' : 'employee-tab-assets');
     if (!tabContainer) return;
     
     const subTabBtns = tabContainer.querySelectorAll('.btn-sub-tab');
@@ -803,25 +808,25 @@ window.renderEmployeeAssetsTab = function(subTabId = 'my_assets') {
     subViews.forEach(v => v.classList.add('hidden'));
 
     if(subTabId === 'my_assets') {
-        const btn = tabContainer.querySelector('[data-subtab="emp-assets-my"]');
+        const btn = tabContainer.querySelector(`[data-subtab="${pfx}-assets-my"]`);
         if (btn) btn.classList.add('active');
-        document.getElementById('emp-assets-my')?.classList.remove('hidden');
-        renderMyAssetsList(db);
+        document.getElementById(`${pfx}-assets-my`)?.classList.remove('hidden');
+        renderMyAssetsList(db, pfx);
     } else if(subTabId === 'request') {
-        const btn = tabContainer.querySelector('[data-subtab="emp-assets-request"]');
+        const btn = tabContainer.querySelector(`[data-subtab="${pfx}-assets-request"]`);
         if (btn) btn.classList.add('active');
-        document.getElementById('emp-assets-request')?.classList.remove('hidden');
-        renderAssetRequestForm(db);
+        document.getElementById(`${pfx}-assets-request`)?.classList.remove('hidden');
+        renderAssetRequestForm(db, pfx);
     } else if(subTabId === 'history') {
-        const btn = tabContainer.querySelector('[data-subtab="emp-assets-history"]');
+        const btn = tabContainer.querySelector(`[data-subtab="${pfx}-assets-history"]`);
         if (btn) btn.classList.add('active');
-        document.getElementById('emp-assets-history')?.classList.remove('hidden');
-        renderMyRequestsHistory(db);
+        document.getElementById(`${pfx}-assets-history`)?.classList.remove('hidden');
+        renderMyRequestsHistory(db, pfx);
     }
 };
 
-function renderMyAssetsList(db) {
-    const tbody = document.getElementById('employee-assets-body');
+function renderMyAssetsList(db, pfx) {
+    const tbody = document.getElementById(`${pfx}-assets-body`);
     if (!tbody) return;
     
     if (!db.assetIssues || db.assetIssues.length === 0) {
@@ -857,8 +862,8 @@ function renderMyAssetsList(db) {
     tbody.innerHTML = html;
 }
 
-function renderAssetRequestForm(db) {
-    const mainCatSelect = document.getElementById('emp-req-main-cat');
+function renderAssetRequestForm(db, pfx) {
+    const mainCatSelect = document.getElementById(`${pfx}-req-main-cat`);
     if (!mainCatSelect) return;
     
     mainCatSelect.innerHTML = '<option value="">-- Select Category --</option>';
@@ -867,16 +872,22 @@ function renderAssetRequestForm(db) {
             mainCatSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
         });
     }
-    document.getElementById('emp-req-sub-cat').innerHTML = '<option value="">-- Select Sub Category --</option>';
-    document.getElementById('emp-req-reason').value = '';
+    document.getElementById(`${pfx}-req-sub-cat`).innerHTML = '<option value="">-- Select Sub Category --</option>';
+    const assetSelect = document.getElementById(`${pfx}-req-asset`);
+    if (assetSelect) assetSelect.innerHTML = '<option value="">-- Any Available Asset --</option>';
+    document.getElementById(`${pfx}-req-reason`).value = '';
 }
 
 window.updateEmpReqSubCat = function() {
     const db = window.getDb ? window.getDb() : window.db;
-    const mainCat = document.getElementById('emp-req-main-cat').value;
-    const subCatSelect = document.getElementById('emp-req-sub-cat');
+    const pfx = (currentUser.role === 'Manager') ? 'mgr' : 'emp';
+    const mainCat = document.getElementById(`${pfx}-req-main-cat`).value;
+    const subCatSelect = document.getElementById(`${pfx}-req-sub-cat`);
+    const assetSelect = document.getElementById(`${pfx}-req-asset`);
     
     subCatSelect.innerHTML = '<option value="">-- Select Sub Category --</option>';
+    if (assetSelect) assetSelect.innerHTML = '<option value="">-- Any Available Asset --</option>';
+    
     if (!mainCat) return;
     
     const category = db.systemSettings.assetCategories.find(c => c.name === mainCat);
@@ -887,14 +898,36 @@ window.updateEmpReqSubCat = function() {
     }
 };
 
+window.updateEmpReqAsset = function() {
+    const db = window.getDb ? window.getDb() : window.db;
+    const pfx = (currentUser.role === 'Manager') ? 'mgr' : 'emp';
+    const mainCat = document.getElementById(`${pfx}-req-main-cat`).value;
+    const subCat = document.getElementById(`${pfx}-req-sub-cat`).value;
+    const assetSelect = document.getElementById(`${pfx}-req-asset`);
+    
+    if (!assetSelect) return;
+    assetSelect.innerHTML = '<option value="">-- Any Available Asset --</option>';
+    
+    if (!mainCat || !subCat || !db.assets) return;
+    
+    const available = db.assets.filter(a => a.category === mainCat && a.sub_category === subCat && a.status === 'Available');
+    if (available.length > 0) {
+        available.forEach(a => {
+            assetSelect.innerHTML += `<option value="${a.name} [${a.serial_number || 'No Serial'}]">${a.name} [${a.serial_number || 'No Serial'}]</option>`;
+        });
+    }
+};
+
 window.submitAssetRequest = function() {
     const db = window.getDb ? window.getDb() : window.db;
-    const mainCat = document.getElementById('emp-req-main-cat').value;
-    const subCat = document.getElementById('emp-req-sub-cat').value;
-    const reason = document.getElementById('emp-req-reason').value.trim();
+    const pfx = (currentUser.role === 'Manager') ? 'mgr' : 'emp';
+    const mainCat = document.getElementById(`${pfx}-req-main-cat`).value;
+    const subCat = document.getElementById(`${pfx}-req-sub-cat`).value;
+    const specificAsset = document.getElementById(`${pfx}-req-asset`) ? document.getElementById(`${pfx}-req-asset`).value : '';
+    const reason = document.getElementById(`${pfx}-req-reason`).value.trim();
     
     if (!mainCat || !subCat || !reason) {
-        if (window.showToast) window.showToast("Please fill all fields", "error");
+        if (window.showToast) window.showToast("Please fill all required fields", "error");
         return;
     }
     
@@ -905,6 +938,7 @@ window.submitAssetRequest = function() {
         employee_id: currentUser.id,
         requested_category: mainCat,
         requested_sub_category: subCat,
+        requested_asset: specificAsset,
         reason: reason,
         request_date: new Date().toISOString().split('T')[0],
         status: 'Pending'
@@ -917,19 +951,19 @@ window.submitAssetRequest = function() {
     
     // Notify Admin
     if (window.addNotification) {
-        window.addNotification('Admin', `New asset request from ${currentUser.name} for ${subCat}.`);
+        window.addNotification('Admin', `New asset request from ${currentUser.name} for ${subCat}${specificAsset ? ` (${specificAsset})` : ''}.`);
     }
     
     // Switch to history tab
     window.renderEmployeeAssetsTab('history');
 };
 
-function renderMyRequestsHistory(db) {
-    const tbody = document.getElementById('emp-asset-requests-body');
+function renderMyRequestsHistory(db, pfx) {
+    const tbody = document.getElementById(`${pfx}-asset-requests-body`);
     if (!tbody) return;
     
     if (!db.assetRequests || db.assetRequests.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No asset requests found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No asset requests found</td></tr>';
         return;
     }
     
@@ -953,6 +987,7 @@ function renderMyRequestsHistory(db) {
                 <td>${window.formatDate ? window.formatDate(r.request_date) : r.request_date}</td>
                 <td>${r.requested_category}</td>
                 <td>${r.requested_sub_category}</td>
+                <td>${r.requested_asset || '-'}</td>
                 <td>${r.reason}</td>
                 <td>${statusBadge}</td>
             </tr>
