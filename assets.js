@@ -545,7 +545,83 @@ function renderAssetsIssueForm() {
     // Set Date to Today
     document.getElementById('issue-asset-date').value = new Date().toISOString().split('T')[0];
     document.getElementById('issue-asset-notes').value = '';
+    document.getElementById('issue-asset-request-id').value = '';
+    
+    // Render Pending Requests
+    const reqBody = document.getElementById('admin-asset-requests-body');
+    if (reqBody) {
+        if (!db.assetRequests || db.assetRequests.length === 0) {
+            reqBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No pending requests</td></tr>';
+            return;
+        }
+        
+        let pending = db.assetRequests.filter(r => r.status === 'Pending');
+        pending.sort((a, b) => new Date(a.request_date) - new Date(b.request_date));
+        
+        if (pending.length === 0) {
+            reqBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No pending requests</td></tr>';
+            return;
+        }
+        
+        let html = '';
+        pending.forEach(r => {
+            const emp = db.users ? db.users.find(u => u.id === r.employee_id) : null;
+            const empName = emp ? emp.name : r.employee_id;
+            
+            html += `
+                <tr>
+                    <td>${window.formatDate ? window.formatDate(r.request_date) : r.request_date}</td>
+                    <td><strong>${empName}</strong></td>
+                    <td>${r.requested_category}</td>
+                    <td>${r.requested_sub_category}</td>
+                    <td>${r.reason}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-success" onclick="window.approveAssetRequest('${r.id}')"><i class="fa-solid fa-check"></i> Approve</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="window.rejectAssetRequest('${r.id}')"><i class="fa-solid fa-xmark"></i> Reject</button>
+                    </td>
+                </tr>
+            `;
+        });
+        reqBody.innerHTML = html;
+    }
 }
+
+window.approveAssetRequest = function(reqId) {
+    const db = window.getDb ? window.getDb() : window.db;
+    const req = (db.assetRequests || []).find(r => r.id === reqId);
+    if (!req) return;
+    
+    document.getElementById('issue-asset-request-id').value = req.id;
+    document.getElementById('issue-asset-employee').value = req.employee_id;
+    document.getElementById('issue-asset-category').value = req.requested_category;
+    document.getElementById('issue-asset-notes').value = "Fulfilling request: " + req.reason;
+    
+    // Scroll to the issue form
+    document.getElementById('form-issue-asset').scrollIntoView({ behavior: 'smooth' });
+    
+    // Trigger category change to load available assets
+    if (window.filterAvailableAssets) window.filterAvailableAssets();
+    
+    if (window.showToast) window.showToast('Form pre-filled. Please select the specific asset to issue.', 'info');
+};
+
+window.rejectAssetRequest = function(reqId) {
+    if (!confirm('Are you sure you want to reject this asset request?')) return;
+    const db = window.getDb ? window.getDb() : window.db;
+    const req = (db.assetRequests || []).find(r => r.id === reqId);
+    if (!req) return;
+    
+    req.status = 'Rejected';
+    
+    if (window.saveDb) window.saveDb(db);
+    if (window.showToast) window.showToast('Asset request rejected.', 'success');
+    
+    if (window.addNotification) {
+        window.addNotification(req.employee_id, `Your asset request for ${req.requested_sub_category} was rejected.`);
+    }
+    
+    renderAssetsIssueForm();
+};
 
 window.filterAvailableAssets = function() {
     const db = window.getDb ? window.getDb() : window.db;
@@ -599,6 +675,23 @@ window.submitIssueAsset = function() {
     
     if (!db.assetIssues) db.assetIssues = [];
     db.assetIssues.push(issueRecord);
+    
+    // Handle Request Fulfilling
+    const reqId = document.getElementById('issue-asset-request-id').value;
+    if (reqId && db.assetRequests) {
+        const req = db.assetRequests.find(r => r.id === reqId);
+        if (req) {
+            req.status = 'Approved';
+            if (window.addNotification) {
+                window.addNotification(empId, `Your asset request for ${req.requested_sub_category} has been approved and issued.`);
+            }
+        }
+    } else {
+        if (window.addNotification) {
+            const assetInfo = db.assets.find(a => a.id === assetId);
+            window.addNotification(empId, `A new asset (${assetInfo ? assetInfo.name : 'Device'}) has been issued to you.`);
+        }
+    }
     
     if (window.saveDb) window.saveDb(db);
     if (window.showToast) window.showToast('Asset Issued Successfully', 'success');
@@ -693,23 +786,54 @@ window.returnAsset = function(issueId) {
     renderAssetsReport();
 };
 
-window.renderEmployeeAssetsTab = function() {
+window.renderEmployeeAssetsTab = function(subTabId = 'my_assets') {
     initAssetsDB();
     const db = window.getDb ? window.getDb() : window.db;
+    
+    if (!currentUser) return;
+
+    // Toggle Sub Tabs UI
+    const tabContainer = document.getElementById('employee-tab-assets');
+    if (!tabContainer) return;
+    
+    const subTabBtns = tabContainer.querySelectorAll('.btn-sub-tab');
+    subTabBtns.forEach(btn => btn.classList.remove('active'));
+    
+    const subViews = tabContainer.querySelectorAll('.asset-sub-view');
+    subViews.forEach(v => v.classList.add('hidden'));
+
+    if(subTabId === 'my_assets') {
+        const btn = tabContainer.querySelector('[data-subtab="emp-assets-my"]');
+        if (btn) btn.classList.add('active');
+        document.getElementById('emp-assets-my')?.classList.remove('hidden');
+        renderMyAssetsList(db);
+    } else if(subTabId === 'request') {
+        const btn = tabContainer.querySelector('[data-subtab="emp-assets-request"]');
+        if (btn) btn.classList.add('active');
+        document.getElementById('emp-assets-request')?.classList.remove('hidden');
+        renderAssetRequestForm(db);
+    } else if(subTabId === 'history') {
+        const btn = tabContainer.querySelector('[data-subtab="emp-assets-history"]');
+        if (btn) btn.classList.add('active');
+        document.getElementById('emp-assets-history')?.classList.remove('hidden');
+        renderMyRequestsHistory(db);
+    }
+};
+
+function renderMyAssetsList(db) {
     const tbody = document.getElementById('employee-assets-body');
-    if (!tbody || !currentUser) return;
+    if (!tbody) return;
     
     if (!db.assetIssues || db.assetIssues.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">You have no assets assigned</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">You have no assets assigned</td></tr>';
         return;
     }
     
-    // Find assets issued to the current user
-    let myIssues = db.assetIssues.filter(ai => ai.employee_id === currentUser.id);
+    let myIssues = db.assetIssues.filter(ai => ai.employee_id === currentUser.id && ai.status === 'Active');
     myIssues.sort((a, b) => new Date(b.issue_date) - new Date(a.issue_date));
     
     if (myIssues.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">You have no assets assigned</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">You have no active assets assigned</td></tr>';
         return;
     }
     
@@ -720,24 +844,122 @@ window.renderEmployeeAssetsTab = function() {
         const assetName = asset ? asset.name : 'Unknown';
         const serialNo = asset ? asset.serial_number : 'Unknown';
         
-        let statusBadge = ai.status === 'Active' 
-            ? '<span class="badge bg-warning text-dark">Currently Assigned</span>' 
-            : '<span class="badge bg-success">Returned</span>';
-        
         html += `
             <tr>
                 <td>${catName}</td>
                 <td><strong>${assetName}</strong></td>
                 <td>${serialNo}</td>
                 <td>${window.formatDate ? window.formatDate(ai.issue_date) : ai.issue_date}</td>
-                <td>${ai.return_date ? (window.formatDate ? window.formatDate(ai.return_date) : ai.return_date) : '-'}</td>
+                <td>${ai.notes || '-'}</td>
+            </tr>
+        `;
+    });
+    tbody.innerHTML = html;
+}
+
+function renderAssetRequestForm(db) {
+    const mainCatSelect = document.getElementById('emp-req-main-cat');
+    if (!mainCatSelect) return;
+    
+    mainCatSelect.innerHTML = '<option value="">-- Select Category --</option>';
+    if (db.systemSettings && db.systemSettings.assetCategories) {
+        db.systemSettings.assetCategories.forEach(c => {
+            mainCatSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+        });
+    }
+    document.getElementById('emp-req-sub-cat').innerHTML = '<option value="">-- Select Sub Category --</option>';
+    document.getElementById('emp-req-reason').value = '';
+}
+
+window.updateEmpReqSubCat = function() {
+    const db = window.getDb ? window.getDb() : window.db;
+    const mainCat = document.getElementById('emp-req-main-cat').value;
+    const subCatSelect = document.getElementById('emp-req-sub-cat');
+    
+    subCatSelect.innerHTML = '<option value="">-- Select Sub Category --</option>';
+    if (!mainCat) return;
+    
+    const category = db.systemSettings.assetCategories.find(c => c.name === mainCat);
+    if (category && category.subCategories) {
+        category.subCategories.forEach(sub => {
+            subCatSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
+        });
+    }
+};
+
+window.submitAssetRequest = function() {
+    const db = window.getDb ? window.getDb() : window.db;
+    const mainCat = document.getElementById('emp-req-main-cat').value;
+    const subCat = document.getElementById('emp-req-sub-cat').value;
+    const reason = document.getElementById('emp-req-reason').value.trim();
+    
+    if (!mainCat || !subCat || !reason) {
+        if (window.showToast) window.showToast("Please fill all fields", "error");
+        return;
+    }
+    
+    if (!db.assetRequests) db.assetRequests = [];
+    
+    const requestRecord = {
+        id: 'ASR-' + new Date().getTime().toString().slice(-6),
+        employee_id: currentUser.id,
+        requested_category: mainCat,
+        requested_sub_category: subCat,
+        reason: reason,
+        request_date: new Date().toISOString().split('T')[0],
+        status: 'Pending'
+    };
+    
+    db.assetRequests.push(requestRecord);
+    
+    if (window.saveDb) window.saveDb(db);
+    if (window.showToast) window.showToast("Asset Request Submitted Successfully", "success");
+    
+    // Notify Admin
+    if (window.addNotification) {
+        window.addNotification('Admin', `New asset request from ${currentUser.name} for ${subCat}.`);
+    }
+    
+    // Switch to history tab
+    window.renderEmployeeAssetsTab('history');
+};
+
+function renderMyRequestsHistory(db) {
+    const tbody = document.getElementById('emp-asset-requests-body');
+    if (!tbody) return;
+    
+    if (!db.assetRequests || db.assetRequests.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No asset requests found</td></tr>';
+        return;
+    }
+    
+    let myReqs = db.assetRequests.filter(r => r.employee_id === currentUser.id);
+    myReqs.sort((a, b) => new Date(b.request_date) - new Date(a.request_date));
+    
+    if (myReqs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No asset requests found</td></tr>';
+        return;
+    }
+    
+    let html = '';
+    myReqs.forEach(r => {
+        let statusBadge = '';
+        if (r.status === 'Pending') statusBadge = '<span class="badge bg-warning text-dark">Pending</span>';
+        else if (r.status === 'Approved') statusBadge = '<span class="badge bg-success">Approved (Issued)</span>';
+        else if (r.status === 'Rejected') statusBadge = '<span class="badge bg-danger">Rejected</span>';
+        
+        html += `
+            <tr>
+                <td>${window.formatDate ? window.formatDate(r.request_date) : r.request_date}</td>
+                <td>${r.requested_category}</td>
+                <td>${r.requested_sub_category}</td>
+                <td>${r.reason}</td>
                 <td>${statusBadge}</td>
             </tr>
         `;
     });
-    
     tbody.innerHTML = html;
-};
+}
 
 window.openManageAssetCategoriesModal = function() {
     try {

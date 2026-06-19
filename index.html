@@ -1920,11 +1920,39 @@
 
                             <!-- Sub Tab 2: Issue Asset -->
                             <div id="subtab-content-admin-assets-issue" class="sub-tab-content hidden">
+                                
+                                <!-- Pending Requests Section -->
+                                <div class="section-card bg-glass mb-4" id="admin-pending-asset-requests-section">
+                                    <div class="section-card-header">
+                                        <h3 style="font-size: 16px; font-weight: 700; margin: 0;"><i class="fa-solid fa-bell text-warning"></i> Pending Employee Requests</h3>
+                                    </div>
+                                    <div class="table-container" style="max-height: 300px; overflow-y: auto;">
+                                        <table class="data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Employee</th>
+                                                    <th>Category</th>
+                                                    <th>Sub Category</th>
+                                                    <th>Reason</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="admin-asset-requests-body">
+                                                <tr><td colspan="6" class="text-center text-muted">Loading pending requests...</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Direct Issue Form -->
                                 <div class="section-card bg-glass" style="max-width: 800px; margin: 0 auto;">
                                     <div class="section-card-header">
-                                        <h3 style="font-size: 16px; font-weight: 700; margin: 0;">Issue an Asset to Employee</h3>
+                                        <h3 style="font-size: 16px; font-weight: 700; margin: 0;">Directly Issue Asset</h3>
                                     </div>
                                     <form id="form-issue-asset" style="padding: 20px;">
+                                        <!-- Hidden field to track if this issue is fulfilling a request -->
+                                        <input type="hidden" id="issue-asset-request-id" value="">
                                         <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
                                             <div class="form-group">
                                                 <label>Select Employee *</label>
@@ -3239,30 +3267,96 @@
                     <div id="employee-tab-assets" class="tab-view">
                         <div class="view-header">
                             <div>
-                                <h1>My Assets</h1>
-                                <p class="text-secondary">View the company assets currently assigned to you</p>
+                                <h1>My Assets & Requests</h1>
+                                <p class="text-secondary">View the company assets assigned to you or request new ones</p>
                             </div>
                         </div>
 
-                        <div class="section-card bg-glass">
-                            <div class="table-container">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Category</th>
-                                            <th>Asset Name</th>
-                                            <th>Serial No / Reg</th>
-                                            <th>Issue Date</th>
-                                            <th>Return Date</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="employee-assets-body">
-                                        <tr><td colspan="6" class="text-center text-muted">Loading assets...</td></tr>
-                                    </tbody>
-                                </table>
+                        <!-- Employee Assets Tabs Navigation -->
+                        <div class="sub-tab-nav mb-4 mt-4">
+                            <button class="btn-sub-tab active" data-subtab="emp-assets-my" onclick="if(window.renderEmployeeAssetsTab) window.renderEmployeeAssetsTab('my_assets')">
+                                <i class="fa-solid fa-laptop"></i> My Assets
+                            </button>
+                            <button class="btn-sub-tab" data-subtab="emp-assets-request" onclick="if(window.renderEmployeeAssetsTab) window.renderEmployeeAssetsTab('request')">
+                                <i class="fa-solid fa-hand-holding-hand"></i> Request Asset
+                            </button>
+                            <button class="btn-sub-tab" data-subtab="emp-assets-history" onclick="if(window.renderEmployeeAssetsTab) window.renderEmployeeAssetsTab('history')">
+                                <i class="fa-solid fa-clock-rotate-left"></i> My Requests
+                            </button>
+                        </div>
+
+                        <!-- 1. My Assets View -->
+                        <div id="emp-assets-my" class="asset-sub-view active">
+                            <div class="section-card bg-glass">
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Category</th>
+                                                <th>Asset Name</th>
+                                                <th>Serial No / Reg</th>
+                                                <th>Issue Date</th>
+                                                <th>Condition Notes</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="employee-assets-body">
+                                            <tr><td colspan="5" class="text-center text-muted">Loading assets...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
+
+                        <!-- 2. Request Asset View -->
+                        <div id="emp-assets-request" class="asset-sub-view hidden">
+                            <div class="section-card bg-glass" style="max-width: 600px; margin: 0 auto;">
+                                <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-plus-circle text-primary"></i> Request New Asset</h3>
+                                <form id="emp-asset-request-form" onsubmit="event.preventDefault(); window.submitAssetRequest();">
+                                    <div class="form-group">
+                                        <label>Main Category *</label>
+                                        <select id="emp-req-main-cat" class="form-control" required onchange="window.updateEmpReqSubCat()">
+                                            <option value="">-- Select Category --</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Sub Category *</label>
+                                        <select id="emp-req-sub-cat" class="form-control" required>
+                                            <option value="">-- Select Sub Category --</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Reason / Requirement Notes *</label>
+                                        <textarea id="emp-req-reason" class="form-control" rows="3" placeholder="Explain why you need this asset..." required></textarea>
+                                    </div>
+                                    <div class="form-group mt-3 text-right">
+                                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Submit Request</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- 3. My Requests History View -->
+                        <div id="emp-assets-history" class="asset-sub-view hidden">
+                            <div class="section-card bg-glass">
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Category</th>
+                                                <th>Sub Category</th>
+                                                <th>Reason</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="emp-asset-requests-body">
+                                            <tr><td colspan="5" class="text-center text-muted">Loading requests...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 

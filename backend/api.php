@@ -248,6 +248,17 @@ try {
         `issues` TEXT DEFAULT NULL,
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `asset_requests` (
+        `id` varchar(100) NOT NULL,
+        `employee_id` varchar(100) DEFAULT NULL,
+        `requested_category` varchar(150) DEFAULT NULL,
+        `requested_sub_category` varchar(150) DEFAULT NULL,
+        `reason` TEXT DEFAULT NULL,
+        `request_date` varchar(50) DEFAULT NULL,
+        `status` varchar(50) DEFAULT 'Pending',
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
     
     try {
         $pdo->exec("ALTER TABLE `assets` ADD COLUMN `issues` TEXT DEFAULT NULL");
@@ -340,6 +351,16 @@ try {
             `purchase_date` TEXT,
             `status` TEXT DEFAULT 'Available',
             `issues` TEXT
+        )");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `asset_requests` (
+            `id` TEXT PRIMARY KEY,
+            `employee_id` TEXT,
+            `requested_category` TEXT,
+            `requested_sub_category` TEXT,
+            `reason` TEXT,
+            `request_date` TEXT,
+            `status` TEXT DEFAULT 'Pending'
         )");
         
         try {
@@ -710,6 +731,11 @@ if ($action === 'load_all') {
             }
         } catch (Exception $e) { $dbState['assets'] = []; $dbState['assetIssues'] = []; }
 
+        try {
+            $stmt = $pdo->query("SELECT * FROM asset_requests");
+            $dbState['assetRequests'] = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (Exception $e) { $dbState['assetRequests'] = []; }
+
         // Fetch Notifications
         try {
             $stmt = $pdo->query("SELECT * FROM notifications ORDER BY time DESC");
@@ -1053,6 +1079,26 @@ elseif ($action === 'save_all') {
                 }
             }
         } catch (Exception $e) {}
+
+        // Sync Asset Requests
+        try {
+            $pdo->exec("DELETE FROM asset_requests");
+            if (!empty($data['assetRequests'])) {
+                $stmt = $pdo->prepare("INSERT INTO asset_requests (id, employee_id, requested_category, requested_sub_category, reason, request_date, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                foreach ($data['assetRequests'] as $r) {
+                    $stmt->execute([
+                        $r['id'], 
+                        $r['employee_id'] ?? '', 
+                        $r['requested_category'] ?? '',
+                        $r['requested_sub_category'] ?? '', 
+                        $r['reason'] ?? '', 
+                        $r['request_date'] ?? '', 
+                        $r['status'] ?? 'Pending'
+                    ]);
+                }
+            }
+        } catch (Exception $e) {}
+
 
         // 11. Sync System Settings
         $pdo->exec("DELETE FROM system_settings");
