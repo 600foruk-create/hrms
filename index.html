@@ -1947,7 +1947,7 @@
                                 </div>
 
                                 <!-- Direct Issue Form -->
-                                <div class="section-card bg-glass" style="max-width: 800px; margin: 0 auto;">
+                                <div class="section-card bg-glass">
                                     <div class="section-card-header">
                                         <h3 style="font-size: 16px; font-weight: 700; margin: 0;">Directly Issue Asset</h3>
                                     </div>
@@ -3017,30 +3017,32 @@
 
                         <!-- 2. Request Asset View -->
                         <div id="mgr-assets-request" class="asset-sub-view hidden">
-                            <div class="section-card bg-glass" style="max-width: 600px; margin: 0 auto;">
-                                <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-plus-circle text-primary"></i> Request New Asset</h3>
-                                <form id="mgr-asset-request-form" onsubmit="event.preventDefault(); window.submitAssetRequest();">
-                                    <div class="form-group">
-                                        <label>Main Category *</label>
-                                        <select id="mgr-req-main-cat" class="form-control" required onchange="window.updateEmpReqSubCat()">
-                                            <option value="">-- Select Category --</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Sub Category *</label>
-                                        <select id="mgr-req-sub-cat" class="form-control" required onchange="window.updateEmpReqAsset()">
-                                            <option value="">-- Select Sub Category --</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Available Asset</label>
-                                        <select id="mgr-req-asset" class="form-control">
-                                            <option value="">-- Any Available Asset --</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Reason / Requirement Notes *</label>
-                                        <textarea id="mgr-req-reason" class="form-control" rows="3" placeholder="Explain why you need this asset..." required></textarea>
+                            <div class="section-card bg-glass">
+                                <h3 style="margin-bottom: 20px; padding: 0 15px;"><i class="fa-solid fa-plus-circle text-primary"></i> Request New Asset</h3>
+                                <form id="mgr-asset-request-form" onsubmit="event.preventDefault(); window.submitAssetRequest();" style="padding: 0 15px 15px 15px;">
+                                    <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                        <div class="form-group">
+                                            <label>Main Category *</label>
+                                            <select id="mgr-req-main-cat" class="form-control" required onchange="window.updateEmpReqSubCat()">
+                                                <option value="">-- Select Category --</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Sub Category *</label>
+                                            <select id="mgr-req-sub-cat" class="form-control" required onchange="window.updateEmpReqAsset()">
+                                                <option value="">-- Select Sub Category --</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" style="grid-column: span 2;">
+                                            <label>Available Asset</label>
+                                            <select id="mgr-req-asset" class="form-control">
+                                                <option value="">-- Any Available Asset --</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" style="grid-column: span 2;">
+                                            <label>Reason / Requirement Notes *</label>
+                                            <textarea id="mgr-req-reason" class="form-control" rows="3" placeholder="Explain why you need this asset..." required></textarea>
+                                        </div>
                                     </div>
                                     <div class="form-group mt-3 text-right">
                                         <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Submit Request</button>
@@ -3413,30 +3415,32 @@
 
                         <!-- 2. Request Asset View -->
                         <div id="emp-assets-request" class="asset-sub-view hidden">
-                            <div class="section-card bg-glass" style="max-width: 600px; margin: 0 auto;">
-                                <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-plus-circle text-primary"></i> Request New Asset</h3>
-                                <form id="emp-asset-request-form" onsubmit="event.preventDefault(); window.submitAssetRequest();">
-                                    <div class="form-group">
-                                        <label>Main Category *</label>
-                                        <select id="emp-req-main-cat" class="form-control" required onchange="window.updateEmpReqSubCat()">
-                                            <option value="">-- Select Category --</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Sub Category *</label>
-                                        <select id="emp-req-sub-cat" class="form-control" required onchange="window.updateEmpReqAsset()">
-                                            <option value="">-- Select Sub Category --</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Available Asset</label>
-                                        <select id="emp-req-asset" class="form-control">
-                                            <option value="">-- Any Available Asset --</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Reason / Requirement Notes *</label>
-                                        <textarea id="emp-req-reason" class="form-control" rows="3" placeholder="Explain why you need this asset..." required></textarea>
+                            <div class="section-card bg-glass">
+                                <h3 style="margin-bottom: 20px; padding: 0 15px;"><i class="fa-solid fa-plus-circle text-primary"></i> Request New Asset</h3>
+                                <form id="emp-asset-request-form" onsubmit="event.preventDefault(); window.submitAssetRequest();" style="padding: 0 15px 15px 15px;">
+                                    <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                        <div class="form-group">
+                                            <label>Main Category *</label>
+                                            <select id="emp-req-main-cat" class="form-control" required onchange="window.updateEmpReqSubCat()">
+                                                <option value="">-- Select Category --</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Sub Category *</label>
+                                            <select id="emp-req-sub-cat" class="form-control" required onchange="window.updateEmpReqAsset()">
+                                                <option value="">-- Select Sub Category --</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" style="grid-column: span 2;">
+                                            <label>Available Asset</label>
+                                            <select id="emp-req-asset" class="form-control">
+                                                <option value="">-- Any Available Asset --</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" style="grid-column: span 2;">
+                                            <label>Reason / Requirement Notes *</label>
+                                            <textarea id="emp-req-reason" class="form-control" rows="3" placeholder="Explain why you need this asset..." required></textarea>
+                                        </div>
                                     </div>
                                     <div class="form-group mt-3 text-right">
                                         <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Submit Request</button>

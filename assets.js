@@ -912,9 +912,25 @@ window.updateEmpReqAsset = function() {
     
     const available = db.assets.filter(a => a.category === mainCat && a.sub_category === subCat && a.status === 'Available');
     if (available.length > 0) {
+        const uniqueGroups = {};
+        
         available.forEach(a => {
-            assetSelect.innerHTML += `<option value="${a.name} [${a.serial_number || 'No Serial'}]">${a.name} [${a.serial_number || 'No Serial'}]</option>`;
+            const hasSerial = a.serial_number && a.serial_number.trim() !== '';
+            if (hasSerial) {
+                assetSelect.innerHTML += `<option value="${a.name} [${a.serial_number}]">${a.name} [${a.serial_number}]</option>`;
+            } else {
+                const name = a.name || 'Unnamed Asset';
+                if (!uniqueGroups[name]) {
+                    uniqueGroups[name] = 1;
+                } else {
+                    uniqueGroups[name]++;
+                }
+            }
         });
+        
+        for (const [name, count] of Object.entries(uniqueGroups)) {
+            assetSelect.innerHTML += `<option value="${name} [No Serial]">${name} [No Serial] (Qty: ${count})</option>`;
+        }
     }
 };
 
