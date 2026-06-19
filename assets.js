@@ -194,9 +194,9 @@ function renderAssetsPane() {
                 
                 for (const [status, groupItems] of Object.entries(noSerialGroups)) {
                     let statusBadge = '';
-                    if (status === 'Available') statusBadge = `<span class="badge bg-success" style="font-size: 10px;">Available (Qty: ${groupItems.length})</span>`;
-                    else if (status === 'Issued') statusBadge = `<span class="badge bg-warning text-dark" style="font-size: 10px;">Issued (Qty: ${groupItems.length})</span>`;
-                    else statusBadge = `<span class="badge bg-secondary" style="font-size: 10px;">${status} (Qty: ${groupItems.length})</span>`;
+                    if (status === 'Available') statusBadge = `<span class="role-badge bg-success" style="font-size: 10px;">Available (Qty: ${groupItems.length})</span>`;
+                    else if (status === 'Issued') statusBadge = `<span class="role-badge bg-warning text-dark" style="font-size: 10px;">Issued (Qty: ${groupItems.length})</span>`;
+                    else statusBadge = `<span class="role-badge bg-secondary" style="font-size: 10px;">${status} (Qty: ${groupItems.length})</span>`;
                     
                     html += `<tr>
                         <td style="font-size: 12px; color: #999; font-style: italic;">Auto</td>
@@ -211,9 +211,9 @@ function renderAssetsPane() {
             
             serialItems.forEach(a => {
                 let statusBadge = '';
-                if (a.status === 'Available') statusBadge = '<span class="badge bg-success" style="font-size: 10px;">Available</span>';
-                else if (a.status === 'Issued') statusBadge = '<span class="badge bg-warning text-dark" style="font-size: 10px;">Issued</span>';
-                else statusBadge = `<span class="badge bg-secondary" style="font-size: 10px;">${a.status}</span>`;
+                if (a.status === 'Available') statusBadge = '<span class="role-badge bg-success" style="font-size: 10px;">Available</span>';
+                else if (a.status === 'Issued') statusBadge = '<span class="role-badge bg-warning text-dark" style="font-size: 10px;">Issued</span>';
+                else statusBadge = `<span class="role-badge bg-secondary" style="font-size: 10px;">${a.status}</span>`;
                 
                 html += `<tr>
                     <td style="font-size: 12px;">${a.id}</td>
@@ -742,8 +742,8 @@ function renderAssetsReport() {
         const serialNo = asset ? asset.serial_number : 'Unknown';
         
         let statusBadge = ai.status === 'Active' 
-            ? '<span class="badge bg-warning text-dark">Issued</span>' 
-            : '<span class="badge bg-success">Returned</span>';
+            ? '<span class="role-badge bg-warning text-dark">Issued</span>' 
+            : '<span class="role-badge bg-success">Returned</span>';
             
         let actionBtn = '';
         if (ai.status === 'Active') {
@@ -929,7 +929,7 @@ window.updateEmpReqAsset = function() {
         });
         
         for (const [name, count] of Object.entries(uniqueGroups)) {
-            assetSelect.innerHTML += `<option value="${name} [No Serial]">${name} [No Serial] (Qty: ${count})</option>`;
+            assetSelect.innerHTML += `<option value="${name} [No Serial]">${name} [No Serial]</option>`;
         }
     }
 };
@@ -994,9 +994,9 @@ function renderMyRequestsHistory(db, pfx) {
     let html = '';
     myReqs.forEach(r => {
         let statusBadge = '';
-        if (r.status === 'Pending') statusBadge = '<span class="badge bg-warning text-dark">Pending</span>';
-        else if (r.status === 'Approved') statusBadge = '<span class="badge bg-success">Approved (Issued)</span>';
-        else if (r.status === 'Rejected') statusBadge = '<span class="badge bg-danger">Rejected</span>';
+        if (r.status === 'Pending') statusBadge = '<span class="role-badge bg-warning text-dark">Pending</span>';
+        else if (r.status === 'Approved') statusBadge = '<span class="role-badge bg-success">Approved (Issued)</span>';
+        else if (r.status === 'Rejected') statusBadge = '<span class="role-badge bg-danger">Rejected</span>';
         
         html += `
             <tr>
@@ -1087,7 +1087,7 @@ window.renderAssetCategoriesTable = function() {
             html += `<tr><td style="vertical-align: top; width: 30%;"><strong>${c.name}</strong></td><td style="vertical-align: top;">`;
             if (c.subCategories && c.subCategories.length > 0) {
                 c.subCategories.forEach(sub => {
-                    html += `<span class='badge bg-secondary' style='margin-right:5px; margin-bottom:5px; display:inline-block; font-weight: 500;'>${sub} <i class='fa-solid fa-xmark' style='cursor:pointer; margin-left:5px; color: #ffcccc;' onclick='deleteAssetSubCategory("${c.name}", "${sub}")'></i></span>`;
+                    html += `<span class='role-badge bg-secondary' style='margin-right:5px; margin-bottom:5px; display:inline-block; font-weight: 500;'>${sub} <i class='fa-solid fa-xmark' style='cursor:pointer; margin-left:5px; color: #ffcccc;' onclick='deleteAssetSubCategory("${c.name}", "${sub}")'></i></span>`;
                 });
             } else {
                 html += `<span class="text-muted" style="font-size: 12px;">No sub-categories</span>`;
