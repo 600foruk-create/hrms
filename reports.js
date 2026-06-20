@@ -323,7 +323,7 @@ function generateAdminPayrollReport(db) {
             const slipMonth = s.startDate ? s.startDate.substring(5, 7) : '-';
             const slipYear = s.startDate ? s.startDate.substring(0, 4) : '-';
             
-            tbody.innerHTML += '<tr><td>'+slipMonth+'/'+slipYear+'</td><td><strong>'+uname+'</strong></td><td>'+(window.appCurrency||'$')+' '+Math.round(basic).toLocaleString()+'</td><td>'+(window.appCurrency||'$')+' '+Math.round(totalAdd).toLocaleString()+'</td><td>'+(window.appCurrency||'$')+' '+Math.round(totalDed).toLocaleString()+'</td><td><strong>'+(window.appCurrency||'$')+' '+Math.round(netPay).toLocaleString()+'</strong></td><td><span class=\"status-badge status-approved\">Paid</span></td></tr>';
+            tbody.innerHTML += '<tr><td>'+slipMonth+'/'+slipYear+'</td><td><strong>'+uname+'</strong></td><td>Rs '+Math.round(basic).toLocaleString()+'</td><td>Rs '+Math.round(totalAdd).toLocaleString()+'</td><td>Rs '+Math.round(totalDed).toLocaleString()+'</td><td><strong>Rs '+Math.round(netPay).toLocaleString()+'</strong></td><td><span class=\"status-badge status-approved\">Paid</span></td></tr>';
         });
     }
     document.getElementById('print-subtitle-admin-payroll').innerText = 'Period: ' + m + '/' + y + ' | Total Slips: ' + logs.length;
