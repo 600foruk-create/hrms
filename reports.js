@@ -278,8 +278,8 @@ function generateAdminPayrollReport(db) {
     const emp = document.getElementById('admin-rep-pay-emp').value;
 
     let logs = [];
-    if(db.salarySlips) {
-        logs = db.salarySlips.filter(s => {
+    if(db.payrollHistory) {
+        logs = db.payrollHistory.filter(s => {
             if(emp !== 'All' && s.userId !== emp) return false;
             if(m !== 'All' && s.month !== m) return false;
             if(y !== 'All' && s.year !== y) return false;
@@ -296,7 +296,7 @@ function generateAdminPayrollReport(db) {
         logs.forEach(s => {
             const u = db.users.find(u => u.id === s.userId);
             const uname = u ? u.name : 'Unknown';
-            tbody.innerHTML += '<tr><td>'+s.month+'/'+s.year+'</td><td><strong>'+uname+'</strong></td><td>'+window.appCurrency+' '+s.basicSalary+'</td><td>'+window.appCurrency+' '+s.totalAllowances+'</td><td>'+window.appCurrency+' '+s.totalDeductions+'</td><td><strong>'+window.appCurrency+' '+s.netSalary+'</strong></td><td><span class=\"status-badge status-approved\">Paid</span></td></tr>';
+            tbody.innerHTML += '<tr><td>'+s.month+'/'+s.year+'</td><td><strong>'+uname+'</strong></td><td>'+(window.appCurrency||'$')+' '+(s.basicSalary||0)+'</td><td>'+(window.appCurrency||'$')+' '+(s.totalAllowances||0)+'</td><td>'+(window.appCurrency||'$')+' '+(s.totalDeductions||0)+'</td><td><strong>'+(window.appCurrency||'$')+' '+(s.netSalary||0)+'</strong></td><td><span class=\"status-badge status-approved\">Paid</span></td></tr>';
         });
     }
     document.getElementById('print-subtitle-admin-payroll').innerText = 'Period: ' + m + '/' + y + ' | Total Slips: ' + logs.length;
@@ -309,9 +309,10 @@ function generateAdminProductivityReport(db) {
     const status = document.getElementById('admin-rep-prod-status').value;
 
     let logs = [];
-    if(db.productivityLogs) {
-        logs = db.productivityLogs.filter(l => {
-            if(emp !== 'All' && l.userId !== emp) return false;
+    if(db.productivity) {
+        logs = db.productivity.filter(l => {
+            const uid = l.employee_id || l.employeeId;
+            if(emp !== 'All' && uid !== emp) return false;
             if(status !== 'All' && l.status !== status) return false;
             if(start && l.date < start) return false;
             if(end && l.date > end) return false;
@@ -326,9 +327,10 @@ function generateAdminProductivityReport(db) {
         tbody.innerHTML = '<tr><td colspan=\"6\" class=\"text-center text-muted\">No productivity records found</td></tr>';
     } else {
         logs.forEach(l => {
-            const u = db.users.find(u => u.id === l.userId);
+            const uid = l.employee_id || l.employeeId;
+            const u = db.users.find(u => u.id === uid);
             const uname = u ? u.name : 'Unknown';
-            tbody.innerHTML += '<tr><td>'+l.date+'</td><td><strong>'+uname+'</strong></td><td>'+l.taskCount+'</td><td>'+l.durationHours+'</td><td><strong>'+l.score+'/10</strong></td><td><span class=\"status-badge status-'+(l.status||'pending').toLowerCase()+'\">'+(l.status||'Pending')+'</span></td></tr>';
+            tbody.innerHTML += '<tr><td>'+l.date+'</td><td><strong>'+uname+'</strong></td><td>'+(l.taskCount||0)+'</td><td>'+(l.durationHours||0)+'</td><td><strong>'+(l.score||0)+'/10</strong></td><td><span class=\"status-badge status-'+(l.status||'pending').toLowerCase()+'\">'+(l.status||'Pending')+'</span></td></tr>';
         });
     }
     document.getElementById('print-subtitle-admin-productivity').innerText = 'Date Range: ' + start + ' to ' + end + ' | Logs: ' + logs.length;
@@ -463,10 +465,11 @@ function generateMgrProductivityReport(db, teamIds) {
     const status = document.getElementById('mgr-rep-prod-status').value;
 
     let logs = [];
-    if(db.productivityLogs) {
-        logs = db.productivityLogs.filter(l => {
-            if(!teamIds.includes(l.userId)) return false;
-            if(emp !== 'All' && l.userId !== emp) return false;
+    if(db.productivity) {
+        logs = db.productivity.filter(l => {
+            const uid = l.employee_id || l.employeeId;
+            if(!teamIds.includes(uid)) return false;
+            if(emp !== 'All' && uid !== emp) return false;
             if(status !== 'All' && l.status !== status) return false;
             if(start && l.date < start) return false;
             if(end && l.date > end) return false;
@@ -479,8 +482,9 @@ function generateMgrProductivityReport(db, teamIds) {
     if(logs.length === 0) tbody.innerHTML = '<tr><td colspan=\"6\" class=\"text-center text-muted\">No records found</td></tr>';
     else {
         logs.forEach(l => {
-            const u = db.users.find(u => u.id === l.userId);
-            tbody.innerHTML += '<tr><td>'+l.date+'</td><td><strong>'+(u?u.name:'Unknown')+'</strong></td><td>'+l.taskCount+'</td><td>'+l.durationHours+'</td><td><strong>'+l.score+'/10</strong></td><td><span class=\"status-badge status-'+(l.status||'pending').toLowerCase()+'\">'+(l.status||'Pending')+'</span></td></tr>';
+            const uid = l.employee_id || l.employeeId;
+            const u = db.users.find(u => u.id === uid);
+            tbody.innerHTML += '<tr><td>'+l.date+'</td><td><strong>'+(u?u.name:'Unknown')+'</strong></td><td>'+(l.taskCount||0)+'</td><td>'+(l.durationHours||0)+'</td><td><strong>'+(l.score||0)+'/10</strong></td><td><span class=\"status-badge status-'+(l.status||'pending').toLowerCase()+'\">'+(l.status||'Pending')+'</span></td></tr>';
         });
     }
     document.getElementById('print-subtitle-manager-productivity').innerText = 'Date Range: ' + start + ' to ' + end;
