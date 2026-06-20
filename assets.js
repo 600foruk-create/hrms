@@ -987,7 +987,7 @@ function renderMyRequestsHistory(db, pfx) {
     myReqs.sort((a, b) => new Date(b.request_date) - new Date(a.request_date));
     
     if (myReqs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No asset requests found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No asset requests found</td></tr>';
         return;
     }
     
