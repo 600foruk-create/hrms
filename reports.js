@@ -1,13 +1,6 @@
 // Reports & Analytics Module Logic
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Check if db is loaded, then init dropdowns
-    setTimeout(() => {
-        if (typeof getDb === 'function') {
-            initReportDropdowns();
-        }
-    }, 1000);
-});
+// Removed DOMContentLoaded init, now using specific init functions called by app.js
 
 // Admin Reports Tab Switcher
 window.renderAdminReportsTab = function(tabId) {
@@ -64,7 +57,7 @@ window.printReport = function(reportId) {
     });
 };
 
-function initReportDropdowns() {
+window.initAdminReportsTab = function() {
     const db = getDb();
     const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
     
@@ -121,6 +114,18 @@ function initReportDropdowns() {
             assetEmpSelect.innerHTML += '<option value=\"' + e.id + '\">' + e.name + '</option>';
         });
     }
+}
+
+window.initManagerReportsTab = function() {
+    const db = getDb();
+    const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+
+    // Default dates
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 30);
+    const startStr = start.toISOString().split('T')[0];
+    const endStr = end.toISOString().split('T')[0];
     
     // Fill Manager Team Selects
     if (currentUser && currentUser.role === 'Manager') {
