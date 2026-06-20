@@ -4304,31 +4304,7 @@ window.enableAddNewLeaveType = function () {
 // ==================== REPORTS & EXPORT SHEETS ====================
 
 // 1. ADMIN REPORTS
-function initAdminReportsTab() {
-    const db = getDb();
-
-    // Fill Employee Filter Options
-    const empSelect = document.getElementById('admin-report-employee');
-    empSelect.innerHTML = '<option value="">All Employees</option>';
-    db.users.filter(u => u.role === 'User' || u.role === 'Employee').forEach(e => {
-        empSelect.innerHTML += `<option value="${e.id}">${e.name}</option>`;
-    });
-
-    // Fill Manager Filter Options
-    const mgrSelect = document.getElementById('admin-report-manager');
-    mgrSelect.innerHTML = '<option value="">All Managers</option>';
-    db.users.filter(u => u.role === 'Manager').forEach(m => {
-        mgrSelect.innerHTML += `<option value="${m.id}">${m.name}</option>`;
-    });
-
-    // Default dates (past month)
-    const end = new Date();
-    const start = new Date();
-    start.setMonth(start.getMonth() - 1);
-
-    document.getElementById('admin-report-start-date').value = start.toISOString().split('T')[0];
-    document.getElementById('admin-report-end-date').value = end.toISOString().split('T')[0];
-}
+// initAdminReportsTab logic moved to reports.js
 
 const btnAdminGen = document.getElementById('btn-admin-report-generate');
 if(btnAdminGen) {
@@ -4338,23 +4314,7 @@ if(btnAdminGen) {
 }
 
 // 2. MANAGER REPORTS
-function initManagerReportsTab() {
-    const db = getDb();
-    const team = db.users.filter(u => (u.role === 'User' || u.role === 'Employee') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
-
-    const empSelect = document.getElementById('manager-report-employee');
-    empSelect.innerHTML = '<option value="">All Team Members</option>';
-    team.forEach(e => {
-        empSelect.innerHTML += `<option value="${e.id}">${e.name}</option>`;
-    });
-
-    const end = new Date();
-    const start = new Date();
-    start.setMonth(start.getMonth() - 1);
-
-    document.getElementById('manager-report-start-date').value = start.toISOString().split('T')[0];
-    document.getElementById('manager-report-end-date').value = end.toISOString().split('T')[0];
-}
+// initManagerReportsTab logic moved to reports.js
 
 const btnMgrGen = document.getElementById('btn-manager-report-generate');
 if(btnMgrGen) {
