@@ -607,7 +607,25 @@ window.approveAssetRequest = function(reqId) {
     // Trigger category change to load available assets
     if (window.filterAvailableAssets) window.filterAvailableAssets();
     
-    if (window.showToast) window.showToast('Form pre-filled. Please select the specific asset to issue.', 'info');
+    // Auto-select requested asset if available
+    if (req.requested_asset) {
+        const itemSelect = document.getElementById('issue-asset-item');
+        if (itemSelect) {
+            let matchedOption = Array.from(itemSelect.options).find(opt => opt.text === req.requested_asset);
+            
+            // If it's a grouped no-serial request, match by name prefix
+            if (!matchedOption && req.requested_asset.includes('[No Serial]')) {
+                const requestedName = req.requested_asset.split(' [No Serial]')[0];
+                matchedOption = Array.from(itemSelect.options).find(opt => opt.text.startsWith(requestedName + ' [No Serial]'));
+            }
+            
+            if (matchedOption) {
+                itemSelect.value = matchedOption.value;
+            }
+        }
+    }
+    
+    if (window.showToast) window.showToast('Form pre-filled. Please verify the specific asset to issue.', 'info');
 };
 
 window.rejectAssetRequest = function(reqId) {
@@ -644,7 +662,8 @@ window.filterAvailableAssets = function() {
     }
     
     available.forEach(a => {
-        itemSelect.innerHTML += `<option value="${a.id}">${a.name} [${a.serial_number}]</option>`;
+        const serialText = (a.serial_number && a.serial_number.trim() !== '') ? a.serial_number : 'No Serial';
+        itemSelect.innerHTML += `<option value="${a.id}">${a.name} [${serialText}]</option>`;
     });
 };
 
