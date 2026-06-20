@@ -209,9 +209,9 @@ function generateAdminAttendanceReport(db) {
     const status = document.getElementById('admin-rep-att-status').value;
 
     let logs = [];
-    if(db.attendanceLogs) {
-        db.attendanceLogs.forEach(log => {
-            if(emp !== 'All' && log.userId !== emp) return;
+    if(db.attendance) {
+        db.attendance.forEach(log => {
+            if(emp !== 'All' && log.employeeId !== emp) return;
             if(start && log.date < start) return;
             if(end && log.date > end) return;
             if(status !== 'All' && log.status !== status) return;
@@ -228,9 +228,9 @@ function generateAdminAttendanceReport(db) {
         tbody.innerHTML = '<tr><td colspan=\"6\" class=\"text-center text-muted\">No attendance records found</td></tr>';
     } else {
         logs.forEach(log => {
-            const u = db.users.find(u => u.id === log.userId);
+            const u = db.users.find(u => u.id === log.employeeId);
             const uname = u ? u.name : 'Unknown';
-            tbody.innerHTML += '<tr><td>'+log.date+'</td><td>'+log.userId+'</td><td><strong>'+uname+'</strong></td><td>'+(log.timeIn || '-')+'</td><td>'+(log.timeOut || '-')+'</td><td><span class=\"status-badge status-'+(log.status?log.status.toLowerCase().replace(' ','-'):'present')+'\">'+log.status+'</span></td></tr>';
+            tbody.innerHTML += '<tr><td>'+log.date+'</td><td>'+log.employeeId+'</td><td><strong>'+uname+'</strong></td><td>'+(log.timeIn || '-')+'</td><td>'+(log.timeOut || '-')+'</td><td><span class=\"status-badge status-'+(log.status?log.status.toLowerCase().replace(' ','-'):'present')+'\">'+log.status+'</span></td></tr>';
         });
     }
     document.getElementById('print-subtitle-admin-attendance').innerText = 'Date Range: ' + start + ' to ' + end + ' | Filter: ' + (emp==='All'?'All Employees':emp);
@@ -397,10 +397,10 @@ function generateMgrAttendanceReport(db, teamIds) {
     const status = document.getElementById('mgr-rep-att-status').value;
 
     let logs = [];
-    if(db.attendanceLogs) {
-        logs = db.attendanceLogs.filter(log => {
-            if(!teamIds.includes(log.userId)) return false;
-            if(emp !== 'All' && log.userId !== emp) return false;
+    if(db.attendance) {
+        logs = db.attendance.filter(log => {
+            if(!teamIds.includes(log.employeeId)) return false;
+            if(emp !== 'All' && log.employeeId !== emp) return false;
             if(start && log.date < start) return false;
             if(end && log.date > end) return false;
             if(status !== 'All' && log.status !== status) return false;
@@ -414,7 +414,7 @@ function generateMgrAttendanceReport(db, teamIds) {
     if(logs.length === 0) tbody.innerHTML = '<tr><td colspan=\"5\" class=\"text-center text-muted\">No records found</td></tr>';
     else {
         logs.forEach(log => {
-            const u = db.users.find(u => u.id === log.userId);
+            const u = db.users.find(u => u.id === log.employeeId);
             tbody.innerHTML += '<tr><td>'+log.date+'</td><td><strong>'+(u?u.name:'Unknown')+'</strong></td><td>'+(log.timeIn||'-')+'</td><td>'+(log.timeOut||'-')+'</td><td><span class=\"status-badge status-'+(log.status?log.status.toLowerCase().replace(' ','-'):'present')+'\">'+log.status+'</span></td></tr>';
         });
     }
