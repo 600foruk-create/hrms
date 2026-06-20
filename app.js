@@ -4356,9 +4356,12 @@ function initManagerReportsTab() {
     document.getElementById('manager-report-end-date').value = end.toISOString().split('T')[0];
 }
 
-document.getElementById('btn-manager-report-generate').addEventListener('click', () => {
-    generateReport('Manager');
-});
+const btnMgrGen = document.getElementById('btn-manager-report-generate');
+if(btnMgrGen) {
+    btnMgrGen.addEventListener('click', () => {
+        generateReport('Manager');
+    });
+}
 
 // Generate Reports Render Handler
 let generatedReportData = null; // Store active generated records globally
