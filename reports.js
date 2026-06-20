@@ -281,8 +281,12 @@ function generateAdminPayrollReport(db) {
     if(db.payrollHistory) {
         logs = db.payrollHistory.filter(s => {
             if(emp !== 'All' && s.userId !== emp) return false;
-            if(m !== 'All' && s.month !== m) return false;
-            if(y !== 'All' && s.year !== y) return false;
+            
+            const slipMonth = s.startDate ? s.startDate.substring(5, 7) : '';
+            const slipYear = s.startDate ? s.startDate.substring(0, 4) : '';
+            
+            if(m !== 'All' && slipMonth !== m) return false;
+            if(y !== 'All' && slipYear !== y) return false;
             return true;
         });
     }
@@ -296,7 +300,14 @@ function generateAdminPayrollReport(db) {
         logs.forEach(s => {
             const u = db.users.find(u => u.id === s.userId);
             const uname = u ? u.name : 'Unknown';
-            tbody.innerHTML += '<tr><td>'+s.month+'/'+s.year+'</td><td><strong>'+uname+'</strong></td><td>'+(window.appCurrency||'$')+' '+(s.basicSalary||0)+'</td><td>'+(window.appCurrency||'$')+' '+(s.totalAllowances||0)+'</td><td>'+(window.appCurrency||'$')+' '+(s.totalDeductions||0)+'</td><td><strong>'+(window.appCurrency||'$')+' '+(s.netSalary||0)+'</strong></td><td><span class=\"status-badge status-approved\">Paid</span></td></tr>';
+            const basic = s.netFixed || 0;
+            const allowances = (s.fixedAllowances || 0) + (s.bonus || 0);
+            const deductions = (s.fixedDeductions || 0) + (s.absencyDeduction || 0) + (s.loanDeduction || 0) + (s.otherDeduction || 0);
+            const net = s.netPay || 0;
+            const slipMonth = s.startDate ? s.startDate.substring(5, 7) : '-';
+            const slipYear = s.startDate ? s.startDate.substring(0, 4) : '-';
+            
+            tbody.innerHTML += '<tr><td>'+slipMonth+'/'+slipYear+'</td><td><strong>'+uname+'</strong></td><td>'+(window.appCurrency||'$')+' '+basic+'</td><td>'+(window.appCurrency||'$')+' '+allowances+'</td><td>'+(window.appCurrency||'$')+' '+deductions+'</td><td><strong>'+(window.appCurrency||'$')+' '+net+'</strong></td><td><span class=\"status-badge status-approved\">Paid</span></td></tr>';
         });
     }
     document.getElementById('print-subtitle-admin-payroll').innerText = 'Period: ' + m + '/' + y + ' | Total Slips: ' + logs.length;
