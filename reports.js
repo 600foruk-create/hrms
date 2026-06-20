@@ -59,7 +59,7 @@ window.printReport = function(reportId) {
 
 window.initAdminReportsTab = function() {
     const db = getDb();
-    const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+    const activeUser = window.currentUser || JSON.parse(localStorage.getItem('current_user'));
     
     // Fill Employee Selects (for Admin)
     const empSelectsAdmin = ['admin-rep-att-emp', 'admin-rep-leave-emp', 'admin-rep-pay-emp', 'admin-rep-prod-emp'];
@@ -118,7 +118,7 @@ window.initAdminReportsTab = function() {
 
 window.initManagerReportsTab = function() {
     const db = getDb();
-    const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+    const activeUser = window.currentUser || JSON.parse(localStorage.getItem('current_user'));
 
     // Default dates
     const end = new Date();
@@ -128,9 +128,9 @@ window.initManagerReportsTab = function() {
     const endStr = end.toISOString().split('T')[0];
     
     // Fill Manager Team Selects
-    if (currentUser && currentUser.role === 'Manager') {
-        const teamMembers = db.users.filter(u => u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email);
-        const team = [currentUser, ...teamMembers];
+    if (activeUser && activeUser.role === 'Manager') {
+        const teamMembers = db.users.filter(u => u.managerId === activeUser.id || u.managerId === activeUser.name || u.managerId === activeUser.email);
+        const team = [activeUser, ...teamMembers];
         const mgrSelects = ['mgr-rep-att-emp', 'mgr-rep-leave-emp', 'mgr-rep-prod-emp'];
         mgrSelects.forEach(id => {
             const el = document.getElementById(id);
@@ -163,11 +163,11 @@ window.generateAdminReport = function(type) {
 
 window.generateManagerReport = function(type) {
     const db = getDb();
-    const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
-    if (!currentUser || currentUser.role !== 'Manager') return;
+    const activeUser = window.currentUser || JSON.parse(localStorage.getItem('current_user'));
+    if (!activeUser || activeUser.role !== 'Manager') return;
     
-    const teamMembers = db.users.filter(u => u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email);
-    const teamIds = [currentUser.id, ...teamMembers.map(u => u.id)];
+    const teamMembers = db.users.filter(u => u.managerId === activeUser.id || u.managerId === activeUser.name || u.managerId === activeUser.email);
+    const teamIds = [activeUser.id, ...teamMembers.map(u => u.id)];
     
     if (type === 'employees') generateMgrEmployeesReport(db, teamIds);
     else if (type === 'attendance') generateMgrAttendanceReport(db, teamIds);
