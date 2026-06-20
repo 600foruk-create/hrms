@@ -300,14 +300,30 @@ function generateAdminPayrollReport(db) {
         logs.forEach(s => {
             const u = db.users.find(u => u.id === s.userId);
             const uname = u ? u.name : 'Unknown';
-            const basic = s.netFixed || 0;
-            const allowances = (s.fixedAllowances || 0) + (s.bonus || 0);
-            const deductions = (s.fixedDeductions || 0) + (s.absencyDeduction || 0) + (s.loanDeduction || 0) + (s.otherDeduction || 0);
-            const net = s.netPay || 0;
+            
+            const basic = parseInt(u?.salary) || 0;
+            const globalSlab = db.globalSalarySettings || { allowances: [], deductions: [] };
+            let profile = db.salaryProfiles?.find(p => p.userId === s.userId);
+            let allowances = profile && profile.isCustomSlab ? (profile.allowances || []) : (globalSlab.allowances || []);
+            let deductions = profile && profile.isCustomSlab ? (profile.deductions || []) : (globalSlab.deductions || []);
+            
+            if (!Array.isArray(allowances)) allowances = [];
+            if (!Array.isArray(deductions)) deductions = [];
+            
+            let fixedAll = 0;
+            allowances.forEach(a => { fixedAll += (a.type === 'percentage') ? (basic * (parseFloat(a.value)||0)) / 100 : (parseFloat(a.value)||0); });
+            
+            let fixedDed = 0;
+            deductions.forEach(d => { fixedDed += (d.type === 'percentage') ? (basic * (parseFloat(d.value)||0)) / 100 : (parseFloat(d.value)||0); });
+
+            const totalDed = fixedDed + (parseFloat(s.absencyDeduction) || 0) + (parseFloat(s.loanDeduction) || 0) + (parseFloat(s.otherDeduction) || 0);
+            const totalAdd = fixedAll + (parseFloat(s.bonus) || 0);
+            const netPay = basic + totalAdd - totalDed;
+            
             const slipMonth = s.startDate ? s.startDate.substring(5, 7) : '-';
             const slipYear = s.startDate ? s.startDate.substring(0, 4) : '-';
             
-            tbody.innerHTML += '<tr><td>'+slipMonth+'/'+slipYear+'</td><td><strong>'+uname+'</strong></td><td>'+(window.appCurrency||'$')+' '+basic+'</td><td>'+(window.appCurrency||'$')+' '+allowances+'</td><td>'+(window.appCurrency||'$')+' '+deductions+'</td><td><strong>'+(window.appCurrency||'$')+' '+net+'</strong></td><td><span class=\"status-badge status-approved\">Paid</span></td></tr>';
+            tbody.innerHTML += '<tr><td>'+slipMonth+'/'+slipYear+'</td><td><strong>'+uname+'</strong></td><td>'+(window.appCurrency||'$')+' '+Math.round(basic).toLocaleString()+'</td><td>'+(window.appCurrency||'$')+' '+Math.round(totalAdd).toLocaleString()+'</td><td>'+(window.appCurrency||'$')+' '+Math.round(totalDed).toLocaleString()+'</td><td><strong>'+(window.appCurrency||'$')+' '+Math.round(netPay).toLocaleString()+'</strong></td><td><span class=\"status-badge status-approved\">Paid</span></td></tr>';
         });
     }
     document.getElementById('print-subtitle-admin-payroll').innerText = 'Period: ' + m + '/' + y + ' | Total Slips: ' + logs.length;
