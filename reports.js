@@ -246,7 +246,7 @@ function generateAdminLeaveReport(db) {
     let logs = [];
     if(db.leaves) {
         logs = db.leaves.filter(l => {
-            if(emp !== 'All' && l.userId !== emp) return false;
+            if(emp !== 'All' && l.employeeId !== emp) return false;
             if(type !== 'All' && l.type !== type) return false;
             if(status !== 'All' && l.status !== status) return false;
             if(start && new Date(l.startDate) < new Date(start)) return false;
@@ -262,9 +262,11 @@ function generateAdminLeaveReport(db) {
         tbody.innerHTML = '<tr><td colspan=\"6\" class=\"text-center text-muted\">No leave records found</td></tr>';
     } else {
         logs.forEach(l => {
-            const u = db.users.find(u => u.id === l.userId);
-            const uname = u ? u.name : 'Unknown';
-            tbody.innerHTML += '<tr><td>'+l.appliedOn+'</td><td><strong>'+uname+'</strong></td><td>'+l.type+'</td><td>'+l.duration+' Days</td><td>'+l.startDate+' to '+l.endDate+'</td><td><span class=\"status-badge status-'+l.status.toLowerCase()+'\">'+l.status+'</span></td></tr>';
+            const u = db.users.find(u => u.id === l.employeeId);
+            const uname = u ? u.name : (l.employeeName || 'Unknown');
+            const appliedOn = l.submittedAt ? l.submittedAt.split('T')[0] : l.startDate;
+            const duration = Math.ceil((new Date(l.endDate) - new Date(l.startDate)) / (1000 * 60 * 60 * 24)) + 1;
+            tbody.innerHTML += '<tr><td>'+appliedOn+'</td><td><strong>'+uname+'</strong></td><td>'+l.type+'</td><td>'+duration+' Days</td><td>'+l.startDate+' to '+l.endDate+'</td><td><span class=\"status-badge status-'+l.status.toLowerCase()+'\">'+l.status+'</span></td></tr>';
         });
     }
     document.getElementById('print-subtitle-admin-leave').innerText = 'Date Range: ' + start + ' to ' + end + ' | Total Requests: ' + logs.length;
@@ -429,8 +431,8 @@ function generateMgrLeaveReport(db, teamIds) {
     let logs = [];
     if(db.leaves) {
         logs = db.leaves.filter(l => {
-            if(!teamIds.includes(l.userId)) return false;
-            if(emp !== 'All' && l.userId !== emp) return false;
+            if(!teamIds.includes(l.employeeId)) return false;
+            if(emp !== 'All' && l.employeeId !== emp) return false;
             if(type !== 'All' && l.type !== type) return false;
             if(status !== 'All' && l.status !== status) return false;
             if(start && new Date(l.startDate) < new Date(start)) return false;
@@ -444,8 +446,11 @@ function generateMgrLeaveReport(db, teamIds) {
     if(logs.length === 0) tbody.innerHTML = '<tr><td colspan=\"6\" class=\"text-center text-muted\">No records found</td></tr>';
     else {
         logs.forEach(l => {
-            const u = db.users.find(u => u.id === l.userId);
-            tbody.innerHTML += '<tr><td>'+l.appliedOn+'</td><td><strong>'+(u?u.name:'Unknown')+'</strong></td><td>'+l.type+'</td><td>'+l.duration+' Days</td><td>'+l.startDate+' to '+l.endDate+'</td><td><span class=\"status-badge status-'+l.status.toLowerCase()+'\">'+l.status+'</span></td></tr>';
+            const u = db.users.find(u => u.id === l.employeeId);
+            const uname = u ? u.name : (l.employeeName || 'Unknown');
+            const appliedOn = l.submittedAt ? l.submittedAt.split('T')[0] : l.startDate;
+            const duration = Math.ceil((new Date(l.endDate) - new Date(l.startDate)) / (1000 * 60 * 60 * 24)) + 1;
+            tbody.innerHTML += '<tr><td>'+appliedOn+'</td><td><strong>'+uname+'</strong></td><td>'+l.type+'</td><td>'+duration+' Days</td><td>'+l.startDate+' to '+l.endDate+'</td><td><span class=\"status-badge status-'+l.status.toLowerCase()+'\">'+l.status+'</span></td></tr>';
         });
     }
     document.getElementById('print-subtitle-manager-leave').innerText = 'Date Range: ' + start + ' to ' + end;
