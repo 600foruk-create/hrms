@@ -4330,9 +4330,12 @@ function initAdminReportsTab() {
     document.getElementById('admin-report-end-date').value = end.toISOString().split('T')[0];
 }
 
-document.getElementById('btn-admin-report-generate').addEventListener('click', () => {
-    generateReport('Admin');
-});
+const btnAdminGen = document.getElementById('btn-admin-report-generate');
+if(btnAdminGen) {
+    btnAdminGen.addEventListener('click', () => {
+        generateReport('Admin');
+    });
+}
 
 // 2. MANAGER REPORTS
 function initManagerReportsTab() {
@@ -4600,7 +4603,8 @@ function generateReport(roleContext) {
 }
 
 // PDF Export (Print Page)
-document.getElementById('btn-admin-report-pdf').addEventListener('click', printActiveReport);
+const btnAdminPdf = document.getElementById('btn-admin-report-pdf');
+if(btnAdminPdf) btnAdminPdf.addEventListener('click', printActiveReport);
 if (document.getElementById('btn-manager-report-pdf')) {
     document.getElementById('btn-manager-report-pdf').addEventListener('click', printActiveReport);
 }
@@ -4614,7 +4618,8 @@ function printActiveReport() {
 }
 
 // CSV Export (Excel Format)
-document.getElementById('btn-admin-report-excel').addEventListener('click', exportCSV);
+const btnAdminExcel = document.getElementById('btn-admin-report-excel');
+if(btnAdminExcel) btnAdminExcel.addEventListener('click', exportCSV);
 if (document.getElementById('btn-manager-report-excel')) {
     document.getElementById('btn-manager-report-excel').addEventListener('click', exportCSV);
 }
