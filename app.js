@@ -948,8 +948,14 @@ function renderAdminDashboard() {
     document.getElementById('admin-metric-total-emp').textContent = totalEmpCount;
     document.getElementById('admin-metric-attendance').textContent = `${presentTodayCount} (${attendancePct}%)`;
     document.getElementById('admin-metric-pending-leaves').textContent = totalPendingApprovals;
-    document.getElementById('admin-metric-tasks-submitted').textContent = tasksSubmitted;
-    document.getElementById('admin-metric-tasks-completed').textContent = tasksCompleted;
+    
+    const tasksSubmittedEl = document.getElementById('admin-metric-tasks-submitted');
+    if (tasksSubmittedEl) tasksSubmittedEl.textContent = tasksSubmitted;
+    
+    const pendingAssetsEl = document.getElementById('admin-metric-pending-assets');
+    if (pendingAssetsEl) {
+        pendingAssetsEl.textContent = (db.assetRequests || []).filter(r => r.status === 'Pending').length;
+    }
 
     const rateEl = document.getElementById('admin-metric-completion-rate');
     if (rateEl) rateEl.textContent = `${completionRate}% completion rate`;
@@ -961,18 +967,12 @@ function renderAdminDashboard() {
     let leave = leaveTodayCount;
     let total = present + absent + late + leave;
     if (total === 0) {
-        // Fallback default stats for gorgeous initial view
-        present = Math.max(1, Math.round(totalEmpCount * 0.8));
-        absent = Math.max(0, Math.round(totalEmpCount * 0.1));
-        late = Math.max(0, Math.round(totalEmpCount * 0.07));
-        leave = Math.max(0, totalEmpCount - present - absent - late);
-        total = present + absent + late + leave;
-        if (total === 0) { total = 10; present = 8; absent = 1; late = 1; leave = 0; }
+        total = 0; present = 0; absent = 0; late = 0; leave = 0;
     }
-    const presentPct = Math.round((present / total) * 100);
-    const absentPct = Math.round((absent / total) * 100);
-    const latePct = Math.round((late / total) * 100);
-    const leavePct = Math.round((leave / total) * 100);
+    const presentPct = total === 0 ? 0 : Math.round((present / total) * 100);
+    const absentPct = total === 0 ? 0 : Math.round((absent / total) * 100);
+    const latePct = total === 0 ? 0 : Math.round((late / total) * 100);
+    const leavePct = total === 0 ? 0 : Math.round((leave / total) * 100);
 
     const absStart = presentPct;
     const lateStart = absStart + absentPct;
