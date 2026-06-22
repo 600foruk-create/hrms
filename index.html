@@ -792,7 +792,7 @@
                                         0</h2>
                                     <div
                                         style="font-size: 10px; color: var(--text-secondary); font-weight: 500; margin-top: 4px;">
-                                        Tasks & Leaves</div>
+                                        Leaves</div>
                                 </div>
                             </div>
                             <!-- Card 4: Tasks Submitted -->
@@ -812,28 +812,26 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Card 5: Tasks Completed -->
+                            <!-- Card 5: Pending Asset Requests -->
                             <div class="metric-card bg-glass">
                                 <div class="card-icon"
                                     style="background: rgba(74, 222, 128, 0.15); color: #4ade80; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
-                                    <i class="fa-regular fa-circle-check"></i>
+                                    <i class="fa-solid fa-laptop"></i>
                                 </div>
                                 <div class="card-info" style="display: flex; flex-direction: column;">
                                     <span class="label"
-                                        style="font-size: 11px; color: var(--text-secondary); font-weight: 600; text-transform: none;">Tasks
-                                        Completed</span>
-                                    <h2 class="value" id="admin-metric-tasks-completed"
+                                        style="font-size: 11px; color: var(--text-secondary); font-weight: 600; text-transform: none;">Pending Asset
+                                        Requests</span>
+                                    <h2 class="value" id="admin-metric-pending-assets"
                                         style="font-size: 22px; font-weight: 700; margin: 2px 0 0 0; line-height: 1.1;">
                                         0</h2>
-                                    <div style="font-size: 10px; color: var(--text-secondary); font-weight: 500; margin-top: 4px;"
-                                        id="admin-metric-completion-rate">0% completion rate</div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Dashboard Split Row 1 (Daily Attendance, Tasks Overview, Recent Task Approvals) -->
+                        <!-- Dashboard Split Row 1 (Daily Attendance, Tasks Overview) -->
                         <div
-                            style="display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+                            style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.25rem; margin-bottom: 1.25rem;">
                             <!-- Widget 1: Daily Attendance Summary -->
                             <div class="section-card bg-glass"
                                 style="display: flex; flex-direction: column; justify-content: space-between;">
@@ -960,24 +958,11 @@
                                 </div>
                             </div>
 
-                            <!-- Widget 3: Recent Task Approvals -->
-                            <div class="section-card bg-glass">
-                                <div class="section-card-header" style="justify-content: space-between; display: flex;">
-                                    <h3 style="font-size: 14px; font-weight: 700; margin: 0;">Recent Task Approvals</h3>
-                                    <a href="#" onclick="window.switchTab ? window.switchTab('productivity') : null"
-                                        class="text-primary"
-                                        style="font-size: 11.5px; font-weight: 600; text-decoration: none;">View All <i
-                                            class="fa-solid fa-chevron-right"
-                                            style="font-size: 9px; margin-left: 2px;"></i></a>
-                                </div>
-                                <div class="task-approvals-list" id="admin-task-approvals-list">
-                                    <!-- Dynamic rows matching mockup list design -->
-                                </div>
-                            </div>
+
                         </div>
 
-                        <!-- Dashboard Split Row 2 (Recent Tasks, Department wise, Upcoming) -->
-                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem;">
+                        <!-- Dashboard Split Row 2 (Recent Tasks) -->
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
                             <!-- Widget 4: Recent Tasks Table -->
                             <div class="section-card bg-glass"
                                 style="display: flex; flex-direction: column; justify-content: space-between;">
@@ -1028,105 +1013,10 @@
                                 </div>
                             </div>
 
-                            <!-- Right Widgets column -->
-                            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-                                <!-- Widget 5: Department Wise Task Status -->
-                                <div class="section-card bg-glass">
-                                    <div class="section-card-header"
-                                        style="justify-content: space-between; display: flex;">
-                                        <h3 style="font-size: 14px; font-weight: 700; margin: 0;">Department Wise Task
-                                            Status</h3>
-                                        <div
-                                            style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-secondary); font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer;">
-                                            <span>This Week</span> <i class="fa-solid fa-chevron-down"
-                                                style="font-size: 9px;"></i>
-                                        </div>
-                                    </div>
-                                    <div class="department-status-list" id="dept-status-list">
-                                        <!-- Dynamic status bars populated by app.js -->
-                                    </div>
-                                    <div class="dept-legend">
-                                        <div class="dept-legend-item">
-                                            <span class="dept-legend-dot completed"></span>
-                                            <span>Completed</span>
-                                        </div>
-                                        <div class="dept-legend-item">
-                                            <span class="dept-legend-dot pending"></span>
-                                            <span>Pending</span>
-                                        </div>
-                                        <div class="dept-legend-item">
-                                            <span class="dept-legend-dot rejected"></span>
-                                            <span>Rejected</span>
-                                        </div>
-                                        <div class="dept-legend-item">
-                                            <span class="dept-legend-dot remaining"></span>
-                                            <span>Remaining</span>
-                                        </div>
-                                    </div>
-                                </div>
 
-                                <!-- Widget 6: Upcoming Approvals -->
-                                <div class="section-card bg-glass">
-                                    <div class="section-card-header"
-                                        style="justify-content: space-between; display: flex;">
-                                        <h3 style="font-size: 14px; font-weight: 700; margin: 0;">Upcoming Approvals
-                                        </h3>
-                                        <a href="#" onclick="window.switchTab ? window.switchTab('leave') : null"
-                                            class="text-primary"
-                                            style="font-size: 11.5px; font-weight: 600; text-decoration: none;">View All
-                                            <i class="fa-solid fa-chevron-right"
-                                                style="font-size: 9px; margin-left: 2px;"></i></a>
-                                    </div>
-                                    <div class="upcoming-approvals-row">
-                                        <div class="upcoming-stat-card" style="cursor: pointer;"
-                                            onclick="window.switchTab ? window.switchTab('productivity') : null">
-                                            <div class="upcoming-stat-icon tasks"><i
-                                                    class="fa-solid fa-clipboard-check"></i></div>
-                                            <div class="upcoming-stat-info">
-                                                <span class="count" id="upcoming-task-count">0</span>
-                                                <span class="label">Task Approvals</span>
-                                            </div>
-                                        </div>
-                                        <div class="upcoming-stat-card" style="cursor: pointer;"
-                                            onclick="window.switchTab ? window.switchTab('leave') : null">
-                                            <div class="upcoming-stat-icon leaves"><i
-                                                    class="fa-solid fa-umbrella-beach"></i></div>
-                                            <div class="upcoming-stat-info">
-                                                <span class="count" id="upcoming-leave-count">0</span>
-                                                <span class="label">Leave Requests</span>
-                                            </div>
-                                        </div>
-                                        <div class="upcoming-stat-card" style="cursor: pointer;"
-                                            onclick="window.switchTab ? window.switchTab('attendance') : null">
-                                            <div class="upcoming-stat-icon timesheets"><i class="fa-solid fa-clock"></i>
-                                            </div>
-                                            <div class="upcoming-stat-info">
-                                                <span class="count" id="upcoming-timesheet-count">0</span>
-                                                <span class="label">Timesheets</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
-                        <!-- Dashboard Split Row 3 (Company Teams Overview) -->
-                        <div class="section-card bg-glass" style="margin-bottom: 1.25rem;">
-                            <div class="section-card-header" style="justify-content: space-between; display: flex;">
-                                <div>
-                                    <h3
-                                        style="font-size: 16px; font-weight: 700; margin: 0; color: var(--text-primary);">
-                                        Company Teams Overview</h3>
-                                    <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">A quick
-                                        glance at all active teams and their members across the company.</p>
-                                </div>
-                                <a href="#" onclick="window.switchTab ? window.switchTab('employees') : null"
-                                    class="btn btn-outline" style="font-size: 12px; padding: 6px 12px;">Manage Teams</a>
-                            </div>
-                            <div class="teams-grid" id="admin-dashboard-teams-container" style="margin-top: 15px;">
-                                <!-- Dynamically populated by JS -->
-                            </div>
-                        </div>
+
                     </div>
 
                     <!-- Admin Recruitment Tab (Coming Soon) -->
