@@ -1001,9 +1001,9 @@ function renderAdminDashboard() {
     const xLabelsHTML = [];
     
     // Start of current week (Sunday)
-    const today = new Date();
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay());
+    const adminGraphToday = new Date();
+    const startOfWeek = new Date(adminGraphToday);
+    startOfWeek.setDate(adminGraphToday.getDate() - adminGraphToday.getDay());
     
     for (let i = 0; i < 7; i++) {
         const d = new Date(startOfWeek);
