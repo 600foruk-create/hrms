@@ -1776,7 +1776,7 @@ window.reactToAnnouncement = function(id, type) {
     const db = getDb();
     const ann = db.announcements.find(a => a.id === id);
     if (ann) {
-        if (!ann.reactions) ann.reactions = {};
+        if (!ann.reactions || Array.isArray(ann.reactions)) ann.reactions = {};
         if (ann.reactions[currentUser.id] === type) {
             delete ann.reactions[currentUser.id]; // toggle off
         } else {
@@ -1820,8 +1820,8 @@ window.viewAnnouncementReactions = function(id) {
         return;
     }
 
-    const counts = { like: 0, love: 0, dislike: 0 };
-    const emojiMap = { like: '👍', love: '❤️', dislike: '👎' };
+    const counts = { like: 0, heart: 0, dislike: 0 };
+    const emojiMap = { like: '👍', heart: '❤️', dislike: '👎' };
     const usersReactions = [];
 
     Object.entries(ann.reactions).forEach(([userId, reaction]) => {
@@ -1834,7 +1834,7 @@ window.viewAnnouncementReactions = function(id) {
 
     if (summaryContainer) {
         if (counts.like > 0) summaryContainer.innerHTML += `<div class="badge-status" style="background:rgba(59, 130, 246, 0.15); color:#3b82f6; padding: 6px 12px; font-size: 13px;"><i class="fa-solid fa-thumbs-up"></i> ${counts.like} Likes</div>`;
-        if (counts.love > 0) summaryContainer.innerHTML += `<div class="badge-status" style="background:rgba(239, 68, 68, 0.15); color:#ef4444; padding: 6px 12px; font-size: 13px;"><i class="fa-solid fa-heart"></i> ${counts.love} Loves</div>`;
+        if (counts.heart > 0) summaryContainer.innerHTML += `<div class="badge-status" style="background:rgba(239, 68, 68, 0.15); color:#ef4444; padding: 6px 12px; font-size: 13px;"><i class="fa-solid fa-heart"></i> ${counts.heart} Loves</div>`;
         if (counts.dislike > 0) summaryContainer.innerHTML += `<div class="badge-status" style="background:rgba(107, 114, 128, 0.15); color:#6b7280; padding: 6px 12px; font-size: 13px;"><i class="fa-solid fa-thumbs-down"></i> ${counts.dislike} Dislikes</div>`;
     }
 
@@ -1847,8 +1847,8 @@ window.viewAnnouncementReactions = function(id) {
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <div class="avatar-small" style="width: 40px; height: 40px; font-size: 16px;">${initial}</div>
                         <div>
-                            <div style="font-weight: 600; font-size: 14.5px; color: var(--text-primary); margin-bottom: 2px;">${ur.name}</div>
-                            <div style="font-size: 12px; color: var(--text-muted);">${ur.role}</div>
+                            <div style="font-weight: 600; font-size: 13px; color: var(--text-primary); margin-bottom: 2px;">${ur.name}</div>
+                            <div style="font-size: 11px; color: var(--text-muted);">${ur.role}</div>
                         </div>
                     </div>
                     <div style="font-size: 20px; background: rgba(128, 128, 128, 0.1); padding: 8px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">${emojiMap[ur.reaction]}</div>
