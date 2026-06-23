@@ -1666,6 +1666,7 @@ function renderAdminAnnouncementsTab() {
                     <td>${ann.message}</td>
                     <td><span class="badge-role" style="background:var(--primary-light); color:var(--primary);">${ann.target_audience}</span></td>
                     <td style="text-align:right;">
+                        <button class="btn btn-sm btn-outline text-primary" onclick="viewAnnouncementReactions('${ann.id}')" title="View Reactions"><i class="fa-solid fa-face-smile"></i></button>
                         <button class="btn btn-sm btn-outline text-secondary" onclick="hideAnnouncement('${ann.id}')" title="Dismiss for Me"><i class="fa-solid fa-eye-slash"></i></button>
                         <button class="btn btn-sm btn-outline text-danger" onclick="deleteAnnouncement('${ann.id}')" title="Delete for Everyone"><i class="fa-solid fa-trash"></i></button>
                     </td>
@@ -1800,6 +1801,65 @@ window.hideAnnouncement = function(id) {
             }
         }
     }
+};
+
+window.viewAnnouncementReactions = function(id) {
+    const db = getDb();
+    const ann = db.announcements.find(a => a.id === id);
+    if (!ann) return;
+
+    const summaryContainer = document.getElementById('announcement-reactions-summary');
+    const listContainer = document.getElementById('announcement-reactions-list');
+    
+    if (summaryContainer) summaryContainer.innerHTML = '';
+    if (listContainer) listContainer.innerHTML = '';
+
+    if (!ann.reactions || Object.keys(ann.reactions).length === 0) {
+        if (listContainer) listContainer.innerHTML = `<div class="empty-state">No reactions yet.</div>`;
+        openModal('modal-announcement-reactions');
+        return;
+    }
+
+    const counts = { like: 0, love: 0, dislike: 0 };
+    const emojiMap = { like: '👍', love: '❤️', dislike: '👎' };
+    const usersReactions = [];
+
+    Object.entries(ann.reactions).forEach(([userId, reaction]) => {
+        if (counts[reaction] !== undefined) counts[reaction]++;
+        const user = db.users.find(u => u.id == userId);
+        if (user) {
+            usersReactions.push({ name: user.name, role: user.role, reaction: reaction });
+        }
+    });
+
+    if (summaryContainer) {
+        if (counts.like > 0) summaryContainer.innerHTML += `<div class="badge-status" style="background:rgba(59, 130, 246, 0.15); color:#3b82f6; padding: 6px 12px; font-size: 13px;"><i class="fa-solid fa-thumbs-up"></i> ${counts.like} Likes</div>`;
+        if (counts.love > 0) summaryContainer.innerHTML += `<div class="badge-status" style="background:rgba(239, 68, 68, 0.15); color:#ef4444; padding: 6px 12px; font-size: 13px;"><i class="fa-solid fa-heart"></i> ${counts.love} Loves</div>`;
+        if (counts.dislike > 0) summaryContainer.innerHTML += `<div class="badge-status" style="background:rgba(107, 114, 128, 0.15); color:#6b7280; padding: 6px 12px; font-size: 13px;"><i class="fa-solid fa-thumbs-down"></i> ${counts.dislike} Dislikes</div>`;
+    }
+
+    if (listContainer) {
+        let listHtml = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+        usersReactions.forEach(ur => {
+            const initial = ur.name.charAt(0).toUpperCase();
+            listHtml += `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(128, 128, 128, 0.05); border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="avatar-small" style="width: 40px; height: 40px; font-size: 16px;">${initial}</div>
+                        <div>
+                            <div style="font-weight: 600; font-size: 14.5px; color: var(--text-primary); margin-bottom: 2px;">${ur.name}</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">${ur.role}</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 20px; background: rgba(128, 128, 128, 0.1); padding: 8px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">${emojiMap[ur.reaction]}</div>
+                </div>
+            `;
+        });
+        listHtml += '</div>';
+        listContainer.innerHTML = listHtml;
+    }
+
+    openModal('modal-announcement-reactions');
 };
 
 function renderAdminSettingsTab() {
