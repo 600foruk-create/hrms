@@ -918,10 +918,11 @@ function renderAdminDashboard() {
     }
 
     // Set current date
-    const dateDisplay = document.getElementById('dashboard-date-display');
-    if (dateDisplay) {
-        dateDisplay.textContent = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const datePicker = document.getElementById('admin-global-date-picker');
+    if (datePicker && !datePicker.value) {
+        datePicker.value = new Date().toISOString().split('T')[0];
     }
+    const today = datePicker ? datePicker.value : new Date().toISOString().split('T')[0];
 
     // Aggregate calculations
     const employees = db.users.filter(u => u.role !== 'Admin');
@@ -931,7 +932,6 @@ function renderAdminDashboard() {
     const totalPendingApprovals = pendingLeaves + pendingProductivity;
 
     // Attendance % Today
-    const today = new Date().toISOString().split('T')[0];
     const totalEmpCount = employees.length;
     const presentTodayCount = db.attendance.filter(a => a.date === today && a.status === 'Present').length;
     const lateTodayCount = db.attendance.filter(a => a.date === today && a.status === 'Late').length;
@@ -998,35 +998,47 @@ function renderAdminDashboard() {
     if (lLeave) lLeave.textContent = `${leave} (${leavePct}%)`;
 
     // 2. Tasks Overview SVG Line Chart (Dynamic from DB)
-    const last7Days = [];
+    const adminGraphPeriod = document.getElementById('admin-graph-period')?.value || 'week';
+    const numDays = adminGraphPeriod === 'month' ? 30 : 7;
+    const lastXDays = [];
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const xLabelsHTML = [];
     
-    // Start of current week (Sunday)
-    const adminGraphToday = new Date();
-    const startOfWeek = new Date(adminGraphToday);
-    startOfWeek.setDate(adminGraphToday.getDate() - adminGraphToday.getDay());
+    const adminGraphToday = new Date(today);
+    const startDate = new Date(adminGraphToday);
     
-    for (let i = 0; i < 7; i++) {
-        const d = new Date(startOfWeek);
-        d.setDate(startOfWeek.getDate() + i);
-        last7Days.push(d.toISOString().split('T')[0]);
-        xLabelsHTML.push(`<span>${dayNames[d.getDay()]}</span>`);
+    if (adminGraphPeriod === 'week') {
+        startDate.setDate(adminGraphToday.getDate() - adminGraphToday.getDay());
+    } else {
+        startDate.setDate(adminGraphToday.getDate() - 29);
     }
-    const dailySubmitted = last7Days.map(day => (db.productivity || []).filter(p => p.date === day).length);
-    const dailyCompleted = last7Days.map(day => (db.productivity || []).filter(p => p.date === day && p.status === 'Approved').length);
+    
+    for (let i = 0; i < numDays; i++) {
+        const d = new Date(startDate);
+        d.setDate(startDate.getDate() + i);
+        lastXDays.push(d.toISOString().split('T')[0]);
+        if (adminGraphPeriod === 'month') {
+            if (i === 0 || i === numDays - 1 || i % 7 === 0) {
+                xLabelsHTML.push(`<span>${d.getDate()}/${d.getMonth()+1}</span>`);
+            } else {
+                xLabelsHTML.push(`<span></span>`);
+            }
+        } else {
+            xLabelsHTML.push(`<span>${dayNames[d.getDay()]}</span>`);
+        }
+    }
+    const dailySubmitted = lastXDays.map(day => (db.productivity || []).filter(p => p.date === day).length);
 
-    const maxVal = Math.max(5, ...dailySubmitted, ...dailyCompleted);
+    const maxVal = Math.max(5, ...dailySubmitted);
     const getSvgY = (val) => 95 - (val / maxVal) * 80;
 
-    const subCoords = dailySubmitted.map((val, idx) => ({ x: idx * 50, y: getSvgY(val) }));
-    const compCoords = dailyCompleted.map((val, idx) => ({ x: idx * 50, y: getSvgY(val) }));
+    const subCoords = dailySubmitted.map((val, idx) => ({ x: idx * (300 / (numDays - 1)), y: getSvgY(val) }));
 
     const buildPath = (coords) => {
         if (coords.length === 0) return '';
         let path = `M ${coords[0].x} ${coords[0].y}`;
         for (let i = 1; i < coords.length; i++) {
-            const cpX = coords[i - 1].x + 25;
+            const cpX = coords[i - 1].x + (coords[i].x - coords[i - 1].x) / 2;
             const cpY1 = coords[i - 1].y;
             const cpY2 = coords[i].y;
             path += ` C ${cpX} ${cpY1}, ${cpX} ${cpY2}, ${coords[i].x} ${coords[i].y}`;
@@ -1050,8 +1062,7 @@ function renderAdminDashboard() {
             
             // Adjust padding to align dots perfectly over the center of the text labels
             const padding = 15;
-            const step = (w - padding * 2) / 6;
-            
+            const step = (w - padding * 2) / (numDays - 1);
             adminSvgEl.removeAttribute('preserveAspectRatio');
             adminSvgEl.setAttribute('viewBox', `0 0 ${w} 110`);
             
@@ -2055,30 +2066,48 @@ function renderManagerDashboard() {
     if (lLeave) lLeave.textContent = `${leave} (${leavePct}%)`;
 
     // 2. Tasks Overview SVG Line Chart
-    const last7Days = [];
+    const managerGraphPeriod = document.getElementById('manager-graph-period')?.value || 'week';
+    const numDays = managerGraphPeriod === 'month' ? 30 : 7;
+    const lastXDays = [];
     const xaxisLabels = [];
-    for (let i = 6; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        last7Days.push(d.toISOString().split('T')[0]);
-        let displayDate = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getDay()];
-        xaxisLabels.push(`<span>${displayDate}</span>`);
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+    const managerGraphToday = new Date();
+    const startDate = new Date(managerGraphToday);
+    
+    if (managerGraphPeriod === 'week') {
+        startDate.setDate(managerGraphToday.getDate() - managerGraphToday.getDay());
+    } else {
+        startDate.setDate(managerGraphToday.getDate() - 29);
+    }
+    
+    for (let i = 0; i < numDays; i++) {
+        const d = new Date(startDate);
+        d.setDate(startDate.getDate() + i);
+        lastXDays.push(d.toISOString().split('T')[0]);
+        if (managerGraphPeriod === 'month') {
+            if (i === 0 || i === numDays - 1 || i % 7 === 0) {
+                xaxisLabels.push(`<span>${d.getDate()}/${d.getMonth()+1}</span>`);
+            } else {
+                xaxisLabels.push(`<span></span>`);
+            }
+        } else {
+            xaxisLabels.push(`<span>${dayNames[d.getDay()]}</span>`);
+        }
     }
 
-    const dailySub = last7Days.map(day => (db.productivity || []).filter(p => p.date === day && teamEmails.includes((p.employee_id || p.employeeId))).length);
-    const dailyComp = last7Days.map(day => (db.productivity || []).filter(p => p.date === day && p.status === 'Approved' && teamEmails.includes((p.employee_id || p.employeeId))).length);
+    const dailySub = lastXDays.map(day => (db.productivity || []).filter(p => p.date === day && teamEmails.includes((p.employee_id || p.employeeId))).length);
 
-    const maxVal = Math.max(5, ...dailySub, ...dailyComp);
+    const maxVal = Math.max(5, ...dailySub);
     const getSvgY = (val) => 95 - (val / maxVal) * 80;
 
-    const subCoords = dailySub.map((val, idx) => ({ x: idx * 50, y: getSvgY(val) }));
-    const compCoords = dailyComp.map((val, idx) => ({ x: idx * 50, y: getSvgY(val) }));
+    const subCoords = dailySub.map((val, idx) => ({ x: idx * (300 / (numDays - 1)), y: getSvgY(val) }));
 
     const buildPath = (coords) => {
         if (coords.length === 0) return '';
         let path = `M ${coords[0].x} ${coords[0].y}`;
         for (let i = 1; i < coords.length; i++) {
-            const cpX = coords[i - 1].x + 25;
+            const cpX = coords[i - 1].x + (coords[i].x - coords[i - 1].x) / 2;
             path += ` C ${cpX} ${coords[i - 1].y}, ${cpX} ${coords[i].y}, ${coords[i].x} ${coords[i].y}`;
         }
         return path;
@@ -2514,32 +2543,48 @@ function renderEmployeeDashboard() {
     if (lLeave) lLeave.textContent = `${leave} (${leavePct}%)`;
 
     // 2. Employee Tasks Overview SVG Line Chart
-    const last7Days = [];
+    const employeeGraphPeriod = document.getElementById('employee-graph-period')?.value || 'week';
+    const numDays = employeeGraphPeriod === 'month' ? 30 : 7;
+    const lastXDays = [];
     const xaxisLabels = [];
-    for (let i = 6; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        last7Days.push(d.toISOString().split('T')[0]);
-        let displayDate = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getDay()];
-        xaxisLabels.push(`<span>${displayDate}</span>`);
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+    const employeeGraphToday = new Date();
+    const startDate = new Date(employeeGraphToday);
+    
+    if (employeeGraphPeriod === 'week') {
+        startDate.setDate(employeeGraphToday.getDate() - employeeGraphToday.getDay());
+    } else {
+        startDate.setDate(employeeGraphToday.getDate() - 29);
+    }
+    
+    for (let i = 0; i < numDays; i++) {
+        const d = new Date(startDate);
+        d.setDate(startDate.getDate() + i);
+        lastXDays.push(d.toISOString().split('T')[0]);
+        if (employeeGraphPeriod === 'month') {
+            if (i === 0 || i === numDays - 1 || i % 7 === 0) {
+                xaxisLabels.push(`<span>${d.getDate()}/${d.getMonth()+1}</span>`);
+            } else {
+                xaxisLabels.push(`<span></span>`);
+            }
+        } else {
+            xaxisLabels.push(`<span>${dayNames[d.getDay()]}</span>`);
+        }
     }
 
-    const dailySub = last7Days.map(day => (db.productivity || []).filter(p => p.date === day && (p.employee_id || p.employeeId) === currentUser.id).length);
-    const dailyApp = last7Days.map(day => (db.productivity || []).filter(p => p.date === day && p.status === 'Approved' && (p.employee_id || p.employeeId) === currentUser.id).length);
-    const dailyRej = last7Days.map(day => (db.productivity || []).filter(p => p.date === day && p.status === 'Rejected' && (p.employee_id || p.employeeId) === currentUser.id).length);
+    const dailySub = lastXDays.map(day => (db.productivity || []).filter(p => p.date === day && (p.employee_id || p.employeeId) === currentUser.id).length);
 
-    const maxVal = Math.max(5, ...dailySub, ...dailyApp, ...dailyRej);
+    const maxVal = Math.max(5, ...dailySub);
     const getSvgY = (val) => 95 - (val / maxVal) * 80;
 
-    const subCoords = dailySub.map((val, idx) => ({ x: idx * 50, y: getSvgY(val) }));
-    const appCoords = dailyApp.map((val, idx) => ({ x: idx * 50, y: getSvgY(val) }));
-    const rejCoords = dailyRej.map((val, idx) => ({ x: idx * 50, y: getSvgY(val) }));
+    const subCoords = dailySub.map((val, idx) => ({ x: idx * (300 / (numDays - 1)), y: getSvgY(val) }));
 
     const buildPath = (coords) => {
         if (coords.length === 0) return '';
         let path = `M ${coords[0].x} ${coords[0].y}`;
         for (let i = 1; i < coords.length; i++) {
-            const cpX = coords[i - 1].x + 25;
+            const cpX = coords[i - 1].x + (coords[i].x - coords[i - 1].x) / 2;
             path += ` C ${cpX} ${coords[i - 1].y}, ${cpX} ${coords[i].y}, ${coords[i].x} ${coords[i].y}`;
         }
         return path;

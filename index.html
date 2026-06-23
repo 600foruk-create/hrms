@@ -738,9 +738,7 @@
                                 <div
                                     style="display: flex; align-items: center; gap: 8px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 6px 12px; font-size: 13px; color: var(--text-primary); font-weight: 600;">
                                     <i class="fa-regular fa-calendar" style="color: var(--text-secondary);"></i>
-                                    <span id="dashboard-date-display">May 15, 2025</span>
-                                    <i class="fa-solid fa-chevron-down"
-                                        style="font-size: 10px; color: var(--text-secondary); margin-left: 4px;"></i>
+                                    <input type="date" id="admin-global-date-picker" style="border: none; background: transparent; color: var(--text-primary); outline: none; font-weight: 600; cursor: pointer; font-family: inherit;" onchange="if(window.renderAdminDashboard) window.renderAdminDashboard();">
                                 </div>
                             </div>
                         </div>
@@ -895,11 +893,10 @@
                             <div class="section-card bg-glass">
                                 <div class="section-card-header" style="justify-content: space-between; display: flex;">
                                     <h3 style="font-size: 14px; font-weight: 700; margin: 0;">Tasks Overview</h3>
-                                    <div
-                                        style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-secondary); font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer;">
-                                        <span>This Week</span> <i class="fa-solid fa-chevron-down"
-                                            style="font-size: 9px;"></i>
-                                    </div>
+                                    <select id="admin-graph-period" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-secondary); font-weight: 600; outline: none; cursor: pointer; font-family: inherit; appearance: auto;" onchange="if(window.renderAdminDashboard) window.renderAdminDashboard();">
+                                        <option value="week">This Week</option>
+                                        <option value="month">This Month</option>
+                                    </select>
                                 </div>
                                 <div class="chart-legend-top">
                                     <div class="chart-legend-item">
@@ -3176,11 +3173,10 @@
                             <div class="section-card bg-glass">
                                 <div class="section-card-header" style="justify-content: space-between; display: flex;">
                                     <h3 style="font-size: 14px; font-weight: 700; margin: 0;">Team Tasks Overview</h3>
-                                    <div
-                                        style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-secondary); font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer;">
-                                        <span>This Week</span> <i class="fa-solid fa-chevron-down"
-                                            style="font-size: 9px;"></i>
-                                    </div>
+                                    <select id="manager-graph-period" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-secondary); font-weight: 600; outline: none; cursor: pointer; font-family: inherit; appearance: auto;" onchange="if(window.renderManagerDashboard) window.renderManagerDashboard();">
+                                        <option value="week">This Week</option>
+                                        <option value="month">This Month</option>
+                                    </select>
                                 </div>
                                 <div class="chart-legend-top">
                                     <div class="chart-legend-item">
@@ -4056,11 +4052,10 @@
                             <div class="section-card bg-glass">
                                 <div class="section-card-header" style="justify-content: space-between; display: flex;">
                                     <h3 style="font-size: 14px; font-weight: 700; margin: 0;">My Tasks Overview</h3>
-                                    <div
-                                        style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-secondary); font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer;">
-                                        <span>This Week</span> <i class="fa-solid fa-chevron-down"
-                                            style="font-size: 9px;"></i>
-                                    </div>
+                                    <select id="employee-graph-period" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text-secondary); font-weight: 600; outline: none; cursor: pointer; font-family: inherit; appearance: auto;" onchange="if(window.renderEmployeeDashboard) window.renderEmployeeDashboard();">
+                                        <option value="week">This Week</option>
+                                        <option value="month">This Month</option>
+                                    </select>
                                 </div>
                                 <div class="chart-legend-top">
                                     <div class="chart-legend-item">
