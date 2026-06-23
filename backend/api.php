@@ -288,7 +288,6 @@ try {
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
     
-    $pdo->exec("DROP TABLE IF EXISTS `announcements`");
     $pdo->exec("CREATE TABLE IF NOT EXISTS `announcements` (
         `id` varchar(100) NOT NULL,
         `title` varchar(255) DEFAULT NULL,
@@ -402,7 +401,6 @@ try {
             `extra` TEXT
         )");
         
-        $pdo->exec("DROP TABLE IF EXISTS `announcements`");
         $pdo->exec("CREATE TABLE IF NOT EXISTS `announcements` (
             `id` TEXT PRIMARY KEY,
             `title` TEXT,
