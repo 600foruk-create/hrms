@@ -2620,10 +2620,12 @@
                             </div>
                         </div>
                         
-                        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
-                            <div class="card" style="margin-bottom: 0;">
-                                <div class="card-header"><h3>Create New Announcement</h3></div>
-                                <div class="card-body">
+                        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; height: calc(100vh - 180px);">
+                            <div class="section-card bg-glass" style="margin: 0; display: flex; flex-direction: column;">
+                                <div class="section-card-header">
+                                    <h3 style="margin: 0; font-size: 16px;">Create New Announcement</h3>
+                                </div>
+                                <div style="padding: 20px; flex: 1; display: flex; flex-direction: column;">
                                     <div class="form-group" style="margin-bottom: 15px;">
                                         <label>Title</label>
                                         <input type="text" id="announcement-title" class="form-control" placeholder="Announcement Title">
@@ -2635,9 +2637,9 @@
                                             <option value="Manager">Managers Only</option>
                                         </select>
                                     </div>
-                                    <div class="form-group" style="margin-bottom: 15px;">
+                                    <div class="form-group" style="margin-bottom: 15px; flex: 1; display: flex; flex-direction: column;">
                                         <label>Message</label>
-                                        <textarea id="announcement-message" class="form-control" rows="8" placeholder="Write your message here..."></textarea>
+                                        <textarea id="announcement-message" class="form-control" style="flex: 1; resize: none;" placeholder="Write your message here..."></textarea>
                                     </div>
                                     <div style="text-align:right;">
                                         <button class="btn btn-primary" onclick="createAnnouncement()"><i class="fa-solid fa-paper-plane"></i> Broadcast</button>
@@ -2645,27 +2647,25 @@
                                 </div>
                             </div>
                             
-                            <div class="card" style="margin-bottom: 0;">
-                                <div class="card-header">
-                                    <h3>Announcement History</h3>
+                            <div class="section-card bg-glass flex-table-card" style="margin: 0; display: flex; flex-direction: column;">
+                                <div class="section-card-header">
+                                    <h3 style="margin: 0; font-size: 16px;">Announcement History</h3>
                                 </div>
-                                <div class="card-body" style="padding:0;">
-                                    <div class="table-responsive">
-                                        <table class="data-table" style="width:100%;">
-                                            <thead>
-                                                <tr>
-                                                    <th style="width:120px;">Date</th>
-                                                    <th style="width:200px;">Title</th>
-                                                    <th>Message</th>
-                                                    <th style="width:120px;">Audience</th>
-                                                    <th style="width:160px;text-align:right;">Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="admin-announcements-body">
-                                                <tr><td colspan="5" class="text-center text-muted" style="padding:20px;">Loading announcements...</td></tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                <div class="table-container" style="flex: 1;">
+                                    <table class="data-table" style="width:100%;">
+                                        <thead>
+                                            <tr>
+                                                <th style="width:120px;">Date</th>
+                                                <th style="width:200px;">Title</th>
+                                                <th>Message</th>
+                                                <th style="width:120px;">Audience</th>
+                                                <th style="width:160px;text-align:right;">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-announcements-body">
+                                            <tr><td colspan="5" class="text-center text-muted" style="padding:20px;">Loading announcements...</td></tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
