@@ -769,6 +769,15 @@ function renderSidebar() {
 
     let menuHTML = '';
 
+    const db = getDb();
+    let unreadAnnouncementsCount = 0;
+    if (currentUser.role !== 'Admin') {
+        const relevantAnns = (db.announcements || []).filter(a => a.target_audience === 'All' || a.target_audience === currentUser.role);
+        unreadAnnouncementsCount = relevantAnns.filter(a => !(a.read_by && a.read_by.includes(currentUser.id)) && !(a.hidden_by && a.hidden_by.includes(currentUser.id))).length;
+    }
+    
+    const annBadgeHtml = unreadAnnouncementsCount > 0 ? `<span style="background:var(--danger); color:white; border-radius:50%; width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; font-size:10px; margin-left:8px; font-weight:bold; box-shadow: 0 0 0 2px var(--bg-card);">${unreadAnnouncementsCount}</span>` : '';
+
     if (currentUser.role === 'Admin') {
         menuHTML = `
             <a class="sidebar-link active" data-tab="dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
@@ -793,7 +802,7 @@ function renderSidebar() {
             <a class="sidebar-link" data-tab="reports"><i class="fa-solid fa-file-invoice-dollar"></i> Team Reports</a>
             <a class="sidebar-link" data-tab="mypayslips"><i class="fa-solid fa-file-invoice"></i> My Salary Slips</a>
             <a class="sidebar-link" data-tab="assets"><i class="fa-solid fa-laptop"></i> Assets</a>
-            <a class="sidebar-link" data-tab="announcements"><i class="fa-solid fa-bullhorn"></i> Announcements</a>
+            <a class="sidebar-link" data-tab="announcements"><i class="fa-solid fa-bullhorn"></i> Announcements${annBadgeHtml}</a>
         `;
     } else { // Employee
         menuHTML = `
@@ -803,7 +812,7 @@ function renderSidebar() {
             <a class="sidebar-link" data-tab="leave"><i class="fa-solid fa-umbrella-beach"></i> Leave Request</a>
             <a class="sidebar-link" data-tab="mypayslips"><i class="fa-solid fa-file-invoice"></i> My Salary Slips</a>
             <a class="sidebar-link" data-tab="assets"><i class="fa-solid fa-laptop"></i> Assets</a>
-            <a class="sidebar-link" data-tab="announcements"><i class="fa-solid fa-bullhorn"></i> Announcements</a>
+            <a class="sidebar-link" data-tab="announcements"><i class="fa-solid fa-bullhorn"></i> Announcements${annBadgeHtml}</a>
         `;
     }
 
@@ -1642,7 +1651,8 @@ function renderAdminAnnouncementsTab() {
     
     tbody.innerHTML = '';
     
-    const sortedAnnouncements = [...(db.announcements || [])].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    const visibleAnnouncements = (db.announcements || []).filter(a => !(a.hidden_by && a.hidden_by.includes(currentUser.id)));
+    const sortedAnnouncements = [...visibleAnnouncements].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     if (sortedAnnouncements.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted" style="padding:20px;">No company announcements found. Create one above.</td></tr>`;
@@ -1656,7 +1666,8 @@ function renderAdminAnnouncementsTab() {
                     <td>${ann.message}</td>
                     <td><span class="badge-role" style="background:var(--primary-light); color:var(--primary);">${ann.target_audience}</span></td>
                     <td style="text-align:right;">
-                        <button class="btn btn-sm btn-outline text-danger" onclick="deleteAnnouncement('${ann.id}')" title="Delete Announcement"><i class="fa-solid fa-trash"></i></button>
+                        <button class="btn btn-sm btn-outline text-secondary" onclick="hideAnnouncement('${ann.id}')" title="Dismiss for Me"><i class="fa-solid fa-eye-slash"></i></button>
+                        <button class="btn btn-sm btn-outline text-danger" onclick="deleteAnnouncement('${ann.id}')" title="Delete for Everyone"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>
             `;
@@ -1673,31 +1684,121 @@ window.renderUserAnnouncementsTab = function() {
     if (!container) return;
     container.innerHTML = '';
     
-    const relevantAnns = (db.announcements || []).filter(a => a.target_audience === 'All' || a.target_audience === currentUser.role);
+    let relevantAnns = (db.announcements || []).filter(a => a.target_audience === 'All' || a.target_audience === currentUser.role);
+    // Filter out announcements hidden by this user
+    relevantAnns = relevantAnns.filter(a => !(a.hidden_by && a.hidden_by.includes(currentUser.id)));
     const sortedAnns = relevantAnns.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     if (sortedAnns.length === 0) {
-        container.innerHTML = `<div class="card"><div class="card-body text-center text-muted">No announcements to display.</div></div>`;
+        container.innerHTML = `<div class="empty-state" style="text-align:center; padding: 40px;">
+            <i class="fa-regular fa-bell-slash" style="font-size:40px; color:var(--border-color); margin-bottom:15px; display:block;"></i>
+            <h3 class="text-secondary font-heading">You're all caught up!</h3>
+            <p class="text-muted font-body">No new announcements at this time.</p>
+        </div>`;
     } else {
         sortedAnns.forEach(ann => {
             const dateStr = new Date(ann.created_at).toLocaleString();
+            
+            // Render reactions
+            const myReaction = (ann.reactions && ann.reactions[currentUser.id]) ? ann.reactions[currentUser.id] : null;
+            const likeCount = Object.values(ann.reactions || {}).filter(r => r === 'like').length;
+            const heartCount = Object.values(ann.reactions || {}).filter(r => r === 'heart').length;
+            const dislikeCount = Object.values(ann.reactions || {}).filter(r => r === 'dislike').length;
+
             container.innerHTML += `
-                <div class="card bg-glass" style="border-left: 4px solid var(--primary);">
-                    <div class="card-body">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
-                            <h3 style="margin:0; color:var(--text-primary); font-weight:700;">${ann.title}</h3>
-                            <span class="badge-role" style="background:var(--bg-card); color:var(--text-secondary); font-size:11px;">
-                                <i class="fa-regular fa-clock"></i> ${dateStr}
-                            </span>
+                <div class="card bg-glass" style="border:none; background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%); box-shadow: 0 8px 32px 0 rgba(0,0,0,0.05); backdrop-filter: blur(10px); border-left: 4px solid var(--primary); border-radius: 12px; margin-bottom: 20px; position:relative; overflow:hidden;">
+                    <div style="position:absolute; top:-20px; right:-20px; font-size:120px; color:var(--primary); opacity:0.03; transform:rotate(-15deg); pointer-events:none;">
+                        <i class="fa-solid fa-bullhorn"></i>
+                    </div>
+                    <div class="card-body" style="padding: 25px; position:relative; z-index:1;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
+                            <div style="display:flex; align-items:center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display:flex; align-items:center; justify-content:center; font-size: 18px;">
+                                    <i class="fa-solid fa-bullhorn"></i>
+                                </div>
+                                <div>
+                                    <h3 style="margin:0; color:var(--text-primary); font-weight:700; font-size: 18px;">${ann.title}</h3>
+                                    <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">
+                                        <strong>${ann.created_by}</strong> &bull; ${dateStr}
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn-action-circle text-muted" onclick="hideAnnouncement('${ann.id}')" title="Hide Announcement" style="background:var(--bg-card);"><i class="fa-solid fa-xmark"></i></button>
                         </div>
-                        <p style="margin:0; color:var(--text-secondary); line-height:1.5;">${ann.message}</p>
-                        <div style="margin-top:15px; font-size:12px; color:var(--text-muted);">
-                            <strong>From:</strong> ${ann.created_by}
+                        <div style="background:var(--bg-main); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <p style="margin:0; color:var(--text-primary); line-height:1.6; font-size: 14.5px; white-space:pre-wrap;">${ann.message}</p>
+                        </div>
+                        
+                        <div style="display:flex; align-items:center; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                            <button class="btn btn-sm ${myReaction === 'like' ? 'btn-primary' : 'btn-outline'}" onclick="reactToAnnouncement('${ann.id}', 'like')" style="border-radius: 20px; display:flex; align-items:center; gap:5px;">
+                                👍 <span style="font-size:12px; font-weight:bold;">${likeCount > 0 ? likeCount : 'Like'}</span>
+                            </button>
+                            <button class="btn btn-sm ${myReaction === 'heart' ? 'btn-danger' : 'btn-outline'}" onclick="reactToAnnouncement('${ann.id}', 'heart')" style="border-radius: 20px; display:flex; align-items:center; gap:5px; ${myReaction !== 'heart' ? 'color:var(--text-secondary);' : ''}">
+                                ❤️ <span style="font-size:12px; font-weight:bold;">${heartCount > 0 ? heartCount : 'Love'}</span>
+                            </button>
+                            <button class="btn btn-sm ${myReaction === 'dislike' ? 'btn-secondary' : 'btn-outline'}" onclick="reactToAnnouncement('${ann.id}', 'dislike')" style="border-radius: 20px; display:flex; align-items:center; gap:5px;">
+                                👎 <span style="font-size:12px; font-weight:bold;">${dislikeCount > 0 ? dislikeCount : ''}</span>
+                            </button>
                         </div>
                     </div>
                 </div>
             `;
         });
+    }
+
+    markAnnouncementsAsRead(relevantAnns);
+};
+
+window.markAnnouncementsAsRead = function(anns) {
+    if (!anns || anns.length === 0) return;
+    const db = getDb();
+    let updated = false;
+    
+    anns.forEach(a => {
+        const dbAnn = db.announcements.find(x => x.id === a.id);
+        if (dbAnn) {
+            if (!dbAnn.read_by) dbAnn.read_by = [];
+            if (!dbAnn.read_by.includes(currentUser.id)) {
+                dbAnn.read_by.push(currentUser.id);
+                updated = true;
+            }
+        }
+    });
+    
+    if (updated) {
+        saveDb(db);
+        if (typeof renderSidebar === 'function') renderSidebar();
+    }
+};
+
+window.reactToAnnouncement = function(id, type) {
+    const db = getDb();
+    const ann = db.announcements.find(a => a.id === id);
+    if (ann) {
+        if (!ann.reactions) ann.reactions = {};
+        if (ann.reactions[currentUser.id] === type) {
+            delete ann.reactions[currentUser.id]; // toggle off
+        } else {
+            ann.reactions[currentUser.id] = type;
+        }
+        saveDb(db);
+        refreshTabContent(activeTab);
+    }
+};
+
+window.hideAnnouncement = function(id) {
+    if (confirm("Hide this announcement from your feed?")) {
+        const db = getDb();
+        const ann = db.announcements.find(a => a.id === id);
+        if (ann) {
+            if (!ann.hidden_by) ann.hidden_by = [];
+            if (!ann.hidden_by.includes(currentUser.id)) {
+                ann.hidden_by.push(currentUser.id);
+                saveDb(db);
+                refreshTabContent(activeTab);
+                showToast("Hidden", "Announcement removed from your view.");
+            }
+        }
     }
 };
 
@@ -4136,7 +4237,10 @@ window.createAnnouncement = function() {
         message: message,
         target_audience: audience,
         created_by: currentUser.name || "Admin",
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        read_by: [],
+        hidden_by: [],
+        reactions: {}
     };
 
     db.announcements.push(newAnn);

@@ -288,6 +288,7 @@ try {
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
     
+    $pdo->exec("DROP TABLE IF EXISTS `announcements`");
     $pdo->exec("CREATE TABLE IF NOT EXISTS `announcements` (
         `id` varchar(100) NOT NULL,
         `title` varchar(255) DEFAULT NULL,
@@ -295,6 +296,9 @@ try {
         `target_audience` varchar(50) DEFAULT NULL,
         `created_by` varchar(150) DEFAULT NULL,
         `created_at` varchar(50) DEFAULT NULL,
+        `read_by` text DEFAULT NULL,
+        `hidden_by` text DEFAULT NULL,
+        `reactions` text DEFAULT NULL,
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
@@ -398,13 +402,17 @@ try {
             `extra` TEXT
         )");
         
+        $pdo->exec("DROP TABLE IF EXISTS `announcements`");
         $pdo->exec("CREATE TABLE IF NOT EXISTS `announcements` (
             `id` TEXT PRIMARY KEY,
             `title` TEXT,
             `message` TEXT,
             `target_audience` TEXT,
             `created_by` TEXT,
-            `created_at` TEXT
+            `created_at` TEXT,
+            `read_by` TEXT,
+            `hidden_by` TEXT,
+            `reactions` TEXT
         )");
     } catch (Exception $e2) {
         error_log("Failed to create company_profile table: " . $e2->getMessage());
@@ -722,7 +730,13 @@ if ($action === 'load_all') {
         // Fetch Announcements
         try {
             $stmt = $pdo->query("SELECT * FROM announcements");
-            $dbState['announcements'] = $stmt->fetchAll();
+            $anns = $stmt->fetchAll();
+            foreach ($anns as &$a) {
+                if (isset($a['read_by'])) $a['read_by'] = json_decode($a['read_by'], true) ?: [];
+                if (isset($a['hidden_by'])) $a['hidden_by'] = json_decode($a['hidden_by'], true) ?: [];
+                if (isset($a['reactions'])) $a['reactions'] = json_decode($a['reactions'], true) ?: [];
+            }
+            $dbState['announcements'] = $anns;
         } catch (Exception $e) { $dbState['announcements'] = []; }
 
         // Fetch Audit Logs
@@ -952,16 +966,7 @@ elseif ($action === 'save_all') {
             }
         } catch (Exception $e) {}
 
-        // 6. Sync Announcements
-        try {
-            $pdo->exec("DELETE FROM announcements");
-            if (!empty($data['announcements'])) {
-                $stmt = $pdo->prepare("INSERT INTO announcements (id, title, content, target, date, author) VALUES (?, ?, ?, ?, ?, ?)");
-                foreach ($data['announcements'] as $a) {
-                    $stmt->execute([$a['id'], $a['title'], $a['content'], $a['target'], $a['date'], $a['author']]);
-                }
-            }
-        } catch (Exception $e) {}
+
 
         // 7. Sync Audit Logs
         try {
@@ -1122,7 +1127,7 @@ elseif ($action === 'save_all') {
         try {
             $pdo->exec("DELETE FROM announcements");
             if (!empty($data['announcements'])) {
-                $stmt = $pdo->prepare("INSERT INTO announcements (id, title, message, target_audience, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO announcements (id, title, message, target_audience, created_by, created_at, read_by, hidden_by, reactions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 foreach ($data['announcements'] as $a) {
                     $stmt->execute([
                         $a['id'],
@@ -1130,7 +1135,10 @@ elseif ($action === 'save_all') {
                         $a['message'] ?? '',
                         $a['target_audience'] ?? '',
                         $a['created_by'] ?? '',
-                        $a['created_at'] ?? ''
+                        $a['created_at'] ?? '',
+                        isset($a['read_by']) ? json_encode($a['read_by']) : '[]',
+                        isset($a['hidden_by']) ? json_encode($a['hidden_by']) : '[]',
+                        isset($a['reactions']) ? json_encode($a['reactions']) : '{}'
                     ]);
                 }
             }
