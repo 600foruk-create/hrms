@@ -1055,7 +1055,7 @@ function renderAdminDashboard() {
             adminSvgEl.removeAttribute('preserveAspectRatio');
             adminSvgEl.setAttribute('viewBox', `0 0 ${w} 110`);
             
-            const dynamicCompCoords = dailyCompleted.map((val, idx) => ({ x: padding + idx * step, y: getSvgY(val) }));
+            const dynamicCompCoords = dailySubmitted.map((val, idx) => ({ x: padding + idx * step, y: getSvgY(val) }));
             const dynamicCompLine = buildPath(dynamicCompCoords);
             const dynamicCompArea = dynamicCompLine ? `${dynamicCompLine} L ${w - padding} 100 L ${padding} 100 Z` : '';
 
@@ -1066,14 +1066,14 @@ function renderAdminDashboard() {
                 <line x1="0" y1="80" x2="${w}" y2="80" class="svg-chart-grid" />
                 <line x1="0" y1="100" x2="${w}" y2="100" class="svg-chart-grid" style="stroke: rgba(255,255,255,0.06);" />
                 
-                <!-- Completed Area & Line -->
-                <path d="${dynamicCompArea}" class="svg-chart-area completed" />
-                <path d="${dynamicCompLine}" class="svg-chart-line completed" />
+                <!-- Submitted Area & Line -->
+                <path d="${dynamicCompArea}" class="svg-chart-area submitted" />
+                <path d="${dynamicCompLine}" class="svg-chart-line submitted" />
                 
                 <!-- Interactive Dots -->
             `;
             dynamicCompCoords.forEach(c => {
-                svgContent += `<circle cx="${c.x}" cy="${c.y}" r="4.5" class="svg-chart-dot completed" />`;
+                svgContent += `<circle cx="${c.x}" cy="${c.y}" r="4.5" class="svg-chart-dot submitted" />`;
             });
             adminSvgEl.innerHTML = svgContent;
         };
