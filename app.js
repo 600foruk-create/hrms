@@ -999,9 +999,15 @@ function renderAdminDashboard() {
     const last7Days = [];
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const xLabelsHTML = [];
-    for (let i = 6; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
+    
+    // Start of current week (Sunday)
+    const today = new Date();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay());
+    
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(startOfWeek);
+        d.setDate(startOfWeek.getDate() + i);
         last7Days.push(d.toISOString().split('T')[0]);
         xLabelsHTML.push(`<span>${dayNames[d.getDay()]}</span>`);
     }
@@ -1036,31 +1042,26 @@ function renderAdminDashboard() {
     const compLine = buildPath(compCoords);
     const compArea = buildAreaPath(compCoords, compLine);
 
-    const subLineEl = document.querySelector('.svg-chart-line.submitted');
-    const subAreaEl = document.querySelector('.svg-chart-area.submitted');
-    const compLineEl = document.querySelector('.svg-chart-line.completed');
-    const compAreaEl = document.querySelector('.svg-chart-area.completed');
-
-    if (subLineEl) subLineEl.setAttribute('d', subLine);
-    if (subAreaEl) subAreaEl.setAttribute('d', subArea);
-    if (compLineEl) compLineEl.setAttribute('d', compLine);
-    if (compAreaEl) compAreaEl.setAttribute('d', compArea);
-
-    const subDots = document.querySelectorAll('.svg-chart-dot.submitted');
-    const compDots = document.querySelectorAll('.svg-chart-dot.completed');
-
-    subCoords.forEach((coord, idx) => {
-        if (subDots[idx]) {
-            subDots[idx].setAttribute('cx', coord.x);
-            subDots[idx].setAttribute('cy', coord.y);
-        }
-    });
-    compCoords.forEach((coord, idx) => {
-        if (compDots[idx]) {
-            compDots[idx].setAttribute('cx', coord.x);
-            compDots[idx].setAttribute('cy', coord.y);
-        }
-    });
+    const adminSvgEl = document.getElementById('admin-tasks-overview-svg');
+    if (adminSvgEl) {
+        let svgContent = `
+            <!-- Y Axis grid lines -->
+            <line x1="0" y1="20" x2="300" y2="20" class="svg-chart-grid" />
+            <line x1="0" y1="50" x2="300" y2="50" class="svg-chart-grid" />
+            <line x1="0" y1="80" x2="300" y2="80" class="svg-chart-grid" />
+            <line x1="0" y1="100" x2="300" y2="100" class="svg-chart-grid" style="stroke: rgba(255,255,255,0.06);" />
+            
+            <!-- Completed Area & Line -->
+            <path d="${compArea}" class="svg-chart-area completed" />
+            <path d="${compLine}" class="svg-chart-line completed" />
+            
+            <!-- Interactive Dots -->
+        `;
+        compCoords.forEach(c => {
+            svgContent += `<circle cx="${c.x}" cy="${c.y}" r="3.5" class="svg-chart-dot completed" />`;
+        });
+        adminSvgEl.innerHTML = svgContent;
+    }
 
     const adminXaxisEl = document.getElementById('admin-tasks-overview-xaxis');
     if (adminXaxisEl) {
