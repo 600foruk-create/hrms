@@ -1039,29 +1039,50 @@ function renderAdminDashboard() {
 
     const subLine = buildPath(subCoords);
     const subArea = buildAreaPath(subCoords, subLine);
-    const compLine = buildPath(compCoords);
-    const compArea = buildAreaPath(compCoords, compLine);
-
     const adminSvgEl = document.getElementById('admin-tasks-overview-svg');
     if (adminSvgEl) {
-        adminSvgEl.setAttribute('preserveAspectRatio', 'none');
-        let svgContent = `
-            <!-- Y Axis grid lines -->
-            <line x1="0" y1="20" x2="300" y2="20" class="svg-chart-grid" />
-            <line x1="0" y1="50" x2="300" y2="50" class="svg-chart-grid" />
-            <line x1="0" y1="80" x2="300" y2="80" class="svg-chart-grid" />
-            <line x1="0" y1="100" x2="300" y2="100" class="svg-chart-grid" style="stroke: rgba(255,255,255,0.06);" />
+        const renderGraph = () => {
+            const wrapper = adminSvgEl.parentElement;
+            let w = wrapper.clientWidth;
+            if (w === 0) return; // Tab is hidden
             
-            <!-- Completed Area & Line -->
-            <path d="${compArea}" class="svg-chart-area completed" />
-            <path d="${compLine}" class="svg-chart-line completed" />
+            // Adjust padding to align dots perfectly over the center of the text labels
+            const padding = 15;
+            const step = (w - padding * 2) / 6;
             
-            <!-- Interactive Dots -->
-        `;
-        compCoords.forEach(c => {
-            svgContent += `<circle cx="${c.x}" cy="${c.y}" r="3.5" class="svg-chart-dot completed" />`;
-        });
-        adminSvgEl.innerHTML = svgContent;
+            adminSvgEl.removeAttribute('preserveAspectRatio');
+            adminSvgEl.setAttribute('viewBox', `0 0 ${w} 110`);
+            
+            const dynamicCompCoords = dailyCompleted.map((val, idx) => ({ x: padding + idx * step, y: getSvgY(val) }));
+            const dynamicCompLine = buildPath(dynamicCompCoords);
+            const dynamicCompArea = dynamicCompLine ? `${dynamicCompLine} L ${w - padding} 100 L ${padding} 100 Z` : '';
+
+            let svgContent = `
+                <!-- Y Axis grid lines -->
+                <line x1="0" y1="20" x2="${w}" y2="20" class="svg-chart-grid" />
+                <line x1="0" y1="50" x2="${w}" y2="50" class="svg-chart-grid" />
+                <line x1="0" y1="80" x2="${w}" y2="80" class="svg-chart-grid" />
+                <line x1="0" y1="100" x2="${w}" y2="100" class="svg-chart-grid" style="stroke: rgba(255,255,255,0.06);" />
+                
+                <!-- Completed Area & Line -->
+                <path d="${dynamicCompArea}" class="svg-chart-area completed" />
+                <path d="${dynamicCompLine}" class="svg-chart-line completed" />
+                
+                <!-- Interactive Dots -->
+            `;
+            dynamicCompCoords.forEach(c => {
+                svgContent += `<circle cx="${c.x}" cy="${c.y}" r="4.5" class="svg-chart-dot completed" />`;
+            });
+            adminSvgEl.innerHTML = svgContent;
+        };
+        
+        renderGraph();
+        
+        if (!adminSvgEl.dataset.observing) {
+            const ro = new ResizeObserver(() => renderGraph());
+            ro.observe(adminSvgEl.parentElement);
+            adminSvgEl.dataset.observing = "true";
+        }
     }
 
     const adminXaxisEl = document.getElementById('admin-tasks-overview-xaxis');
