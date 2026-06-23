@@ -2234,7 +2234,11 @@ function renderManagerAttendanceTab() {
     // Include manager themselves
     const teamEmails = [currentUser.id, ...team.map(t => t.id)];
 
-    const filterDate = document.getElementById('manager-attendance-filter-date').value;
+    const dateInput = document.getElementById('manager-attendance-filter-date');
+    if (!dateInput.value) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+    }
+    const filterDate = dateInput.value;
 
     const tableBody = document.getElementById('manager-attendance-table-body');
     if (tableBody) tableBody.innerHTML = '';
