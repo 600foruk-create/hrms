@@ -1165,19 +1165,9 @@ function renderAdminDashboard() {
                 const empId = task.employeeId || task.employee_id;
                 const emp = db.users.find(u => u.id === empId);
                 const dept = emp ? (emp.managerId === 'U2' ? 'Operations' : (emp.managerId === 'U3' ? 'Billing' : 'Support')) : 'Support';
-                const statusClass = task.status === 'Approved' ? 'approved' : (task.status === 'Rejected' ? 'rejected' : 'pending');
+                const statusClass = 'pending'; // Use a neutral style or submitted style
 
-                let actionBtn = '';
-                if (task.status === 'Pending') {
-                    actionBtn = `
-                        <div style="display: flex; gap: 6px; justify-content: center;">
-                            <button class="btn-action-circle approve-green" onclick="window.quickApproveTask('${task.id}', 'Approved')" tooltip="Approve"><i class="fa-solid fa-check"></i></button>
-                            <button class="btn-action-circle reject-red" onclick="window.quickApproveTask('${task.id}', 'Rejected')" tooltip="Reject"><i class="fa-solid fa-xmark"></i></button>
-                        </div>
-                    `;
-                } else {
-                    actionBtn = `<div style="text-align: center; color: var(--text-muted); font-size: 11px;">Processed</div>`;
-                }
+                let actionBtn = `<div style="text-align: center; color: var(--text-muted); font-size: 11px;">View Log</div>`;
 
                 recentTasksTableBody.innerHTML += `
                     <tr>
@@ -1185,7 +1175,7 @@ function renderAdminDashboard() {
                         <td class="text-secondary">${(db.users.find(u => u.id === empId) || {}).displayId || empId}</td><td>${task.employeeName || (emp ? emp.name : 'Unknown')}</td>
                         <td><span style="font-size: 11px; font-weight: 700; color: #38bdf8;">${dept}</span></td>
                         <td>${task.date || task.log_date}</td>
-                        <td><span class="badge-status ${statusClass}">${task.status || 'Approved'}</span></td>
+                        <td><span class="badge-status ${statusClass}">Submitted</span></td>
                         <td>${actionBtn}</td>
                     </tr>
                 `;
@@ -2109,11 +2099,7 @@ function renderManagerDashboard() {
         svgContent += `<path d="${buildAreaPath(subCoords, buildPath(subCoords))}" class="svg-chart-area submitted" />`;
         svgContent += `<path d="${buildPath(subCoords)}" class="svg-chart-line submitted" />`;
 
-        svgContent += `<path d="${buildAreaPath(compCoords, buildPath(compCoords))}" class="svg-chart-area completed" />`;
-        svgContent += `<path d="${buildPath(compCoords)}" class="svg-chart-line completed" />`;
-
         subCoords.forEach(c => { svgContent += `<circle cx="${c.x}" cy="${c.y}" r="3.5" class="svg-chart-dot submitted" />`; });
-        compCoords.forEach(c => { svgContent += `<circle cx="${c.x}" cy="${c.y}" r="3.5" class="svg-chart-dot completed" />`; });
 
         managerSvg.innerHTML = svgContent;
     }
@@ -2574,15 +2560,7 @@ function renderEmployeeDashboard() {
         svgContent += `<path d="${buildAreaPath(subCoords, buildPath(subCoords))}" class="svg-chart-area submitted" />`;
         svgContent += `<path d="${buildPath(subCoords)}" class="svg-chart-line submitted" />`;
 
-        svgContent += `<path d="${buildAreaPath(appCoords, buildPath(appCoords))}" class="svg-chart-area completed" />`;
-        svgContent += `<path d="${buildPath(appCoords)}" class="svg-chart-line completed" />`;
-
-        svgContent += `<path d="${buildAreaPath(rejCoords, buildPath(rejCoords))}" fill="rgba(239, 68, 68, 0.1)" stroke="none" />`;
-        svgContent += `<path d="${buildPath(rejCoords)}" fill="none" stroke="var(--danger)" stroke-width="2" />`;
-
         subCoords.forEach(c => { svgContent += `<circle cx="${c.x}" cy="${c.y}" r="3.5" class="svg-chart-dot submitted" />`; });
-        appCoords.forEach(c => { svgContent += `<circle cx="${c.x}" cy="${c.y}" r="3.5" class="svg-chart-dot completed" />`; });
-        rejCoords.forEach(c => { svgContent += `<circle cx="${c.x}" cy="${c.y}" r="3.5" fill="var(--danger)" />`; });
 
         employeeSvg.innerHTML = svgContent;
     }
