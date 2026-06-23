@@ -3974,11 +3974,16 @@ document.getElementById('attendance-log-form').addEventListener('submit', (e) =>
             const existing = db.attendance.find(a => a.employeeId === empId && a.date === date);
 
             if (existing) {
-                // If they change status, update it. (If it was empty, we now set it)
+                // If they change status, update it.
                 if (existing.status !== status) {
                     existing.status = status;
-                    if (!existing.timeIn || existing.timeIn === '-') existing.timeIn = nowStr;
-                    if (!existing.timeOut || existing.timeOut === '-') existing.timeOut = nowStr;
+                    if (status === 'Present') {
+                        if (!existing.timeIn || existing.timeIn === '-') existing.timeIn = nowStr;
+                        // DO NOT automatically set timeOut for Present. Let them punch out later.
+                    } else if (status === 'Absent') {
+                        existing.timeIn = '-';
+                        existing.timeOut = '-';
+                    }
                     existing.markedBy = currentUser.name;
                     addNotification(empId, `Your attendance for ${date} was updated to ${status} manually by your manager/admin.`);
                     saveCount++;
@@ -3989,8 +3994,8 @@ document.getElementById('attendance-log-form').addEventListener('submit', (e) =>
                     employeeId: empId,
                     employeeName: empName,
                     status,
-                    timeIn: nowStr,
-                    timeOut: nowStr,
+                    timeIn: status === 'Present' ? nowStr : '-',
+                    timeOut: '-', // Never set timeOut automatically on first punch in
                     markedBy: currentUser.name
                 });
                 addNotification(empId, `Your attendance for ${date} was marked as ${status} manually by your manager/admin.`);
