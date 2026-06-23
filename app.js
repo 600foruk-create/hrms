@@ -934,9 +934,11 @@ function renderAdminDashboard() {
     const today = new Date().toISOString().split('T')[0];
     const totalEmpCount = employees.length;
     const presentTodayCount = db.attendance.filter(a => a.date === today && a.status === 'Present').length;
-    const absentTodayCount = db.attendance.filter(a => a.date === today && a.status === 'Absent').length;
     const lateTodayCount = db.attendance.filter(a => a.date === today && a.status === 'Late').length;
     const leaveTodayCount = db.attendance.filter(a => a.date === today && a.status === 'On Leave').length;
+    
+    const accountedCount = presentTodayCount + lateTodayCount + leaveTodayCount;
+    const absentTodayCount = totalEmpCount > accountedCount ? (totalEmpCount - accountedCount) : 0;
     const attendancePct = totalEmpCount > 0 ? Math.round((presentTodayCount / totalEmpCount) * 100) : 0;
 
     // Tasks Submitted / Completed
@@ -1478,9 +1480,26 @@ function renderAdminAttendanceTab() {
     const tableBody = document.getElementById('admin-attendance-table-body');
     tableBody.innerHTML = '';
 
-    let logs = db.attendance;
-    if (filterDate) logs = logs.filter(l => l.date === filterDate);
-    if (filterEmp) logs = logs.filter(l => l.employeeId === filterEmp);
+    let targetUsers = db.users.filter(u => u.status === 'Active' && u.role !== 'Admin');
+    if (filterEmp) targetUsers = targetUsers.filter(u => String(u.id) === String(filterEmp));
+
+    let logs = [];
+    targetUsers.forEach(user => {
+        let userLog = db.attendance.find(a => String(a.employeeId) === String(user.id) && a.date === filterDate);
+        if (userLog) {
+            logs.push(userLog);
+        } else {
+            logs.push({
+                date: filterDate,
+                employeeId: user.id,
+                employeeName: user.name,
+                status: 'Absent',
+                timeIn: '-',
+                timeOut: '-',
+                markedBy: '-'
+            });
+        }
+    });
 
     // Sort by date desc
     logs.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -2220,8 +2239,24 @@ function renderManagerAttendanceTab() {
     const tableBody = document.getElementById('manager-attendance-table-body');
     if (tableBody) tableBody.innerHTML = '';
 
-    let logs = db.attendance.filter(a => teamEmails.includes(a.employeeId));
-    if (filterDate) logs = logs.filter(l => l.date === filterDate);
+    let targetUsers = [currentUser, ...team];
+    let logs = [];
+    targetUsers.forEach(user => {
+        let userLog = db.attendance.find(a => String(a.employeeId) === String(user.id) && a.date === filterDate);
+        if (userLog) {
+            logs.push(userLog);
+        } else {
+            logs.push({
+                date: filterDate,
+                employeeId: user.id,
+                employeeName: user.name,
+                status: 'Absent',
+                timeIn: '-',
+                timeOut: '-',
+                markedBy: '-'
+            });
+        }
+    });
 
     logs.sort((a, b) => new Date(b.date) - new Date(a.date));
 
