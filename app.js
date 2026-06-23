@@ -997,10 +997,13 @@ function renderAdminDashboard() {
 
     // 2. Tasks Overview SVG Line Chart (Dynamic from DB)
     const last7Days = [];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const xLabelsHTML = [];
     for (let i = 6; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
         last7Days.push(d.toISOString().split('T')[0]);
+        xLabelsHTML.push(`<span>${dayNames[d.getDay()]}</span>`);
     }
     const dailySubmitted = last7Days.map(day => (db.productivity || []).filter(p => p.date === day).length);
     const dailyCompleted = last7Days.map(day => (db.productivity || []).filter(p => p.date === day && p.status === 'Approved').length);
@@ -1058,6 +1061,11 @@ function renderAdminDashboard() {
             compDots[idx].setAttribute('cy', coord.y);
         }
     });
+
+    const adminXaxisEl = document.getElementById('admin-tasks-overview-xaxis');
+    if (adminXaxisEl) {
+        adminXaxisEl.innerHTML = xLabelsHTML.join('');
+    }
 
     // 3. Recent Task Approvals Cards
     const approvalsListEl = document.getElementById('admin-task-approvals-list');
