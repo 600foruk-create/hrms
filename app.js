@@ -780,6 +780,7 @@ function renderSidebar() {
             <a class="sidebar-link" data-tab="productivity"><i class="fa-solid fa-bolt"></i> Tasks/Productivity</a>
             <a class="sidebar-link" data-tab="assets"><i class="fa-solid fa-laptop"></i> Assets</a>
             <a class="sidebar-link" data-tab="reports"><i class="fa-solid fa-file-invoice-dollar"></i> Reports & Analytics</a>
+            <a class="sidebar-link" data-tab="announcements"><i class="fa-solid fa-bullhorn"></i> Announcements</a>
             <a class="sidebar-link" data-tab="settings"><i class="fa-solid fa-sliders"></i> Settings</a>
         `;
     } else if (currentUser.role === 'Manager') {
@@ -792,6 +793,7 @@ function renderSidebar() {
             <a class="sidebar-link" data-tab="reports"><i class="fa-solid fa-file-invoice-dollar"></i> Team Reports</a>
             <a class="sidebar-link" data-tab="mypayslips"><i class="fa-solid fa-file-invoice"></i> My Salary Slips</a>
             <a class="sidebar-link" data-tab="assets"><i class="fa-solid fa-laptop"></i> Assets</a>
+            <a class="sidebar-link" data-tab="announcements"><i class="fa-solid fa-bullhorn"></i> Announcements</a>
         `;
     } else { // Employee
         menuHTML = `
@@ -801,6 +803,7 @@ function renderSidebar() {
             <a class="sidebar-link" data-tab="leave"><i class="fa-solid fa-umbrella-beach"></i> Leave Request</a>
             <a class="sidebar-link" data-tab="mypayslips"><i class="fa-solid fa-file-invoice"></i> My Salary Slips</a>
             <a class="sidebar-link" data-tab="assets"><i class="fa-solid fa-laptop"></i> Assets</a>
+            <a class="sidebar-link" data-tab="announcements"><i class="fa-solid fa-bullhorn"></i> Announcements</a>
         `;
     }
 
@@ -885,6 +888,7 @@ function refreshTabContent(tabId) {
         else if (tabId === 'reports') initManagerReportsTab();
         else if (tabId === 'mypayslips') { if (window.renderMyPayslips) window.renderMyPayslips(); }
         else if (tabId === 'assets') { if (window.renderEmployeeAssetsTab) window.renderEmployeeAssetsTab(); }
+        else if (tabId === 'announcements') { if (window.renderUserAnnouncementsTab) window.renderUserAnnouncementsTab(); }
     } else { // Employee
         if (tabId === 'dashboard') renderEmployeeDashboard();
         else if (tabId === 'attendance') renderEmployeeAttendanceTab();
@@ -892,6 +896,7 @@ function refreshTabContent(tabId) {
         else if (tabId === 'leave') renderEmployeeLeaveTab();
         else if (tabId === 'mypayslips') { if (window.renderMyPayslips) window.renderMyPayslips(); }
         else if (tabId === 'assets') { if (window.renderEmployeeAssetsTab) window.renderEmployeeAssetsTab(); }
+        else if (tabId === 'announcements') { if (window.renderUserAnnouncementsTab) window.renderUserAnnouncementsTab(); }
     }
 }
 
@@ -1632,32 +1637,69 @@ function renderAdminLeaveTab() {
 
 function renderAdminAnnouncementsTab() {
     const db = getDb();
-    const container = document.getElementById('admin-tab-announcements-list');
-    container.innerHTML = '';
+    const tbody = document.getElementById('admin-announcements-body');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    const sortedAnnouncements = [...(db.announcements || [])].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-    if (db.announcements.length === 0) {
-        container.innerHTML = `<div class="empty-state">No company announcements found. Create one above.</div>`;
+    if (sortedAnnouncements.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted" style="padding:20px;">No company announcements found. Create one above.</td></tr>`;
     } else {
-        db.announcements.forEach(ann => {
+        sortedAnnouncements.forEach(ann => {
+            const dateStr = new Date(ann.created_at).toLocaleString();
+            tbody.innerHTML += `
+                <tr>
+                    <td>${dateStr}</td>
+                    <td class="bold text-primary">${ann.title}</td>
+                    <td>${ann.message}</td>
+                    <td><span class="badge-role" style="background:var(--primary-light); color:var(--primary);">${ann.target_audience}</span></td>
+                    <td style="text-align:right;">
+                        <button class="btn btn-sm btn-outline text-danger" onclick="deleteAnnouncement('${ann.id}')" title="Delete Announcement"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+}
+
+window.renderUserAnnouncementsTab = function() {
+    const db = getDb();
+    const role = currentUser.role.toLowerCase();
+    const containerId = role === 'manager' ? 'manager-announcements-container' : 'employee-announcements-container';
+    const container = document.getElementById(containerId);
+    
+    if (!container) return;
+    container.innerHTML = '';
+    
+    const relevantAnns = (db.announcements || []).filter(a => a.target_audience === 'All' || a.target_audience === currentUser.role);
+    const sortedAnns = relevantAnns.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    if (sortedAnns.length === 0) {
+        container.innerHTML = `<div class="card"><div class="card-body text-center text-muted">No announcements to display.</div></div>`;
+    } else {
+        sortedAnns.forEach(ann => {
+            const dateStr = new Date(ann.created_at).toLocaleString();
             container.innerHTML += `
-                <div class="announcement-mini-card announcement-admin-card bg-glass">
-                    <div class="leave-mini-card-header mb-3">
-                        <h3 class="text-primary font-heading">${ann.title}</h3>
-                        <div class="btn-action-group">
-                            <span class="badge-role manager">Target: ${ann.target}</span>
-                            <button class="btn-action-circle text-danger" onclick="deleteAnnouncement('${ann.id}')" tooltip="Delete Announcement"><i class="fa-regular fa-trash-can"></i></button>
+                <div class="card bg-glass" style="border-left: 4px solid var(--primary);">
+                    <div class="card-body">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+                            <h3 style="margin:0; color:var(--text-primary); font-weight:700;">${ann.title}</h3>
+                            <span class="badge-role" style="background:var(--bg-card); color:var(--text-secondary); font-size:11px;">
+                                <i class="fa-regular fa-clock"></i> ${dateStr}
+                            </span>
                         </div>
-                    </div>
-                    <p class="text-primary font-body" style="font-size:14.5px; margin-bottom:15px;">${ann.content}</p>
-                    <div class="meta text-muted">
-                        <span>Posted By: <strong>${ann.author}</strong></span>
-                        <span>Date: <strong>${ann.date}</strong></span>
+                        <p style="margin:0; color:var(--text-secondary); line-height:1.5;">${ann.message}</p>
+                        <div style="margin-top:15px; font-size:12px; color:var(--text-muted);">
+                            <strong>From:</strong> ${ann.created_by}
+                        </div>
                     </div>
                 </div>
             `;
         });
     }
-}
+};
 
 function renderAdminSettingsTab() {
     const db = getDb();
@@ -4077,6 +4119,51 @@ document.getElementById('announcement-form').addEventListener('submit', (e) => {
     refreshTabContent(activeTab);
 });
 
+window.createAnnouncement = function() {
+    const title = document.getElementById('announcement-title').value.trim();
+    const audience = document.getElementById('announcement-audience').value;
+    const message = document.getElementById('announcement-message').value.trim();
+
+    if (!title || !message) {
+        showToast("Validation Error", "Title and Message are required.", "error");
+        return;
+    }
+
+    const db = getDb();
+    const newAnn = {
+        id: 'ANN-' + Date.now(),
+        title: title,
+        message: message,
+        target_audience: audience,
+        created_by: currentUser.name || "Admin",
+        created_at: new Date().toISOString()
+    };
+
+    db.announcements.push(newAnn);
+    
+    // Add Notification to users based on target audience
+    const notificationMessage = `New Announcement: ${title}`;
+    if (audience === 'All') {
+        db.users.forEach(u => {
+            if (u.id !== currentUser.id) addNotification(u.id, notificationMessage, false);
+        });
+    } else {
+        db.users.forEach(u => {
+            if (u.id !== currentUser.id && u.role === audience) addNotification(u.id, notificationMessage, false);
+        });
+    }
+
+    saveDb(db);
+    showToast("Success", "Announcement broadcasted successfully.");
+    logAudit(`Broadcasted new announcement: "${title}" to ${audience}.`);
+    
+    // Reset Form
+    document.getElementById('announcement-title').value = '';
+    document.getElementById('announcement-message').value = '';
+    
+    refreshTabContent(activeTab);
+};
+
 window.deleteAnnouncement = function (annId) {
     if (confirm("Delete this announcement? This will remove it from all employee panels.")) {
         const db = getDb();
@@ -5018,6 +5105,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         saveDb(db);
         renderNotifications();
         showToast("Notifications Read", "All alerts marked as read.");
+    });
+    
+    safeAddListener('btn-delete-notifications', 'click', () => {
+        if (confirm("Clear all notifications? This cannot be undone.")) {
+            const db = getDb();
+            const originalLength = db.notifications.length;
+            db.notifications = db.notifications.filter(n => n.userId !== currentUser.id);
+            if (db.notifications.length < originalLength) {
+                saveDb(db);
+                renderNotifications();
+                showToast("Cleared", "All notifications cleared.");
+            }
+        }
     });
 
     // Theme Toggle Handler

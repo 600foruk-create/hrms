@@ -287,6 +287,16 @@ try {
         `extra` text DEFAULT NULL,
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `announcements` (
+        `id` varchar(100) NOT NULL,
+        `title` varchar(255) DEFAULT NULL,
+        `message` text DEFAULT NULL,
+        `target_audience` varchar(50) DEFAULT NULL,
+        `created_by` varchar(150) DEFAULT NULL,
+        `created_at` varchar(50) DEFAULT NULL,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
 } catch (Exception $e) {
     // Ignore if unsupported (e.g. SQLite doesn't support ENGINE=InnoDB)
@@ -386,6 +396,15 @@ try {
             `api_key` TEXT,
             `sender` TEXT,
             `extra` TEXT
+        )");
+        
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `announcements` (
+            `id` TEXT PRIMARY KEY,
+            `title` TEXT,
+            `message` TEXT,
+            `target_audience` TEXT,
+            `created_by` TEXT,
+            `created_at` TEXT
         )");
     } catch (Exception $e2) {
         error_log("Failed to create company_profile table: " . $e2->getMessage());
@@ -1099,6 +1118,23 @@ elseif ($action === 'save_all') {
             }
         } catch (Exception $e) {}
 
+        // Sync Announcements
+        try {
+            $pdo->exec("DELETE FROM announcements");
+            if (!empty($data['announcements'])) {
+                $stmt = $pdo->prepare("INSERT INTO announcements (id, title, message, target_audience, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?)");
+                foreach ($data['announcements'] as $a) {
+                    $stmt->execute([
+                        $a['id'],
+                        $a['title'] ?? '',
+                        $a['message'] ?? '',
+                        $a['target_audience'] ?? '',
+                        $a['created_by'] ?? '',
+                        $a['created_at'] ?? ''
+                    ]);
+                }
+            }
+        } catch (Exception $e) {}
 
         // 11. Sync System Settings
         $pdo->exec("DELETE FROM system_settings");
