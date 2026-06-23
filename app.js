@@ -1044,6 +1044,7 @@ function renderAdminDashboard() {
 
     const adminSvgEl = document.getElementById('admin-tasks-overview-svg');
     if (adminSvgEl) {
+        adminSvgEl.setAttribute('preserveAspectRatio', 'none');
         let svgContent = `
             <!-- Y Axis grid lines -->
             <line x1="0" y1="20" x2="300" y2="20" class="svg-chart-grid" />
