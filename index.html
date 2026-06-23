@@ -237,6 +237,10 @@
     </div>
 
     <style>
+        /* Force remove blur from modals and fix toast z-index to bypass aggressive CSS caching */
+        .modal-backdrop { backdrop-filter: none !important; }
+        .toast-container { z-index: 11000 !important; }
+
         /* Print Styles */
         @media print {
             @page {
