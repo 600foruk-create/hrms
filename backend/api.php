@@ -744,11 +744,14 @@ if ($action === 'load_all') {
                 'businessUnits' => [],
                 'tesCategories' => []
             ];
+            
+            // First pass: Build BUs and TESs
             foreach ($pcats as $cat) {
                 if ($cat['type'] === 'BU') {
                     $dbState['productivityCategories']['businessUnits'][] = [
                         'id' => $cat['id'],
-                        'name' => $cat['name']
+                        'name' => $cat['name'],
+                        'practices' => []
                     ];
                 } else if ($cat['type'] === 'TES') {
                     $dbState['productivityCategories']['tesCategories'][] = [
@@ -756,8 +759,35 @@ if ($action === 'load_all') {
                         'buId' => $cat['parent_id'],
                         'name' => $cat['name'],
                         'weightage' => (int)$cat['weightage'],
-                        'desc' => $cat['description']
+                        'desc' => $cat['description'],
+                        'tasks' => []
                     ];
+                }
+            }
+            
+            // Second pass: Populate Practices and Tasks
+            foreach ($pcats as $cat) {
+                if ($cat['type'] === 'PRACTICE') {
+                    foreach ($dbState['productivityCategories']['businessUnits'] as &$bu) {
+                        if ($bu['id'] === $cat['parent_id']) {
+                            $bu['practices'][] = [
+                                'id' => $cat['id'],
+                                'name' => $cat['name']
+                            ];
+                            break;
+                        }
+                    }
+                } else if ($cat['type'] === 'TASK') {
+                    foreach ($dbState['productivityCategories']['tesCategories'] as &$tes) {
+                        if ($tes['id'] === $cat['parent_id']) {
+                            $tes['tasks'][] = [
+                                'id' => $cat['id'],
+                                'name' => $cat['name'],
+                                'weightage' => (int)$cat['weightage']
+                            ];
+                            break;
+                        }
+                    }
                 }
             }
         } catch (Exception $e) {
@@ -1354,12 +1384,22 @@ elseif ($action === 'save_all') {
         if (!empty($data['businessUnits'])) {
             foreach ($data['businessUnits'] as $bu) {
                 $stmt->execute([$bu['id'], 'BU', null, $bu['name'], 0, '']);
+                if (!empty($bu['practices'])) {
+                    foreach ($bu['practices'] as $practice) {
+                        $stmt->execute([$practice['id'], 'PRACTICE', $bu['id'], $practice['name'], 0, '']);
+                    }
+                }
             }
         }
         
         if (!empty($data['tesCategories'])) {
             foreach ($data['tesCategories'] as $tes) {
                 $stmt->execute([$tes['id'], 'TES', $tes['buId'] ?? null, $tes['name'], $tes['weightage'] ?? 0, $tes['desc'] ?? '']);
+                if (!empty($tes['tasks'])) {
+                    foreach ($tes['tasks'] as $task) {
+                        $stmt->execute([$task['id'], 'TASK', $tes['id'], $task['name'], $task['weightage'] ?? 0, '']);
+                    }
+                }
             }
         }
         
