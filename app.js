@@ -1659,12 +1659,19 @@ function renderAdminAnnouncementsTab() {
     } else {
         sortedAnnouncements.forEach(ann => {
             const dateStr = new Date(ann.created_at).toLocaleString();
+            let displayAudience = ann.target_audience;
+            if (displayAudience.startsWith('User: ')) {
+                const userId = displayAudience.split('User: ')[1];
+                const u = db.users.find(x => x.id === userId);
+                if (u) displayAudience = `${u.name}`;
+            }
+
             tbody.innerHTML += `
                 <tr>
                     <td>${dateStr}</td>
                     <td class="bold text-primary">${ann.title}</td>
                     <td>${ann.message}</td>
-                    <td><span class="badge-role" style="background:var(--primary-light); color:var(--primary);">${ann.target_audience}</span></td>
+                    <td><span class="badge-role" style="background:var(--primary-light); color:var(--primary);">${displayAudience}</span></td>
                     <td style="text-align:right;">
                         <button class="btn btn-sm btn-outline text-primary" onclick="viewAnnouncementReactions('${ann.id}')" title="View Reactions"><i class="fa-solid fa-face-smile"></i></button>
                         <button class="btn btn-sm btn-outline text-secondary" onclick="hideAnnouncement('${ann.id}')" title="Dismiss for Me"><i class="fa-solid fa-eye-slash"></i></button>
@@ -1685,7 +1692,7 @@ window.renderUserAnnouncementsTab = function() {
     if (!container) return;
     container.innerHTML = '';
     
-    let relevantAnns = (db.announcements || []).filter(a => a.target_audience === 'All' || a.target_audience === currentUser.role);
+    let relevantAnns = (db.announcements || []).filter(a => a.target_audience === 'All' || a.target_audience === currentUser.role || a.target_audience === `User: ${currentUser.id}`);
     // Filter out announcements hidden by this user
     relevantAnns = relevantAnns.filter(a => !(a.hidden_by && a.hidden_by.includes(currentUser.id)));
     const sortedAnns = relevantAnns.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -4280,50 +4287,141 @@ document.getElementById('announcement-form').addEventListener('submit', (e) => {
     refreshTabContent(activeTab);
 });
 
-window.createAnnouncement = function() {
-    const title = document.getElementById('announcement-title').value.trim();
+window.toggleAnnouncementEmployeeSelect = function() {
     const audience = document.getElementById('announcement-audience').value;
-    const message = document.getElementById('announcement-message').value.trim();
+    const singleUserGroup = document.getElementById('announcement-single-user-group');
+    if (audience === 'Single') {
+        singleUserGroup.classList.remove('hidden');
+        const db = getDb();
+        const select = document.getElementById('announcement-single-user');
+        select.innerHTML = '<option value="">-- Select Employee --</option>';
+        db.users.forEach(u => {
+            if (u.id !== currentUser.id) {
+                select.innerHTML += `<option value="${u.id}">${u.name} (${u.role})</option>`;
+            }
+        });
+    } else {
+        singleUserGroup.classList.add('hidden');
+    }
+};
 
-    if (!title || !message) {
+window.createAnnouncement = function() {
+    const channel = document.getElementById('announcement-channel').value;
+    const title = document.getElementById('announcement-title').value.trim();
+    let audience = document.getElementById('announcement-audience').value;
+    const singleUserId = document.getElementById('announcement-single-user').value;
+    const messageBase = document.getElementById('announcement-message').value.trim();
+    const includeCreds = document.getElementById('announcement-include-creds').checked;
+
+    if (!title || !messageBase) {
         showToast("Validation Error", "Title and Message are required.", "error");
+        return;
+    }
+    
+    if (audience === 'Single' && !singleUserId) {
+        showToast("Validation Error", "Please select an employee.", "error");
         return;
     }
 
     const db = getDb();
-    const newAnn = {
-        id: 'ANN-' + Date.now(),
-        title: title,
-        message: message,
-        target_audience: audience,
-        created_by: currentUser.name || "Admin",
-        created_at: new Date().toISOString(),
-        read_by: [],
-        hidden_by: [],
-        reactions: {}
-    };
-
-    db.announcements.push(newAnn);
     
-    // Add Notification to users based on target audience
-    const notificationMessage = `New Announcement: ${title}`;
+    // Determine Target Users
+    let targetUsers = [];
     if (audience === 'All') {
-        db.users.forEach(u => {
-            if (u.id !== currentUser.id) addNotification(u.id, notificationMessage, false);
-        });
-    } else {
-        db.users.forEach(u => {
-            if (u.id !== currentUser.id && u.role === audience) addNotification(u.id, notificationMessage, false);
-        });
+        targetUsers = db.users.filter(u => u.id !== currentUser.id);
+    } else if (audience === 'Manager') {
+        targetUsers = db.users.filter(u => u.id !== currentUser.id && u.role === 'Manager');
+    } else if (audience === 'Single') {
+        targetUsers = db.users.filter(u => u.id === singleUserId);
+        audience = `User: ${singleUserId}`;
     }
 
-    saveDb(db);
-    showToast("Success", "Announcement broadcasted successfully.");
-    logAudit(`Broadcasted new announcement: "${title}" to ${audience}.`);
+    let dbAnnouncementsCreated = false;
+    
+    // Process External Channels (Email/WhatsApp)
+    if (channel === 'Email' || channel === 'WhatsApp' || channel === 'All') {
+        targetUsers.forEach(u => {
+            let personalizedMsg = messageBase;
+            if (includeCreds) {
+                personalizedMsg += `\n\n--- Login Credentials ---\nEmail: ${u.email}\nPassword: ${u.password}`;
+            }
+            console.log(`[Mock ${channel}] To: ${u.name} - ${title}\n${personalizedMsg}`);
+        });
+        if (channel !== 'All') {
+            showToast("Success", `Broadcast sent via ${channel}.`, "success");
+        }
+    }
+
+    // Process Internal Database
+    if (channel === 'System' || channel === 'All') {
+        if (includeCreds && targetUsers.length > 1) {
+            // If broadcasting credentials to multiple users in DB, create individual rows to prevent sharing passwords
+            targetUsers.forEach((u, idx) => {
+                let personalizedMsg = messageBase;
+                personalizedMsg += `\n\n--- Login Credentials ---\nEmail: ${u.email}\nPassword: ${u.password}`;
+                
+                const newAnn = {
+                    id: 'ANN-' + Date.now() + '-' + idx,
+                    title: title,
+                    message: personalizedMsg,
+                    target_audience: `User: ${u.id}`,
+                    created_by: currentUser.name || "Admin",
+                    created_at: new Date().toISOString(),
+                    read_by: [],
+                    hidden_by: [],
+                    reactions: {}
+                };
+                db.announcements.push(newAnn);
+                addNotification(u.id, `New Direct Announcement: "${title}"`, false);
+            });
+            dbAnnouncementsCreated = true;
+        } else {
+            // Standard shared announcement (or single targeted)
+            let finalMsg = messageBase;
+            if (includeCreds && targetUsers.length === 1) {
+                const u = targetUsers[0];
+                finalMsg += `\n\n--- Login Credentials ---\nEmail: ${u.email}\nPassword: ${u.password}`;
+            }
+            
+            const newAnn = {
+                id: 'ANN-' + Date.now(),
+                title: title,
+                message: finalMsg,
+                target_audience: audience,
+                created_by: currentUser.name || "Admin",
+                created_at: new Date().toISOString(),
+                read_by: [],
+                hidden_by: [],
+                reactions: {}
+            };
+            db.announcements.push(newAnn);
+            
+            targetUsers.forEach(u => {
+                addNotification(u.id, `New Announcement: "${title}"`, false);
+            });
+            dbAnnouncementsCreated = true;
+        }
+    }
+
+    if (dbAnnouncementsCreated) {
+        saveDb(db);
+    }
+    
+    if (channel === 'All') {
+        showToast("Success", "Announcement broadcasted across all channels.");
+    } else if (channel === 'System') {
+        showToast("Success", "Announcement posted to internal database.");
+    }
+    
+    logAudit(`Broadcasted new announcement: "${title}".`);
     
     // Reset Form
     document.getElementById('announcement-title').value = '';
     document.getElementById('announcement-message').value = '';
+    document.getElementById('announcement-include-creds').checked = false;
+    document.getElementById('announcement-single-user').value = '';
+    document.getElementById('announcement-audience').value = 'All';
+    toggleAnnouncementEmployeeSelect();
     
     refreshTabContent(activeTab);
 };

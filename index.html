@@ -2627,19 +2627,40 @@
                                 </div>
                                 <div style="padding: 20px; flex: 1; display: flex; flex-direction: column;">
                                     <div class="form-group" style="margin-bottom: 15px;">
+                                        <label>Communication Channel</label>
+                                        <select id="announcement-channel" class="form-control">
+                                            <option value="System">System Database (Default)</option>
+                                            <option value="Email">Email</option>
+                                            <option value="WhatsApp">WhatsApp</option>
+                                            <option value="All">All Channels</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 15px;">
                                         <label>Title</label>
                                         <input type="text" id="announcement-title" class="form-control" placeholder="Announcement Title">
                                     </div>
                                     <div class="form-group" style="margin-bottom: 15px;">
                                         <label>Target Audience</label>
-                                        <select id="announcement-audience" class="form-control">
+                                        <select id="announcement-audience" class="form-control" onchange="toggleAnnouncementEmployeeSelect()">
                                             <option value="All">All Staff</option>
                                             <option value="Manager">Managers Only</option>
+                                            <option value="Single">Single Employee</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group hidden" id="announcement-single-user-group" style="margin-bottom: 15px;">
+                                        <label>Select Employee</label>
+                                        <select id="announcement-single-user" class="form-control">
+                                            <option value="">-- Loading Employees --</option>
                                         </select>
                                     </div>
                                     <div class="form-group" style="margin-bottom: 15px; flex: 1; display: flex; flex-direction: column;">
                                         <label>Message</label>
                                         <textarea id="announcement-message" class="form-control" style="flex: 1; resize: none;" placeholder="Write your message here..."></textarea>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 15px;">
+                                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal; font-size:13.5px;">
+                                            <input type="checkbox" id="announcement-include-creds" style="width:16px; height:16px; accent-color:var(--primary);"> Include User Credentials (Username & Password)
+                                        </label>
                                     </div>
                                     <div style="text-align:right;">
                                         <button class="btn btn-primary" onclick="createAnnouncement()"><i class="fa-solid fa-paper-plane"></i> Broadcast</button>
