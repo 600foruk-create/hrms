@@ -1714,27 +1714,27 @@ window.renderUserAnnouncementsTab = function() {
             const dislikeCount = Object.values(ann.reactions || {}).filter(r => r === 'dislike').length;
 
             container.innerHTML += `
-                <div class="card bg-glass" style="border:none; background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%); box-shadow: 0 8px 32px 0 rgba(0,0,0,0.05); backdrop-filter: blur(10px); border-left: 4px solid var(--primary); border-radius: 12px; margin-bottom: 20px; position:relative; overflow:hidden;">
-                    <div style="position:absolute; top:-20px; right:-20px; font-size:120px; color:var(--primary); opacity:0.03; transform:rotate(-15deg); pointer-events:none;">
+                <div class="card bg-glass" style="border:none; background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%); box-shadow: 0 4px 16px 0 rgba(0,0,0,0.05); backdrop-filter: blur(10px); border-left: 4px solid var(--primary); border-radius: 8px; margin-bottom: 10px; position:relative; overflow:hidden;">
+                    <div style="position:absolute; top:-15px; right:-15px; font-size:80px; color:var(--primary); opacity:0.03; transform:rotate(-15deg); pointer-events:none;">
                         <i class="fa-solid fa-bullhorn"></i>
                     </div>
-                    <div class="card-body" style="padding: 25px; position:relative; z-index:1;">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
-                            <div style="display:flex; align-items:center; gap: 12px;">
-                                <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display:flex; align-items:center; justify-content:center; font-size: 18px;">
+                    <div class="card-body" style="padding: 15px; position:relative; z-index:1;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+                            <div style="display:flex; align-items:center; gap: 10px;">
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display:flex; align-items:center; justify-content:center; font-size: 14px;">
                                     <i class="fa-solid fa-bullhorn"></i>
                                 </div>
                                 <div>
-                                    <h3 style="margin:0; color:var(--text-primary); font-weight:700; font-size: 18px;">${ann.title}</h3>
-                                    <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">
+                                    <h3 style="margin:0; color:var(--text-primary); font-weight:700; font-size: 15px;">${ann.title}</h3>
+                                    <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">
                                         <strong>${ann.created_by}</strong> &bull; ${dateStr}
                                     </div>
                                 </div>
                             </div>
-                            <button class="btn-action-circle text-muted" onclick="hideAnnouncement('${ann.id}')" title="Hide Announcement" style="background:var(--bg-card);"><i class="fa-solid fa-xmark"></i></button>
+                            <button class="btn-action-circle text-muted" onclick="hideAnnouncement('${ann.id}')" title="Hide Announcement" style="background:var(--bg-card); width: 28px; height: 28px; font-size: 12px;"><i class="fa-solid fa-xmark"></i></button>
                         </div>
-                        <div style="background:var(--bg-main); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                            <p style="margin:0; color:var(--text-primary); line-height:1.6; font-size: 14.5px; white-space:pre-wrap;">${ann.message}</p>
+                        <div style="background:var(--bg-main); padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+                            <p style="margin:0; color:var(--text-primary); line-height:1.5; font-size: 13.5px; white-space:pre-wrap; word-break: break-word;">${ann.message}</p>
                         </div>
                         
                         <div style="display:flex; align-items:center; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 15px;">
