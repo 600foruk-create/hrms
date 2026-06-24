@@ -9,22 +9,9 @@ function initAssetsDB() {
     if (!db.assetIssues) db.assetIssues = [];
     if (!db.systemSettings) db.systemSettings = {};
     
-    // Migrate old flat categories to new structured format
-    if (!db.systemSettings.assetCategories || !Array.isArray(db.systemSettings.assetCategories)) {
-        db.systemSettings.assetCategories = [
-            { name: 'Laptops', subCategories: ['Standard', 'High Performance'] },
-            { name: 'Mobile Phones', subCategories: ['Android', 'iOS'] },
-            { name: 'Vehicles', subCategories: ['Car', 'Bike'] },
-            { name: 'Furniture', subCategories: ['Desk', 'Chair'] },
-            { name: 'Accessories', subCategories: ['Mouse', 'Keyboard', 'Headset'] }
-        ];
-    } else if (db.systemSettings.assetCategories.length > 0 && typeof db.systemSettings.assetCategories[0] === 'string') {
-        // Convert array of strings to array of objects
-        const newCats = db.systemSettings.assetCategories.map(cat => {
-            return { name: cat, subCategories: ['General'] };
-        });
-        db.systemSettings.assetCategories = newCats;
-    }
+    if (!db.assets) db.assets = [];
+    if (!db.assetIssues) db.assetIssues = [];
+    if (!db.systemSettings) db.systemSettings = {};
 }
 
 // Ensure init is run when db is ready or window loads
@@ -58,16 +45,18 @@ window.selectedSubCategory = null;
 window.renderAssetsInventory = function() {
     const db = window.getDb ? window.getDb() : window.db;
     
+    const uniqueCats = [...new Set((db.assets || []).map(a => a.category).filter(Boolean))];
+    
     // Auto-select first Main Category if none selected
-    if (!window.selectedMainCategory && db.systemSettings && db.systemSettings.assetCategories && db.systemSettings.assetCategories.length > 0) {
-        window.selectedMainCategory = db.systemSettings.assetCategories[0].name;
+    if (!window.selectedMainCategory && uniqueCats.length > 0) {
+        window.selectedMainCategory = uniqueCats[0];
     }
     
     // Auto-select first Sub Category if Main is selected but Sub is not
     if (window.selectedMainCategory && !window.selectedSubCategory) {
-        const category = db.systemSettings.assetCategories.find(c => c.name === window.selectedMainCategory);
-        if (category && category.subCategories && category.subCategories.length > 0) {
-            window.selectedSubCategory = category.subCategories[0];
+        const uniqueSubs = [...new Set((db.assets || []).filter(a => a.category === window.selectedMainCategory).map(a => a.sub_category).filter(Boolean))];
+        if (uniqueSubs.length > 0) {
+            window.selectedSubCategory = uniqueSubs[0];
         }
     }
 
@@ -82,15 +71,17 @@ function renderMainPane() {
     if (!mainPane) return;
     
     let html = '';
-    if (db.systemSettings.assetCategories && db.systemSettings.assetCategories.length > 0) {
-        db.systemSettings.assetCategories.forEach(c => {
-            const isActive = window.selectedMainCategory === c.name;
+    const uniqueCats = [...new Set((db.assets || []).map(a => a.category).filter(Boolean))];
+    
+    if (uniqueCats.length > 0) {
+        uniqueCats.forEach(catName => {
+            const isActive = window.selectedMainCategory === catName;
             const bg = isActive ? 'var(--primary)' : '';
             const color = isActive ? '#fff' : 'var(--text-primary)';
             const iconColor = isActive ? '#fff' : 'var(--text-secondary)';
             const hover = isActive ? '' : `onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background=''"`;
             
-            html += `<li style="padding: 8px 12px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s; background: ${bg}; color: ${color}; display: flex; justify-content: space-between; align-items: center;" ${hover} onclick="selectMainCategoryBox('${c.name}')"><div><i class="fa-solid fa-folder" style="color: ${iconColor}; margin-right: 8px;"></i> <strong>${c.name}</strong></div></li>`;
+            html += `<li style="padding: 8px 12px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s; background: ${bg}; color: ${color}; display: flex; justify-content: space-between; align-items: center;" ${hover} onclick="selectMainCategoryBox('${catName}')"><div><i class="fa-solid fa-folder" style="color: ${iconColor}; margin-right: 8px;"></i> <strong>${catName}</strong></div></li>`;
         });
     } else {
         html = '<li style="padding: 15px; text-align: center; color: #999;">No categories found</li>';
@@ -108,10 +99,11 @@ function renderSubPane() {
         return;
     }
 
-    const category = db.systemSettings.assetCategories.find(c => c.name === window.selectedMainCategory);
+    const uniqueSubs = [...new Set((db.assets || []).filter(a => a.category === window.selectedMainCategory).map(a => a.sub_category).filter(Boolean))];
     let html = '';
-    if (category && category.subCategories && category.subCategories.length > 0) {
-        category.subCategories.forEach(sub => {
+    
+    if (uniqueSubs.length > 0) {
+        uniqueSubs.forEach(sub => {
             const isActive = window.selectedSubCategory === sub;
             const bg = isActive ? 'var(--primary)' : '';
             const color = isActive ? '#fff' : 'var(--text-primary)';
@@ -245,147 +237,7 @@ window.selectSubCategoryBox = function(mainCat, subCat) {
 };
 
 // --- Inline Management Functions ---
-
-window.addInlineMainCat = function() {
-    const db = window.getDb ? window.getDb() : window.db;
-    const name = prompt('Enter new Main Category name:');
-    if (!name || !name.trim()) return;
-    if (!db.systemSettings.assetCategories) db.systemSettings.assetCategories = [];
-    if (db.systemSettings.assetCategories.find(c => c.name.toLowerCase() === name.trim().toLowerCase())) {
-        if (window.showToast) window.showToast('Main Category already exists', 'error');
-        return;
-    }
-    db.systemSettings.assetCategories.push({ name: name.trim(), subCategories: [] });
-    if (window.saveDb) window.saveDb(db);
-    if (window.showToast) window.showToast('Main Category created', 'success');
-    window.selectedMainCategory = name.trim();
-    window.selectedSubCategory = null;
-    window.renderAssetsInventory();
-};
-
-window.editInlineMainCat = function() {
-    if (!window.selectedMainCategory) {
-        if (window.showToast) window.showToast('Please select a Main Category to edit', 'warning');
-        return;
-    }
-    const db = window.getDb ? window.getDb() : window.db;
-    const category = db.systemSettings.assetCategories.find(c => c.name === window.selectedMainCategory);
-    if (!category) return;
-    
-    const newName = prompt('Enter new name for Main Category:', category.name);
-    if (!newName || !newName.trim() || newName.trim() === category.name) return;
-    
-    if (db.systemSettings.assetCategories.find(c => c.name.toLowerCase() === newName.trim().toLowerCase())) {
-        if (window.showToast) window.showToast('A Main Category with this name already exists', 'error');
-        return;
-    }
-    
-    category.name = newName.trim();
-    // Also update all assets
-    if (db.assets) {
-        db.assets.forEach(a => {
-            if (a.category === window.selectedMainCategory) a.category = newName.trim();
-        });
-    }
-    
-    if (window.saveDb) window.saveDb(db);
-    if (window.showToast) window.showToast('Main Category renamed', 'success');
-    window.selectedMainCategory = newName.trim();
-    window.renderAssetsInventory();
-};
-
-window.deleteInlineMainCat = function() {
-    if (!window.selectedMainCategory) {
-        if (window.showToast) window.showToast('Please select a Main Category to delete', 'warning');
-        return;
-    }
-    if (!confirm(`Are you sure you want to delete "${window.selectedMainCategory}" and all its sub-categories? (Assets will not be deleted)`)) return;
-    
-    const db = window.getDb ? window.getDb() : window.db;
-    db.systemSettings.assetCategories = db.systemSettings.assetCategories.filter(c => c.name !== window.selectedMainCategory);
-    if (window.saveDb) window.saveDb(db);
-    if (window.showToast) window.showToast('Main Category deleted', 'success');
-    window.selectedMainCategory = null;
-    window.selectedSubCategory = null;
-    window.renderAssetsInventory();
-};
-
-window.addInlineSubCat = function() {
-    if (!window.selectedMainCategory) {
-        if (window.showToast) window.showToast('Please select a Main Category first', 'warning');
-        return;
-    }
-    const db = window.getDb ? window.getDb() : window.db;
-    const category = db.systemSettings.assetCategories.find(c => c.name === window.selectedMainCategory);
-    if (!category) return;
-    
-    const name = prompt(`Enter new Sub Category name under "${window.selectedMainCategory}":`);
-    if (!name || !name.trim()) return;
-    
-    if (!category.subCategories) category.subCategories = [];
-    if (category.subCategories.find(s => s.toLowerCase() === name.trim().toLowerCase())) {
-        if (window.showToast) window.showToast('Sub Category already exists', 'error');
-        return;
-    }
-    category.subCategories.push(name.trim());
-    if (window.saveDb) window.saveDb(db);
-    if (window.showToast) window.showToast('Sub Category created', 'success');
-    window.selectedSubCategory = name.trim();
-    window.renderAssetsInventory();
-};
-
-window.editInlineSubCat = function() {
-    if (!window.selectedMainCategory || !window.selectedSubCategory) {
-        if (window.showToast) window.showToast('Please select a Sub Category to edit', 'warning');
-        return;
-    }
-    const db = window.getDb ? window.getDb() : window.db;
-    const category = db.systemSettings.assetCategories.find(c => c.name === window.selectedMainCategory);
-    if (!category || !category.subCategories) return;
-    
-    const newName = prompt('Enter new name for Sub Category:', window.selectedSubCategory);
-    if (!newName || !newName.trim() || newName.trim() === window.selectedSubCategory) return;
-    
-    if (category.subCategories.find(s => s.toLowerCase() === newName.trim().toLowerCase())) {
-        if (window.showToast) window.showToast('A Sub Category with this name already exists', 'error');
-        return;
-    }
-    
-    const idx = category.subCategories.indexOf(window.selectedSubCategory);
-    if (idx !== -1) category.subCategories[idx] = newName.trim();
-    
-    // Update assets
-    if (db.assets) {
-        db.assets.forEach(a => {
-            if (a.category === window.selectedMainCategory && a.sub_category === window.selectedSubCategory) {
-                a.sub_category = newName.trim();
-            }
-        });
-    }
-    
-    if (window.saveDb) window.saveDb(db);
-    if (window.showToast) window.showToast('Sub Category renamed', 'success');
-    window.selectedSubCategory = newName.trim();
-    window.renderAssetsInventory();
-};
-
-window.deleteInlineSubCat = function() {
-    if (!window.selectedMainCategory || !window.selectedSubCategory) {
-        if (window.showToast) window.showToast('Please select a Sub Category to delete', 'warning');
-        return;
-    }
-    if (!confirm(`Are you sure you want to delete "${window.selectedSubCategory}"?`)) return;
-    
-    const db = window.getDb ? window.getDb() : window.db;
-    const category = db.systemSettings.assetCategories.find(c => c.name === window.selectedMainCategory);
-    if (category && category.subCategories) {
-        category.subCategories = category.subCategories.filter(s => s !== window.selectedSubCategory);
-    }
-    if (window.saveDb) window.saveDb(db);
-    if (window.showToast) window.showToast('Sub Category deleted', 'success');
-    window.selectedSubCategory = null;
-    window.renderAssetsInventory();
-};
+// Inline functions have been removed as categories are now derived dynamically from the `assets` table.
 
 window.addInlineAsset = function(prefillName = null) {
     if (!window.selectedMainCategory || !window.selectedSubCategory) {
@@ -418,19 +270,18 @@ window.addInlineAsset = function(prefillName = null) {
 window.openAddAssetModal = function() {
     try {
         const db = window.getDb ? window.getDb() : window.db;
-        const catList = document.getElementById('add-asset-category');
-        const subCatList = document.getElementById('add-asset-sub-category');
+        const catList = document.getElementById('asset-main-categories-list');
+        const subCatList = document.getElementById('asset-sub-categories-list');
         
         if (catList) {
-            catList.innerHTML = '<option value="">-- Select Main Category --</option>';
-            if (db && db.systemSettings && db.systemSettings.assetCategories && Array.isArray(db.systemSettings.assetCategories)) {
-                db.systemSettings.assetCategories.forEach(c => {
-                    catList.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-                });
-            }
+            catList.innerHTML = '';
+            const uniqueCats = [...new Set((db.assets || []).map(a => a.category).filter(Boolean))];
+            uniqueCats.forEach(c => {
+                catList.innerHTML += `<option value="${c}">`;
+            });
         }
         if (subCatList) {
-            subCatList.innerHTML = '<option value="">-- Select Sub Category --</option>';
+            subCatList.innerHTML = '';
         }
         
         const form = document.getElementById('form-add-asset');
@@ -448,20 +299,18 @@ window.openAddAssetModal = function() {
     }
 };
 
-window.populateAssetSubCategories = function(mainCat, subCatElementId) {
+window.populateAssetSubCategories = function(mainCat, subCatElementId, datalistId) {
     const db = window.getDb ? window.getDb() : window.db;
-    const subCatList = document.getElementById(subCatElementId);
+    const subCatList = document.getElementById(datalistId);
     if (!subCatList) return;
     
-    subCatList.innerHTML = '<option value="">-- Select Sub Category --</option>';
+    subCatList.innerHTML = '';
     if (!mainCat) return;
     
-    const category = db.systemSettings.assetCategories.find(c => c.name === mainCat);
-    if (category && category.subCategories) {
-        category.subCategories.forEach(sub => {
-            subCatList.innerHTML += `<option value="${sub}">${sub}</option>`;
-        });
-    }
+    const uniqueSubs = [...new Set((db.assets || []).filter(a => a.category === mainCat).map(a => a.sub_category).filter(Boolean))];
+    uniqueSubs.forEach(sub => {
+        subCatList.innerHTML += `<option value="${sub}">`;
+    });
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -533,9 +382,10 @@ function renderAssetsIssueForm() {
     // Populate Categories
     const catSelect = document.getElementById('issue-asset-category');
     catSelect.innerHTML = '<option value="">-- Select Category --</option>';
-    if (db.systemSettings.assetCategories) {
-        db.systemSettings.assetCategories.forEach(c => {
-            catSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+    const uniqueCats = [...new Set((db.assets || []).map(a => a.category).filter(Boolean))];
+    if (uniqueCats.length > 0) {
+        uniqueCats.forEach(catName => {
+            catSelect.innerHTML += `<option value="${catName}">${catName}</option>`;
         });
     }
     
@@ -1031,112 +881,6 @@ function renderMyRequestsHistory(db, pfx) {
     tbody.innerHTML = html;
 }
 
-window.openManageAssetCategoriesModal = function() {
-    try {
-        const modal = document.getElementById('modal-manage-asset-categories');
-        const overlay = document.getElementById('modal-overlay');
-        if (modal) modal.classList.remove('hidden');
-        if (overlay) overlay.classList.remove('hidden');
-        renderAssetCategoriesTable();
-    } catch (e) { console.error(e); }
-};
-
-window.saveAssetMainCategory = function(e) {
-    if (e) e.preventDefault();
-    const db = window.getDb ? window.getDb() : window.db;
-    const mainCat = document.getElementById('new-asset-main-cat').value.trim();
-
-    if (!mainCat) return;
-    if (!db.systemSettings.assetCategories) db.systemSettings.assetCategories = [];
-
-    let category = db.systemSettings.assetCategories.find(c => c.name.toLowerCase() === mainCat.toLowerCase());
-    if (!category) {
-        category = { name: mainCat, subCategories: [] };
-        db.systemSettings.assetCategories.push(category);
-        
-        if (window.saveDb) window.saveDb(db);
-        if (window.showToast) window.showToast('Main Category created', 'success');
-        document.getElementById('new-asset-main-cat').value = '';
-        renderAssetCategoriesTable();
-    } else {
-        if (window.showToast) window.showToast('This Main Category already exists', 'error');
-    }
-};
-
-window.saveAssetSubCategory = function(e) {
-    if (e) e.preventDefault();
-    const db = window.getDb ? window.getDb() : window.db;
-    const mainCat = document.getElementById('select-asset-main-cat').value;
-    const subCat = document.getElementById('new-asset-sub-cat').value.trim();
-
-    if (!mainCat || !subCat) return;
-
-    let category = db.systemSettings.assetCategories.find(c => c.name === mainCat);
-    if (category) {
-        if (!category.subCategories) category.subCategories = [];
-        if (!category.subCategories.find(s => s.toLowerCase() === subCat.toLowerCase())) {
-            category.subCategories.push(subCat);
-            if (window.saveDb) window.saveDb(db);
-            if (window.showToast) window.showToast('Sub Category added', 'success');
-            document.getElementById('new-asset-sub-cat').value = '';
-            renderAssetCategoriesTable();
-        } else {
-            if (window.showToast) window.showToast('Sub Category already exists under this Main Category', 'error');
-        }
-    }
-};
-
-window.renderAssetCategoriesTable = function() {
-    const db = window.getDb ? window.getDb() : window.db;
-    const tbody = document.getElementById('asset-categories-tbody');
-    const selectMainCat = document.getElementById('select-asset-main-cat');
-    
-    if (selectMainCat) {
-        selectMainCat.innerHTML = '<option value="">-- Select Main Category --</option>';
-    }
-
-    if (!tbody) return;
-
-    let html = '';
-    if (db.systemSettings.assetCategories && db.systemSettings.assetCategories.length > 0) {
-        db.systemSettings.assetCategories.forEach(c => {
-            if (selectMainCat) {
-                selectMainCat.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-            }
-            html += `<tr><td style="vertical-align: top; width: 30%;"><strong>${c.name}</strong></td><td style="vertical-align: top;">`;
-            if (c.subCategories && c.subCategories.length > 0) {
-                c.subCategories.forEach(sub => {
-                    html += `<span class='role-badge bg-secondary' style='margin-right:5px; margin-bottom:5px; display:inline-block; font-weight: 500;'>${sub} <i class='fa-solid fa-xmark' style='cursor:pointer; margin-left:5px; color: #ffcccc;' onclick='deleteAssetSubCategory("${c.name}", "${sub}")'></i></span>`;
-                });
-            } else {
-                html += `<span class="text-muted" style="font-size: 12px;">No sub-categories</span>`;
-            }
-            html += `</td><td style="vertical-align: top;"><button class='btn btn-sm btn-outline-danger' onclick='deleteAssetMainCategory("${c.name}")'><i class='fa-solid fa-trash'></i></button></td></tr>`;
-        });
-    }
-    tbody.innerHTML = html || '<tr><td colspan="3" class="text-center text-muted">No categories found. Create a Main Category first.</td></tr>';
-};
-
-window.deleteAssetMainCategory = function(mainCat) {
-    if (!confirm('Delete this main category and all its sub-categories?')) return;
-    const db = window.getDb ? window.getDb() : window.db;
-    db.systemSettings.assetCategories = db.systemSettings.assetCategories.filter(c => c.name !== mainCat);
-    if (window.saveDb) window.saveDb(db);
-    if (window.showToast) window.showToast('Category deleted', 'success');
-    renderAssetCategoriesTable();
-};
-
-window.deleteAssetSubCategory = function(mainCat, subCat) {
-    if (!confirm('Delete this sub-category?')) return;
-    const db = window.getDb ? window.getDb() : window.db;
-    const category = db.systemSettings.assetCategories.find(c => c.name === mainCat);
-    if (category) {
-        category.subCategories = category.subCategories.filter(s => s !== subCat);
-    }
-    if (window.saveDb) window.saveDb(db);
-    if (window.showToast) window.showToast('Sub-category deleted', 'success');
-    renderAssetCategoriesTable();
-};
 
 // --- Bulk Add Assets Logic ---
 

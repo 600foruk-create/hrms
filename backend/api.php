@@ -71,8 +71,10 @@ try {
         `notes` text DEFAULT NULL,
         `doc_path` text DEFAULT NULL,
         `created_at` datetime NOT NULL,
+        `status` varchar(50) NOT NULL DEFAULT 'Pending',
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    try { $pdo->exec("ALTER TABLE `productivity` ADD COLUMN `status` varchar(50) NOT NULL DEFAULT 'Pending'"); } catch (Exception $ex) {}
 } catch (Exception $e) {
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS `productivity` (
@@ -87,10 +89,37 @@ try {
             `score_percentage` REAL,
             `notes` TEXT,
             `doc_path` TEXT,
-            `created_at` TEXT
+            `created_at` TEXT,
+            `status` TEXT DEFAULT 'Pending'
+        )");
+        try { $pdo->exec("ALTER TABLE `productivity` ADD COLUMN `status` TEXT DEFAULT 'Pending'"); } catch (Exception $ex) {}
+    } catch (Exception $e2) {}
+}
+
+// Ensure productivity_categories exists
+try {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `productivity_categories` (
+        `id` varchar(50) NOT NULL,
+        `type` varchar(50) NOT NULL,
+        `parent_id` varchar(50) DEFAULT NULL,
+        `name` varchar(255) NOT NULL,
+        `weightage` int(11) DEFAULT '0',
+        `description` text DEFAULT NULL,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+} catch (Exception $e) {
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `productivity_categories` (
+            `id` TEXT PRIMARY KEY,
+            `type` TEXT,
+            `parent_id` TEXT,
+            `name` TEXT,
+            `weightage` INTEGER,
+            `description` TEXT
         )");
     } catch (Exception $e2) {}
 }
+
 // Auto-add new columns if they are missing
 $new_columns = [
     "ADD COLUMN `bloodGroup` varchar(10) DEFAULT NULL",
@@ -707,6 +736,34 @@ if ($action === 'load_all') {
             $dbState['leaves'] = $stmt->fetchAll();
         } catch (Exception $e) { $dbState['leaves'] = []; }
 
+        // Fetch Productivity Categories
+        try {
+            $stmt = $pdo->query("SELECT * FROM productivity_categories");
+            $pcats = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $dbState['productivityCategories'] = [
+                'businessUnits' => [],
+                'tesCategories' => []
+            ];
+            foreach ($pcats as $cat) {
+                if ($cat['type'] === 'BU') {
+                    $dbState['productivityCategories']['businessUnits'][] = [
+                        'id' => $cat['id'],
+                        'name' => $cat['name']
+                    ];
+                } else if ($cat['type'] === 'TES') {
+                    $dbState['productivityCategories']['tesCategories'][] = [
+                        'id' => $cat['id'],
+                        'buId' => $cat['parent_id'],
+                        'name' => $cat['name'],
+                        'weightage' => (int)$cat['weightage'],
+                        'desc' => $cat['description']
+                    ];
+                }
+            }
+        } catch (Exception $e) {
+            $dbState['productivityCategories'] = ['businessUnits' => [], 'tesCategories' => []];
+        }
+
         // Fetch Productivity Data
         try {
             $stmt = $pdo->query("SELECT * FROM productivity ORDER BY created_at DESC");
@@ -938,20 +995,8 @@ elseif ($action === 'save_all') {
             }
         } catch (Exception $e) {}
 
-        // 4. Sync Productivity (Bulk save from old approach)
-        try {
-            $pdo->exec("DELETE FROM productivity");
-            if (!empty($data['productivity'])) {
-                $stmt = $pdo->prepare("INSERT INTO productivity (id, employee_id, date, category, sub_category, electronic_mins, manual_mins, total_mins, score_percentage, notes, doc_path, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                foreach ($data['productivity'] as $p) {
-                    $stmt->execute([
-                        $p['id'], $p['employee_id'], $p['date'], $p['category'], $p['sub_category'], 
-                        $p['electronic_mins'], $p['manual_mins'], $p['total_mins'], $p['score_percentage'], 
-                        $p['notes'], $p['doc_path'], $p['created_at']
-                    ]);
-                }
-            }
-        } catch (Exception $e) {}
+        // 4. Sync Productivity - REMOVED TO PREVENT BULK OVERWRITE
+        // Productivity logs are now strictly managed via 'save_productivity_batch', 'update_productivity_status', and 'delete_productivity_log'.
 
         // 5. Sync Attendance
         try {
@@ -1285,6 +1330,51 @@ elseif ($action === 'save_all') {
     } catch (Exception $e) {
         echo json_encode(["status" => "error", "message" => "Failed to delete log: " . $e->getMessage()]);
     }
+} elseif ($action === 'save_productivity_categories') {
+    $inputJSON = file_get_contents('php://input');
+    $data = json_decode($inputJSON, true);
+    try {
+        $pdo->beginTransaction();
+        $pdo->exec("DELETE FROM productivity_categories");
+        
+        $stmt = $pdo->prepare("INSERT INTO productivity_categories (id, type, parent_id, name, weightage, description) VALUES (?, ?, ?, ?, ?, ?)");
+        
+        if (!empty($data['businessUnits'])) {
+            foreach ($data['businessUnits'] as $bu) {
+                $stmt->execute([$bu['id'], 'BU', null, $bu['name'], 0, '']);
+            }
+        }
+        
+        if (!empty($data['tesCategories'])) {
+            foreach ($data['tesCategories'] as $tes) {
+                $stmt->execute([$tes['id'], 'TES', $tes['buId'] ?? null, $tes['name'], $tes['weightage'] ?? 0, $tes['desc'] ?? '']);
+            }
+        }
+        
+        $pdo->commit();
+        echo json_encode(["status" => "success", "message" => "Productivity categories saved directly to SQL"]);
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        echo json_encode(["status" => "error", "message" => "Failed to save productivity categories: " . $e->getMessage()]);
+    }
+    exit;
+} elseif ($action === 'update_productivity_status') {
+    $inputJSON = file_get_contents('php://input');
+    $data = json_decode($inputJSON, true);
+    
+    if (empty($data['id']) || empty($data['status'])) {
+        echo json_encode(["status" => "error", "message" => "ID and status are required"]);
+        exit;
+    }
+    
+    try {
+        $stmt = $pdo->prepare("UPDATE productivity SET status = ? WHERE id = ?");
+        $stmt->execute([$data['status'], $data['id']]);
+        echo json_encode(["status" => "success", "message" => "Productivity status updated successfully"]);
+    } catch (Exception $e) {
+        echo json_encode(["status" => "error", "message" => "Failed to update productivity status: " . $e->getMessage()]);
+    }
+    exit;
 } else {
     echo json_encode(["status" => "error", "message" => "Invalid action specified."]);
 }

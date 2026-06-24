@@ -914,12 +914,32 @@ window.quickApproveTask = function (id, status) {
     const db = getDb();
     const sub = (db.productivity || []).find(p => p.id === id);
     if (sub) {
+        // Optimistic UI Update
         sub.status = status;
-        showToast("Review Complete", `Productivity log has been marked as ${status}.`);
-        logAudit(`Productivity log for ${sub.employeeName} reviewed: ${status} (Final Score: ${sub.score}).`, false);
-        addNotification(sub.employeeId, `Your productivity log for ${sub.date} has been ${status}.`, false);
-        saveDb(db);
-        refreshTabContent(activeTab);
+        
+        // Live Save to DB
+        fetch(`${API_URL}?action=update_productivity_status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id, status: status })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                showToast("Review Complete", `Productivity log has been marked as ${status}.`);
+                logAudit(`Productivity log for ${sub.employeeName || sub.employee_id} reviewed: ${status} (Final Score: ${sub.score_percentage}).`, false);
+                addNotification(sub.employee_id, `Your productivity log for ${sub.date} has been ${status}.`, false);
+                // Explicitly save the rest of the DB to capture Audit and Notifications
+                saveDb(db);
+                refreshTabContent(activeTab);
+            } else {
+                showToast("Error", data.message || "Failed to update status", "error");
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showToast("Error", "Network error while saving status", "error");
+        });
     }
 };
 
@@ -5959,25 +5979,38 @@ window.printIdCard = function () {
 
 function getProdSettings() {
     const db = getDb();
-    if (!db.systemSettings) db.systemSettings = {};
-    if (!db.systemSettings.productivityCategories) {
-        db.systemSettings.productivityCategories = JSON.stringify({
+    if (!db.productivityCategories) {
+        db.productivityCategories = {
             businessUnits: [],
             tesCategories: []
-        });
+        };
     }
-    try {
-        return JSON.parse(db.systemSettings.productivityCategories);
-    } catch (e) {
-        return { businessUnits: [], tesCategories: [] };
-    }
+    return db.productivityCategories;
 }
 
 function saveProdSettings(settings) {
     const db = getDb();
-    if (!db.systemSettings) db.systemSettings = {};
-    db.systemSettings.productivityCategories = JSON.stringify(settings);
-    saveDb(db);
+    db.productivityCategories = settings;
+    
+    // Live Save to DB
+    fetch(`${API_URL}?action=save_productivity_categories`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === 'success') {
+            if (window.showToast) window.showToast('Success', 'Productivity categories saved to SQL database.', 'success');
+        } else {
+            if (window.showToast) window.showToast('Error', data.message || 'Failed to save productivity categories', 'error');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        if (window.showToast) window.showToast('Error', 'Network error while saving categories', 'error');
+    });
+
     renderProductivitySettings();
     populateProdDropdowns();
 }
