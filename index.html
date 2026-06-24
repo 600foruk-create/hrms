@@ -2625,7 +2625,14 @@
                                 <div class="section-card-header">
                                     <h3 style="margin: 0; font-size: 16px;">Create New Announcement</h3>
                                 </div>
-                                <div style="padding: 20px; flex: 1; display: flex; flex-direction: column; overflow-y: auto; min-height: 0;">
+                                <div style="padding: 20px; flex: 1; display: flex; flex-direction: column; min-height: 0;">
+                                    <div class="form-group" style="margin-bottom: 15px;">
+                                        <label>Broadcast Type</label>
+                                        <select id="announcement-type" class="form-control" onchange="toggleAnnouncementType()">
+                                            <option value="Announcement">Announcement</option>
+                                            <option value="Password">Send Password</option>
+                                        </select>
+                                    </div>
                                     <div class="form-group" style="margin-bottom: 15px;">
                                         <label>Communication Channel</label>
                                         <select id="announcement-channel" class="form-control">
@@ -2634,10 +2641,6 @@
                                             <option value="WhatsApp">WhatsApp</option>
                                             <option value="All">All Channels</option>
                                         </select>
-                                    </div>
-                                    <div class="form-group" style="margin-bottom: 15px;">
-                                        <label>Title</label>
-                                        <input type="text" id="announcement-title" class="form-control" placeholder="Announcement Title">
                                     </div>
                                     <div class="form-group" style="margin-bottom: 15px;">
                                         <label>Target Audience</label>
@@ -2653,14 +2656,13 @@
                                             <option value="">-- Loading Employees --</option>
                                         </select>
                                     </div>
-                                    <div class="form-group" style="margin-bottom: 15px; flex: 1; display: flex; flex-direction: column;">
+                                    <div class="form-group" id="announcement-title-group" style="margin-bottom: 15px;">
+                                        <label>Title</label>
+                                        <input type="text" id="announcement-title" class="form-control" placeholder="Announcement Title">
+                                    </div>
+                                    <div class="form-group" id="announcement-message-group" style="margin-bottom: 15px; flex: 1; display: flex; flex-direction: column;">
                                         <label>Message</label>
                                         <textarea id="announcement-message" class="form-control" style="flex: 1; resize: none;" placeholder="Write your message here..."></textarea>
-                                    </div>
-                                    <div class="form-group" style="margin-bottom: 15px;">
-                                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal; font-size:13.5px;">
-                                            <input type="checkbox" id="announcement-include-creds" style="width:16px; height:16px; accent-color:var(--primary);"> Include User Credentials (Username & Password)
-                                        </label>
                                     </div>
                                     <div style="text-align:right;">
                                         <button class="btn btn-primary" onclick="createAnnouncement()"><i class="fa-solid fa-paper-plane"></i> Broadcast</button>

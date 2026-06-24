@@ -4287,6 +4287,19 @@ document.getElementById('announcement-form').addEventListener('submit', (e) => {
     refreshTabContent(activeTab);
 });
 
+window.toggleAnnouncementType = function() {
+    const type = document.getElementById('announcement-type').value;
+    const titleGroup = document.getElementById('announcement-title-group');
+    const messageGroup = document.getElementById('announcement-message-group');
+    if (type === 'Password') {
+        titleGroup.classList.add('hidden');
+        messageGroup.classList.add('hidden');
+    } else {
+        titleGroup.classList.remove('hidden');
+        messageGroup.classList.remove('hidden');
+    }
+};
+
 window.toggleAnnouncementEmployeeSelect = function() {
     const audience = document.getElementById('announcement-audience').value;
     const singleUserGroup = document.getElementById('announcement-single-user-group');
@@ -4306,12 +4319,18 @@ window.toggleAnnouncementEmployeeSelect = function() {
 };
 
 window.createAnnouncement = function() {
+    const type = document.getElementById('announcement-type').value;
     const channel = document.getElementById('announcement-channel').value;
-    const title = document.getElementById('announcement-title').value.trim();
+    let title = document.getElementById('announcement-title').value.trim();
     let audience = document.getElementById('announcement-audience').value;
     const singleUserId = document.getElementById('announcement-single-user').value;
-    const messageBase = document.getElementById('announcement-message').value.trim();
-    const includeCreds = document.getElementById('announcement-include-creds').checked;
+    let messageBase = document.getElementById('announcement-message').value.trim();
+    const includeCreds = (type === 'Password');
+
+    if (type === 'Password') {
+        title = 'Login Credentials';
+        messageBase = 'Here are your login credentials:';
+    }
 
     if (!title || !messageBase) {
         showToast("Validation Error", "Title and Message are required.", "error");
@@ -4418,10 +4437,11 @@ window.createAnnouncement = function() {
     // Reset Form
     document.getElementById('announcement-title').value = '';
     document.getElementById('announcement-message').value = '';
-    document.getElementById('announcement-include-creds').checked = false;
+    document.getElementById('announcement-type').value = 'Announcement';
     document.getElementById('announcement-single-user').value = '';
     document.getElementById('announcement-audience').value = 'All';
     toggleAnnouncementEmployeeSelect();
+    toggleAnnouncementType();
     
     refreshTabContent(activeTab);
 };
