@@ -1080,9 +1080,8 @@ function renderAdminDashboard() {
             adminSvgEl.removeAttribute('preserveAspectRatio');
             adminSvgEl.setAttribute('viewBox', `0 0 ${w} 110`);
             
-            const dynamicCompCoords = dailySubmitted.map((val, idx) => ({ x: padding + idx * step, y: getSvgY(val) }));
-            const dynamicCompLine = buildPath(dynamicCompCoords);
-            const dynamicCompArea = dynamicCompLine ? `${dynamicCompLine} L ${w - padding} 100 L ${padding} 100 Z` : '';
+            const barW = Math.max(8, step * 0.5);
+            const dynamicCompCoords = dailySubmitted.map((val, idx) => ({ x: padding + idx * step, y: getSvgY(val), val: val }));
 
             let svgContent = `
                 <!-- Y Axis grid lines -->
@@ -1091,14 +1090,11 @@ function renderAdminDashboard() {
                 <line x1="0" y1="80" x2="${w}" y2="80" class="svg-chart-grid" />
                 <line x1="0" y1="100" x2="${w}" y2="100" class="svg-chart-grid" style="stroke: rgba(255,255,255,0.06);" />
                 
-                <!-- Submitted Area & Line -->
-                <path d="${dynamicCompArea}" class="svg-chart-area submitted" />
-                <path d="${dynamicCompLine}" class="svg-chart-line submitted" />
-                
-                <!-- Interactive Dots -->
+                <!-- Bar Chart -->
             `;
             dynamicCompCoords.forEach(c => {
-                svgContent += `<circle cx="${c.x}" cy="${c.y}" r="4.5" class="svg-chart-dot submitted" />`;
+                const bH = Math.max(2, 100 - c.y); // At least 2px height to be visible even if 0
+                svgContent += `<rect x="${c.x - barW/2}" y="${c.y}" width="${barW}" height="${bH}" rx="3" fill="var(--primary)" class="svg-chart-bar" style="opacity: 0.85; transition: all 0.3s;" />`;
             });
             adminSvgEl.innerHTML = svgContent;
         };
@@ -2309,19 +2305,9 @@ function renderManagerDashboard() {
     const maxVal = Math.max(5, ...dailySub);
     const getSvgY = (val) => 95 - (val / maxVal) * 80;
 
-    const subCoords = dailySub.map((val, idx) => ({ x: idx * (300 / (numDays - 1)), y: getSvgY(val) }));
-
-    const buildPath = (coords) => {
-        if (coords.length === 0) return '';
-        let path = `M ${coords[0].x} ${coords[0].y}`;
-        for (let i = 1; i < coords.length; i++) {
-            const cpX = coords[i - 1].x + (coords[i].x - coords[i - 1].x) / 2;
-            path += ` C ${cpX} ${coords[i - 1].y}, ${cpX} ${coords[i].y}, ${coords[i].x} ${coords[i].y}`;
-        }
-        return path;
-    };
-
-    const buildAreaPath = (coords, linePath) => linePath ? `${linePath} L 300 100 L 0 100 Z` : '';
+    const step = 300 / (numDays - 1 || 1);
+    const barW = Math.max(4, step * 0.5);
+    const subCoords = dailySub.map((val, idx) => ({ x: idx * step, y: getSvgY(val), val: val }));
 
     const managerSvg = document.getElementById('manager-tasks-overview-svg');
     if (managerSvg) {
@@ -2333,10 +2319,10 @@ function renderManagerDashboard() {
             <line x1="0" y1="100" x2="300" y2="100" class="svg-chart-grid" style="stroke: rgba(255,255,255,0.06);" />
         `;
 
-        svgContent += `<path d="${buildAreaPath(subCoords, buildPath(subCoords))}" class="svg-chart-area submitted" />`;
-        svgContent += `<path d="${buildPath(subCoords)}" class="svg-chart-line submitted" />`;
-
-        subCoords.forEach(c => { svgContent += `<circle cx="${c.x}" cy="${c.y}" r="3.5" class="svg-chart-dot submitted" />`; });
+        subCoords.forEach(c => {
+            const bH = Math.max(2, 100 - c.y);
+            svgContent += `<rect x="${c.x - barW/2}" y="${c.y}" width="${barW}" height="${bH}" rx="3" fill="var(--primary)" style="opacity: 0.85;" />`;
+        });
 
         managerSvg.innerHTML = svgContent;
     }
@@ -2786,19 +2772,9 @@ function renderEmployeeDashboard() {
     const maxVal = Math.max(5, ...dailySub);
     const getSvgY = (val) => 95 - (val / maxVal) * 80;
 
-    const subCoords = dailySub.map((val, idx) => ({ x: idx * (300 / (numDays - 1)), y: getSvgY(val) }));
-
-    const buildPath = (coords) => {
-        if (coords.length === 0) return '';
-        let path = `M ${coords[0].x} ${coords[0].y}`;
-        for (let i = 1; i < coords.length; i++) {
-            const cpX = coords[i - 1].x + (coords[i].x - coords[i - 1].x) / 2;
-            path += ` C ${cpX} ${coords[i - 1].y}, ${cpX} ${coords[i].y}, ${coords[i].x} ${coords[i].y}`;
-        }
-        return path;
-    };
-
-    const buildAreaPath = (coords, linePath) => linePath ? `${linePath} L 300 100 L 0 100 Z` : '';
+    const step = 300 / (numDays - 1 || 1);
+    const barW = Math.max(4, step * 0.5);
+    const subCoords = dailySub.map((val, idx) => ({ x: idx * step, y: getSvgY(val), val: val }));
 
     const employeeSvg = document.getElementById('employee-tasks-overview-svg');
     if (employeeSvg) {
@@ -2810,10 +2786,10 @@ function renderEmployeeDashboard() {
             <line x1="0" y1="100" x2="300" y2="100" class="svg-chart-grid" style="stroke: rgba(255,255,255,0.06);" />
         `;
 
-        svgContent += `<path d="${buildAreaPath(subCoords, buildPath(subCoords))}" class="svg-chart-area submitted" />`;
-        svgContent += `<path d="${buildPath(subCoords)}" class="svg-chart-line submitted" />`;
-
-        subCoords.forEach(c => { svgContent += `<circle cx="${c.x}" cy="${c.y}" r="3.5" class="svg-chart-dot submitted" />`; });
+        subCoords.forEach(c => {
+            const bH = Math.max(2, 100 - c.y);
+            svgContent += `<rect x="${c.x - barW/2}" y="${c.y}" width="${barW}" height="${bH}" rx="3" fill="var(--primary)" style="opacity: 0.85;" />`;
+        });
 
         employeeSvg.innerHTML = svgContent;
     }
