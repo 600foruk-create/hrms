@@ -2305,9 +2305,10 @@ function renderManagerDashboard() {
     const maxVal = Math.max(5, ...dailySub);
     const getSvgY = (val) => 95 - (val / maxVal) * 80;
 
-    const step = 300 / (numDays - 1 || 1);
+    const padding = 15;
+    const step = (300 - padding * 2) / (numDays - 1 || 1);
     const barW = Math.max(4, step * 0.5);
-    const subCoords = dailySub.map((val, idx) => ({ x: idx * step, y: getSvgY(val), val: val }));
+    const subCoords = dailySub.map((val, idx) => ({ x: padding + idx * step, y: getSvgY(val), val: val }));
 
     const managerSvg = document.getElementById('manager-tasks-overview-svg');
     if (managerSvg) {
@@ -2772,9 +2773,10 @@ function renderEmployeeDashboard() {
     const maxVal = Math.max(5, ...dailySub);
     const getSvgY = (val) => 95 - (val / maxVal) * 80;
 
-    const step = 300 / (numDays - 1 || 1);
+    const padding = 15;
+    const step = (300 - padding * 2) / (numDays - 1 || 1);
     const barW = Math.max(4, step * 0.5);
-    const subCoords = dailySub.map((val, idx) => ({ x: idx * step, y: getSvgY(val), val: val }));
+    const subCoords = dailySub.map((val, idx) => ({ x: padding + idx * step, y: getSvgY(val), val: val }));
 
     const employeeSvg = document.getElementById('employee-tasks-overview-svg');
     if (employeeSvg) {
