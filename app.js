@@ -1669,8 +1669,8 @@ function renderAdminAnnouncementsTab() {
             tbody.innerHTML += `
                 <tr>
                     <td>${dateStr}</td>
-                    <td class="bold text-primary">${ann.title}</td>
-                    <td>${ann.message}</td>
+                    <td class="bold text-primary" style="word-break: break-word; white-space: pre-wrap;">${ann.title}</td>
+                    <td style="word-break: break-word; white-space: pre-wrap; min-width: 200px;">${ann.message}</td>
                     <td><span class="badge-role" style="background:var(--primary-light); color:var(--primary);">${displayAudience}</span></td>
                     <td style="text-align:right;">
                         <button class="btn btn-sm btn-outline text-primary" onclick="viewAnnouncementReactions('${ann.id}')" title="View Reactions"><i class="fa-solid fa-face-smile"></i></button>
