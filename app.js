@@ -1733,11 +1733,9 @@ window.renderUserAnnouncementsTab = function() {
                             </div>
                             <button class="btn-action-circle text-muted" onclick="hideAnnouncement('${ann.id}')" title="Hide Announcement" style="background:var(--bg-card); width: 28px; height: 28px; font-size: 12px;"><i class="fa-solid fa-xmark"></i></button>
                         </div>
-                        <div style="background:var(--bg-main); padding: 12px; border-radius: 6px; margin-bottom: 15px;">
-                            <p style="margin:0; color:var(--text-primary); line-height:1.5; font-size: 13.5px; white-space:pre-wrap; word-break: break-word;">${ann.message}</p>
-                        </div>
+                        <p style="margin:0; margin-bottom: 10px; color:var(--text-primary); line-height:1.4; font-size: 13.5px; white-space:pre-wrap; word-break: break-word;">${ann.message}</p>
                         
-                        <div style="display:flex; align-items:center; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                        <div style="display:flex; align-items:center; gap: 8px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px;">
                             <button class="btn btn-sm ${myReaction === 'like' ? 'btn-primary' : 'btn-outline'}" onclick="reactToAnnouncement('${ann.id}', 'like')" style="border-radius: 20px; display:flex; align-items:center; gap:5px;">
                                 👍 <span style="font-size:12px; font-weight:bold;">${likeCount > 0 ? likeCount : 'Like'}</span>
                             </button>
