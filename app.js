@@ -2309,6 +2309,7 @@ function renderManagerDashboard() {
 
     const managerSvg = document.getElementById('manager-tasks-overview-svg');
     if (managerSvg) {
+        managerSvg.setAttribute('preserveAspectRatio', 'none');
         let svgContent = `
             <!-- Y Axis grid lines -->
             <line x1="0" y1="20" x2="300" y2="20" class="svg-chart-grid" />
@@ -2776,6 +2777,7 @@ function renderEmployeeDashboard() {
 
     const employeeSvg = document.getElementById('employee-tasks-overview-svg');
     if (employeeSvg) {
+        employeeSvg.setAttribute('preserveAspectRatio', 'none');
         let svgContent = `
             <!-- Y Axis grid lines -->
             <line x1="0" y1="20" x2="300" y2="20" class="svg-chart-grid" />
