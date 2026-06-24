@@ -764,15 +764,26 @@ if ($action === 'load_all') {
             $dbState['productivityCategories'] = ['businessUnits' => [], 'tesCategories' => []];
         }
 
-        // Fetch Productivity Data
         try {
             $stmt = $pdo->query("SELECT * FROM productivity ORDER BY created_at DESC");
-            $dbState['productivity'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            foreach ($dbState['productivity'] as &$p) {
-                $p['electronic_mins'] = (int)$p['electronic_mins'];
-                $p['manual_mins'] = (int)$p['manual_mins'];
-                $p['total_mins'] = (int)$p['total_mins'];
-                $p['score_percentage'] = (float)$p['score_percentage'];
+            $rawProd = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $dbState['productivity'] = [];
+            foreach ($rawProd as $p) {
+                $dbState['productivity'][] = [
+                    'id' => $p['id'],
+                    'employeeId' => $p['employee_id'],
+                    'date' => $p['date'],
+                    'practiceName' => $p['category'],
+                    'subCategoryName' => $p['sub_category'],
+                    'electronic' => (int)$p['electronic_mins'],
+                    'manual' => (int)$p['manual_mins'],
+                    'totalMins' => (int)$p['total_mins'],
+                    'score' => (float)$p['score_percentage'],
+                    'notes' => $p['notes'],
+                    'docPath' => $p['doc_path'],
+                    'status' => $p['status'],
+                    'createdAt' => $p['created_at']
+                ];
             }
         } catch (Exception $e) { $dbState['productivity'] = []; }
 
@@ -1188,10 +1199,11 @@ elseif ($action === 'save_all') {
         } catch (Exception $e) {}
 
         // 11. Sync System Settings
-        $pdo->exec("DELETE FROM system_settings");
+        $pdo->exec("DELETE FROM system_settings WHERE setting_key NOT IN ('assetCategories', 'productivityCategories')");
         if (isset($data['systemSettings']) && (is_array($data['systemSettings']) || is_object($data['systemSettings']))) {
-            $stmt = $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
             foreach ($data['systemSettings'] as $k => $v) {
+                if ($k === 'assetCategories' || $k === 'productivityCategories') continue;
                 if (is_bool($v)) {
                     $v = $v ? 'true' : 'false';
                 } elseif (is_array($v) || is_object($v)) {
