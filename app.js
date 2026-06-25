@@ -3513,6 +3513,23 @@ window.openEditEmployeeModal = function (userId, isViewOnly = false) {
             displayId = user.displayId;
         } else if (user && user.id) {
             displayId = user.id;
+        } else {
+            // Auto-generate sequential ID
+            let maxNum = 0;
+            if (db.users && db.users.length > 0) {
+                db.users.forEach(u => {
+                    const idStr = u.displayId || u.id || "";
+                    if (idStr.toUpperCase().startsWith('EMP-')) {
+                        const num = parseInt(idStr.substring(4), 10);
+                        if (!isNaN(num) && num > maxNum) {
+                            maxNum = num;
+                        }
+                    }
+                });
+            }
+            // Start from 100 if no EMP- records exist, otherwise increment
+            const nextNum = maxNum > 0 ? maxNum + 1 : 100;
+            displayId = 'EMP-' + String(nextNum).padStart(4, '0');
         }
 
         document.getElementById('emp-display-id').value = displayId;
