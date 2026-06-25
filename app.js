@@ -2019,6 +2019,8 @@ window.renderAdminShiftManagement = function() {
         }).join('');
 
         setupShiftDragAndDrop();
+        loadShiftRotationPolicyUI(db);
+        checkAndRunAutoShiftRotation(db);
     }
 };
 
@@ -2363,6 +2365,132 @@ window.deleteShiftConfig = function(shiftId) {
     saveDb(db);
     showToast("Shift Deleted", "Shift removed and employees reset to General Shift.", "info");
     renderAdminShiftManagement();
+};
+
+window.triggerManualShiftRotation = function(cycleType) {
+    const db = getDb();
+    const allUsers = (db.users || []).filter(u => u.role !== 'Admin' && u.status !== 'Inactive');
+
+    let count1 = 0, count2 = 0, count3 = 0;
+    if (cycleType === '2-shift') {
+        count1 = allUsers.filter(u => u.shiftId === 'shift_morning').length;
+        count2 = allUsers.filter(u => u.shiftId === 'shift_night').length;
+        if (!confirm(`Confirm 2-Shift Swap:\n\n• ${count1} Morning Shift employees will move to Night Shift.\n• ${count2} Night Shift employees will move to Morning Shift.\n\nProceed with rotation?`)) return;
+    } else {
+        count1 = allUsers.filter(u => u.shiftId === 'shift_morning').length;
+        count2 = allUsers.filter(u => u.shiftId === 'shift_evening').length;
+        count3 = allUsers.filter(u => u.shiftId === 'shift_night').length;
+        if (!confirm(`Confirm 3-Shift Cycle Rotation:\n\n• ${count1} Morning employees → Evening Shift\n• ${count2} Evening employees → Night Shift\n• ${count3} Night employees → Morning Shift\n\nProceed with rotation?`)) return;
+    }
+
+    executeShiftRotationLogic(db, cycleType);
+    saveDb(db);
+    renderAdminShiftManagement();
+    showToast("Shift Rotation Complete", `Successfully rotated employee roster schedules for ${cycleType === '2-shift' ? '2-Shift Swap' : '3-Shift Cycle'}.`, "success");
+};
+
+window.executeShiftRotationLogic = function(db, cycleType) {
+    const sMorning = (db.shifts || []).find(s => s.id === 'shift_morning');
+    const sEvening = (db.shifts || []).find(s => s.id === 'shift_evening');
+    const sNight = (db.shifts || []).find(s => s.id === 'shift_night');
+
+    (db.users || []).forEach(u => {
+        if (u.role === 'Admin' || u.status === 'Inactive') return;
+
+        if (cycleType === '2-shift') {
+            if (u.shiftId === 'shift_morning') {
+                u.shiftId = 'shift_night';
+                if (sNight) { u.dutyFrom = sNight.start; u.dutyTo = sNight.end; u.breakMins = sNight.breakMins || 60; }
+            } else if (u.shiftId === 'shift_night') {
+                u.shiftId = 'shift_morning';
+                if (sMorning) { u.dutyFrom = sMorning.start; u.dutyTo = sMorning.end; u.breakMins = sMorning.breakMins || 60; }
+            }
+        } else if (cycleType === '3-shift') {
+            if (u.shiftId === 'shift_morning') {
+                u.shiftId = 'shift_evening';
+                if (sEvening) { u.dutyFrom = sEvening.start; u.dutyTo = sEvening.end; u.breakMins = sEvening.breakMins || 60; }
+            } else if (u.shiftId === 'shift_evening') {
+                u.shiftId = 'shift_night';
+                if (sNight) { u.dutyFrom = sNight.start; u.dutyTo = sNight.end; u.breakMins = sNight.breakMins || 60; }
+            } else if (u.shiftId === 'shift_night') {
+                u.shiftId = 'shift_morning';
+                if (sMorning) { u.dutyFrom = sMorning.start; u.dutyTo = sMorning.end; u.breakMins = sMorning.breakMins || 60; }
+            }
+        }
+    });
+};
+
+window.toggleAutoRotationUI = function() {
+    const cb = document.getElementById('shift-rot-enabled');
+    const box = document.getElementById('shift-rot-config-box');
+    if (cb && box) {
+        box.style.opacity = cb.checked ? '1' : '0.5';
+        box.style.pointerEvents = cb.checked ? 'auto' : 'none';
+    }
+};
+
+window.loadShiftRotationPolicyUI = function(db) {
+    const policy = db.shiftRotationPolicy || { enabled: false, frequency: 'weekly', cycleType: '2-shift', nextDate: '' };
+    const cb = document.getElementById('shift-rot-enabled');
+    const freqEl = document.getElementById('shift-rot-freq');
+    const cycleEl = document.getElementById('shift-rot-cycle');
+    const dateEl = document.getElementById('shift-rot-nextdate');
+
+    if (cb) cb.checked = !!policy.enabled;
+    if (freqEl) freqEl.value = policy.frequency || 'weekly';
+    if (cycleEl) cycleEl.value = policy.cycleType || '2-shift';
+    if (dateEl) {
+        if (policy.nextDate) {
+            dateEl.value = policy.nextDate;
+        } else {
+            const d = new Date();
+            d.setDate(d.getDate() + 7);
+            dateEl.value = d.toISOString().split('T')[0];
+        }
+    }
+    toggleAutoRotationUI();
+};
+
+window.saveShiftRotationPolicy = function() {
+    const db = getDb();
+    const cb = document.getElementById('shift-rot-enabled');
+    const freqEl = document.getElementById('shift-rot-freq');
+    const cycleEl = document.getElementById('shift-rot-cycle');
+    const dateEl = document.getElementById('shift-rot-nextdate');
+
+    db.shiftRotationPolicy = {
+        enabled: cb ? cb.checked : false,
+        frequency: freqEl ? freqEl.value : 'weekly',
+        cycleType: cycleEl ? cycleEl.value : '2-shift',
+        nextDate: dateEl ? dateEl.value : ''
+    };
+
+    saveDb(db);
+    showToast("Rotation Schedule Saved", "Automated shift rotation policy has been active and saved.", "success");
+};
+
+window.checkAndRunAutoShiftRotation = function(db) {
+    const policy = db.shiftRotationPolicy;
+    if (!policy || !policy.enabled || !policy.nextDate) return;
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (todayStr >= policy.nextDate) {
+        // Execute automated rotation!
+        executeShiftRotationLogic(db, policy.cycleType || '2-shift');
+
+        // Advance nextDate
+        const curDate = new Date(policy.nextDate);
+        if (policy.frequency === 'biweekly') {
+            curDate.setDate(curDate.getDate() + 14);
+        } else if (policy.frequency === 'monthly') {
+            curDate.setMonth(curDate.getMonth() + 1);
+        } else {
+            curDate.setDate(curDate.getDate() + 7);
+        }
+        policy.nextDate = curDate.toISOString().split('T')[0];
+        saveDb(db);
+        showToast("Auto Shift Rotation", `Automated scheduled shift rotation executed successfully today across active shifts. Next scheduled date: ${policy.nextDate}`, "info");
+    }
 };
 
 function renderAdminLeaveTab() {

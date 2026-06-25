@@ -731,6 +731,9 @@ if ($action === 'load_all') {
             } else {
                 $dbState['shifts'] = [];
             }
+            if (isset($dbState['systemSettings']->shiftRotationPolicy)) {
+                $dbState['shiftRotationPolicy'] = $dbState['systemSettings']->shiftRotationPolicy;
+            }
         } catch (Exception $e) {
             $dbState['systemSettings'] = (object)[];
             $dbState['shifts'] = [];
@@ -1297,11 +1300,11 @@ elseif ($action === 'save_all') {
 
         // 11. Sync System Settings
         try {
-            $pdo->exec("DELETE FROM system_settings WHERE setting_key NOT IN ('assetCategories', 'productivityCategories', 'shifts')");
+            $pdo->exec("DELETE FROM system_settings WHERE setting_key NOT IN ('assetCategories', 'productivityCategories', 'shifts', 'shiftRotationPolicy')");
             if (isset($data['systemSettings']) && (is_array($data['systemSettings']) || is_object($data['systemSettings']))) {
                 $stmt = $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
                 foreach ($data['systemSettings'] as $k => $v) {
-                    if ($k === 'assetCategories' || $k === 'productivityCategories' || $k === 'shifts') continue;
+                    if ($k === 'assetCategories' || $k === 'productivityCategories' || $k === 'shifts' || $k === 'shiftRotationPolicy') continue;
                     if (is_bool($v)) {
                         $v = $v ? 'true' : 'false';
                     } elseif (is_array($v) || is_object($v)) {
@@ -1313,6 +1316,10 @@ elseif ($action === 'save_all') {
             if (isset($data['shifts']) && is_array($data['shifts'])) {
                 $stmt = $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('shifts', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
                 $stmt->execute([json_encode($data['shifts'])]);
+            }
+            if (isset($data['shiftRotationPolicy'])) {
+                $stmt = $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('shiftRotationPolicy', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+                $stmt->execute([is_string($data['shiftRotationPolicy']) ? $data['shiftRotationPolicy'] : json_encode($data['shiftRotationPolicy'])]);
             }
         } catch (Exception $e) {
             error_log("System settings sync error: " . $e->getMessage());
