@@ -1847,21 +1847,21 @@ window.renderAttendanceSlabTable = function(data) {
         let score = stat.percentage;
         tableBody.innerHTML += `
             <tr class="slab-table-row">
-                <td style="font-weight: 600;" class="slab-emp-name">${stat.name}</td>
-                <td class="text-center"><span class="badge-status approved" style="padding: 4px 8px;">${stat.present}</span></td>
-                <td class="text-center"><span class="badge-status pending" style="background: var(--warning-light); color: var(--warning); padding: 4px 8px;">${stat.late}</span></td>
-                <td class="text-center"><span class="badge-status rejected" style="padding: 4px 8px;">${stat.absent}</span></td>
-                <td class="text-center"><span class="badge-status" style="background: var(--primary-light); color: var(--primary); padding: 4px 8px;">${stat.leave}</span></td>
-                <td class="text-center"><strong style="color: ${stat.color};">${stat.percentage}%</strong></td>
-                <td class="text-center"><span style="display:inline-block; font-weight:bold; padding: 4px 10px; background:${stat.color}; color:white; border-radius:12px; font-size:12px;">${stat.slab}</span></td>
-                <td>
+                <td style="font-weight: 600; text-align: left;" class="slab-emp-name">${stat.name}</td>
+                <td style="text-align: center;"><span class="badge-status approved" style="padding: 4px 8px;">${stat.present}</span></td>
+                <td style="text-align: center;"><span class="badge-status pending" style="background: var(--warning-light); color: var(--warning); padding: 4px 8px;">${stat.late}</span></td>
+                <td style="text-align: center;"><span class="badge-status rejected" style="padding: 4px 8px;">${stat.absent}</span></td>
+                <td style="text-align: center;"><span class="badge-status" style="background: var(--primary-light); color: var(--primary); padding: 4px 8px;">${stat.leave}</span></td>
+                <td style="text-align: center;"><strong style="color: ${stat.color};">${stat.percentage}%</strong></td>
+                <td style="text-align: center;"><span style="display:inline-block; font-weight:bold; padding: 4px 10px; background:${stat.color}; color:white; border-radius:12px; font-size:12px;">${stat.slab}</span></td>
+                <td style="text-align: left;">
                     <div style="display:flex; align-items:center; gap:10px;">
                         <div style="flex:1; height: 8px; background: rgba(0,0,0,0.05); border-radius: 4px; overflow:hidden;">
                             <div style="width: ${score}%; height: 100%; background: ${stat.color}; border-radius: 4px;"></div>
                         </div>
                     </div>
                 </td>
-                <td class="text-center">
+                <td style="text-align: center;">
                     <span style="font-size:11px; font-weight:600; color:${stat.color};">${stat.slab === 'A' ? 'Excellent' : (stat.slab === 'B' ? 'Good' : (stat.slab === 'C' ? 'Average' : 'Poor'))}</span>
                 </td>
             </tr>
