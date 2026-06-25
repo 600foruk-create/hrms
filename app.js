@@ -1706,16 +1706,17 @@ window.renderAdminAttendanceSlab = function() {
     // Initialize stats for active users
     (db.users || []).forEach(u => {
         if(u.status !== 'Inactive') {
-            employeeStats[u.id] = { name: u.name, present: 0, late: 0, leave: 0, absent: 0, percentage: 0 };
+            employeeStats[String(u.id)] = { name: u.name, present: 0, late: 0, leave: 0, absent: 0, percentage: 0 };
             totalActiveEmployees++;
         }
     });
 
     relevantLogs.forEach(log => {
-        if (!employeeStats[log.employeeId]) return;
-        if (log.status === 'Present') employeeStats[log.employeeId].present++;
-        else if (log.status === 'Late') employeeStats[log.employeeId].late++;
-        else if (log.status === 'On Leave') employeeStats[log.employeeId].leave++;
+        const empId = String(log.employeeId);
+        if (!employeeStats[empId]) return;
+        if (log.status === 'Present') employeeStats[empId].present++;
+        else if (log.status === 'Late') employeeStats[empId].late++;
+        else if (log.status === 'On Leave') employeeStats[empId].leave++;
     });
     
     let slabCounts = { A: 0, B: 0, C: 0, D: 0 };
@@ -1745,11 +1746,12 @@ window.renderAdminAttendanceSlab = function() {
     let presentToday = 0, lateToday = 0, leaveToday = 0, absentToday = 0;
     (db.users || []).forEach(u => {
         if(u.status !== 'Inactive') {
-            const log = logsToday.find(l => l.employeeId === u.id);
+            const log = logsToday.find(l => String(l.employeeId) === String(u.id));
             if(log) {
                 if(log.status === 'Present') presentToday++;
                 else if(log.status === 'Late') lateToday++;
                 else if(log.status === 'On Leave') leaveToday++;
+                else if(log.status === 'Absent') absentToday++;
             } else {
                 absentToday++;
             }
