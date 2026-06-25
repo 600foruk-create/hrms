@@ -1204,7 +1204,7 @@ function renderAdminDashboard() {
                 const empId = task.employeeId || task.employee_id;
                 const emp = db.users.find(u => u.id === empId);
                 const dept = emp ? (emp.managerId === 'U2' ? 'Operations' : (emp.managerId === 'U3' ? 'Billing' : 'Support')) : 'Support';
-                const statusClass = 'pending'; // Use a neutral style or submitted style
+                const statusClass = 'approved'; // Use green color so it's clearly visible
 
                 let actionBtn = `<div style="text-align: center; color: var(--text-muted); font-size: 11px;">View Log</div>`;
 
