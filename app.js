@@ -85,11 +85,22 @@ async function syncServer() {
             result.data.attendance = cleanList(result.data.attendance, 'employeeId');
             result.data.payrollHistory = cleanList(result.data.payrollHistory, 'userId');
 
-            // Deduplicate attendance records (keep latest entry for each employee & date)
+            // Deduplicate attendance records (prioritize manual override over Auto/Present)
             if (result.data.attendance) {
                 const attMap = new Map();
                 result.data.attendance.forEach(a => {
-                    attMap.set(`${String(a.employeeId)}_${a.date}`, a);
+                    const key = `${String(a.employeeId)}_${a.date}`;
+                    const prev = attMap.get(key);
+                    if (!prev) {
+                        attMap.set(key, a);
+                    } else {
+                        // If previous was Present (Auto/Default) and current is Absent/Leave/Half Day (override), keep override
+                        if (prev.status === 'Present' && a.status !== 'Present') {
+                            attMap.set(key, a);
+                        } else if (a.markedBy && a.markedBy !== 'Auto Login' && a.markedBy !== 'System') {
+                            attMap.set(key, a);
+                        }
+                    }
                 });
                 if (attMap.size !== result.data.attendance.length) needsCleanup = true;
                 result.data.attendance = Array.from(attMap.values());
@@ -4548,31 +4559,32 @@ document.getElementById('attendance-log-form').addEventListener('submit', (e) =>
             const status = selectedRadio.value;
             const existing = db.attendance.find(a => String(a.employeeId) === String(empId) && a.date === date);
 
-            if (existing) {
-                // If they change status, update it.
-                if (existing.status !== status) {
-                    existing.status = status;
-                    if (status === 'Present') {
-                        if (!existing.timeIn || existing.timeIn === '-') existing.timeIn = nowStr;
-                        // DO NOT automatically set timeOut for Present. Let them punch out later.
-                    } else if (status === 'Absent') {
-                        existing.timeIn = '-';
-                        existing.timeOut = '-';
-                    }
-                    existing.markedBy = currentUser.name;
-                    addNotification(empId, `Your attendance for ${date} was updated to ${status} manually by your manager/admin.`);
-                    saveCount++;
-                }
-            } else {
-                db.attendance.push({
-                    date,
-                    employeeId: empId,
-                    employeeName: empName,
-                    status,
-                    timeIn: status === 'Present' ? nowStr : '-',
-                    timeOut: '-', // Never set timeOut automatically on first punch in
-                    markedBy: currentUser.name
-                });
+            // Purge any existing stale/duplicate records for this employee on this date
+            db.attendance = (db.attendance || []).filter(a => !(String(a.employeeId) === String(empId) && a.date === date));
+
+            let tIn = existing ? existing.timeIn : '-';
+            let tOut = existing ? existing.timeOut : '-';
+            if (status === 'Present') {
+                if (!tIn || tIn === '-') tIn = nowStr;
+            } else if (status === 'Absent') {
+                tIn = '-';
+                tOut = '-';
+            }
+
+            db.attendance.push({
+                date,
+                employeeId: empId,
+                employeeName: empName,
+                status,
+                timeIn: tIn,
+                timeOut: tOut,
+                markedBy: currentUser.name
+            });
+
+            if (existing && existing.status !== status) {
+                addNotification(empId, `Your attendance for ${date} was updated to ${status} manually by your manager/admin.`);
+                saveCount++;
+            } else if (!existing) {
                 addNotification(empId, `Your attendance for ${date} was marked as ${status} manually by your manager/admin.`);
                 saveCount++;
             }

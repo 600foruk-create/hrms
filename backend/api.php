@@ -980,38 +980,44 @@ elseif ($action === 'save_all') {
         $pdo->beginTransaction();
 
         // 1. Sync Users
-        $pdo->exec("DELETE FROM users");
-        $pdo->exec("DELETE FROM employee_documents");
-        $pdo->exec("DELETE FROM employee_leave_balances");
+        try {
+            $pdo->exec("DELETE FROM users");
+            $pdo->exec("DELETE FROM employee_documents");
+            $pdo->exec("DELETE FROM employee_leave_balances");
 
-        if (!empty($data['users'])) {
-            $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, bloodGroup, designation, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $docStmt = $pdo->prepare("INSERT INTO employee_documents (employee_id, doc_name, doc_url) VALUES (?, ?, ?)");
-            $balStmt = $pdo->prepare("INSERT INTO employee_leave_balances (employee_id, leave_type, balance) VALUES (?, ?, ?)");
-            
-            foreach ($data['users'] as $u) {
-                $stmt->execute([
-                    $u['id'], $u['displayId'] ?? null, $u['email'], $u['password'], $u['name'], $u['role'], 
-                    $u['managerId'] ?? null, $u['status'], $u['salary'], $u['startDate'], $u['endDate'], 
-                    $u['profilePic'] ?? null, $u['bloodGroup'] ?? null, $u['designation'] ?? null, 
-                    $u['fatherName'] ?? null, $u['gender'] ?? null, $u['dob'] === '' ? null : ($u['dob'] ?? null),
-                    $u['cnic'] ?? null, $u['maritalStatus'] ?? null, $u['phone'] ?? null, 
-                    $u['emergencyContact'] ?? null, $u['bankName'] ?? null, $u['accountTitle'] ?? null,
-                    $u['accountNumber'] ?? null, $u['iban'] ?? null, $u['branchCode'] ?? null
-                ]);
+            if (!empty($data['users'])) {
+                $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, bloodGroup, designation, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $docStmt = $pdo->prepare("INSERT INTO employee_documents (employee_id, doc_name, doc_url) VALUES (?, ?, ?)");
+                $balStmt = $pdo->prepare("INSERT INTO employee_leave_balances (employee_id, leave_type, balance) VALUES (?, ?, ?)");
                 
-                if (!empty($u['documents']) && is_array($u['documents'])) {
-                    foreach ($u['documents'] as $doc) {
-                        $docStmt->execute([$u['id'], $doc['name'] ?? '', $doc['url'] ?? '']);
+                foreach ($data['users'] as $u) {
+                    $stmt->execute([
+                        $u['id'], $u['displayId'] ?? null, $u['email'], $u['password'], $u['name'], $u['role'], 
+                        $u['managerId'] ?? null, $u['status'], $u['salary'], 
+                        empty($u['startDate']) ? null : $u['startDate'], 
+                        empty($u['endDate']) ? null : $u['endDate'], 
+                        $u['profilePic'] ?? null, $u['bloodGroup'] ?? null, $u['designation'] ?? null, 
+                        $u['fatherName'] ?? null, $u['gender'] ?? null, empty($u['dob']) ? null : $u['dob'],
+                        $u['cnic'] ?? null, $u['maritalStatus'] ?? null, $u['phone'] ?? null, 
+                        $u['emergencyContact'] ?? null, $u['bankName'] ?? null, $u['accountTitle'] ?? null,
+                        $u['accountNumber'] ?? null, $u['iban'] ?? null, $u['branchCode'] ?? null
+                    ]);
+                    
+                    if (!empty($u['documents']) && is_array($u['documents'])) {
+                        foreach ($u['documents'] as $doc) {
+                            $docStmt->execute([$u['id'], $doc['name'] ?? '', $doc['url'] ?? '']);
+                        }
                     }
-                }
-                
-                if (!empty($u['leaveBalances']) && is_array($u['leaveBalances'])) {
-                    foreach ($u['leaveBalances'] as $bal) {
-                        $balStmt->execute([$u['id'], $bal['id'] ?? '', (int)($bal['balance'] ?? 0)]);
+                    
+                    if (!empty($u['leaveBalances']) && is_array($u['leaveBalances'])) {
+                        foreach ($u['leaveBalances'] as $bal) {
+                            $balStmt->execute([$u['id'], $bal['id'] ?? '', (int)($bal['balance'] ?? 0)]);
+                        }
                     }
                 }
             }
+        } catch (Exception $e) {
+            error_log("Users sync error: " . $e->getMessage());
         }
 
         // 2. Sync Weights
@@ -1237,18 +1243,22 @@ elseif ($action === 'save_all') {
         } catch (Exception $e) {}
 
         // 11. Sync System Settings
-        $pdo->exec("DELETE FROM system_settings WHERE setting_key NOT IN ('assetCategories', 'productivityCategories')");
-        if (isset($data['systemSettings']) && (is_array($data['systemSettings']) || is_object($data['systemSettings']))) {
-            $stmt = $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
-            foreach ($data['systemSettings'] as $k => $v) {
-                if ($k === 'assetCategories' || $k === 'productivityCategories') continue;
-                if (is_bool($v)) {
-                    $v = $v ? 'true' : 'false';
-                } elseif (is_array($v) || is_object($v)) {
-                    $v = json_encode($v);
+        try {
+            $pdo->exec("DELETE FROM system_settings WHERE setting_key NOT IN ('assetCategories', 'productivityCategories')");
+            if (isset($data['systemSettings']) && (is_array($data['systemSettings']) || is_object($data['systemSettings']))) {
+                $stmt = $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+                foreach ($data['systemSettings'] as $k => $v) {
+                    if ($k === 'assetCategories' || $k === 'productivityCategories') continue;
+                    if (is_bool($v)) {
+                        $v = $v ? 'true' : 'false';
+                    } elseif (is_array($v) || is_object($v)) {
+                        $v = json_encode($v);
+                    }
+                    $stmt->execute([$k, (string)$v]);
                 }
-                $stmt->execute([$k, (string)$v]);
             }
+        } catch (Exception $e) {
+            error_log("System settings sync error: " . $e->getMessage());
         }
 
         $pdo->commit();
@@ -1276,9 +1286,11 @@ elseif ($action === 'save_all') {
             $stmt = $pdo->prepare("UPDATE users SET displayId=?, email=?, password=?, name=?, role=?, managerId=?, status=?, salary=?, startDate=?, endDate=?, profilePic=?, bloodGroup=?, designation=?, fatherName=?, gender=?, dob=?, cnic=?, maritalStatus=?, phone=?, emergencyContact=?, bankName=?, accountTitle=?, accountNumber=?, iban=?, branchCode=? WHERE id=?");
             $stmt->execute([
                 $u['displayId'] ?? null, $u['email'], $u['password'], $u['name'], $u['role'], 
-                $u['managerId'] ?? null, $u['status'], $u['salary'], $u['startDate'], $u['endDate'], 
+                $u['managerId'] ?? null, $u['status'], $u['salary'], 
+                empty($u['startDate']) ? null : $u['startDate'], 
+                empty($u['endDate']) ? null : $u['endDate'], 
                 $u['profilePic'] ?? null, $u['bloodGroup'] ?? null, $u['designation'] ?? null, 
-                $u['fatherName'] ?? null, $u['gender'] ?? null, $u['dob'] === '' ? null : ($u['dob'] ?? null),
+                $u['fatherName'] ?? null, $u['gender'] ?? null, empty($u['dob']) ? null : $u['dob'],
                 $u['cnic'] ?? null, $u['maritalStatus'] ?? null, $u['phone'] ?? null, 
                 $u['emergencyContact'] ?? null, $u['bankName'] ?? null, $u['accountTitle'] ?? null,
                 $u['accountNumber'] ?? null, $u['iban'] ?? null, $u['branchCode'] ?? null,
@@ -1288,9 +1300,11 @@ elseif ($action === 'save_all') {
             $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, bloodGroup, designation, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $u['id'], $u['displayId'] ?? null, $u['email'], $u['password'], $u['name'], $u['role'], 
-                $u['managerId'] ?? null, $u['status'], $u['salary'], $u['startDate'], $u['endDate'], 
+                $u['managerId'] ?? null, $u['status'], $u['salary'], 
+                empty($u['startDate']) ? null : $u['startDate'], 
+                empty($u['endDate']) ? null : $u['endDate'], 
                 $u['profilePic'] ?? null, $u['bloodGroup'] ?? null, $u['designation'] ?? null, 
-                $u['fatherName'] ?? null, $u['gender'] ?? null, $u['dob'] === '' ? null : ($u['dob'] ?? null),
+                $u['fatherName'] ?? null, $u['gender'] ?? null, empty($u['dob']) ? null : $u['dob'],
                 $u['cnic'] ?? null, $u['maritalStatus'] ?? null, $u['phone'] ?? null, 
                 $u['emergencyContact'] ?? null, $u['bankName'] ?? null, $u['accountTitle'] ?? null,
                 $u['accountNumber'] ?? null, $u['iban'] ?? null, $u['branchCode'] ?? null
