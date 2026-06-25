@@ -1733,34 +1733,34 @@ window.renderAdminAttendanceSlab = function() {
     });
 
     container.innerHTML = `
-        <div class="card stat-card bg-glass" style="border:none; box-shadow: 0 4px 16px 0 rgba(0,0,0,0.05); border-radius: 12px; padding: 15px;">
+        <div class="card stat-card bg-glass" style="flex: 1 1 120px; max-width: 170px; border:none; box-shadow: 0 4px 12px 0 rgba(0,0,0,0.05); border-radius: 10px; padding: 10px 14px; margin: 0;">
             <div class="card-body" style="padding: 0;">
-                <div class="text-secondary font-weight-bold mb-1" style="font-size: 13px;">Total Employees</div>
-                <h2 style="margin: 0; color: var(--text-primary); font-size: 24px;">${totalActiveEmployees}</h2>
+                <div class="text-secondary font-weight-bold mb-1" style="font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Total Employees</div>
+                <h2 style="margin: 0; color: var(--text-primary); font-size: 20px;">${totalActiveEmployees}</h2>
             </div>
         </div>
-        <div class="card stat-card bg-glass" style="border:none; box-shadow: 0 4px 16px 0 rgba(0,0,0,0.05); border-radius: 12px; border-bottom: 3px solid var(--success); padding: 15px;">
+        <div class="card stat-card bg-glass" style="flex: 1 1 120px; max-width: 170px; border:none; box-shadow: 0 4px 12px 0 rgba(0,0,0,0.05); border-radius: 10px; border-bottom: 3px solid var(--success); padding: 10px 14px; margin: 0;">
             <div class="card-body" style="padding: 0;">
-                <div class="text-secondary font-weight-bold mb-1" style="font-size: 13px;">Present Today</div>
-                <h2 style="margin: 0; color: var(--success); font-size: 24px;">${presentToday}</h2>
+                <div class="text-secondary font-weight-bold mb-1" style="font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Present Today</div>
+                <h2 style="margin: 0; color: var(--success); font-size: 20px;">${presentToday}</h2>
             </div>
         </div>
-        <div class="card stat-card bg-glass" style="border:none; box-shadow: 0 4px 16px 0 rgba(0,0,0,0.05); border-radius: 12px; border-bottom: 3px solid var(--warning); padding: 15px;">
+        <div class="card stat-card bg-glass" style="flex: 1 1 120px; max-width: 170px; border:none; box-shadow: 0 4px 12px 0 rgba(0,0,0,0.05); border-radius: 10px; border-bottom: 3px solid var(--warning); padding: 10px 14px; margin: 0;">
             <div class="card-body" style="padding: 0;">
-                <div class="text-secondary font-weight-bold mb-1" style="font-size: 13px;">Late Today</div>
-                <h2 style="margin: 0; color: var(--warning); font-size: 24px;">${lateToday}</h2>
+                <div class="text-secondary font-weight-bold mb-1" style="font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Late Today</div>
+                <h2 style="margin: 0; color: var(--warning); font-size: 20px;">${lateToday}</h2>
             </div>
         </div>
-        <div class="card stat-card bg-glass" style="border:none; box-shadow: 0 4px 16px 0 rgba(0,0,0,0.05); border-radius: 12px; border-bottom: 3px solid var(--danger); padding: 15px;">
+        <div class="card stat-card bg-glass" style="flex: 1 1 120px; max-width: 170px; border:none; box-shadow: 0 4px 12px 0 rgba(0,0,0,0.05); border-radius: 10px; border-bottom: 3px solid var(--danger); padding: 10px 14px; margin: 0;">
             <div class="card-body" style="padding: 0;">
-                <div class="text-secondary font-weight-bold mb-1" style="font-size: 13px;">Absent Today</div>
-                <h2 style="margin: 0; color: var(--danger); font-size: 24px;">${absentToday}</h2>
+                <div class="text-secondary font-weight-bold mb-1" style="font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Absent Today</div>
+                <h2 style="margin: 0; color: var(--danger); font-size: 20px;">${absentToday}</h2>
             </div>
         </div>
-        <div class="card stat-card bg-glass" style="border:none; box-shadow: 0 4px 16px 0 rgba(0,0,0,0.05); border-radius: 12px; border-bottom: 3px solid var(--primary); padding: 15px;">
+        <div class="card stat-card bg-glass" style="flex: 1 1 120px; max-width: 170px; border:none; box-shadow: 0 4px 12px 0 rgba(0,0,0,0.05); border-radius: 10px; border-bottom: 3px solid var(--primary); padding: 10px 14px; margin: 0;">
             <div class="card-body" style="padding: 0;">
-                <div class="text-secondary font-weight-bold mb-1" style="font-size: 13px;">On Leave Today</div>
-                <h2 style="margin: 0; color: var(--primary); font-size: 24px;">${leaveToday}</h2>
+                <div class="text-secondary font-weight-bold mb-1" style="font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">On Leave Today</div>
+                <h2 style="margin: 0; color: var(--primary); font-size: 20px;">${leaveToday}</h2>
             </div>
         </div>
     `;
