@@ -1706,7 +1706,7 @@ window.renderAdminAttendanceSlab = function() {
     // Initialize stats for active users
     (db.users || []).forEach(u => {
         if(u.status !== 'Inactive') {
-            employeeStats[String(u.id)] = { name: u.name, present: 0, late: 0, leave: 0, absent: 0, percentage: 0 };
+            employeeStats[String(u.id)] = { id: u.id, name: u.name, present: 0, late: 0, leave: 0, absent: 0, percentage: 0 };
             totalActiveEmployees++;
         }
     });
@@ -1879,15 +1879,28 @@ window.renderAttendanceSlabTable = function(data) {
     tableBody.innerHTML = '';
     
     if (data.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="9" class="empty-state text-center text-muted" style="padding: 20px;">No employees or data found.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="10" class="empty-state text-center text-muted" style="padding: 20px;">No employees or data found.</td></tr>`;
         return;
     }
 
+    const db = getDb();
+    const todayStr = new Date().toISOString().split('T')[0];
+
     data.forEach(stat => {
         let score = stat.percentage;
+        const tLog = (db.attendance || []).find(a => a.date === todayStr && String(a.employeeId) === String(stat.id));
+        let todayStatus = tLog ? tLog.status : 'Absent';
+        let statusBadgeHTML = '';
+        if (todayStatus === 'Present') statusBadgeHTML = `<span class="badge-status approved" style="padding: 4px 10px;">Present</span>`;
+        else if (todayStatus === 'Late') statusBadgeHTML = `<span class="badge-status pending" style="background: var(--warning-light); color: var(--warning); padding: 4px 10px;">Late</span>`;
+        else if (todayStatus === 'On Leave') statusBadgeHTML = `<span class="badge-status" style="background: var(--primary-light); color: var(--primary); padding: 4px 10px;">On Leave</span>`;
+        else if (todayStatus === 'Half Day') statusBadgeHTML = `<span class="badge-status" style="background: rgba(168,85,247,0.15); color: #a855f7; padding: 4px 10px;">Half Day</span>`;
+        else statusBadgeHTML = `<span class="badge-status rejected" style="padding: 4px 10px;">Absent</span>`;
+
         tableBody.innerHTML += `
             <tr class="slab-table-row">
                 <td style="font-weight: 600; text-align: left;" class="slab-emp-name">${stat.name}</td>
+                <td style="text-align: center;">${statusBadgeHTML}</td>
                 <td style="text-align: center;"><span class="badge-status approved" style="padding: 4px 8px;">${stat.present}</span></td>
                 <td style="text-align: center;"><span class="badge-status pending" style="background: var(--warning-light); color: var(--warning); padding: 4px 8px;">${stat.late}</span></td>
                 <td style="text-align: center;"><span class="badge-status rejected" style="padding: 4px 8px;">${stat.absent}</span></td>
