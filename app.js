@@ -1211,7 +1211,12 @@ function renderAdminDashboard() {
                 recentTasksTableBody.innerHTML += `
                     <tr>
                         <td class="bold">${(task.tasks || []).join(', ') || 'Productivity Log'}</td>
-                        <td class="text-secondary">${(db.users.find(u => u.id === empId) || {}).displayId || empId}</td><td>${task.employeeName || (emp ? emp.name : 'Unknown')}</td>
+                        <td>
+                            <div style="display: flex; flex-direction: column;">
+                                <span style="font-weight: 600; color: var(--text-primary);">${task.employeeName || (emp ? emp.name : 'Unknown')}</span>
+                                <span style="font-size: 11px; color: var(--text-secondary);">${(db.users.find(u => u.id === empId) || {}).displayId || empId}</span>
+                            </div>
+                        </td>
                         <td><span style="font-size: 11px; font-weight: 700; color: #38bdf8;">${dept}</span></td>
                         <td>${task.date || task.log_date}</td>
                         <td><span class="badge-status ${statusClass}">Submitted</span></td>

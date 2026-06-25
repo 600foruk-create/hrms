@@ -129,14 +129,14 @@ body.light-mode .bg-gradient-orb {
 .text-secondary { color: var(--text-secondary); }
 .text-muted { color: var(--text-muted); }
 .text-success { color: var(--success); }
-.text-warning { color: var(--warning); }
+.text-warning { color: #d97706; }
 .text-danger { color: var(--danger); }
 .text-info { color: var(--info); }
 .text-accent { color: var(--accent); }
 
 .bg-info-light { background-color: var(--info-light); }
 .bg-success-light { background-color: var(--success-light); }
-.bg-warning-light { background-color: var(--warning-light); }
+.bg-warning-light { background-color: rgba(245, 158, 11, 0.15); }
 .bg-danger-light { background-color: var(--danger-light); }
 .bg-accent-light { background-color: var(--accent-light); }
 
@@ -1130,8 +1130,8 @@ body.light-mode .btn-action-circle {
     color: var(--danger);
 }
 .badge-status.pending {
-    background-color: var(--warning-light);
-    color: var(--warning);
+    background-color: rgba(245, 158, 11, 0.15);
+    color: #d97706;
 }
 .badge-status::before {
     content: '';
@@ -1772,13 +1772,13 @@ body.light-mode .report-preview-container {
 }
 .toast.success { border-left-color: var(--success); }
 .toast.error { border-left-color: var(--danger); }
-.toast.warning { border-left-color: var(--warning); }
+.toast.warning { border-left-color: #d97706; }
 .toast i {
     font-size: 18px;
 }
 .toast.success i { color: var(--success); }
 .toast.error i { color: var(--danger); }
-.toast.warning i { color: var(--warning); }
+.toast.warning i { color: #d97706; }
 .toast-content {
     flex: 1;
 }
@@ -2110,7 +2110,7 @@ body.light-mode .quick-action-btn:hover {
 }
 .legend-dot.present { background-color: var(--success); }
 .legend-dot.absent { background-color: var(--danger); }
-.legend-dot.late { background-color: var(--warning); }
+.legend-dot.late { background-color: #d97706; }
 .legend-dot.leave { background-color: var(--primary); }
 .legend-value {
     font-weight: 600;
@@ -2292,7 +2292,7 @@ body.light-mode .quick-action-btn:hover {
     transition: width 0.4s ease;
 }
 .progress-chunk.completed { background-color: var(--primary); }
-.progress-chunk.pending { background-color: var(--warning); }
+.progress-chunk.pending { background-color: #d97706; }
 .progress-chunk.rejected { background-color: var(--danger); }
 .progress-chunk.remaining { background-color: rgba(255, 255, 255, 0.1); }
 
@@ -2316,7 +2316,7 @@ body.light-mode .quick-action-btn:hover {
     border-radius: 50%;
 }
 .dept-legend-dot.completed { background-color: var(--primary); }
-.dept-legend-dot.pending { background-color: var(--warning); }
+.dept-legend-dot.pending { background-color: #d97706; }
 .dept-legend-dot.rejected { background-color: var(--danger); }
 .dept-legend-dot.remaining { background-color: rgba(255, 255, 255, 0.2); }
 
