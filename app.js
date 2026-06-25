@@ -1019,14 +1019,17 @@ function renderAdminDashboard() {
     const pendingProductivity = (db.productivity || []).filter(p => p.status === 'Pending').length;
     const totalPendingApprovals = pendingLeaves + pendingProductivity;
 
-    // Attendance % Today
+    // Attendance % Today (exclude Admin role records to match totalEmpCount)
     const totalEmpCount = employees.length;
-    const presentTodayCount = db.attendance.filter(a => a.date === today && a.status === 'Present').length;
-    const lateTodayCount = db.attendance.filter(a => a.date === today && a.status === 'Late').length;
-    const leaveTodayCount = db.attendance.filter(a => a.date === today && a.status === 'On Leave').length;
+    const validEmpIds = employees.map(u => String(u.id));
+    const presentTodayCount = db.attendance.filter(a => a.date === today && a.status === 'Present' && validEmpIds.includes(String(a.employeeId))).length;
+    const lateTodayCount = db.attendance.filter(a => a.date === today && a.status === 'Late' && validEmpIds.includes(String(a.employeeId))).length;
+    const leaveTodayCount = db.attendance.filter(a => a.date === today && a.status === 'On Leave' && validEmpIds.includes(String(a.employeeId))).length;
+    const explicitAbsentCount = db.attendance.filter(a => a.date === today && a.status === 'Absent' && validEmpIds.includes(String(a.employeeId))).length;
     
-    const accountedCount = presentTodayCount + lateTodayCount + leaveTodayCount;
-    const absentTodayCount = totalEmpCount > accountedCount ? (totalEmpCount - accountedCount) : 0;
+    const accountedCount = presentTodayCount + lateTodayCount + leaveTodayCount + explicitAbsentCount;
+    const unmarkedAbsentCount = totalEmpCount > accountedCount ? (totalEmpCount - accountedCount) : 0;
+    const absentTodayCount = explicitAbsentCount + unmarkedAbsentCount;
     const attendancePct = totalEmpCount > 0 ? Math.round((presentTodayCount / totalEmpCount) * 100) : 0;
 
     // Tasks Submitted / Completed
@@ -2586,16 +2589,21 @@ function renderManagerDashboard() {
 
     document.getElementById('manager-team-name-sub').textContent = `${currentUser.name}'s Reporting Team`;
 
-    const teamEmails = teamMembers.map(t => t.id);
+    const teamEmails = teamMembers.map(t => String(t.id));
 
     // Team attendance today
     const today = new Date().toISOString().split('T')[0];
-    const presentCount = db.attendance.filter(a => a.date === today && a.status === 'Present' && teamEmails.includes(a.employeeId)).length;
-    const absentCount = teamSize - presentCount; // Simplified
+    const presentCount = db.attendance.filter(a => a.date === today && a.status === 'Present' && teamEmails.includes(String(a.employeeId))).length;
+    const lateCount = db.attendance.filter(a => a.date === today && a.status === 'Late' && teamEmails.includes(String(a.employeeId))).length;
+    const leaveCount = db.attendance.filter(a => a.date === today && a.status === 'On Leave' && teamEmails.includes(String(a.employeeId))).length;
+    const explicitAbsentCount = db.attendance.filter(a => a.date === today && a.status === 'Absent' && teamEmails.includes(String(a.employeeId))).length;
+    
+    const accountedCount = presentCount + lateCount + leaveCount + explicitAbsentCount;
+    const absentCount = explicitAbsentCount + Math.max(0, teamSize - accountedCount);
 
     // Pending Approvals
-    const pendingLeaves = db.leaves.filter(l => teamEmails.includes(l.employeeId) && l.status === 'Pending').length;
-    const pendingProd = (db.productivity || []).filter(p => teamEmails.includes((p.employee_id || p.employeeId)) && p.status === 'Pending').length;
+    const pendingLeaves = db.leaves.filter(l => teamEmails.includes(String(l.employeeId)) && l.status === 'Pending').length;
+    const pendingProd = (db.productivity || []).filter(p => teamEmails.includes(String(p.employee_id || p.employeeId)) && p.status === 'Pending').length;
     const totalPending = pendingLeaves + pendingProd;
 
     document.getElementById('manager-metric-team-size').textContent = teamSize;
@@ -2604,12 +2612,8 @@ function renderManagerDashboard() {
     document.getElementById('manager-metric-pending-approvals').textContent = totalPending;
 
     // 1. Manager Team Daily Attendance Doughnut Chart
-    const lateCount = db.attendance.filter(a => a.date === today && a.status === 'Late' && teamEmails.includes(a.employeeId)).length;
-    const leaveCount = db.attendance.filter(a => a.date === today && a.status === 'On Leave' && teamEmails.includes(a.employeeId)).length;
-    const trueAbsentCount = teamSize - presentCount - lateCount - leaveCount;
-
     let present = presentCount;
-    let absent = Math.max(0, trueAbsentCount);
+    let absent = absentCount;
     let late = lateCount;
     let leave = leaveCount;
     let total = present + absent + late + leave;
