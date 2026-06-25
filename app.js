@@ -1630,12 +1630,119 @@ function renderAdminMyAttendance() {
     }
 }
 
-function renderAdminAttendanceSlab() {
+window.renderAdminAttendanceSlab = function() {
+    const db = getDb();
+    const container = document.getElementById('admin-attendance-slab-container');
     const tableBody = document.getElementById('admin-attendance-slab-table-body');
-    if (tableBody) {
-        tableBody.innerHTML = `<tr><td colspan="5" class="empty-state">This module has been disabled.</td></tr>`;
+    const filterSelect = document.getElementById('attendance-slab-filter');
+    
+    if (!container || !tableBody) return;
+    
+    const filter = filterSelect ? filterSelect.value : 'this_month';
+    const now = new Date();
+    
+    let targetPrefix = '';
+    if (filter === 'this_month') {
+        targetPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    } else {
+        const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        targetPrefix = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}`;
     }
-}
+
+    // Filter attendance logs for the targeted month
+    const relevantLogs = (db.attendance || []).filter(a => a.date && a.date.startsWith(targetPrefix));
+    
+    let totalPresent = 0;
+    let totalLate = 0;
+    let totalLeave = 0;
+    
+    const employeeStats = {};
+    
+    // Initialize stats for active users
+    (db.users || []).forEach(u => {
+        if(u.status !== 'Inactive') {
+            employeeStats[u.id] = { name: u.name, present: 0, late: 0, leave: 0 };
+        }
+    });
+
+    relevantLogs.forEach(log => {
+        if (!employeeStats[log.employeeId]) return; // Skip inactive/deleted
+        
+        if (log.status === 'Present') {
+            employeeStats[log.employeeId].present++;
+            totalPresent++;
+        } else if (log.status === 'Late') {
+            employeeStats[log.employeeId].late++;
+            totalLate++;
+        } else if (log.status === 'On Leave') {
+            employeeStats[log.employeeId].leave++;
+            totalLeave++;
+        }
+    });
+
+    // Render Summary Cards
+    container.innerHTML = `
+        <div class="card stat-card" style="border-left: 4px solid var(--success);">
+            <div class="card-body">
+                <div class="text-secondary font-weight-bold mb-1">Total On-Time (Slab A)</div>
+                <h2 style="margin: 0; color: var(--success);">${totalPresent}</h2>
+            </div>
+        </div>
+        <div class="card stat-card" style="border-left: 4px solid var(--warning);">
+            <div class="card-body">
+                <div class="text-secondary font-weight-bold mb-1">Total Late (Slab B)</div>
+                <h2 style="margin: 0; color: var(--warning);">${totalLate}</h2>
+            </div>
+        </div>
+        <div class="card stat-card" style="border-left: 4px solid var(--primary);">
+            <div class="card-body">
+                <div class="text-secondary font-weight-bold mb-1">Total Leaves (Slab C)</div>
+                <h2 style="margin: 0; color: var(--primary);">${totalLeave}</h2>
+            </div>
+        </div>
+    `;
+
+    // Render Table
+    tableBody.innerHTML = '';
+    const statsArray = Object.values(employeeStats);
+    
+    if (statsArray.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" class="empty-state text-center text-muted" style="padding: 20px;">No employees or data found for this period.</td></tr>`;
+        return;
+    }
+
+    statsArray.forEach(stat => {
+        const totalLogs = stat.present + stat.late + stat.leave;
+        let score = 0;
+        if (totalLogs > 0) {
+            // Formula: Present + (Late * 0.5) / Total active days
+            score = Math.round(((stat.present + (stat.late * 0.5)) / totalLogs) * 100);
+        } else {
+            score = 100; // Default to 100% if no logs yet
+        }
+        
+        let scoreColor = 'var(--success)';
+        if (score < 80) scoreColor = 'var(--warning)';
+        if (score < 60) scoreColor = 'var(--danger)';
+
+        tableBody.innerHTML += `
+            <tr>
+                <td style="font-weight: 600;">${stat.name}</td>
+                <td><span class="badge-status approved">${stat.present}</span></td>
+                <td><span class="badge-status pending" style="background: var(--warning-light); color: var(--warning);">${stat.late}</span></td>
+                <td><span class="badge-status" style="background: var(--primary-light); color: var(--primary);">${stat.leave}</span></td>
+                <td>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="font-weight:bold; color:${scoreColor}; min-width: 40px;">${score}%</span>
+                        <div style="flex:1; height: 6px; background: rgba(0,0,0,0.05); border-radius: 3px; overflow:hidden;">
+                            <div style="width: ${score}%; height: 100%; background: ${scoreColor}; border-radius: 3px;"></div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+};
 function renderAdminLeaveTab() {
     renderLeaveTypes();
     const db = getDb();

@@ -1140,7 +1140,38 @@
 
                         <!-- Sub-tab Content: Attendance Slab -->
                         <div class="sub-tab-content hidden" id="subtab-content-attendance-slab">
-                            <!-- Empty Tab -->
+                            <div class="section-card bg-glass flex-table-card" style="margin: 0; height: calc(100vh - 240px); display: flex; flex-direction: column; min-height: 0;">
+                                <div class="section-card-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 15px;">
+                                    <h3 style="margin: 0; font-size: 16px;">Productivity & Attendance Slabs</h3>
+                                    <div style="display: flex; gap: 10px;">
+                                        <select id="attendance-slab-filter" class="form-control" style="width: auto;" onchange="if(window.renderAdminAttendanceSlab) window.renderAdminAttendanceSlab()">
+                                            <option value="this_month">This Month</option>
+                                            <option value="last_month">Last Month</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="table-container" style="flex: 1; overflow-y: auto; min-height: 0; padding: 20px; background: var(--bg-primary);">
+                                    <div class="metrics-grid" id="admin-attendance-slab-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                                        <div class="card"><div class="card-body text-center text-muted">Loading slab data...</div></div>
+                                    </div>
+                                    
+                                    <h4 style="margin-top: 30px; margin-bottom: 15px; color: var(--text-primary);">Employee Slab Details</h4>
+                                    <table class="table" style="margin:0;">
+                                        <thead>
+                                            <tr>
+                                                <th>Employee</th>
+                                                <th>Total Present</th>
+                                                <th>Late Arrivals</th>
+                                                <th>Leaves</th>
+                                                <th>Performance Score</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-attendance-slab-table-body">
+                                            <!-- Dynamically generated -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
