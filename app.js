@@ -1964,11 +1964,11 @@ window.renderAdminShiftManagement = function() {
     const db = getDb();
     if (!db.shifts || db.shifts.length === 0) {
         db.shifts = [
-            { id: 'shift_general', name: 'General Shift', start: '09:00', end: '17:00', breakMins: 60, isFlexible: false },
-            { id: 'shift_morning', name: 'Morning Shift', start: '08:00', end: '16:00', breakMins: 60, isFlexible: false },
-            { id: 'shift_evening', name: 'Evening Shift', start: '16:00', end: '00:00', breakMins: 60, isFlexible: false },
-            { id: 'shift_night', name: 'Night Shift', start: '00:00', end: '08:00', breakMins: 60, isFlexible: false },
-            { id: 'shift_flexible', name: 'Flexible / Custom Timings', start: 'Manual', end: 'Manual', breakMins: 60, isFlexible: true }
+            { id: 'shift_general', name: 'General Shift', start: '09:00', end: '17:00', hasBreak: true, breakStart: '13:00', breakEnd: '14:00', breakMins: 60, isFlexible: false },
+            { id: 'shift_morning', name: 'Morning Shift', start: '08:00', end: '16:00', hasBreak: true, breakStart: '12:00', breakEnd: '13:00', breakMins: 60, isFlexible: false },
+            { id: 'shift_evening', name: 'Evening Shift', start: '16:00', end: '00:00', hasBreak: true, breakStart: '20:00', breakEnd: '21:00', breakMins: 60, isFlexible: false },
+            { id: 'shift_night', name: 'Night Shift', start: '00:00', end: '08:00', hasBreak: true, breakStart: '04:00', breakEnd: '05:00', breakMins: 60, isFlexible: false },
+            { id: 'shift_flexible', name: 'Flexible / Custom Timings', start: 'Manual', end: 'Manual', hasBreak: true, breakStart: '13:00', breakEnd: '14:00', breakMins: 60, isFlexible: true }
         ];
     }
 
@@ -1983,23 +1983,27 @@ window.renderAdminShiftManagement = function() {
         gridEl.innerHTML = db.shifts.map(s => {
             const isFlex = s.isFlexible || s.id === 'shift_flexible';
             const assignedCount = allUsers.filter(u => (u.shiftId || 'shift_general') === s.id).length;
+            const bText = (s.hasBreak === false || s.breakMins === 0) ? 'No Break' : `${s.breakStart || '13:00'} - ${s.breakEnd || '14:00'} (${s.breakMins || 60}m)`;
 
             return `
-                <div class="card stat-card bg-glass" style="padding: 16px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); position: relative; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.04);">
+                <div class="card stat-card bg-glass shift-card-draggable" draggable="true" data-shift-id="${s.id}" style="padding: 16px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); position: relative; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.04); cursor: grab; transition: transform 0.2s, box-shadow 0.2s;">
                     <div>
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-                            <span class="badge-status ${isFlex ? 'pending' : 'approved'}" style="${isFlex ? 'background: rgba(168,85,247,0.15); color: #a855f7;' : 'background: rgba(45,212,191,0.15); color: #2dd4bf;'} padding: 3px 8px; font-size: 9px; font-weight: 700; border-radius: 4px;">
-                                ${isFlex ? 'MANUAL / CUSTOM' : 'STANDARD'}
-                            </span>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-grip-dots text-secondary" style="font-size: 14px; opacity: 0.6;" title="Drag card to reorder"></i>
+                                <span class="badge-status ${isFlex ? 'pending' : 'approved'}" style="${isFlex ? 'background: rgba(168,85,247,0.15); color: #a855f7;' : 'background: rgba(45,212,191,0.15); color: #2dd4bf;'} padding: 3px 8px; font-size: 9px; font-weight: 700; border-radius: 4px;">
+                                    ${isFlex ? 'MANUAL / CUSTOM' : 'STANDARD'}
+                                </span>
+                            </div>
                             <div style="display: flex; gap: 6px;">
-                                <button onclick="openCreateShiftModal('${s.id}')" style="background:none; border:none; color:var(--primary); cursor:pointer; font-size: 13px; padding: 2px;" title="Edit Shift Name & Timings"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="openCreateShiftModal('${s.id}')" style="background:none; border:none; color:var(--primary); cursor:pointer; font-size: 13px; padding: 2px;" title="Edit Shift"><i class="fa-solid fa-pen"></i></button>
                                 ${s.id !== 'shift_general' && !isFlex ? `<button onclick="deleteShiftConfig('${s.id}')" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size: 13px; padding: 2px;" title="Delete"><i class="fa-solid fa-trash"></i></button>` : ''}
                             </div>
                         </div>
                         <h4 style="margin: 0 0 8px 0; font-size: 15px; color: var(--text-primary); font-weight: 700; word-break: break-word;">${s.name}</h4>
                         <div style="font-size: 11px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 4px;">
                             <div><i class="fa-regular fa-clock" style="width: 14px;"></i> Time: <strong style="color: var(--text-primary);">${isFlex ? 'Custom Set per User' : `${s.start} - ${s.end}`}</strong></div>
-                            <div><i class="fa-solid fa-mug-hot" style="width: 14px;"></i> Break: <strong style="color: var(--text-primary);">${s.breakMins || 60}m</strong></div>
+                            <div><i class="fa-solid fa-mug-hot" style="width: 14px;"></i> Break: <strong style="color: var(--text-primary);">${bText}</strong></div>
                         </div>
                     </div>
                     <div style="margin-top: 15px; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 12px;">
@@ -2013,7 +2017,59 @@ window.renderAdminShiftManagement = function() {
                 </div>
             `;
         }).join('');
+
+        setupShiftDragAndDrop();
     }
+};
+
+window.setupShiftDragAndDrop = function() {
+    const cards = document.querySelectorAll('.shift-card-draggable');
+    let draggedId = null;
+
+    cards.forEach(card => {
+        card.addEventListener('dragstart', function(e) {
+            draggedId = this.getAttribute('data-shift-id');
+            this.style.opacity = '0.4';
+            e.dataTransfer.effectAllowed = 'move';
+        });
+
+        card.addEventListener('dragend', function() {
+            this.style.opacity = '1';
+        });
+
+        card.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            this.style.transform = 'scale(1.02)';
+            this.style.borderColor = 'var(--primary)';
+        });
+
+        card.addEventListener('dragleave', function() {
+            this.style.transform = 'none';
+            this.style.borderColor = 'rgba(0,0,0,0.08)';
+        });
+
+        card.addEventListener('drop', function(e) {
+            e.stopPropagation();
+            this.style.transform = 'none';
+            this.style.borderColor = 'rgba(0,0,0,0.08)';
+
+            const targetId = this.getAttribute('data-shift-id');
+            if (draggedId && targetId && draggedId !== targetId) {
+                const db = getDb();
+                const fromIndex = db.shifts.findIndex(s => s.id === draggedId);
+                const toIndex = db.shifts.findIndex(s => s.id === targetId);
+                if (fromIndex !== -1 && toIndex !== -1) {
+                    const [movedItem] = db.shifts.splice(fromIndex, 1);
+                    db.shifts.splice(toIndex, 0, movedItem);
+                    saveDb(db);
+                    renderAdminShiftManagement();
+                    showToast("Shifts Reordered", "Shift order saved successfully.", "success");
+                }
+            }
+            return false;
+        });
+    });
 };
 
 window.openShiftAssignModal = function(shiftId) {
@@ -2164,6 +2220,13 @@ window.handleShiftAssignSubmit = function(e) {
     renderAdminShiftManagement();
 };
 
+window.toggleShiftBreakConfig = function(showBreak) {
+    const box = document.getElementById('shift-break-timing-box');
+    if (box) {
+        box.style.display = showBreak ? 'grid' : 'none';
+    }
+};
+
 window.openCreateShiftModal = function(editShiftId = null) {
     const db = getDb();
     const modal = document.getElementById('modal-admin-shift-config');
@@ -2172,7 +2235,8 @@ window.openCreateShiftModal = function(editShiftId = null) {
     const nameInput = document.getElementById('shift-config-name');
     const startInput = document.getElementById('shift-config-start');
     const endInput = document.getElementById('shift-config-end');
-    const breakInput = document.getElementById('shift-config-break');
+    const bStartInput = document.getElementById('shift-config-break-start');
+    const bEndInput = document.getElementById('shift-config-break-end');
 
     if (!modal) return;
 
@@ -2184,7 +2248,19 @@ window.openCreateShiftModal = function(editShiftId = null) {
             nameInput.value = s.name;
             startInput.value = s.start;
             endInput.value = s.end;
-            breakInput.value = s.breakMins || 60;
+
+            const hasB = s.hasBreak !== false && s.breakMins !== 0;
+            const rYes = modal.querySelector('input[name="shift_has_break"][value="yes"]');
+            const rNo = modal.querySelector('input[name="shift_has_break"][value="no"]');
+            if (hasB) {
+                if (rYes) rYes.checked = true;
+                toggleShiftBreakConfig(true);
+            } else {
+                if (rNo) rNo.checked = true;
+                toggleShiftBreakConfig(false);
+            }
+            if (bStartInput) bStartInput.value = s.breakStart || '13:00';
+            if (bEndInput) bEndInput.value = s.breakEnd || '14:00';
         }
     } else {
         titleEl.textContent = "Create New Shift";
@@ -2192,7 +2268,11 @@ window.openCreateShiftModal = function(editShiftId = null) {
         nameInput.value = '';
         startInput.value = '09:00';
         endInput.value = '17:00';
-        breakInput.value = '60';
+        const rYes = modal.querySelector('input[name="shift_has_break"][value="yes"]');
+        if (rYes) rYes.checked = true;
+        toggleShiftBreakConfig(true);
+        if (bStartInput) bStartInput.value = '13:00';
+        if (bEndInput) bEndInput.value = '14:00';
     }
 
     modal.classList.remove('hidden');
@@ -2210,9 +2290,20 @@ window.handleShiftSubmit = function(e) {
     const nameVal = document.getElementById('shift-config-name').value.trim();
     const startVal = document.getElementById('shift-config-start').value;
     const endVal = document.getElementById('shift-config-end').value;
-    const breakVal = parseInt(document.getElementById('shift-config-break').value) || 60;
+    const hasBreakEl = document.querySelector('input[name="shift_has_break"]:checked');
+    const hasBreak = hasBreakEl ? hasBreakEl.value === 'yes' : true;
+    const bStartVal = document.getElementById('shift-config-break-start').value || '13:00';
+    const bEndVal = document.getElementById('shift-config-break-end').value || '14:00';
 
     if (!nameVal || !startVal || !endVal) return;
+
+    let calcMins = 0;
+    if (hasBreak && bStartVal && bEndVal) {
+        const [h1, m1] = bStartVal.split(':').map(Number);
+        const [h2, m2] = bEndVal.split(':').map(Number);
+        calcMins = (h2 * 60 + m2) - (h1 * 60 + m1);
+        if (calcMins < 0) calcMins += 24 * 60; // overnight break
+    }
 
     if (idVal) {
         const existing = (db.shifts || []).find(s => s.id === idVal);
@@ -2220,14 +2311,17 @@ window.handleShiftSubmit = function(e) {
             existing.name = nameVal;
             existing.start = startVal;
             existing.end = endVal;
-            existing.breakMins = breakVal;
+            existing.hasBreak = hasBreak;
+            existing.breakStart = bStartVal;
+            existing.breakEnd = bEndVal;
+            existing.breakMins = hasBreak ? calcMins : 0;
 
             // Also update any employees currently assigned to this standard shift
             (db.users || []).forEach(u => {
-                if (u.shiftId === existing.id) {
+                if (u.shiftId === existing.id && !existing.isFlexible) {
                     u.dutyFrom = startVal;
                     u.dutyTo = endVal;
-                    u.breakMins = breakVal;
+                    u.breakMins = hasBreak ? calcMins : 0;
                 }
             });
         }
@@ -2238,7 +2332,10 @@ window.handleShiftSubmit = function(e) {
             name: nameVal,
             start: startVal,
             end: endVal,
-            breakMins: breakVal,
+            hasBreak: hasBreak,
+            breakStart: bStartVal,
+            breakEnd: bEndVal,
+            breakMins: hasBreak ? calcMins : 0,
             isFlexible: false
         });
     }
