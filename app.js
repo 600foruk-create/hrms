@@ -734,17 +734,36 @@ function handlePunchInOut() {
     let record = db.attendance.find(a => String(a.employeeId) === String(currentUser.id) && a.date === today);
 
     if (!record) {
+        // Calculate status based on shift rules
+        const sysSettings = db.systemSettings || {};
+        const startTimeStr = sysSettings.shiftStartTime || '09:00'; // HH:MM
+        const lateGrace = parseInt(sysSettings.shiftLateMins) || 15;
+        const halfDayMins = parseInt(sysSettings.shiftHalfDayMins) || 180;
+
+        const nowObj = new Date();
+        const [startH, startM] = startTimeStr.split(':').map(Number);
+        const shiftStartObj = new Date();
+        shiftStartObj.setHours(startH || 9, startM || 0, 0, 0);
+
+        const diffMins = Math.floor((nowObj - shiftStartObj) / 60000);
+        let punchStatus = "Present";
+        if (diffMins > halfDayMins) {
+            punchStatus = "Half Day";
+        } else if (diffMins > lateGrace) {
+            punchStatus = "Late";
+        }
+
         // Create Punch In record
         db.attendance.push({
             date: today,
             employeeId: currentUser.id,
             employeeName: currentUser.name,
-            status: "Present",
+            status: punchStatus,
             markedBy: currentUser.name,
             timeIn: now,
             timeOut: null
         });
-        showToast("Punched In", `You successfully punched in at ${now}.`, "success");
+        showToast("Punched In", `You successfully punched in at ${now} (${punchStatus}).`, punchStatus === "Present" ? "success" : "warning");
     } else if (record.timeIn && !record.timeOut) {
         // Punch Out
         record.timeOut = now;
@@ -1716,6 +1735,7 @@ window.renderAdminAttendanceSlab = function() {
         if (!employeeStats[empId]) return;
         if (log.status === 'Present') employeeStats[empId].present++;
         else if (log.status === 'Late') employeeStats[empId].late++;
+        else if (log.status === 'Half Day') { employeeStats[empId].present += 0.5; employeeStats[empId].late++; }
         else if (log.status === 'On Leave') employeeStats[empId].leave++;
     });
     
@@ -1748,7 +1768,7 @@ window.renderAdminAttendanceSlab = function() {
         if(u.status !== 'Inactive') {
             const log = logsToday.find(l => String(l.employeeId) === String(u.id));
             if(log) {
-                if(log.status === 'Present') presentToday++;
+                if(log.status === 'Present' || log.status === 'Half Day') presentToday++;
                 else if(log.status === 'Late') lateToday++;
                 else if(log.status === 'On Leave') leaveToday++;
                 else if(log.status === 'Absent') absentToday++;
@@ -2303,6 +2323,12 @@ function renderAdminSettingsTab() {
     }
     if (document.getElementById('leave-approval-by-admin')) {
         document.getElementById('leave-approval-by-admin').checked = !!sysSettings.leaveApprovedByAdmin;
+    }
+    if (document.getElementById('shift-start-time')) {
+        document.getElementById('shift-start-time').value = sysSettings.shiftStartTime || '09:00';
+        document.getElementById('shift-late-mins').value = sysSettings.shiftLateMins !== undefined ? sysSettings.shiftLateMins : 15;
+        document.getElementById('shift-halfday-mins').value = sysSettings.shiftHalfDayMins !== undefined ? sysSettings.shiftHalfDayMins : 180;
+        document.getElementById('shift-early-mins').value = sysSettings.shiftEarlyMins !== undefined ? sysSettings.shiftEarlyMins : 30;
     }
     if (document.getElementById('prod-show-emp-admin')) {
         document.getElementById('prod-show-emp-admin').checked = sysSettings.showEmployeeLogsToAdmin === 'true' || sysSettings.showEmployeeLogsToAdmin === true;
@@ -5025,6 +5051,24 @@ window.saveLeaveApprovalSettings = async function () {
 
     showToast("Leave Approvals", "Leave approval settings saved successfully.");
     saveDb(db); // Background sync
+};
+
+window.saveShiftRulesSettings = async function () {
+    const db = getDb();
+    if (!db) return;
+
+    if (!db.systemSettings) {
+        db.systemSettings = {};
+    }
+    const sysSettings = db.systemSettings;
+
+    sysSettings.shiftStartTime = document.getElementById('shift-start-time').value || '09:00';
+    sysSettings.shiftLateMins = parseInt(document.getElementById('shift-late-mins').value) || 15;
+    sysSettings.shiftHalfDayMins = parseInt(document.getElementById('shift-halfday-mins').value) || 180;
+    sysSettings.shiftEarlyMins = parseInt(document.getElementById('shift-early-mins').value) || 30;
+
+    showToast("Shift Rules", "Attendance shift timing rules saved successfully.");
+    saveDb(db);
 };
 
 window.saveProductivitySettings = async function () {

@@ -3046,6 +3046,37 @@
                                     </div>
                                 </div>
 
+                                <!-- Attendance Shift Rules Row -->
+                                <div
+                                    style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; padding: 15px 20px; border-top: 1px solid var(--border-color);">
+                                    <h3
+                                        style="margin: 0; font-size: 15px; display: flex; align-items: center; gap: 10px;">
+                                        <i class="fa-solid fa-clock text-primary"></i> Attendance Shift Rules</h3>
+                                    <form id="settings-shift-rules-form"
+                                        onsubmit="event.preventDefault(); if(window.saveShiftRulesSettings) window.saveShiftRulesSettings();"
+                                        style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0;">
+                                        <div style="display: flex; align-items: center; gap: 6px;">
+                                            <label for="shift-start-time" style="margin: 0; font-size: 12px; white-space: nowrap; font-weight: 500;">Start Time:</label>
+                                            <input type="time" id="shift-start-time" class="form-control" value="09:00" style="height: 32px; padding: 2px 6px; font-size: 12px; width: 95px;">
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 6px;">
+                                            <label for="shift-late-mins" style="margin: 0; font-size: 12px; white-space: nowrap; font-weight: 500;">Late Grace (Mins):</label>
+                                            <input type="number" id="shift-late-mins" class="form-control" min="0" max="300" value="15" style="height: 32px; padding: 2px 6px; font-size: 12px; width: 65px;">
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 6px;">
+                                            <label for="shift-halfday-mins" style="margin: 0; font-size: 12px; white-space: nowrap; font-weight: 500;">Half Day (Mins):</label>
+                                            <input type="number" id="shift-halfday-mins" class="form-control" min="0" max="600" value="180" style="height: 32px; padding: 2px 6px; font-size: 12px; width: 65px;">
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 6px;">
+                                            <label for="shift-early-mins" style="margin: 0; font-size: 12px; white-space: nowrap; font-weight: 500;">Early Departure (Mins):</label>
+                                            <input type="number" id="shift-early-mins" class="form-control" min="0" max="300" value="30" style="height: 32px; padding: 2px 6px; font-size: 12px; width: 65px;">
+                                        </div>
+                                        <button type="submit" class="btn btn-primary btn-sm"
+                                            style="height: 32px; padding: 0 12px;"><i class="fa-solid fa-check"></i>
+                                            Save</button>
+                                    </form>
+                                </div>
+
                                 <!-- Productivity Settings Row -->
                                 <div
                                     style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; padding: 15px 20px; border-top: 1px solid var(--border-color);">
