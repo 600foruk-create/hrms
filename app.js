@@ -841,6 +841,7 @@ function renderSidebar() {
             <a class="sidebar-link" data-tab="attendance"><i class="fa-solid fa-calendar-days"></i> My Attendance</a>
             <a class="sidebar-link" data-tab="productivity"><i class="fa-solid fa-bolt"></i> My Productivity</a>
             <a class="sidebar-link" data-tab="leave"><i class="fa-solid fa-umbrella-beach"></i> Leave Request</a>
+            <a class="sidebar-link" data-tab="reports"><i class="fa-solid fa-file-invoice-dollar"></i> My Reports</a>
             <a class="sidebar-link" data-tab="mypayslips"><i class="fa-solid fa-file-invoice"></i> My Salary Slips</a>
             <a class="sidebar-link" data-tab="assets"><i class="fa-solid fa-laptop"></i> Assets</a>
             <a class="sidebar-link" data-tab="announcements"><i class="fa-solid fa-bullhorn"></i> Announcements${annBadgeHtml}</a>
@@ -934,6 +935,7 @@ function refreshTabContent(tabId) {
         else if (tabId === 'attendance') renderEmployeeAttendanceTab();
         else if (tabId === 'productivity') renderEmployeeProductivityTab();
         else if (tabId === 'leave') renderEmployeeLeaveTab();
+        else if (tabId === 'reports') { if (window.initEmployeeReportsTab) window.initEmployeeReportsTab(); }
         else if (tabId === 'mypayslips') { if (window.renderMyPayslips) window.renderMyPayslips(); }
         else if (tabId === 'assets') { if (window.renderEmployeeAssetsTab) window.renderEmployeeAssetsTab(); }
         else if (tabId === 'announcements') { if (window.renderUserAnnouncementsTab) window.renderUserAnnouncementsTab(); }

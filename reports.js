@@ -516,3 +516,131 @@ function generateMgrProductivityReport(db, teamIds) {
     }
     document.getElementById('print-subtitle-manager-productivity').innerText = 'Date Range: ' + start + ' to ' + end;
 }
+
+// Employee functions
+window.initEmployeeReportsTab = function() {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 30);
+    const startStr = start.toISOString().split('T')[0];
+    const endStr = end.toISOString().split('T')[0];
+
+    ['emp-rep-att-start', 'emp-rep-leave-start', 'emp-rep-prod-start'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.value = startStr;
+    });
+    ['emp-rep-att-end', 'emp-rep-leave-end', 'emp-rep-prod-end'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.value = endStr;
+    });
+
+    // Default load attendance
+    window.renderEmployeeReportsTab('attendance');
+};
+
+window.renderEmployeeReportsTab = function(type) {
+    document.querySelectorAll('#employee-tab-reports .btn-sub-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#employee-tab-reports .sub-tab-content').forEach(c => c.classList.add('hidden'));
+
+    document.querySelector(`#employee-tab-reports .btn-sub-tab[data-subtab="employee-report-${type}"]`).classList.add('active');
+    document.getElementById(`subtab-content-employee-report-${type}`).classList.remove('hidden');
+
+    window.generateEmployeeReport(type);
+};
+
+window.generateEmployeeReport = function(type) {
+    const db = getDb();
+    if (!currentUser) return;
+    const empId = currentUser.id;
+
+    if (type === 'attendance') generateEmpAttendanceReport(db, empId);
+    else if (type === 'leave') generateEmpLeaveReport(db, empId);
+    else if (type === 'productivity') generateEmpProductivityReport(db, empId);
+};
+
+function generateEmpAttendanceReport(db, empId) {
+    const start = document.getElementById('emp-rep-att-start').value;
+    const end = document.getElementById('emp-rep-att-end').value;
+    const status = document.getElementById('emp-rep-att-status').value;
+
+    let logs = [];
+    if(db.attendance) {
+        logs = db.attendance.filter(log => {
+            if(log.employeeId !== empId) return false;
+            if(start && log.date < start) return false;
+            if(end && log.date > end) return false;
+            if(status !== 'All' && log.status !== status) return false;
+            return true;
+        });
+    }
+    
+    logs.sort((a,b) => new Date(b.date) - new Date(a.date));
+    const tbody = document.getElementById('emp-rep-body-attendance');
+    tbody.innerHTML = '';
+    if(logs.length === 0) tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No records found</td></tr>';
+    else {
+        logs.forEach(log => {
+            tbody.innerHTML += '<tr><td>'+log.date+'</td><td>'+(log.timeIn||'-')+'</td><td>'+(log.timeOut||'-')+'</td><td><span class="status-badge status-'+(log.status?log.status.toLowerCase().replace(' ','-'):'present')+'">'+log.status+'</span></td></tr>';
+        });
+    }
+    document.getElementById('print-subtitle-employee-attendance').innerText = 'Date Range: ' + start + ' to ' + end;
+}
+
+function generateEmpLeaveReport(db, empId) {
+    const start = document.getElementById('emp-rep-leave-start').value;
+    const end = document.getElementById('emp-rep-leave-end').value;
+    const type = document.getElementById('emp-rep-leave-type').value;
+    const status = document.getElementById('emp-rep-leave-status').value;
+
+    let logs = [];
+    if(db.leaves) {
+        logs = db.leaves.filter(l => {
+            if(l.employeeId !== empId) return false;
+            if(type !== 'All' && l.type !== type) return false;
+            if(status !== 'All' && l.status !== status) return false;
+            if(start && new Date(l.startDate) < new Date(start)) return false;
+            if(end && new Date(l.endDate) > new Date(end)) return false;
+            return true;
+        });
+    }
+
+    const tbody = document.getElementById('emp-rep-body-leave');
+    tbody.innerHTML = '';
+    if(logs.length === 0) tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No records found</td></tr>';
+    else {
+        logs.forEach(l => {
+            const appliedOn = l.submittedAt ? l.submittedAt.split('T')[0] : l.startDate;
+            const duration = Math.ceil((new Date(l.endDate) - new Date(l.startDate)) / (1000 * 60 * 60 * 24)) + 1;
+            tbody.innerHTML += '<tr><td>'+appliedOn+'</td><td>'+l.type+'</td><td>'+duration+' Days</td><td>'+l.startDate+' to '+l.endDate+'</td><td><span class="status-badge status-'+l.status.toLowerCase()+'">'+l.status+'</span></td></tr>';
+        });
+    }
+    document.getElementById('print-subtitle-employee-leave').innerText = 'Date Range: ' + start + ' to ' + end;
+}
+
+function generateEmpProductivityReport(db, empId) {
+    const start = document.getElementById('emp-rep-prod-start').value;
+    const end = document.getElementById('emp-rep-prod-end').value;
+    const status = document.getElementById('emp-rep-prod-status').value;
+
+    let logs = [];
+    if(db.productivity) {
+        logs = db.productivity.filter(l => {
+            const uid = l.employee_id || l.employeeId;
+            if(uid !== empId) return false;
+            if(status !== 'All' && l.status !== status) return false;
+            if(start && l.date < start) return false;
+            if(end && l.date > end) return false;
+            return true;
+        });
+    }
+
+    const tbody = document.getElementById('emp-rep-body-productivity');
+    tbody.innerHTML = '';
+    if(logs.length === 0) tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No records found</td></tr>';
+    else {
+        logs.forEach(l => {
+            tbody.innerHTML += '<tr><td>'+l.date+'</td><td>'+(l.taskCount||0)+'</td><td>'+(l.durationHours||0)+'</td><td><strong>'+(l.score||0)+'/10</strong></td><td><span class="status-badge status-'+(l.status||'pending').toLowerCase()+'">'+(l.status||'Pending')+'</span></td></tr>';
+        });
+    }
+    document.getElementById('print-subtitle-employee-productivity').innerText = 'Date Range: ' + start + ' to ' + end;
+}
