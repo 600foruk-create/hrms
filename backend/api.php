@@ -726,8 +726,14 @@ if ($action === 'load_all') {
                     $dbState['systemSettings']->{$row['setting_key']} = $row['setting_value'];
                 }
             }
+            if (isset($dbState['systemSettings']->shifts) && is_array($dbState['systemSettings']->shifts)) {
+                $dbState['shifts'] = $dbState['systemSettings']->shifts;
+            } else {
+                $dbState['shifts'] = [];
+            }
         } catch (Exception $e) {
             $dbState['systemSettings'] = (object)[];
+            $dbState['shifts'] = [];
         }
 
         // Fetch Leaves
@@ -1291,11 +1297,11 @@ elseif ($action === 'save_all') {
 
         // 11. Sync System Settings
         try {
-            $pdo->exec("DELETE FROM system_settings WHERE setting_key NOT IN ('assetCategories', 'productivityCategories')");
+            $pdo->exec("DELETE FROM system_settings WHERE setting_key NOT IN ('assetCategories', 'productivityCategories', 'shifts')");
             if (isset($data['systemSettings']) && (is_array($data['systemSettings']) || is_object($data['systemSettings']))) {
                 $stmt = $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
                 foreach ($data['systemSettings'] as $k => $v) {
-                    if ($k === 'assetCategories' || $k === 'productivityCategories') continue;
+                    if ($k === 'assetCategories' || $k === 'productivityCategories' || $k === 'shifts') continue;
                     if (is_bool($v)) {
                         $v = $v ? 'true' : 'false';
                     } elseif (is_array($v) || is_object($v)) {
@@ -1303,6 +1309,10 @@ elseif ($action === 'save_all') {
                     }
                     $stmt->execute([$k, (string)$v]);
                 }
+            }
+            if (isset($data['shifts']) && is_array($data['shifts'])) {
+                $stmt = $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('shifts', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+                $stmt->execute([json_encode($data['shifts'])]);
             }
         } catch (Exception $e) {
             error_log("System settings sync error: " . $e->getMessage());

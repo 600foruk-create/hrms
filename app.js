@@ -52,7 +52,7 @@ function getGraphPeriodConfig(period, prefix) {
 // ==================== DATABASE ENGINE (Hostinger PHP Backend) ====================
 const API_URL = 'backend/api.php';
 window.dbLoaded = false;
-window.hrmsDatabase = { users: [], weights: {}, leaves: [], practices: [], manager_practices: [], productivity: [], productivity_tasks: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [], globalSalarySettings: { allowances: [], deductions: [] } };
+window.hrmsDatabase = { users: [], weights: {}, leaves: [], practices: [], manager_practices: [], productivity: [], productivity_tasks: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [], globalSalarySettings: { allowances: [], deductions: [] }, shifts: [] };
 
 async function syncServer() {
     let success = false;
@@ -104,6 +104,16 @@ async function syncServer() {
                 });
                 if (attMap.size !== result.data.attendance.length) needsCleanup = true;
                 result.data.attendance = Array.from(attMap.values());
+            }
+
+            if (!result.data.shifts || !Array.isArray(result.data.shifts) || result.data.shifts.length === 0) {
+                result.data.shifts = [
+                    { id: 'shift_general', name: 'General Shift', start: '09:00', end: '17:00', breakMins: 60, isFlexible: false },
+                    { id: 'shift_morning', name: 'Morning Shift', start: '08:00', end: '16:00', breakMins: 60, isFlexible: false },
+                    { id: 'shift_evening', name: 'Evening Shift', start: '16:00', end: '00:00', breakMins: 60, isFlexible: false },
+                    { id: 'shift_night', name: 'Night Shift', start: '00:00', end: '08:00', breakMins: 60, isFlexible: false },
+                    { id: 'shift_flexible', name: 'Flexible / Custom Timings', start: 'Manual', end: 'Manual', breakMins: 60, isFlexible: true }
+                ];
             }
 
             window.hrmsDatabase = result.data;
@@ -1948,6 +1958,239 @@ window.exportAttendanceSlabCSV = function() {
     link.click();
     document.body.removeChild(link);
 };
+
+// ==================== SHIFT MANAGEMENT ENGINE ====================
+window.renderAdminShiftManagement = function() {
+    const db = getDb();
+    if (!db.shifts || db.shifts.length === 0) {
+        db.shifts = [
+            { id: 'shift_general', name: 'General Shift', start: '09:00', end: '17:00', breakMins: 60, isFlexible: false },
+            { id: 'shift_morning', name: 'Morning Shift', start: '08:00', end: '16:00', breakMins: 60, isFlexible: false },
+            { id: 'shift_evening', name: 'Evening Shift', start: '16:00', end: '00:00', breakMins: 60, isFlexible: false },
+            { id: 'shift_night', name: 'Night Shift', start: '00:00', end: '08:00', breakMins: 60, isFlexible: false },
+            { id: 'shift_flexible', name: 'Flexible / Custom Timings', start: 'Manual', end: 'Manual', breakMins: 60, isFlexible: true }
+        ];
+    }
+
+    const gridEl = document.getElementById('admin-shifts-grid');
+    if (gridEl) {
+        gridEl.innerHTML = db.shifts.map(s => {
+            const isFlex = s.isFlexible || s.id === 'shift_flexible';
+            return `
+                <div class="card stat-card bg-glass" style="padding: 16px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.06); position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                        <span class="badge-status ${isFlex ? 'pending' : 'approved'}" style="${isFlex ? 'background: rgba(168,85,247,0.15); color: #a855f7;' : 'background: rgba(45,212,191,0.15); color: #2dd4bf;'} padding: 4px 10px; font-size: 10px; font-weight: 700;">
+                            ${isFlex ? 'PER-EMPLOYEE MANUAL' : 'STANDARD SHIFT'}
+                        </span>
+                        ${!isFlex ? `
+                            <div style="display: flex; gap: 6px;">
+                                <button onclick="openCreateShiftModal('${s.id}')" style="background:none; border:none; color:var(--primary); cursor:pointer; font-size: 13px;" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                                ${s.id !== 'shift_general' ? `<button onclick="deleteShiftConfig('${s.id}')" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size: 13px;" title="Delete"><i class="fa-solid fa-trash"></i></button>` : ''}
+                            </div>
+                        ` : '<span style="font-size: 11px; color: var(--text-secondary);"><i class="fa-solid fa-lock"></i> Built-in</span>'}
+                    </div>
+                    <h4 style="margin: 0 0 8px 0; font-size: 16px; color: var(--text-primary); font-weight: 700;">${s.name}</h4>
+                    <div style="font-size: 12px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 4px;">
+                        <div><i class="fa-regular fa-clock" style="width: 16px;"></i> Timing: <strong style="color: var(--text-primary);">${isFlex ? 'Custom Set per User' : `${s.start} - ${s.end}`}</strong></div>
+                        <div><i class="fa-solid fa-mug-hot" style="width: 16px;"></i> Break: <strong style="color: var(--text-primary);">${s.breakMins || 60} mins</strong></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    renderShiftEmpTable();
+};
+
+window.renderShiftEmpTable = function(searchQuery = '') {
+    const db = getDb();
+    const tbody = document.getElementById('admin-shift-assignment-body');
+    if (!tbody) return;
+
+    const employees = (db.users || []).filter(u => u.role !== 'Admin' && u.status !== 'Inactive');
+    const filtered = searchQuery ? employees.filter(e => e.name.toLowerCase().includes(searchQuery.toLowerCase())) : employees;
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No active employees found.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = filtered.map(u => {
+        const currentShiftId = u.shiftId || 'shift_general';
+        const isFlex = currentShiftId === 'shift_flexible';
+        const dFrom = u.dutyFrom || '09:00';
+        const dTo = u.dutyTo || '17:00';
+        const bMins = u.breakMins !== undefined ? u.breakMins : 60;
+
+        const shiftOptions = (db.shifts || []).map(s => `<option value="${s.id}" ${s.id === currentShiftId ? 'selected' : ''}>${s.name}</option>`).join('');
+
+        return `
+            <tr style="vertical-align: middle;">
+                <td style="font-weight: 600; color: var(--text-primary);">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="width:28px; height:28px; border-radius:50%; background:var(--primary-light); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">${getInitials(u.name)}</span>
+                        <span>${u.name}</span>
+                    </div>
+                </td>
+                <td class="text-secondary" style="font-size: 13px;">${u.department || 'General'}</td>
+                <td>
+                    <select class="form-control" style="width: 200px; font-size: 13px; font-weight: 600; ${isFlex ? 'border-color: #a855f7; color: #a855f7;' : ''}" onchange="assignEmployeeShiftConfig('${u.id}', this.value)">
+                        ${shiftOptions}
+                    </select>
+                </td>
+                <td class="text-center">
+                    <input type="time" class="form-control text-center" style="width: 120px; margin: 0 auto; ${!isFlex ? 'background: rgba(0,0,0,0.03); opacity: 0.6; cursor: not-allowed;' : 'border-color: #a855f7; font-weight:700;'}" value="${dFrom}" ${!isFlex ? 'disabled' : ''} onchange="updateEmpCustomTiming('${u.id}', 'dutyFrom', this.value)">
+                </td>
+                <td class="text-center">
+                    <input type="time" class="form-control text-center" style="width: 120px; margin: 0 auto; ${!isFlex ? 'background: rgba(0,0,0,0.03); opacity: 0.6; cursor: not-allowed;' : 'border-color: #a855f7; font-weight:700;'}" value="${dTo}" ${!isFlex ? 'disabled' : ''} onchange="updateEmpCustomTiming('${u.id}', 'dutyTo', this.value)">
+                </td>
+                <td class="text-center">
+                    <input type="number" class="form-control text-center" style="width: 80px; margin: 0 auto; ${!isFlex ? 'background: rgba(0,0,0,0.03); opacity: 0.6; cursor: not-allowed;' : 'border-color: #a855f7; font-weight:700;'}" value="${bMins}" min="0" max="300" ${!isFlex ? 'disabled' : ''} onchange="updateEmpCustomTiming('${u.id}', 'breakMins', this.value)">
+                </td>
+                <td class="text-center">
+                    ${isFlex ? `<span class="badge-status pending" style="background: rgba(168,85,247,0.15); color: #a855f7; font-size: 10px;">Manual Timings Active</span>` : `<span class="text-muted" style="font-size:11px;">Follows Shift</span>`}
+                </td>
+            </tr>
+        `;
+    }).join('');
+};
+
+window.filterShiftEmpTable = function(val) {
+    renderShiftEmpTable(val);
+};
+
+window.assignEmployeeShiftConfig = function(empId, shiftId) {
+    const db = getDb();
+    const user = (db.users || []).find(u => String(u.id) === String(empId));
+    if (!user) return;
+
+    user.shiftId = shiftId;
+    const shift = (db.shifts || []).find(s => s.id === shiftId);
+    if (shift && shiftId !== 'shift_flexible') {
+        user.dutyFrom = shift.start;
+        user.dutyTo = shift.end;
+        user.breakMins = shift.breakMins;
+    }
+
+    saveDb(db);
+    showToast("Shift Assigned", `Updated shift schedule for ${user.name}.`, "success");
+    renderShiftEmpTable(document.getElementById('shift-emp-search') ? document.getElementById('shift-emp-search').value : '');
+};
+
+window.updateEmpCustomTiming = function(empId, field, value) {
+    const db = getDb();
+    const user = (db.users || []).find(u => String(u.id) === String(empId));
+    if (!user) return;
+
+    user[field] = value;
+    saveDb(db);
+    showToast("Timing Saved", `Updated manual duty hour for ${user.name}.`, "success");
+};
+
+window.openCreateShiftModal = function(editShiftId = null) {
+    const db = getDb();
+    const modal = document.getElementById('modal-admin-shift-config');
+    const titleEl = document.getElementById('shift-modal-title');
+    const idInput = document.getElementById('shift-config-id');
+    const nameInput = document.getElementById('shift-config-name');
+    const startInput = document.getElementById('shift-config-start');
+    const endInput = document.getElementById('shift-config-end');
+    const breakInput = document.getElementById('shift-config-break');
+
+    if (!modal) return;
+
+    if (editShiftId) {
+        const s = (db.shifts || []).find(item => item.id === editShiftId);
+        if (s) {
+            titleEl.textContent = "Edit Shift Schedule";
+            idInput.value = s.id;
+            nameInput.value = s.name;
+            startInput.value = s.start;
+            endInput.value = s.end;
+            breakInput.value = s.breakMins || 60;
+        }
+    } else {
+        titleEl.textContent = "Create New Shift";
+        idInput.value = '';
+        nameInput.value = '';
+        startInput.value = '09:00';
+        endInput.value = '17:00';
+        breakInput.value = '60';
+    }
+
+    modal.classList.remove('hidden');
+};
+
+window.closeCreateShiftModal = function() {
+    const modal = document.getElementById('modal-admin-shift-config');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.handleShiftSubmit = function(e) {
+    e.preventDefault();
+    const db = getDb();
+    const idVal = document.getElementById('shift-config-id').value;
+    const nameVal = document.getElementById('shift-config-name').value.trim();
+    const startVal = document.getElementById('shift-config-start').value;
+    const endVal = document.getElementById('shift-config-end').value;
+    const breakVal = parseInt(document.getElementById('shift-config-break').value) || 60;
+
+    if (!nameVal || !startVal || !endVal) return;
+
+    if (idVal) {
+        const existing = (db.shifts || []).find(s => s.id === idVal);
+        if (existing) {
+            existing.name = nameVal;
+            existing.start = startVal;
+            existing.end = endVal;
+            existing.breakMins = breakVal;
+
+            // Also update any employees currently assigned to this standard shift
+            (db.users || []).forEach(u => {
+                if (u.shiftId === existing.id) {
+                    u.dutyFrom = startVal;
+                    u.dutyTo = endVal;
+                    u.breakMins = breakVal;
+                }
+            });
+        }
+    } else {
+        const newId = 'shift_' + Date.now();
+        db.shifts.push({
+            id: newId,
+            name: nameVal,
+            start: startVal,
+            end: endVal,
+            breakMins: breakVal,
+            isFlexible: false
+        });
+    }
+
+    saveDb(db);
+    closeCreateShiftModal();
+    showToast("Shift Saved", `Shift '${nameVal}' has been saved successfully.`, "success");
+    renderAdminShiftManagement();
+};
+
+window.deleteShiftConfig = function(shiftId) {
+    if (!confirm("Are you sure you want to delete this shift? Any assigned employees will revert to the General Shift.")) return;
+    const db = getDb();
+    db.shifts = (db.shifts || []).filter(s => s.id !== shiftId);
+
+    (db.users || []).forEach(u => {
+        if (u.shiftId === shiftId) {
+            u.shiftId = 'shift_general';
+            u.dutyFrom = '09:00';
+            u.dutyTo = '17:00';
+            u.breakMins = 60;
+        }
+    });
+
+    saveDb(db);
+    showToast("Shift Deleted", "Shift removed and employees reset to General Shift.", "info");
+    renderAdminShiftManagement();
+};
+
 function renderAdminLeaveTab() {
     renderLeaveTypes();
     const db = getDb();
@@ -6005,10 +6248,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (parent.id === 'admin-tab-attendance') {
                 const markAttBtn = document.getElementById('btn-admin-mark-attendance');
                 if (markAttBtn) {
-                    if (subtab === 'leave-management') {
+                    if (subtab === 'attendance-shift') {
                         markAttBtn.classList.add('hidden');
+                        if (window.renderAdminShiftManagement) window.renderAdminShiftManagement();
                     } else if (subtab === 'attendance-log') {
                         markAttBtn.classList.remove('hidden');
+                    } else {
+                        markAttBtn.classList.add('hidden');
+                    }
+                } else {
+                    if (subtab === 'attendance-shift' && window.renderAdminShiftManagement) {
+                        window.renderAdminShiftManagement();
                     }
                 }
             }

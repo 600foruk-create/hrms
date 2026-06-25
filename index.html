@@ -1075,6 +1075,9 @@
                             <button class="btn-sub-tab" data-subtab="attendance-slab">
                                 <i class="fa-solid fa-chart-pie"></i> Attendance Slab
                             </button>
+                            <button class="btn-sub-tab" data-subtab="attendance-shift">
+                                <i class="fa-solid fa-clock-rotate-left"></i> Shift Management
+                            </button>
                         </div>
 
                         <!-- Sub-tab Content: Attendance Log -->
@@ -1225,6 +1228,85 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Sub-tab Content: Shift Management -->
+                        <div class="sub-tab-content hidden" id="subtab-content-attendance-shift">
+                            <div class="section-card bg-glass" style="margin-bottom: 20px; padding: 20px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <div>
+                                        <h3 style="margin: 0; font-size: 18px; color: var(--text-primary);"><i class="fa-solid fa-business-time" style="color: var(--primary);"></i> Available Shifts</h3>
+                                        <p class="text-secondary" style="font-size: 12px; margin: 4px 0 0 0;">Manage work timings and duty schedules. The hardcoded "Flexible / Custom Timings" shift allows individual manual timings per employee.</p>
+                                    </div>
+                                    <button class="btn btn-primary btn-sm" onclick="openCreateShiftModal()"><i class="fa-solid fa-plus"></i> Add New Shift</button>
+                                </div>
+                                <div id="admin-shifts-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px;">
+                                    <!-- Dynamic Shift Cards -->
+                                </div>
+                            </div>
+
+                            <div class="section-card bg-glass flex-table-card" style="padding: 20px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <div>
+                                        <h3 style="margin: 0; font-size: 18px; color: var(--text-primary);">Employee Shift Assignment</h3>
+                                        <p class="text-secondary" style="font-size: 12px; margin: 4px 0 0 0;">Assign shifts to employees. Selecting "Flexible / Custom Timings" activates manual custom timing inputs for that employee.</p>
+                                    </div>
+                                    <input type="text" id="shift-emp-search" class="form-control" placeholder="Search employees..." style="width: 250px;" oninput="filterShiftEmpTable(this.value)">
+                                </div>
+                                <div style="overflow-x: auto;">
+                                    <table class="table" style="margin:0; min-width: 800px;">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align: left;">Employee</th>
+                                                <th style="text-align: left;">Department</th>
+                                                <th style="text-align: left;">Assigned Shift</th>
+                                                <th style="text-align: center;">Duty From</th>
+                                                <th style="text-align: center;">Duty To</th>
+                                                <th style="text-align: center;">Break (Mins)</th>
+                                                <th style="text-align: center;">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-shift-assignment-body">
+                                            <!-- Dynamic Rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin Add/Edit Shift Modal -->
+                    <div id="modal-admin-shift-config" class="modal hidden" style="z-index: 10000;">
+                        <div class="modal-content bg-glass" style="max-width: 480px; padding: 25px; border-radius: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(0,0,0,0.08); padding-bottom: 12px;">
+                                <h3 id="shift-modal-title" style="margin: 0; font-size: 18px;">Create New Shift</h3>
+                                <button onclick="closeCreateShiftModal()" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-secondary);">&times;</button>
+                            </div>
+                            <form id="form-shift-config" onsubmit="handleShiftSubmit(event)">
+                                <input type="hidden" id="shift-config-id">
+                                <div class="form-group mb-3">
+                                    <label class="form-label font-weight-bold" style="font-size: 13px;">Shift Name</label>
+                                    <input type="text" id="shift-config-name" class="form-control" placeholder="e.g. Morning Shift" required>
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;" class="mb-3">
+                                    <div class="form-group">
+                                        <label class="form-label font-weight-bold" style="font-size: 13px;">Start Time</label>
+                                        <input type="time" id="shift-config-start" class="form-control" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label font-weight-bold" style="font-size: 13px;">End Time</label>
+                                        <input type="time" id="shift-config-end" class="form-control" required>
+                                    </div>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label class="form-label font-weight-bold" style="font-size: 13px;">Break Duration (Minutes)</label>
+                                    <input type="number" id="shift-config-break" class="form-control" value="60" min="0" max="300" required>
+                                </div>
+                                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                                    <button type="button" class="btn btn-outline" onclick="closeCreateShiftModal()">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Save Shift</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
 
