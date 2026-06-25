@@ -18,6 +18,37 @@ const TASK_SUBCATEGORIES = {
     "Report Preparation": ["Daily Performance Reports", "Monthly AR Reports", "Gap Analysis Reports", "Executive Summaries"]
 };
 
+// Helper for dynamic graph period resolution
+function getGraphPeriodConfig(period, prefix) {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const graphToday = new Date(todayStr);
+    let startDate = new Date(graphToday);
+    let numDays = 7;
+    
+    if (period === 'today') {
+        numDays = 1;
+    } else if (period === 'week') {
+        startDate.setDate(graphToday.getDate() - graphToday.getDay());
+        numDays = 7;
+    } else if (period === 'month') {
+        startDate.setDate(graphToday.getDate() - 29);
+        numDays = 30;
+    } else if (period === 'custom') {
+        const startVal = document.getElementById(`${prefix}-start`)?.value;
+        const endVal = document.getElementById(`${prefix}-end`)?.value;
+        if (startVal && endVal) {
+            startDate = new Date(startVal);
+            const endDate = new Date(endVal);
+            numDays = Math.max(1, Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1);
+        } else {
+            startDate.setDate(graphToday.getDate() - graphToday.getDay());
+            numDays = 7;
+        }
+    }
+    
+    return { startDate, numDays };
+}
+
 // ==================== DATABASE ENGINE (Hostinger PHP Backend) ====================
 const API_URL = 'backend/api.php';
 window.dbLoaded = false;
@@ -1033,25 +1064,18 @@ function renderAdminDashboard() {
 
     // 2. Tasks Overview SVG Line Chart (Dynamic from DB)
     const adminGraphPeriod = document.getElementById('admin-graph-period')?.value || 'week';
-    const numDays = adminGraphPeriod === 'month' ? 30 : 7;
+    const { startDate, numDays } = getGraphPeriodConfig(adminGraphPeriod, 'admin-graph');
     const lastXDays = [];
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const xLabelsHTML = [];
-    
-    const adminGraphToday = new Date(today);
-    const startDate = new Date(adminGraphToday);
-    
-    if (adminGraphPeriod === 'week') {
-        startDate.setDate(adminGraphToday.getDate() - adminGraphToday.getDay());
-    } else {
-        startDate.setDate(adminGraphToday.getDate() - 29);
-    }
     
     for (let i = 0; i < numDays; i++) {
         const d = new Date(startDate);
         d.setDate(startDate.getDate() + i);
         lastXDays.push(d.toISOString().split('T')[0]);
-        if (adminGraphPeriod === 'month') {
+        if (numDays === 1) {
+            xLabelsHTML.push(`<span>Today</span>`);
+        } else if (numDays > 7) {
             if (i === 0 || i === numDays - 1 || i % 7 === 0) {
                 xLabelsHTML.push(`<span>${d.getDate()}/${d.getMonth()+1}</span>`);
             } else {
@@ -1066,7 +1090,7 @@ function renderAdminDashboard() {
     const maxVal = Math.max(5, ...dailySubmitted);
     const getSvgY = (val) => 95 - (val / maxVal) * 80;
 
-    const subCoords = dailySubmitted.map((val, idx) => ({ x: idx * (300 / (numDays - 1)), y: getSvgY(val) }));
+    const subCoords = dailySubmitted.map((val, idx) => ({ x: idx * (300 / (numDays > 1 ? numDays - 1 : 1)), y: getSvgY(val) }));
 
     const buildPath = (coords) => {
         if (coords.length === 0) return '';
@@ -2294,25 +2318,18 @@ function renderManagerDashboard() {
 
     // 2. Tasks Overview SVG Line Chart
     const managerGraphPeriod = document.getElementById('manager-graph-period')?.value || 'week';
-    const numDays = managerGraphPeriod === 'month' ? 30 : 7;
+    const { startDate, numDays } = getGraphPeriodConfig(managerGraphPeriod, 'manager-graph');
     const lastXDays = [];
     const xaxisLabels = [];
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    
-    const managerGraphToday = new Date();
-    const startDate = new Date(managerGraphToday);
-    
-    if (managerGraphPeriod === 'week') {
-        startDate.setDate(managerGraphToday.getDate() - managerGraphToday.getDay());
-    } else {
-        startDate.setDate(managerGraphToday.getDate() - 29);
-    }
     
     for (let i = 0; i < numDays; i++) {
         const d = new Date(startDate);
         d.setDate(startDate.getDate() + i);
         lastXDays.push(d.toISOString().split('T')[0]);
-        if (managerGraphPeriod === 'month') {
+        if (numDays === 1) {
+            xaxisLabels.push(`<span>Today</span>`);
+        } else if (numDays > 7) {
             if (i === 0 || i === numDays - 1 || i % 7 === 0) {
                 xaxisLabels.push(`<span>${d.getDate()}/${d.getMonth()+1}</span>`);
             } else {
@@ -2762,25 +2779,18 @@ function renderEmployeeDashboard() {
 
     // 2. Employee Tasks Overview SVG Line Chart
     const employeeGraphPeriod = document.getElementById('employee-graph-period')?.value || 'week';
-    const numDays = employeeGraphPeriod === 'month' ? 30 : 7;
+    const { startDate, numDays } = getGraphPeriodConfig(employeeGraphPeriod, 'employee-graph');
     const lastXDays = [];
     const xaxisLabels = [];
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    
-    const employeeGraphToday = new Date();
-    const startDate = new Date(employeeGraphToday);
-    
-    if (employeeGraphPeriod === 'week') {
-        startDate.setDate(employeeGraphToday.getDate() - employeeGraphToday.getDay());
-    } else {
-        startDate.setDate(employeeGraphToday.getDate() - 29);
-    }
     
     for (let i = 0; i < numDays; i++) {
         const d = new Date(startDate);
         d.setDate(startDate.getDate() + i);
         lastXDays.push(d.toISOString().split('T')[0]);
-        if (employeeGraphPeriod === 'month') {
+        if (numDays === 1) {
+            xaxisLabels.push(`<span>Today</span>`);
+        } else if (numDays > 7) {
             if (i === 0 || i === numDays - 1 || i % 7 === 0) {
                 xaxisLabels.push(`<span>${d.getDate()}/${d.getMonth()+1}</span>`);
             } else {
