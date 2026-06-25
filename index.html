@@ -1244,34 +1244,6 @@
                                     <!-- Dynamic Shift Cards -->
                                 </div>
                             </div>
-
-                            <div class="section-card bg-glass flex-table-card" style="padding: 20px;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                    <div>
-                                        <h3 style="margin: 0; font-size: 18px; color: var(--text-primary);">Employee Shift Assignment</h3>
-                                        <p class="text-secondary" style="font-size: 12px; margin: 4px 0 0 0;">Assign shifts to employees. Selecting "Flexible / Custom Timings" activates manual custom timing inputs for that employee.</p>
-                                    </div>
-                                    <input type="text" id="shift-emp-search" class="form-control" placeholder="Search employees..." style="width: 250px;" oninput="filterShiftEmpTable(this.value)">
-                                </div>
-                                <div style="overflow-x: auto;">
-                                    <table class="table" style="margin:0; min-width: 800px;">
-                                        <thead>
-                                            <tr>
-                                                <th style="text-align: left;">Employee</th>
-                                                <th style="text-align: left;">Department</th>
-                                                <th style="text-align: left;">Assigned Shift</th>
-                                                <th style="text-align: center;">Duty From</th>
-                                                <th style="text-align: center;">Duty To</th>
-                                                <th style="text-align: center;">Break (Mins)</th>
-                                                <th style="text-align: center;">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="admin-shift-assignment-body">
-                                            <!-- Dynamic Rows -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -1307,6 +1279,36 @@
                                     <button type="submit" class="btn btn-primary">Save Shift</button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+
+                    <!-- Bulk Assign Employees Modal -->
+                    <div id="modal-admin-shift-assign" class="modal hidden" style="z-index: 10000;">
+                        <div class="modal-content bg-glass" style="max-width: 720px; padding: 25px; border-radius: 12px; max-height: 85vh; display: flex; flex-direction: column;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(0,0,0,0.08); padding-bottom: 12px;">
+                                <div>
+                                    <h3 id="shift-assign-modal-title" style="margin: 0; font-size: 18px; color: var(--text-primary);">Assign Employees</h3>
+                                    <p id="shift-assign-modal-subtitle" class="text-secondary" style="font-size: 12px; margin: 4px 0 0 0;">Select employees to include in this shift.</p>
+                                </div>
+                                <button onclick="closeShiftAssignModal()" style="background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-secondary);">&times;</button>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <button type="button" class="btn btn-outline btn-sm" onclick="selectAllShiftEmpModal(true)">Select All</button>
+                                    <button type="button" class="btn btn-outline btn-sm" onclick="selectAllShiftEmpModal(false)">Deselect All</button>
+                                </div>
+                                <input type="text" id="shift-assign-search" class="form-control" placeholder="Search employees..." style="width: 240px;" oninput="filterShiftAssignModalList(this.value)">
+                            </div>
+                            <form id="form-shift-assign" onsubmit="handleShiftAssignSubmit(event)" style="flex: 1; overflow-y: auto; margin-bottom: 15px; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 10px; background: rgba(255,255,255,0.4);">
+                                <input type="hidden" id="shift-assign-target-id">
+                                <div id="shift-assign-emp-list" style="display: flex; flex-direction: column; gap: 8px;">
+                                    <!-- Dynamic employee checkboxes -->
+                                </div>
+                            </form>
+                            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                                <button type="button" class="btn btn-outline" onclick="closeShiftAssignModal()">Cancel</button>
+                                <button type="button" class="btn btn-primary" onclick="submitShiftBulkForm()">Save Assignments</button>
+                            </div>
                         </div>
                     </div>
 

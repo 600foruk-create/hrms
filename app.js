@@ -1974,117 +1974,194 @@ window.renderAdminShiftManagement = function() {
 
     const gridEl = document.getElementById('admin-shifts-grid');
     if (gridEl) {
+        gridEl.style.display = 'grid';
+        gridEl.style.gridTemplateColumns = 'repeat(5, minmax(0, 1fr))';
+        gridEl.style.gap = '15px';
+
+        const allUsers = (db.users || []).filter(u => u.role !== 'Admin' && u.status !== 'Inactive');
+
         gridEl.innerHTML = db.shifts.map(s => {
             const isFlex = s.isFlexible || s.id === 'shift_flexible';
+            const assignedCount = allUsers.filter(u => (u.shiftId || 'shift_general') === s.id).length;
+
             return `
-                <div class="card stat-card bg-glass" style="padding: 16px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.06); position: relative;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-                        <span class="badge-status ${isFlex ? 'pending' : 'approved'}" style="${isFlex ? 'background: rgba(168,85,247,0.15); color: #a855f7;' : 'background: rgba(45,212,191,0.15); color: #2dd4bf;'} padding: 4px 10px; font-size: 10px; font-weight: 700;">
-                            ${isFlex ? 'PER-EMPLOYEE MANUAL' : 'STANDARD SHIFT'}
-                        </span>
-                        ${!isFlex ? `
+                <div class="card stat-card bg-glass" style="padding: 16px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); position: relative; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.04);">
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                            <span class="badge-status ${isFlex ? 'pending' : 'approved'}" style="${isFlex ? 'background: rgba(168,85,247,0.15); color: #a855f7;' : 'background: rgba(45,212,191,0.15); color: #2dd4bf;'} padding: 3px 8px; font-size: 9px; font-weight: 700; border-radius: 4px;">
+                                ${isFlex ? 'MANUAL / CUSTOM' : 'STANDARD'}
+                            </span>
                             <div style="display: flex; gap: 6px;">
-                                <button onclick="openCreateShiftModal('${s.id}')" style="background:none; border:none; color:var(--primary); cursor:pointer; font-size: 13px;" title="Edit"><i class="fa-solid fa-pen"></i></button>
-                                ${s.id !== 'shift_general' ? `<button onclick="deleteShiftConfig('${s.id}')" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size: 13px;" title="Delete"><i class="fa-solid fa-trash"></i></button>` : ''}
+                                <button onclick="openCreateShiftModal('${s.id}')" style="background:none; border:none; color:var(--primary); cursor:pointer; font-size: 13px; padding: 2px;" title="Edit Shift Name & Timings"><i class="fa-solid fa-pen"></i></button>
+                                ${s.id !== 'shift_general' && !isFlex ? `<button onclick="deleteShiftConfig('${s.id}')" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size: 13px; padding: 2px;" title="Delete"><i class="fa-solid fa-trash"></i></button>` : ''}
                             </div>
-                        ` : '<span style="font-size: 11px; color: var(--text-secondary);"><i class="fa-solid fa-lock"></i> Built-in</span>'}
+                        </div>
+                        <h4 style="margin: 0 0 8px 0; font-size: 15px; color: var(--text-primary); font-weight: 700; word-break: break-word;">${s.name}</h4>
+                        <div style="font-size: 11px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 4px;">
+                            <div><i class="fa-regular fa-clock" style="width: 14px;"></i> Time: <strong style="color: var(--text-primary);">${isFlex ? 'Custom Set per User' : `${s.start} - ${s.end}`}</strong></div>
+                            <div><i class="fa-solid fa-mug-hot" style="width: 14px;"></i> Break: <strong style="color: var(--text-primary);">${s.breakMins || 60}m</strong></div>
+                        </div>
                     </div>
-                    <h4 style="margin: 0 0 8px 0; font-size: 16px; color: var(--text-primary); font-weight: 700;">${s.name}</h4>
-                    <div style="font-size: 12px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 4px;">
-                        <div><i class="fa-regular fa-clock" style="width: 16px;"></i> Timing: <strong style="color: var(--text-primary);">${isFlex ? 'Custom Set per User' : `${s.start} - ${s.end}`}</strong></div>
-                        <div><i class="fa-solid fa-mug-hot" style="width: 16px;"></i> Break: <strong style="color: var(--text-primary);">${s.breakMins || 60} mins</strong></div>
+                    <div style="margin-top: 15px; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 12px;">
+                        <div style="font-size: 12px; font-weight: 700; color: var(--primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-user-check"></i> <span>${assignedCount} Employee${assignedCount !== 1 ? 's' : ''}</span>
+                        </div>
+                        <button onclick="openShiftAssignModal('${s.id}')" class="btn btn-primary btn-sm w-100" style="font-size: 11px; padding: 6px 10px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                            <i class="fa-solid fa-users-gear"></i> Manage Employees
+                        </button>
                     </div>
                 </div>
             `;
         }).join('');
     }
-
-    renderShiftEmpTable();
 };
 
-window.renderShiftEmpTable = function(searchQuery = '') {
+window.openShiftAssignModal = function(shiftId) {
     const db = getDb();
-    const tbody = document.getElementById('admin-shift-assignment-body');
-    if (!tbody) return;
+    const modal = document.getElementById('modal-admin-shift-assign');
+    const titleEl = document.getElementById('shift-assign-modal-title');
+    const targetIdInput = document.getElementById('shift-assign-target-id');
+    const listEl = document.getElementById('shift-assign-emp-list');
+    const searchInput = document.getElementById('shift-assign-search');
+
+    if (!modal || !listEl) return;
+
+    const shift = (db.shifts || []).find(s => s.id === shiftId);
+    if (!shift) return;
+
+    const isFlex = shift.isFlexible || shift.id === 'shift_flexible';
+
+    titleEl.textContent = `Assign to: ${shift.name}`;
+    targetIdInput.value = shift.id;
+    if (searchInput) searchInput.value = '';
 
     const employees = (db.users || []).filter(u => u.role !== 'Admin' && u.status !== 'Inactive');
-    const filtered = searchQuery ? employees.filter(e => e.name.toLowerCase().includes(searchQuery.toLowerCase())) : employees;
 
-    if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No active employees found.</td></tr>`;
-        return;
+    if (employees.length === 0) {
+        listEl.innerHTML = `<div class="text-center text-muted py-4">No active employees found.</div>`;
+    } else {
+        listEl.innerHTML = employees.map(u => {
+            const isAssigned = (u.shiftId || 'shift_general') === shiftId;
+            const dFrom = u.dutyFrom || '09:00';
+            const dTo = u.dutyTo || '17:00';
+            const bMins = u.breakMins !== undefined ? u.breakMins : 60;
+
+            return `
+                <div class="shift-assign-item" data-name="${u.name.toLowerCase()}" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(255,255,255,0.7); border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; transition: all 0.2s;">
+                    <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; flex: 1; margin: 0;">
+                        <input type="checkbox" name="shift_emp_cb" value="${u.id}" ${isAssigned ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;" onchange="toggleModalEmpFlexTiming(this, '${u.id}')">
+                        <span style="width:30px; height:30px; border-radius:50%; background:var(--primary-light); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">${getInitials(u.name)}</span>
+                        <div>
+                            <div style="font-weight: 700; font-size: 13px; color: var(--text-primary);">${u.name}</div>
+                            <div style="font-size: 11px; color: var(--text-secondary);">${u.department || 'General Department'}</div>
+                        </div>
+                    </label>
+                    ${isFlex ? `
+                        <div id="flex-timing-box-${u.id}" style="display: ${isAssigned ? 'flex' : 'none'}; align-items: center; gap: 8px; background: rgba(168,85,247,0.08); padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(168,85,247,0.2);">
+                            <div style="display:flex; align-items:center; gap:4px; font-size:11px; font-weight:600; color:#a855f7;">
+                                <span>Start:</span>
+                                <input type="time" class="form-control btn-sm" id="assign_start_${u.id}" value="${dFrom}" style="width: 100px; padding: 2px 4px; font-size:12px; font-weight:700; border-color:#a855f7;">
+                            </div>
+                            <div style="display:flex; align-items:center; gap:4px; font-size:11px; font-weight:600; color:#a855f7;">
+                                <span>End:</span>
+                                <input type="time" class="form-control btn-sm" id="assign_end_${u.id}" value="${dTo}" style="width: 100px; padding: 2px 4px; font-size:12px; font-weight:700; border-color:#a855f7;">
+                            </div>
+                            <div style="display:flex; align-items:center; gap:4px; font-size:11px; font-weight:600; color:#a855f7;">
+                                <span>Break(m):</span>
+                                <input type="number" class="form-control btn-sm" id="assign_break_${u.id}" value="${bMins}" min="0" max="300" style="width: 65px; padding: 2px 4px; font-size:12px; font-weight:700; border-color:#a855f7;">
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
     }
 
-    tbody.innerHTML = filtered.map(u => {
-        const currentShiftId = u.shiftId || 'shift_general';
-        const isFlex = currentShiftId === 'shift_flexible';
-        const dFrom = u.dutyFrom || '09:00';
-        const dTo = u.dutyTo || '17:00';
-        const bMins = u.breakMins !== undefined ? u.breakMins : 60;
-
-        const shiftOptions = (db.shifts || []).map(s => `<option value="${s.id}" ${s.id === currentShiftId ? 'selected' : ''}>${s.name}</option>`).join('');
-
-        return `
-            <tr style="vertical-align: middle;">
-                <td style="font-weight: 600; color: var(--text-primary);">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="width:28px; height:28px; border-radius:50%; background:var(--primary-light); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">${getInitials(u.name)}</span>
-                        <span>${u.name}</span>
-                    </div>
-                </td>
-                <td class="text-secondary" style="font-size: 13px;">${u.department || 'General'}</td>
-                <td>
-                    <select class="form-control" style="width: 200px; font-size: 13px; font-weight: 600; ${isFlex ? 'border-color: #a855f7; color: #a855f7;' : ''}" onchange="assignEmployeeShiftConfig('${u.id}', this.value)">
-                        ${shiftOptions}
-                    </select>
-                </td>
-                <td class="text-center">
-                    <input type="time" class="form-control text-center" style="width: 120px; margin: 0 auto; ${!isFlex ? 'background: rgba(0,0,0,0.03); opacity: 0.6; cursor: not-allowed;' : 'border-color: #a855f7; font-weight:700;'}" value="${dFrom}" ${!isFlex ? 'disabled' : ''} onchange="updateEmpCustomTiming('${u.id}', 'dutyFrom', this.value)">
-                </td>
-                <td class="text-center">
-                    <input type="time" class="form-control text-center" style="width: 120px; margin: 0 auto; ${!isFlex ? 'background: rgba(0,0,0,0.03); opacity: 0.6; cursor: not-allowed;' : 'border-color: #a855f7; font-weight:700;'}" value="${dTo}" ${!isFlex ? 'disabled' : ''} onchange="updateEmpCustomTiming('${u.id}', 'dutyTo', this.value)">
-                </td>
-                <td class="text-center">
-                    <input type="number" class="form-control text-center" style="width: 80px; margin: 0 auto; ${!isFlex ? 'background: rgba(0,0,0,0.03); opacity: 0.6; cursor: not-allowed;' : 'border-color: #a855f7; font-weight:700;'}" value="${bMins}" min="0" max="300" ${!isFlex ? 'disabled' : ''} onchange="updateEmpCustomTiming('${u.id}', 'breakMins', this.value)">
-                </td>
-                <td class="text-center">
-                    ${isFlex ? `<span class="badge-status pending" style="background: rgba(168,85,247,0.15); color: #a855f7; font-size: 10px;">Manual Timings Active</span>` : `<span class="text-muted" style="font-size:11px;">Follows Shift</span>`}
-                </td>
-            </tr>
-        `;
-    }).join('');
+    modal.classList.remove('hidden');
 };
 
-window.filterShiftEmpTable = function(val) {
-    renderShiftEmpTable(val);
+window.closeShiftAssignModal = function() {
+    const modal = document.getElementById('modal-admin-shift-assign');
+    if (modal) modal.classList.add('hidden');
 };
 
-window.assignEmployeeShiftConfig = function(empId, shiftId) {
-    const db = getDb();
-    const user = (db.users || []).find(u => String(u.id) === String(empId));
-    if (!user) return;
-
-    user.shiftId = shiftId;
-    const shift = (db.shifts || []).find(s => s.id === shiftId);
-    if (shift && shiftId !== 'shift_flexible') {
-        user.dutyFrom = shift.start;
-        user.dutyTo = shift.end;
-        user.breakMins = shift.breakMins;
+window.toggleModalEmpFlexTiming = function(cbEl, empId) {
+    const box = document.getElementById(`flex-timing-box-${empId}`);
+    if (box) {
+        box.style.display = cbEl.checked ? 'flex' : 'none';
     }
-
-    saveDb(db);
-    showToast("Shift Assigned", `Updated shift schedule for ${user.name}.`, "success");
-    renderShiftEmpTable(document.getElementById('shift-emp-search') ? document.getElementById('shift-emp-search').value : '');
 };
 
-window.updateEmpCustomTiming = function(empId, field, value) {
-    const db = getDb();
-    const user = (db.users || []).find(u => String(u.id) === String(empId));
-    if (!user) return;
+window.selectAllShiftEmpModal = function(selectStatus) {
+    const modal = document.getElementById('modal-admin-shift-assign');
+    if (!modal) return;
+    modal.querySelectorAll('input[name="shift_emp_cb"]').forEach(cb => {
+        if (cb.closest('.shift-assign-item') && cb.closest('.shift-assign-item').style.display !== 'none') {
+            cb.checked = selectStatus;
+            toggleModalEmpFlexTiming(cb, cb.value);
+        }
+    });
+};
 
-    user[field] = value;
+window.filterShiftAssignModalList = function(query) {
+    const modal = document.getElementById('modal-admin-shift-assign');
+    if (!modal) return;
+    const lower = query.toLowerCase();
+    modal.querySelectorAll('.shift-assign-item').forEach(item => {
+        const name = item.getAttribute('data-name') || '';
+        item.style.display = name.includes(lower) ? 'flex' : 'none';
+    });
+};
+
+window.submitShiftBulkForm = function() {
+    const form = document.getElementById('form-shift-assign');
+    if (form) form.dispatchEvent(new Event('submit'));
+};
+
+window.handleShiftAssignSubmit = function(e) {
+    e.preventDefault();
+    const db = getDb();
+    const targetShiftId = document.getElementById('shift-assign-target-id').value;
+    const shift = (db.shifts || []).find(s => s.id === targetShiftId);
+    if (!shift) return;
+
+    const isFlex = shift.isFlexible || shift.id === 'shift_flexible';
+    const checkedBoxes = document.querySelectorAll('#modal-admin-shift-assign input[name="shift_emp_cb"]:checked');
+    const checkedEmpIds = Array.from(checkedBoxes).map(cb => String(cb.value));
+
+    // Update all users
+    (db.users || []).forEach(u => {
+        if (u.role === 'Admin' || u.status === 'Inactive') return;
+
+        if (checkedEmpIds.includes(String(u.id))) {
+            // Assigned to this shift
+            u.shiftId = targetShiftId;
+            if (isFlex) {
+                const sStartEl = document.getElementById(`assign_start_${u.id}`);
+                const sEndEl = document.getElementById(`assign_end_${u.id}`);
+                const sBreakEl = document.getElementById(`assign_break_${u.id}`);
+                if (sStartEl) u.dutyFrom = sStartEl.value || '09:00';
+                if (sEndEl) u.dutyTo = sEndEl.value || '17:00';
+                if (sBreakEl) u.breakMins = parseInt(sBreakEl.value) || 60;
+            } else {
+                u.dutyFrom = shift.start;
+                u.dutyTo = shift.end;
+                u.breakMins = shift.breakMins || 60;
+            }
+        } else if ((u.shiftId || 'shift_general') === targetShiftId) {
+            // Was previously assigned to this shift, but unchecked -> reset to General
+            u.shiftId = 'shift_general';
+            const genShift = (db.shifts || []).find(s => s.id === 'shift_general');
+            u.dutyFrom = genShift ? genShift.start : '09:00';
+            u.dutyTo = genShift ? genShift.end : '17:00';
+            u.breakMins = genShift ? genShift.breakMins : 60;
+        }
+    });
+
     saveDb(db);
-    showToast("Timing Saved", `Updated manual duty hour for ${user.name}.`, "success");
+    closeShiftAssignModal();
+    showToast("Employees Assigned", `Successfully updated employee assignments for '${shift.name}'.`, "success");
+    renderAdminShiftManagement();
 };
 
 window.openCreateShiftModal = function(editShiftId = null) {
