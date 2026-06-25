@@ -1732,6 +1732,8 @@ window.renderAdminAttendanceSlab = function() {
         }
     });
 
+    const pieTotal = slabCounts.A + slabCounts.B + slabCounts.C + slabCounts.D;
+
     container.innerHTML = `
         <div class="card stat-card bg-glass" style="flex: 1 1 120px; max-width: 170px; border:none; box-shadow: 0 4px 12px 0 rgba(0,0,0,0.05); border-radius: 10px; padding: 10px 14px; margin: 0;">
             <div class="card-body" style="padding: 0;">
@@ -1763,12 +1765,20 @@ window.renderAdminAttendanceSlab = function() {
                 <h2 style="margin: 0; color: var(--primary); font-size: 20px;">${leaveToday}</h2>
             </div>
         </div>
+        <div class="card stat-card bg-glass" style="flex: 2 1 200px; max-width: 300px; border:none; box-shadow: 0 4px 12px 0 rgba(0,0,0,0.05); border-radius: 10px; padding: 10px 14px; margin: 0; display: flex; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
+                <div style="width: 48px; height: 48px; position: relative; flex-shrink: 0;">
+                    <div id="attendance-slab-pie-chart" style="width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(#eee 100%);"></div>
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                    <div class="text-secondary font-weight-bold mb-1" style="font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Slab Distribution (${pieTotal})</div>
+                    <div id="attendance-slab-pie-legend" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; font-size: 10px;"></div>
+                </div>
+            </div>
+        </div>
     `;
 
     // Render Pie Chart
-    const pieTotal = slabCounts.A + slabCounts.B + slabCounts.C + slabCounts.D;
-    document.getElementById('attendance-slab-pie-total').textContent = pieTotal;
-    
     if (pieTotal > 0) {
         let pctA = Math.round((slabCounts.A / pieTotal) * 100);
         let pctB = Math.round((slabCounts.B / pieTotal) * 100);
@@ -1779,34 +1789,38 @@ window.renderAdminAttendanceSlab = function() {
         let angleB = angleA + ((pctB / 100) * 360);
         let angleC = angleB + ((pctC / 100) * 360);
         
-        document.getElementById('attendance-slab-pie-chart').style.background = `conic-gradient(
-            var(--success) 0deg ${angleA}deg,
-            var(--info) ${angleA}deg ${angleB}deg,
-            var(--warning) ${angleB}deg ${angleC}deg,
-            var(--danger) ${angleC}deg 360deg
-        )`;
-    } else {
-        document.getElementById('attendance-slab-pie-chart').style.background = `conic-gradient(#eee 100%)`;
+        const pieEl = document.getElementById('attendance-slab-pie-chart');
+        if(pieEl) {
+            pieEl.style.background = `conic-gradient(
+                var(--success) 0deg ${angleA}deg,
+                var(--info) ${angleA}deg ${angleB}deg,
+                var(--warning) ${angleB}deg ${angleC}deg,
+                var(--danger) ${angleC}deg 360deg
+            )`;
+        }
     }
 
-    document.getElementById('attendance-slab-pie-legend').innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
-            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--success);margin-right:5px;"></span> Slab A (Excellent)</span>
-            <strong>${slabCounts.A}</strong>
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
-            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--info);margin-right:5px;"></span> Slab B (Good)</span>
-            <strong>${slabCounts.B}</strong>
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
-            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--warning);margin-right:5px;"></span> Slab C (Average)</span>
-            <strong>${slabCounts.C}</strong>
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
-            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--danger);margin-right:5px;"></span> Slab D (Poor)</span>
-            <strong>${slabCounts.D}</strong>
-        </div>
-    `;
+    const legendEl = document.getElementById('attendance-slab-pie-legend');
+    if(legendEl) {
+        legendEl.innerHTML = `
+            <div style="display:flex; align-items:center; gap:4px; color:var(--text-secondary); white-space:nowrap;">
+                <span style="width:7px; height:7px; border-radius:50%; background:var(--success); display:inline-block;"></span>
+                <span>A: <strong style="color:var(--text-primary);">${slabCounts.A}</strong></span>
+            </div>
+            <div style="display:flex; align-items:center; gap:4px; color:var(--text-secondary); white-space:nowrap;">
+                <span style="width:7px; height:7px; border-radius:50%; background:var(--info); display:inline-block;"></span>
+                <span>B: <strong style="color:var(--text-primary);">${slabCounts.B}</strong></span>
+            </div>
+            <div style="display:flex; align-items:center; gap:4px; color:var(--text-secondary); white-space:nowrap;">
+                <span style="width:7px; height:7px; border-radius:50%; background:var(--warning); display:inline-block;"></span>
+                <span>C: <strong style="color:var(--text-primary);">${slabCounts.C}</strong></span>
+            </div>
+            <div style="display:flex; align-items:center; gap:4px; color:var(--text-secondary); white-space:nowrap;">
+                <span style="width:7px; height:7px; border-radius:50%; background:var(--danger); display:inline-block;"></span>
+                <span>D: <strong style="color:var(--text-primary);">${slabCounts.D}</strong></span>
+            </div>
+        `;
+    }
 
     // Render Top 5 & Bottom 5 (Most Late)
     const sortedByPercentage = [...statsArray].sort((a,b) => b.percentage - a.percentage);

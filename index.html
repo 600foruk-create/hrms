@@ -1171,44 +1171,25 @@
                                         <div class="card"><div class="card-body text-center text-muted">Loading overview data...</div></div>
                                     </div>
                                     
-                                    <!-- 2. Analytics Section -->
+                                    <!-- 2. Analytics Section (Leaderboards Grid) -->
                                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-                                        
-                                        <!-- Slab Distribution Pie Chart -->
+                                        <!-- Most Late Employees -->
                                         <div class="card bg-glass" style="border:none; box-shadow: 0 4px 16px 0 rgba(0,0,0,0.05); border-radius: 12px;">
-                                            <div class="card-header" style="border-bottom: 1px solid rgba(0,0,0,0.05); padding: 15px 20px;">
-                                                <h4 style="margin: 0; font-size: 14px; color: var(--text-primary);">Slab Distribution</h4>
+                                            <div class="card-header" style="border-bottom: 1px solid rgba(0,0,0,0.05); padding: 12px 18px; display: flex; justify-content: space-between; align-items: center;">
+                                                <h4 style="margin: 0; font-size: 13px; color: var(--text-primary);"><i class="fa-solid fa-clock-rotate-left" style="color:var(--danger);"></i> Most Late Employees</h4>
                                             </div>
-                                            <div class="card-body" style="padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 250px;">
-                                                <div class="doughnut-chart-container" style="max-width: 200px; max-height: 200px;">
-                                                    <div class="doughnut-chart" id="attendance-slab-pie-chart" style="background: conic-gradient(#eee 100%);"></div>
-                                                    <div class="doughnut-center" id="attendance-slab-pie-center" style="font-size: 14px; line-height: 1.2;">
-                                                        <strong style="font-size:24px;" id="attendance-slab-pie-total">0</strong><br>Total
-                                                    </div>
-                                                </div>
-                                                <div id="attendance-slab-pie-legend" style="margin-left: 30px; display: flex; flex-direction: column; gap: 10px;">
-                                                    <!-- Legend inserted here -->
-                                                </div>
+                                            <div class="card-body" style="padding: 12px 18px;" id="attendance-slab-late5">
+                                                <!-- List here -->
                                             </div>
                                         </div>
 
-                                        <!-- Top Employees & Most Late -->
-                                        <div style="display: flex; flex-direction: column; gap: 20px;">
-                                            <div class="card bg-glass" style="border:none; box-shadow: 0 4px 16px 0 rgba(0,0,0,0.05); border-radius: 12px; flex: 1;">
-                                                <div class="card-header" style="border-bottom: 1px solid rgba(0,0,0,0.05); padding: 10px 15px; display: flex; justify-content: space-between; align-items: center;">
-                                                    <h4 style="margin: 0; font-size: 13px; color: var(--text-primary);"><i class="fa-solid fa-trophy" style="color:var(--success);"></i> Top 5 Employees</h4>
-                                                </div>
-                                                <div class="card-body" style="padding: 10px 15px;" id="attendance-slab-top5">
-                                                    <!-- List here -->
-                                                </div>
+                                        <!-- Top 5 Employees -->
+                                        <div class="card bg-glass" style="border:none; box-shadow: 0 4px 16px 0 rgba(0,0,0,0.05); border-radius: 12px;">
+                                            <div class="card-header" style="border-bottom: 1px solid rgba(0,0,0,0.05); padding: 12px 18px; display: flex; justify-content: space-between; align-items: center;">
+                                                <h4 style="margin: 0; font-size: 13px; color: var(--text-primary);"><i class="fa-solid fa-trophy" style="color:var(--success);"></i> Top 5 Employees</h4>
                                             </div>
-                                            <div class="card bg-glass" style="border:none; box-shadow: 0 4px 16px 0 rgba(0,0,0,0.05); border-radius: 12px; flex: 1;">
-                                                <div class="card-header" style="border-bottom: 1px solid rgba(0,0,0,0.05); padding: 10px 15px; display: flex; justify-content: space-between; align-items: center;">
-                                                    <h4 style="margin: 0; font-size: 13px; color: var(--text-primary);"><i class="fa-solid fa-clock-rotate-left" style="color:var(--danger);"></i> Most Late Employees</h4>
-                                                </div>
-                                                <div class="card-body" style="padding: 10px 15px;" id="attendance-slab-late5">
-                                                    <!-- List here -->
-                                                </div>
+                                            <div class="card-body" style="padding: 12px 18px;" id="attendance-slab-top5">
+                                                <!-- List here -->
                                             </div>
                                         </div>
                                     </div>
