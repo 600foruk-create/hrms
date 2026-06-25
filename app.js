@@ -69,13 +69,13 @@ async function syncServer() {
             });
 
             // Auto-cleanup orphaned/dummy records
-            const validUserIds = result.data.users.map(u => u.id);
+            const validUserIdsStr = result.data.users.map(u => String(u.id));
             let needsCleanup = false;
 
             const cleanList = (list, idField) => {
                 if (!list) return [];
                 const origLen = list.length;
-                const filtered = list.filter(item => validUserIds.includes(item[idField]));
+                const filtered = list.filter(item => validUserIdsStr.includes(String(item[idField])));
                 if (filtered.length !== origLen) needsCleanup = true;
                 return filtered;
             };
@@ -84,6 +84,16 @@ async function syncServer() {
             result.data.productivity = cleanList(result.data.productivity, 'employee_id');
             result.data.attendance = cleanList(result.data.attendance, 'employeeId');
             result.data.payrollHistory = cleanList(result.data.payrollHistory, 'userId');
+
+            // Deduplicate attendance records (keep latest entry for each employee & date)
+            if (result.data.attendance) {
+                const attMap = new Map();
+                result.data.attendance.forEach(a => {
+                    attMap.set(`${String(a.employeeId)}_${a.date}`, a);
+                });
+                if (attMap.size !== result.data.attendance.length) needsCleanup = true;
+                result.data.attendance = Array.from(attMap.values());
+            }
 
             window.hrmsDatabase = result.data;
             window.dbLoaded = true;
@@ -657,7 +667,7 @@ function markAutoAttendance(employee) {
     const db = getDb();
     const today = new Date().toISOString().split('T')[0];
 
-    const alreadyMarked = db.attendance.find(a => a.employeeId === employee.id && a.date === today);
+    const alreadyMarked = db.attendance.find(a => String(a.employeeId) === String(employee.id) && a.date === today);
     if (!alreadyMarked) {
         db.attendance.push({
             date: today,
@@ -677,7 +687,7 @@ function updatePunchButtonState() {
     if (!currentUser) return;
     const db = getDb();
     const today = new Date().toISOString().split('T')[0];
-    const record = db.attendance.find(a => a.employeeId === currentUser.id && a.date === today);
+    const record = db.attendance.find(a => String(a.employeeId) === String(currentUser.id) && a.date === today);
     const btnText = document.getElementById('punch-btn-text');
     const btnIcon = document.querySelector('#btn-punch-attendance i');
     const btn = document.getElementById('btn-punch-attendance');
@@ -710,7 +720,7 @@ function handlePunchInOut() {
     const db = getDb();
     const today = new Date().toISOString().split('T')[0];
     const now = new Date().toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit' });
-    let record = db.attendance.find(a => a.employeeId === currentUser.id && a.date === today);
+    let record = db.attendance.find(a => String(a.employeeId) === String(currentUser.id) && a.date === today);
 
     if (!record) {
         // Create Punch In record
@@ -2680,7 +2690,7 @@ function renderManagerDashboard() {
     }
 
     // Manager Personal Stats
-    const myAttToday = db.attendance.find(a => a.employeeId === currentUser.id && a.date === today);
+    const myAttToday = db.attendance.find(a => String(a.employeeId) === String(currentUser.id) && a.date === today);
     const myAttStatus = myAttToday ? myAttToday.status : 'Absent';
     const myProdSubmissions = (db.productivity || []).filter(p => (p.employee_id || p.employeeId) === currentUser.id && p.status === 'Approved');
     const myTotalScore = myProdSubmissions.length > 0 ? Math.round(myProdSubmissions.reduce((sum, p) => sum + p.score, 0) / myProdSubmissions.length) : 0;
@@ -3019,7 +3029,7 @@ function renderEmployeeDashboard() {
 
     // Top Metric Cards
     const today = new Date().toISOString().split('T')[0];
-    const myAttToday = db.attendance.find(a => a.employeeId === currentUser.id && a.date === today);
+    const myAttToday = db.attendance.find(a => String(a.employeeId) === String(currentUser.id) && a.date === today);
     const attStatus = myAttToday ? myAttToday.status : 'Absent';
 
     const attEl = document.getElementById('employee-metric-attendance');
@@ -4484,7 +4494,7 @@ window.openManualAttendanceModal = function () {
             <tbody>`;
 
         targetUsers.forEach(emp => {
-            const existingRecord = db.attendance.find(a => a.employeeId === emp.id && a.date === selectedDate);
+            const existingRecord = db.attendance.find(a => String(a.employeeId) === String(emp.id) && a.date === selectedDate);
             const status = existingRecord ? existingRecord.status : '';
 
             htmlStr += `
@@ -4536,7 +4546,7 @@ document.getElementById('attendance-log-form').addEventListener('submit', (e) =>
 
         if (selectedRadio) {
             const status = selectedRadio.value;
-            const existing = db.attendance.find(a => a.employeeId === empId && a.date === date);
+            const existing = db.attendance.find(a => String(a.employeeId) === String(empId) && a.date === date);
 
             if (existing) {
                 // If they change status, update it.

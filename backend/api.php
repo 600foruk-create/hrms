@@ -1041,6 +1041,12 @@ elseif ($action === 'save_all') {
 
         // 5. Sync Attendance
         try {
+            try {
+                $pdo->exec("ALTER TABLE attendance MODIFY COLUMN `status` varchar(50) NOT NULL");
+                $pdo->exec("ALTER TABLE attendance ADD COLUMN `timeIn` varchar(50) DEFAULT NULL");
+                $pdo->exec("ALTER TABLE attendance ADD COLUMN `timeOut` varchar(50) DEFAULT NULL");
+            } catch (Exception $colEx) {}
+
             $pdo->exec("DELETE FROM attendance");
             if (!empty($data['attendance'])) {
                 $stmt = $pdo->prepare("INSERT INTO attendance (date, employeeId, employeeName, status, markedBy, timeIn, timeOut) VALUES (?, ?, ?, ?, ?, ?, ?)");
@@ -1048,7 +1054,9 @@ elseif ($action === 'save_all') {
                     $stmt->execute([$a['date'], $a['employeeId'], $a['employeeName'], $a['status'], $a['markedBy'] ?? 'System', $a['timeIn'] ?? null, $a['timeOut'] ?? null]);
                 }
             }
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+            error_log("Attendance sync error: " . $e->getMessage());
+        }
 
 
 

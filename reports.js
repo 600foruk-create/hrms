@@ -211,7 +211,7 @@ function generateAdminAttendanceReport(db) {
     let logs = [];
     if(db.attendance) {
         db.attendance.forEach(log => {
-            if(emp !== 'All' && log.employeeId !== emp) return;
+            if(emp !== 'All' && String(log.employeeId) !== String(emp)) return;
             if(start && log.date < start) return;
             if(end && log.date > end) return;
             if(status !== 'All' && log.status !== status) return;
@@ -566,7 +566,7 @@ function generateEmpAttendanceReport(db, empId) {
     let logs = [];
     if(db.attendance) {
         logs = db.attendance.filter(log => {
-            if(log.employeeId !== empId) return false;
+            if(String(log.employeeId) !== String(empId)) return false;
             if(start && log.date < start) return false;
             if(end && log.date > end) return false;
             if(status !== 'All' && log.status !== status) return false;

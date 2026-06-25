@@ -1405,7 +1405,7 @@ window.generatePayrollPreview = function() {
         let halfDayCount = 0;
         if (db.attendance) {
             db.attendance.forEach(att => {
-                if (att.userId === user.id) {
+                if (String(att.userId || att.employeeId) === String(user.id)) {
                     const attDate = new Date(att.date);
                     if (attDate >= startDate && attDate <= endDate) {
                         if (att.status === 'Absent') absentCount += 1;
