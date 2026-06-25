@@ -794,6 +794,13 @@ if ($action === 'load_all') {
             $dbState['productivityCategories'] = ['businessUnits' => [], 'tesCategories' => []];
         }
 
+        if (empty($dbState['productivityCategories']['businessUnits']) && !empty($dbState['systemSettings']->productivityCategories)) {
+            $sysProd = json_decode(json_encode($dbState['systemSettings']->productivityCategories), true);
+            if (!empty($sysProd['businessUnits'])) {
+                $dbState['productivityCategories'] = $sysProd;
+            }
+        }
+
         try {
             $stmt = $pdo->query("SELECT * FROM productivity ORDER BY created_at DESC");
             $rawProd = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -1042,8 +1049,48 @@ elseif ($action === 'save_all') {
             }
         } catch (Exception $e) {}
 
-        // 4. Sync Productivity - REMOVED TO PREVENT BULK OVERWRITE
-        // Productivity logs are now strictly managed via 'save_productivity_batch', 'update_productivity_status', and 'delete_productivity_log'.
+        // 4. Sync Productivity Categories & Logs
+        try {
+            if (!empty($data['productivityCategories'])) {
+                $pData = $data['productivityCategories'];
+                $pdo->exec("DELETE FROM productivity_categories");
+                $stmt = $pdo->prepare("INSERT INTO productivity_categories (id, type, parent_id, name, weightage, description) VALUES (?, ?, ?, ?, ?, ?)");
+                if (!empty($pData['businessUnits'])) {
+                    foreach ($pData['businessUnits'] as $bu) {
+                        $stmt->execute([$bu['id'], 'BU', null, $bu['name'], 0, '']);
+                        if (!empty($bu['practices'])) {
+                            foreach ($bu['practices'] as $practice) {
+                                $stmt->execute([$practice['id'], 'PRACTICE', $bu['id'], $practice['name'], 0, '']);
+                            }
+                        }
+                    }
+                }
+                if (!empty($pData['tesCategories'])) {
+                    foreach ($pData['tesCategories'] as $tes) {
+                        $stmt->execute([$tes['id'], 'TES', $tes['buId'] ?? null, $tes['name'], $tes['weightage'] ?? 0, $tes['desc'] ?? '']);
+                        if (!empty($tes['tasks'])) {
+                            foreach ($tes['tasks'] as $task) {
+                                $stmt->execute([$task['id'], 'TASK', $tes['id'], $task['name'], $task['weightage'] ?? 0, '']);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception $e) {}
+
+        try {
+            if (!empty($data['productivity'])) {
+                $stmt = $pdo->prepare("INSERT INTO productivity (id, employee_id, date, category, sub_category, electronic_mins, manual_mins, total_mins, score_percentage, notes, doc_path, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE status = VALUES(status), notes = VALUES(notes), score_percentage = VALUES(score_percentage)");
+                foreach ($data['productivity'] as $p) {
+                    $stmt->execute([
+                        $p['id'], $p['employee_id'] ?? ($p['employeeId'] ?? ''), $p['date'], $p['category'] ?? '', $p['sub_category'] ?? '',
+                        (int)($p['electronic_mins'] ?? 0), (int)($p['manual_mins'] ?? 0), (int)($p['total_mins'] ?? 0),
+                        (float)($p['score_percentage'] ?? 0), $p['notes'] ?? '', $p['doc_path'] ?? null,
+                        $p['status'] ?? 'Pending', $p['created_at'] ?? date('Y-m-d H:i:s')
+                    ]);
+                }
+            }
+        } catch (Exception $e) {}
 
         // 5. Sync Attendance
         try {
