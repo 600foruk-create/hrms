@@ -1640,17 +1640,29 @@ window.renderAdminAttendanceSlab = function() {
     
     const filter = filterSelect ? filterSelect.value : 'this_month';
     const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
     
-    let targetPrefix = '';
+    let relevantLogs = db.attendance || [];
+    
     if (filter === 'this_month') {
-        targetPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    } else {
+        const targetPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        relevantLogs = relevantLogs.filter(a => a.date && a.date.startsWith(targetPrefix));
+    } else if (filter === 'last_month') {
         const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        targetPrefix = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}`;
+        const targetPrefix = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}`;
+        relevantLogs = relevantLogs.filter(a => a.date && a.date.startsWith(targetPrefix));
+    } else if (filter === 'today') {
+        relevantLogs = relevantLogs.filter(a => a.date === todayStr);
+    } else if (filter === 'custom') {
+        const start = document.getElementById('attendance-slab-start') ? document.getElementById('attendance-slab-start').value : '';
+        const end = document.getElementById('attendance-slab-end') ? document.getElementById('attendance-slab-end').value : '';
+        if (start) {
+            relevantLogs = relevantLogs.filter(a => a.date >= start);
+        }
+        if (end) {
+            relevantLogs = relevantLogs.filter(a => a.date <= end);
+        }
     }
-
-    // Filter attendance logs for the targeted month
-    const relevantLogs = (db.attendance || []).filter(a => a.date && a.date.startsWith(targetPrefix));
     
     let totalPresent = 0;
     let totalLate = 0;
@@ -1682,22 +1694,22 @@ window.renderAdminAttendanceSlab = function() {
 
     // Render Summary Cards
     container.innerHTML = `
-        <div class="card stat-card" style="border-left: 4px solid var(--success);">
-            <div class="card-body">
-                <div class="text-secondary font-weight-bold mb-1">Total On-Time (Slab A)</div>
-                <h2 style="margin: 0; color: var(--success);">${totalPresent}</h2>
+        <div class="card stat-card bg-glass" style="border:none; box-shadow: 0 4px 16px 0 rgba(0,0,0,0.05); backdrop-filter: blur(10px); border-radius: 12px; border-left: 4px solid var(--success); padding: 20px;">
+            <div class="card-body" style="padding: 0;">
+                <div class="text-secondary font-weight-bold mb-1" style="font-size: 14px;">Total On-Time (Slab A)</div>
+                <h2 style="margin: 0; color: var(--success); font-size: 28px;">${totalPresent}</h2>
             </div>
         </div>
-        <div class="card stat-card" style="border-left: 4px solid var(--warning);">
-            <div class="card-body">
-                <div class="text-secondary font-weight-bold mb-1">Total Late (Slab B)</div>
-                <h2 style="margin: 0; color: var(--warning);">${totalLate}</h2>
+        <div class="card stat-card bg-glass" style="border:none; box-shadow: 0 4px 16px 0 rgba(0,0,0,0.05); backdrop-filter: blur(10px); border-radius: 12px; border-left: 4px solid var(--warning); padding: 20px;">
+            <div class="card-body" style="padding: 0;">
+                <div class="text-secondary font-weight-bold mb-1" style="font-size: 14px;">Total Late (Slab B)</div>
+                <h2 style="margin: 0; color: var(--warning); font-size: 28px;">${totalLate}</h2>
             </div>
         </div>
-        <div class="card stat-card" style="border-left: 4px solid var(--primary);">
-            <div class="card-body">
-                <div class="text-secondary font-weight-bold mb-1">Total Leaves (Slab C)</div>
-                <h2 style="margin: 0; color: var(--primary);">${totalLeave}</h2>
+        <div class="card stat-card bg-glass" style="border:none; box-shadow: 0 4px 16px 0 rgba(0,0,0,0.05); backdrop-filter: blur(10px); border-radius: 12px; border-left: 4px solid var(--primary); padding: 20px;">
+            <div class="card-body" style="padding: 0;">
+                <div class="text-secondary font-weight-bold mb-1" style="font-size: 14px;">Total Leaves (Slab C)</div>
+                <h2 style="margin: 0; color: var(--primary); font-size: 28px;">${totalLeave}</h2>
             </div>
         </div>
     `;

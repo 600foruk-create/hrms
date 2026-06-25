@@ -1143,11 +1143,25 @@
                             <div class="section-card bg-glass flex-table-card" style="margin: 0; height: calc(100vh - 240px); display: flex; flex-direction: column; min-height: 0;">
                                 <div class="section-card-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 15px;">
                                     <h3 style="margin: 0; font-size: 16px;">Productivity & Attendance Slabs</h3>
-                                    <div style="display: flex; gap: 10px;">
-                                        <select id="attendance-slab-filter" class="form-control" style="width: auto;" onchange="if(window.renderAdminAttendanceSlab) window.renderAdminAttendanceSlab()">
-                                            <option value="this_month">This Month</option>
+                                    <div style="display: flex; gap: 10px; align-items: center;">
+                                        <select id="attendance-slab-filter" class="form-control" style="width: auto;" onchange="
+                                            if(this.value === 'custom') {
+                                                document.getElementById('attendance-slab-custom-dates').style.display = 'flex';
+                                            } else {
+                                                document.getElementById('attendance-slab-custom-dates').style.display = 'none';
+                                                if(window.renderAdminAttendanceSlab) window.renderAdminAttendanceSlab();
+                                            }
+                                        ">
+                                            <option value="today">Today</option>
+                                            <option value="this_month" selected>This Month</option>
                                             <option value="last_month">Last Month</option>
+                                            <option value="custom">Custom</option>
                                         </select>
+                                        <div id="attendance-slab-custom-dates" style="display: none; gap: 10px;">
+                                            <input type="date" id="attendance-slab-start" class="form-control" style="width: auto;">
+                                            <input type="date" id="attendance-slab-end" class="form-control" style="width: auto;">
+                                            <button class="btn btn-primary btn-sm" onclick="if(window.renderAdminAttendanceSlab) window.renderAdminAttendanceSlab()"><i class="fa-solid fa-filter"></i> Filter</button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="table-container" style="flex: 1; overflow-y: auto; min-height: 0; padding: 20px; background: var(--bg-primary);">
