@@ -1728,10 +1728,21 @@ function renderAdminAnnouncementsTab() {
     }
 }
 
-window.renderUserAnnouncementsTab = function() {
+window.renderUserAnnouncementsTab = function(subtab = 'today') {
     const db = getDb();
-    const role = currentUser.role.toLowerCase();
-    const containerId = role === 'manager' ? 'manager-announcements-container' : 'employee-announcements-container';
+    const role = currentUser.role.toLowerCase() === 'manager' ? 'manager' : 'employee';
+    
+    // UI Tab Switching logic
+    const tabSelector = `${role}-tab-announcements`;
+    document.querySelectorAll(`#${tabSelector} .btn-sub-tab`).forEach(b => b.classList.remove('active'));
+    document.querySelectorAll(`#${tabSelector} .sub-tab-content`).forEach(c => c.classList.add('hidden'));
+
+    const activeBtn = document.querySelector(`#${tabSelector} .btn-sub-tab[data-subtab="${role}-announcements-${subtab}"]`);
+    const activeContent = document.getElementById(`subtab-content-${role}-announcements-${subtab}`);
+    if(activeBtn) activeBtn.classList.add('active');
+    if(activeContent) activeContent.classList.remove('hidden');
+
+    const containerId = `${role}-announcements-${subtab}-container`;
     const container = document.getElementById(containerId);
     
     if (!container) return;
@@ -1740,13 +1751,33 @@ window.renderUserAnnouncementsTab = function() {
     let relevantAnns = (db.announcements || []).filter(a => a.target_audience === 'All' || a.target_audience === currentUser.role || a.target_audience === `User: ${currentUser.id}`);
     // Filter out announcements hidden by this user
     relevantAnns = relevantAnns.filter(a => !(a.hidden_by && a.hidden_by.includes(currentUser.id)));
+    
+    // Apply subtab filtering
+    const todayStr = new Date().toISOString().split('T')[0];
+    
+    if (subtab === 'today') {
+        relevantAnns = relevantAnns.filter(a => a.created_at.startsWith(todayStr));
+    } else if (subtab === 'history') {
+        const startInput = document.getElementById(`${role}-ann-filter-start`);
+        const endInput = document.getElementById(`${role}-ann-filter-end`);
+        const start = startInput ? startInput.value : '';
+        const end = endInput ? endInput.value : '';
+        
+        if (start) {
+            relevantAnns = relevantAnns.filter(a => a.created_at.split('T')[0] >= start);
+        }
+        if (end) {
+            relevantAnns = relevantAnns.filter(a => a.created_at.split('T')[0] <= end);
+        }
+    }
+
     const sortedAnns = relevantAnns.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     if (sortedAnns.length === 0) {
-        container.innerHTML = `<div class="empty-state" style="text-align:center; padding: 40px;">
+        container.innerHTML = `<div class="empty-state" style="text-align:center; padding: 40px; grid-column: 1 / -1;">
             <i class="fa-regular fa-bell-slash" style="font-size:40px; color:var(--border-color); margin-bottom:15px; display:block;"></i>
-            <h3 class="text-secondary font-heading">You're all caught up!</h3>
-            <p class="text-muted font-body">No new announcements at this time.</p>
+            <h3 class="text-secondary font-heading">${subtab === 'today' ? "You're all caught up!" : "No Announcements Found"}</h3>
+            <p class="text-muted font-body">No ${subtab === 'today' ? 'new' : ''} announcements at this time.</p>
         </div>`;
     } else {
         sortedAnns.forEach(ann => {

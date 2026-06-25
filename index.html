@@ -3992,13 +3992,46 @@
                                 <p class="text-secondary">View latest company announcements and updates.</p>
                             </div>
                         </div>
-                        <div class="section-card bg-glass flex-table-card" style="margin: 0; height: calc(100vh - 180px); display: flex; flex-direction: column; min-height: 0;">
-                            <div class="section-card-header">
-                                <h3 style="margin: 0; font-size: 16px;">Latest Announcements</h3>
+
+                        <!-- Sub Tabs Navigation -->
+                        <div class="sub-tab-nav mb-4 mt-4">
+                            <button class="btn-sub-tab active" data-subtab="manager-announcements-today" onclick="if(window.renderUserAnnouncementsTab) window.renderUserAnnouncementsTab('today')">
+                                <i class="fa-solid fa-calendar-day"></i> Today Announcements
+                            </button>
+                            <button class="btn-sub-tab" data-subtab="manager-announcements-history" onclick="if(window.renderUserAnnouncementsTab) window.renderUserAnnouncementsTab('history')">
+                                <i class="fa-solid fa-clock-rotate-left"></i> Announcement History
+                            </button>
+                        </div>
+
+                        <!-- Today Announcements Tab -->
+                        <div id="subtab-content-manager-announcements-today" class="sub-tab-content active">
+                            <div class="section-card bg-glass flex-table-card" style="margin: 0; height: calc(100vh - 240px); display: flex; flex-direction: column; min-height: 0;">
+                                <div class="section-card-header">
+                                    <h3 style="margin: 0; font-size: 16px;">Today's Announcements</h3>
+                                </div>
+                                <div class="table-container" style="flex: 1; overflow-y: auto; min-height: 0; padding: 20px; background: var(--bg-primary);">
+                                    <div class="metrics-grid" id="manager-announcements-today-container" style="display: grid; grid-template-columns: 1fr; gap: 15px;">
+                                        <div class="card"><div class="card-body text-center text-muted">Loading announcements...</div></div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="table-container" style="flex: 1; overflow-y: auto; min-height: 0; padding: 20px; background: var(--bg-primary);">
-                                <div class="metrics-grid" id="manager-announcements-container" style="display: grid; grid-template-columns: 1fr; gap: 15px;">
-                                    <div class="card"><div class="card-body text-center text-muted">Loading announcements...</div></div>
+                        </div>
+
+                        <!-- Announcement History Tab -->
+                        <div id="subtab-content-manager-announcements-history" class="sub-tab-content hidden">
+                            <div class="section-card bg-glass flex-table-card" style="margin: 0; height: calc(100vh - 240px); display: flex; flex-direction: column; min-height: 0;">
+                                <div class="section-card-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 15px;">
+                                    <h3 style="margin: 0; font-size: 16px;">Announcement History</h3>
+                                    <div style="display: flex; gap: 10px;">
+                                        <input type="date" id="manager-ann-filter-start" class="form-control" style="width: auto;">
+                                        <input type="date" id="manager-ann-filter-end" class="form-control" style="width: auto;">
+                                        <button class="btn btn-primary btn-sm" onclick="if(window.renderUserAnnouncementsTab) window.renderUserAnnouncementsTab('history')"><i class="fa-solid fa-filter"></i> Filter</button>
+                                    </div>
+                                </div>
+                                <div class="table-container" style="flex: 1; overflow-y: auto; min-height: 0; padding: 20px; background: var(--bg-primary);">
+                                    <div class="metrics-grid" id="manager-announcements-history-container" style="display: grid; grid-template-columns: 1fr; gap: 15px;">
+                                        <div class="card"><div class="card-body text-center text-muted">Loading announcements...</div></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -4655,13 +4688,46 @@
                             <p class="text-secondary">View latest company announcements and updates.</p>
                         </div>
                     </div>
-                    <div class="section-card bg-glass flex-table-card" style="margin: 0; height: calc(100vh - 180px); display: flex; flex-direction: column; min-height: 0;">
-                        <div class="section-card-header">
-                            <h3 style="margin: 0; font-size: 16px;">Latest Announcements</h3>
+
+                    <!-- Sub Tabs Navigation -->
+                    <div class="sub-tab-nav mb-4 mt-4">
+                        <button class="btn-sub-tab active" data-subtab="employee-announcements-today" onclick="if(window.renderUserAnnouncementsTab) window.renderUserAnnouncementsTab('today')">
+                            <i class="fa-solid fa-calendar-day"></i> Today Announcements
+                        </button>
+                        <button class="btn-sub-tab" data-subtab="employee-announcements-history" onclick="if(window.renderUserAnnouncementsTab) window.renderUserAnnouncementsTab('history')">
+                            <i class="fa-solid fa-clock-rotate-left"></i> Announcement History
+                        </button>
+                    </div>
+
+                    <!-- Today Announcements Tab -->
+                    <div id="subtab-content-employee-announcements-today" class="sub-tab-content active">
+                        <div class="section-card bg-glass flex-table-card" style="margin: 0; height: calc(100vh - 240px); display: flex; flex-direction: column; min-height: 0;">
+                            <div class="section-card-header">
+                                <h3 style="margin: 0; font-size: 16px;">Today's Announcements</h3>
+                            </div>
+                            <div class="table-container" style="flex: 1; overflow-y: auto; min-height: 0; padding: 20px; background: var(--bg-primary);">
+                                <div class="metrics-grid" id="employee-announcements-today-container" style="display: grid; grid-template-columns: 1fr; gap: 15px;">
+                                    <div class="card"><div class="card-body text-center text-muted">Loading announcements...</div></div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="table-container" style="flex: 1; overflow-y: auto; min-height: 0; padding: 20px; background: var(--bg-primary);">
-                            <div class="metrics-grid" id="employee-announcements-container" style="display: grid; grid-template-columns: 1fr; gap: 15px;">
-                                <div class="card"><div class="card-body text-center text-muted">Loading announcements...</div></div>
+                    </div>
+
+                    <!-- Announcement History Tab -->
+                    <div id="subtab-content-employee-announcements-history" class="sub-tab-content hidden">
+                        <div class="section-card bg-glass flex-table-card" style="margin: 0; height: calc(100vh - 240px); display: flex; flex-direction: column; min-height: 0;">
+                            <div class="section-card-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 15px;">
+                                <h3 style="margin: 0; font-size: 16px;">Announcement History</h3>
+                                <div style="display: flex; gap: 10px;">
+                                    <input type="date" id="employee-ann-filter-start" class="form-control" style="width: auto;">
+                                    <input type="date" id="employee-ann-filter-end" class="form-control" style="width: auto;">
+                                    <button class="btn btn-primary btn-sm" onclick="if(window.renderUserAnnouncementsTab) window.renderUserAnnouncementsTab('history')"><i class="fa-solid fa-filter"></i> Filter</button>
+                                </div>
+                            </div>
+                            <div class="table-container" style="flex: 1; overflow-y: auto; min-height: 0; padding: 20px; background: var(--bg-primary);">
+                                <div class="metrics-grid" id="employee-announcements-history-container" style="display: grid; grid-template-columns: 1fr; gap: 15px;">
+                                    <div class="card"><div class="card-body text-center text-muted">Loading announcements...</div></div>
+                                </div>
                             </div>
                         </div>
                     </div>
