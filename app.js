@@ -1015,9 +1015,9 @@ function renderAdminDashboard() {
     // Aggregate calculations
     const employees = db.users.filter(u => u.role !== 'Admin');
     const managers = db.users.filter(u => u.role === 'Manager');
-    const pendingLeaves = db.leaves.filter(l => l.status === 'Pending').length;
+    const pendingLeaves = db.leaves.filter(l => l.status === 'Pending' || l.status === 'Waiting for Admin Approval').length;
     const pendingProductivity = (db.productivity || []).filter(p => p.status === 'Pending').length;
-    const totalPendingApprovals = pendingLeaves + pendingProductivity;
+    const totalPendingApprovals = pendingLeaves;
 
     // Attendance % Today (exclude Admin role records to match totalEmpCount)
     const totalEmpCount = employees.length;
@@ -1040,7 +1040,7 @@ function renderAdminDashboard() {
     // Apply Metrics to Cards
     document.getElementById('admin-metric-total-emp').textContent = totalEmpCount;
     document.getElementById('admin-metric-attendance').textContent = `${presentTodayCount} (${attendancePct}%)`;
-    document.getElementById('admin-metric-pending-leaves').textContent = totalPendingApprovals;
+    document.getElementById('admin-metric-pending-leaves').textContent = pendingLeaves;
     
     const tasksSubmittedEl = document.getElementById('admin-metric-tasks-submitted');
     if (tasksSubmittedEl) tasksSubmittedEl.textContent = tasksSubmitted;
