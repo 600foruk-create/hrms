@@ -1643,117 +1643,257 @@ window.renderAdminAttendanceSlab = function() {
     const todayStr = now.toISOString().split('T')[0];
     
     let relevantLogs = db.attendance || [];
+    let workingDays = 0;
     
+    // Determine Working Days and filter logs
     if (filter === 'this_month') {
         const targetPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
         relevantLogs = relevantLogs.filter(a => a.date && a.date.startsWith(targetPrefix));
+        workingDays = now.getDate();
     } else if (filter === 'last_month') {
         const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         const targetPrefix = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}`;
         relevantLogs = relevantLogs.filter(a => a.date && a.date.startsWith(targetPrefix));
+        workingDays = new Date(now.getFullYear(), now.getMonth(), 0).getDate();
     } else if (filter === 'today') {
         relevantLogs = relevantLogs.filter(a => a.date === todayStr);
+        workingDays = 1;
     } else if (filter === 'custom') {
         const start = document.getElementById('attendance-slab-start') ? document.getElementById('attendance-slab-start').value : '';
         const end = document.getElementById('attendance-slab-end') ? document.getElementById('attendance-slab-end').value : '';
-        if (start) {
-            relevantLogs = relevantLogs.filter(a => a.date >= start);
-        }
-        if (end) {
-            relevantLogs = relevantLogs.filter(a => a.date <= end);
+        if (start) relevantLogs = relevantLogs.filter(a => a.date >= start);
+        if (end) relevantLogs = relevantLogs.filter(a => a.date <= end);
+        if (start && end) {
+            const startD = new Date(start);
+            const endD = new Date(end);
+            workingDays = Math.max(1, Math.ceil((endD - startD) / (1000 * 60 * 60 * 24)) + 1);
+        } else {
+            workingDays = 30; // Fallback
         }
     }
     
-    let totalPresent = 0;
-    let totalLate = 0;
-    let totalLeave = 0;
-    
+    const uniqueDates = new Set();
+    relevantLogs.forEach(l => uniqueDates.add(l.date));
+    workingDays = Math.max(workingDays, uniqueDates.size);
+
+    let totalActiveEmployees = 0;
     const employeeStats = {};
     
     // Initialize stats for active users
     (db.users || []).forEach(u => {
         if(u.status !== 'Inactive') {
-            employeeStats[u.id] = { name: u.name, present: 0, late: 0, leave: 0 };
+            employeeStats[u.id] = { name: u.name, present: 0, late: 0, leave: 0, absent: 0, percentage: 0 };
+            totalActiveEmployees++;
         }
     });
 
     relevantLogs.forEach(log => {
-        if (!employeeStats[log.employeeId]) return; // Skip inactive/deleted
+        if (!employeeStats[log.employeeId]) return;
+        if (log.status === 'Present') employeeStats[log.employeeId].present++;
+        else if (log.status === 'Late') employeeStats[log.employeeId].late++;
+        else if (log.status === 'On Leave') employeeStats[log.employeeId].leave++;
+    });
+    
+    let slabCounts = { A: 0, B: 0, C: 0, D: 0 };
+    const statsArray = Object.values(employeeStats);
+    
+    statsArray.forEach(stat => {
+        const loggedDays = stat.present + stat.late + stat.leave;
+        const actualWorkingDays = Math.max(workingDays, loggedDays); 
         
-        if (log.status === 'Present') {
-            employeeStats[log.employeeId].present++;
-            totalPresent++;
-        } else if (log.status === 'Late') {
-            employeeStats[log.employeeId].late++;
-            totalLate++;
-        } else if (log.status === 'On Leave') {
-            employeeStats[log.employeeId].leave++;
-            totalLeave++;
+        stat.absent = actualWorkingDays - loggedDays;
+        if (stat.absent < 0) stat.absent = 0;
+        
+        if (actualWorkingDays > 0) {
+            stat.percentage = Math.round((stat.present / actualWorkingDays) * 100);
+        } else {
+            stat.percentage = 100; 
+        }
+        
+        if (stat.percentage >= 95) { stat.slab = 'A'; slabCounts.A++; stat.color = 'var(--success)'; }
+        else if (stat.percentage >= 85) { stat.slab = 'B'; slabCounts.B++; stat.color = 'var(--info)'; }
+        else if (stat.percentage >= 75) { stat.slab = 'C'; slabCounts.C++; stat.color = 'var(--warning)'; }
+        else { stat.slab = 'D'; slabCounts.D++; stat.color = 'var(--danger)'; }
+    });
+
+    // Today's Stats for Overview Cards
+    const logsToday = (db.attendance || []).filter(a => a.date === todayStr);
+    let presentToday = 0, lateToday = 0, leaveToday = 0, absentToday = 0;
+    (db.users || []).forEach(u => {
+        if(u.status !== 'Inactive') {
+            const log = logsToday.find(l => l.employeeId === u.id);
+            if(log) {
+                if(log.status === 'Present') presentToday++;
+                else if(log.status === 'Late') lateToday++;
+                else if(log.status === 'On Leave') leaveToday++;
+            } else {
+                absentToday++;
+            }
         }
     });
 
-    // Render Summary Cards
     container.innerHTML = `
-        <div class="card stat-card bg-glass" style="border:none; box-shadow: 0 4px 16px 0 rgba(0,0,0,0.05); backdrop-filter: blur(10px); border-radius: 12px; border-left: 4px solid var(--success); padding: 20px;">
+        <div class="card stat-card bg-glass" style="border:none; box-shadow: 0 4px 16px 0 rgba(0,0,0,0.05); border-radius: 12px; padding: 15px;">
             <div class="card-body" style="padding: 0;">
-                <div class="text-secondary font-weight-bold mb-1" style="font-size: 14px;">Total On-Time (Slab A)</div>
-                <h2 style="margin: 0; color: var(--success); font-size: 28px;">${totalPresent}</h2>
+                <div class="text-secondary font-weight-bold mb-1" style="font-size: 13px;">Total Employees</div>
+                <h2 style="margin: 0; color: var(--text-primary); font-size: 24px;">${totalActiveEmployees}</h2>
             </div>
         </div>
-        <div class="card stat-card bg-glass" style="border:none; box-shadow: 0 4px 16px 0 rgba(0,0,0,0.05); backdrop-filter: blur(10px); border-radius: 12px; border-left: 4px solid var(--warning); padding: 20px;">
+        <div class="card stat-card bg-glass" style="border:none; box-shadow: 0 4px 16px 0 rgba(0,0,0,0.05); border-radius: 12px; border-bottom: 3px solid var(--success); padding: 15px;">
             <div class="card-body" style="padding: 0;">
-                <div class="text-secondary font-weight-bold mb-1" style="font-size: 14px;">Total Late (Slab B)</div>
-                <h2 style="margin: 0; color: var(--warning); font-size: 28px;">${totalLate}</h2>
+                <div class="text-secondary font-weight-bold mb-1" style="font-size: 13px;">Present Today</div>
+                <h2 style="margin: 0; color: var(--success); font-size: 24px;">${presentToday}</h2>
             </div>
         </div>
-        <div class="card stat-card bg-glass" style="border:none; box-shadow: 0 4px 16px 0 rgba(0,0,0,0.05); backdrop-filter: blur(10px); border-radius: 12px; border-left: 4px solid var(--primary); padding: 20px;">
+        <div class="card stat-card bg-glass" style="border:none; box-shadow: 0 4px 16px 0 rgba(0,0,0,0.05); border-radius: 12px; border-bottom: 3px solid var(--warning); padding: 15px;">
             <div class="card-body" style="padding: 0;">
-                <div class="text-secondary font-weight-bold mb-1" style="font-size: 14px;">Total Leaves (Slab C)</div>
-                <h2 style="margin: 0; color: var(--primary); font-size: 28px;">${totalLeave}</h2>
+                <div class="text-secondary font-weight-bold mb-1" style="font-size: 13px;">Late Today</div>
+                <h2 style="margin: 0; color: var(--warning); font-size: 24px;">${lateToday}</h2>
+            </div>
+        </div>
+        <div class="card stat-card bg-glass" style="border:none; box-shadow: 0 4px 16px 0 rgba(0,0,0,0.05); border-radius: 12px; border-bottom: 3px solid var(--danger); padding: 15px;">
+            <div class="card-body" style="padding: 0;">
+                <div class="text-secondary font-weight-bold mb-1" style="font-size: 13px;">Absent Today</div>
+                <h2 style="margin: 0; color: var(--danger); font-size: 24px;">${absentToday}</h2>
+            </div>
+        </div>
+        <div class="card stat-card bg-glass" style="border:none; box-shadow: 0 4px 16px 0 rgba(0,0,0,0.05); border-radius: 12px; border-bottom: 3px solid var(--primary); padding: 15px;">
+            <div class="card-body" style="padding: 0;">
+                <div class="text-secondary font-weight-bold mb-1" style="font-size: 13px;">On Leave Today</div>
+                <h2 style="margin: 0; color: var(--primary); font-size: 24px;">${leaveToday}</h2>
             </div>
         </div>
     `;
 
-    // Render Table
-    tableBody.innerHTML = '';
-    const statsArray = Object.values(employeeStats);
+    // Render Pie Chart
+    const pieTotal = slabCounts.A + slabCounts.B + slabCounts.C + slabCounts.D;
+    document.getElementById('attendance-slab-pie-total').textContent = pieTotal;
     
-    if (statsArray.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="5" class="empty-state text-center text-muted" style="padding: 20px;">No employees or data found for this period.</td></tr>`;
+    if (pieTotal > 0) {
+        let pctA = Math.round((slabCounts.A / pieTotal) * 100);
+        let pctB = Math.round((slabCounts.B / pieTotal) * 100);
+        let pctC = Math.round((slabCounts.C / pieTotal) * 100);
+        let pctD = 100 - pctA - pctB - pctC;
+        
+        let angleA = (pctA / 100) * 360;
+        let angleB = angleA + ((pctB / 100) * 360);
+        let angleC = angleB + ((pctC / 100) * 360);
+        
+        document.getElementById('attendance-slab-pie-chart').style.background = `conic-gradient(
+            var(--success) 0deg ${angleA}deg,
+            var(--info) ${angleA}deg ${angleB}deg,
+            var(--warning) ${angleB}deg ${angleC}deg,
+            var(--danger) ${angleC}deg 360deg
+        )`;
+    } else {
+        document.getElementById('attendance-slab-pie-chart').style.background = `conic-gradient(#eee 100%)`;
+    }
+
+    document.getElementById('attendance-slab-pie-legend').innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--success);margin-right:5px;"></span> Slab A (Excellent)</span>
+            <strong>${slabCounts.A}</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--info);margin-right:5px;"></span> Slab B (Good)</span>
+            <strong>${slabCounts.B}</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--warning);margin-right:5px;"></span> Slab C (Average)</span>
+            <strong>${slabCounts.C}</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--danger);margin-right:5px;"></span> Slab D (Poor)</span>
+            <strong>${slabCounts.D}</strong>
+        </div>
+    `;
+
+    // Render Top 5 & Bottom 5 (Most Late)
+    const sortedByPercentage = [...statsArray].sort((a,b) => b.percentage - a.percentage);
+    const top5 = sortedByPercentage.slice(0, 5);
+    
+    const sortedByLate = [...statsArray].sort((a,b) => b.late - a.late);
+    const late5 = sortedByLate.filter(s => s.late > 0).slice(0, 5);
+
+    document.getElementById('attendance-slab-top5').innerHTML = top5.map(s => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">
+            <div style="font-size:13px; font-weight:500;">${s.name}</div>
+            <div style="font-size:12px; font-weight:bold; color:${s.color};">${s.percentage}% <span style="display:inline-block; padding: 2px 6px; background:${s.color}20; border-radius:10px; margin-left:5px;">${s.slab}</span></div>
+        </div>
+    `).join('') || '<div class="text-muted text-center py-3" style="font-size:12px;">No data</div>';
+
+    document.getElementById('attendance-slab-late5').innerHTML = late5.map(s => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">
+            <div style="font-size:13px; font-weight:500;">${s.name}</div>
+            <div style="font-size:12px; font-weight:bold; color:var(--danger);">${s.late} Late Arrivals</div>
+        </div>
+    `).join('') || '<div class="text-muted text-center py-3" style="font-size:12px;">No late arrivals</div>';
+
+    // Render Table
+    window.attendanceSlabGlobalData = statsArray; // store for search
+    renderAttendanceSlabTable(statsArray);
+};
+
+window.renderAttendanceSlabTable = function(data) {
+    const tableBody = document.getElementById('admin-attendance-slab-table-body');
+    tableBody.innerHTML = '';
+    
+    if (data.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="9" class="empty-state text-center text-muted" style="padding: 20px;">No employees or data found.</td></tr>`;
         return;
     }
 
-    statsArray.forEach(stat => {
-        const totalLogs = stat.present + stat.late + stat.leave;
-        let score = 0;
-        if (totalLogs > 0) {
-            // Formula: Present + (Late * 0.5) / Total active days
-            score = Math.round(((stat.present + (stat.late * 0.5)) / totalLogs) * 100);
-        } else {
-            score = 100; // Default to 100% if no logs yet
-        }
-        
-        let scoreColor = 'var(--success)';
-        if (score < 80) scoreColor = 'var(--warning)';
-        if (score < 60) scoreColor = 'var(--danger)';
-
+    data.forEach(stat => {
+        let score = stat.percentage;
         tableBody.innerHTML += `
-            <tr>
-                <td style="font-weight: 600;">${stat.name}</td>
-                <td><span class="badge-status approved">${stat.present}</span></td>
-                <td><span class="badge-status pending" style="background: var(--warning-light); color: var(--warning);">${stat.late}</span></td>
-                <td><span class="badge-status" style="background: var(--primary-light); color: var(--primary);">${stat.leave}</span></td>
+            <tr class="slab-table-row">
+                <td style="font-weight: 600;" class="slab-emp-name">${stat.name}</td>
+                <td class="text-center"><span class="badge-status approved" style="padding: 4px 8px;">${stat.present}</span></td>
+                <td class="text-center"><span class="badge-status pending" style="background: var(--warning-light); color: var(--warning); padding: 4px 8px;">${stat.late}</span></td>
+                <td class="text-center"><span class="badge-status rejected" style="padding: 4px 8px;">${stat.absent}</span></td>
+                <td class="text-center"><span class="badge-status" style="background: var(--primary-light); color: var(--primary); padding: 4px 8px;">${stat.leave}</span></td>
+                <td class="text-center"><strong style="color: ${stat.color};">${stat.percentage}%</strong></td>
+                <td class="text-center"><span style="display:inline-block; font-weight:bold; padding: 4px 10px; background:${stat.color}; color:white; border-radius:12px; font-size:12px;">${stat.slab}</span></td>
                 <td>
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <span style="font-weight:bold; color:${scoreColor}; min-width: 40px;">${score}%</span>
-                        <div style="flex:1; height: 6px; background: rgba(0,0,0,0.05); border-radius: 3px; overflow:hidden;">
-                            <div style="width: ${score}%; height: 100%; background: ${scoreColor}; border-radius: 3px;"></div>
+                        <div style="flex:1; height: 8px; background: rgba(0,0,0,0.05); border-radius: 4px; overflow:hidden;">
+                            <div style="width: ${score}%; height: 100%; background: ${stat.color}; border-radius: 4px;"></div>
                         </div>
                     </div>
+                </td>
+                <td class="text-center">
+                    <span style="font-size:11px; font-weight:600; color:${stat.color};">${stat.slab === 'A' ? 'Excellent' : (stat.slab === 'B' ? 'Good' : (stat.slab === 'C' ? 'Average' : 'Poor'))}</span>
                 </td>
             </tr>
         `;
     });
+};
+
+window.filterAttendanceSlabTable = function(query) {
+    if(!window.attendanceSlabGlobalData) return;
+    const lowerQ = query.toLowerCase();
+    const filtered = window.attendanceSlabGlobalData.filter(s => s.name.toLowerCase().includes(lowerQ));
+    renderAttendanceSlabTable(filtered);
+};
+
+window.exportAttendanceSlabCSV = function() {
+    if(!window.attendanceSlabGlobalData || window.attendanceSlabGlobalData.length === 0) return;
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Employee Name,Present,Late,Absent,Leave,Attendance Percentage,Slab Grade,Status\n";
+    
+    window.attendanceSlabGlobalData.forEach(function(rowArray) {
+        let status = rowArray.slab === 'A' ? 'Excellent' : (rowArray.slab === 'B' ? 'Good' : (rowArray.slab === 'C' ? 'Average' : 'Poor'));
+        let row = \`"\${rowArray.name}",\${rowArray.present},\${rowArray.late},\${rowArray.absent},\${rowArray.leave},\${rowArray.percentage}%,\${rowArray.slab},\${status}\`;
+        csvContent += row + "\n";
+    });
+    
+    var encodedUri = encodeURI(csvContent);
+    var link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "attendance_slab_report.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 };
 function renderAdminLeaveTab() {
     renderLeaveTypes();
