@@ -6016,7 +6016,8 @@ function saveProdSettings(settings) {
     .then(res => res.json())
     .then(data => {
         if(data.status === 'success') {
-            if (window.showToast) window.showToast('Success', 'Productivity categories saved to SQL database.', 'success');
+            // Toast removed to avoid duplicate notification as requested
+            console.log('Productivity categories saved to SQL database.');
         } else {
             if (window.showToast) window.showToast('Error', data.message || 'Failed to save productivity categories', 'error');
         }
