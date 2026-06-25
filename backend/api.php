@@ -801,18 +801,18 @@ if ($action === 'load_all') {
             foreach ($rawProd as $p) {
                 $dbState['productivity'][] = [
                     'id' => $p['id'],
-                    'employeeId' => $p['employee_id'],
+                    'employee_id' => $p['employee_id'],
                     'date' => $p['date'],
-                    'practiceName' => $p['category'],
-                    'subCategoryName' => $p['sub_category'],
-                    'electronic' => (int)$p['electronic_mins'],
-                    'manual' => (int)$p['manual_mins'],
-                    'totalMins' => (int)$p['total_mins'],
-                    'score' => (float)$p['score_percentage'],
+                    'category' => $p['category'],
+                    'sub_category' => $p['sub_category'],
+                    'electronic_mins' => (int)$p['electronic_mins'],
+                    'manual_mins' => (int)$p['manual_mins'],
+                    'total_mins' => (int)$p['total_mins'],
+                    'score_percentage' => (float)$p['score_percentage'],
                     'notes' => $p['notes'],
-                    'docPath' => $p['doc_path'],
-                    'status' => $p['status'],
-                    'createdAt' => $p['created_at']
+                    'doc_path' => $p['doc_path'],
+                    'status' => $p['status'] ?? 'Pending',
+                    'created_at' => $p['created_at']
                 ];
             }
         } catch (Exception $e) { $dbState['productivity'] = []; }
