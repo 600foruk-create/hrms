@@ -1883,7 +1883,7 @@ window.exportAttendanceSlabCSV = function() {
     
     window.attendanceSlabGlobalData.forEach(function(rowArray) {
         let status = rowArray.slab === 'A' ? 'Excellent' : (rowArray.slab === 'B' ? 'Good' : (rowArray.slab === 'C' ? 'Average' : 'Poor'));
-        let row = \`"\${rowArray.name}",\${rowArray.present},\${rowArray.late},\${rowArray.absent},\${rowArray.leave},\${rowArray.percentage}%,\${rowArray.slab},\${status}\`;
+        let row = `"${rowArray.name}",${rowArray.present},${rowArray.late},${rowArray.absent},${rowArray.leave},${rowArray.percentage}%,${rowArray.slab},${status}`;
         csvContent += row + "\n";
     });
     
