@@ -1310,72 +1310,74 @@
                     </div>
 
                     <!-- Admin Add/Edit Shift Modal -->
-                    <div id="modal-admin-shift-config" class="modal hidden" style="z-index: 10000;">
-                        <div class="modal-content bg-glass" style="max-width: 480px; padding: 25px; border-radius: 12px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(0,0,0,0.08); padding-bottom: 12px;">
-                                <h3 id="shift-modal-title" style="margin: 0; font-size: 18px;">Create New Shift</h3>
-                                <button onclick="closeCreateShiftModal()" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-secondary);">&times;</button>
+                    <div id="modal-admin-shift-config" class="modal hidden" style="max-width: 460px; z-index: 10000;">
+                        <div class="modal-header">
+                            <h3 id="shift-modal-title">Create New Shift</h3>
+                            <div class="modal-header-controls">
+                                <button type="button" class="modal-close" onclick="closeCreateShiftModal()"><i class="fa-solid fa-xmark"></i></button>
                             </div>
-                            <form id="form-shift-config" onsubmit="handleShiftSubmit(event)">
-                                <input type="hidden" id="shift-config-id">
-                                <div class="form-group mb-3">
-                                    <label class="form-label font-weight-bold" style="font-size: 13px;">Shift Name</label>
-                                    <input type="text" id="shift-config-name" class="form-control" placeholder="e.g. Morning Shift" required>
+                        </div>
+                        <form id="form-shift-config" onsubmit="handleShiftSubmit(event)" style="display: flex; flex-direction: column;">
+                            <input type="hidden" id="shift-config-id">
+                            <div class="modal-body" style="padding: 14px 18px;">
+                                <div class="form-group mb-2">
+                                    <label class="form-label font-weight-bold" style="font-size: 12.5px;">Shift Name</label>
+                                    <input type="text" id="shift-config-name" class="form-control btn-sm" placeholder="e.g. Morning Shift" required>
                                 </div>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;" class="mb-3">
-                                    <div class="form-group">
-                                        <label class="form-label font-weight-bold" style="font-size: 13px;">Start Time</label>
-                                        <input type="time" id="shift-config-start" class="form-control" required>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;" class="mb-2">
+                                    <div class="form-group mb-0">
+                                        <label class="form-label font-weight-bold" style="font-size: 12px;">Start Time</label>
+                                        <input type="time" id="shift-config-start" class="form-control btn-sm" required>
                                     </div>
-                                    <div class="form-group">
-                                        <label class="form-label font-weight-bold" style="font-size: 13px;">End Time</label>
-                                        <input type="time" id="shift-config-end" class="form-control" required>
+                                    <div class="form-group mb-0">
+                                        <label class="form-label font-weight-bold" style="font-size: 12px;">End Time</label>
+                                        <input type="time" id="shift-config-end" class="form-control btn-sm" required>
                                     </div>
                                 </div>
-                                <div class="form-group mb-3">
-                                    <label class="form-label font-weight-bold d-block mb-2" style="font-size: 13px;">Break Included?</label>
+                                <div class="form-group mb-2">
+                                    <label class="form-label font-weight-bold d-block mb-1" style="font-size: 12px;">Break Included?</label>
                                     <div style="display: flex; gap: 20px; align-items: center;">
-                                        <label style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; cursor:pointer;">
+                                        <label style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; cursor:pointer; margin-bottom:0;">
                                             <input type="radio" name="shift_has_break" value="yes" checked onchange="toggleShiftBreakConfig(true)"> Yes
                                         </label>
-                                        <label style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; cursor:pointer;">
+                                        <label style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; cursor:pointer; margin-bottom:0;">
                                             <input type="radio" name="shift_has_break" value="no" onchange="toggleShiftBreakConfig(false)"> No
                                         </label>
                                     </div>
                                 </div>
-                                <div id="shift-break-timing-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: rgba(0,0,0,0.02); padding: 12px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.06);" class="mb-3">
+                                <div id="shift-break-timing-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: rgba(0,0,0,0.02); padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-color);" class="mb-2">
                                     <div class="form-group mb-0">
-                                        <label class="form-label font-weight-bold" style="font-size: 12px;">Break From</label>
-                                        <input type="time" id="shift-config-break-start" class="form-control" value="13:00">
+                                        <label class="form-label font-weight-bold" style="font-size: 11.5px;">Break From</label>
+                                        <input type="time" id="shift-config-break-start" class="form-control btn-sm" value="13:00">
                                     </div>
                                     <div class="form-group mb-0">
-                                        <label class="form-label font-weight-bold" style="font-size: 12px;">Break To</label>
-                                        <input type="time" id="shift-config-break-end" class="form-control" value="14:00">
+                                        <label class="form-label font-weight-bold" style="font-size: 11.5px;">Break To</label>
+                                        <input type="time" id="shift-config-break-end" class="form-control btn-sm" value="14:00">
                                     </div>
                                 </div>
-                                <div style="background: rgba(95, 59, 246, 0.04); padding: 12px; border-radius: 8px; border: 1px solid rgba(95, 59, 246, 0.15);" class="mb-4">
-                                    <label class="form-label font-weight-bold d-block mb-2 text-primary" style="font-size: 12px;"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Attendance Policy Thresholds (Minutes)</label>
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                                <div style="background: rgba(95, 59, 246, 0.04); padding: 10px; border-radius: 6px; border: 1px solid rgba(95, 59, 246, 0.15);" class="mb-1">
+                                    <label class="form-label font-weight-bold d-block mb-1 text-primary" style="font-size: 11.5px;"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Policy Thresholds (Minutes)</label>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
                                         <div class="form-group mb-0">
-                                            <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Late Arrival ></label>
+                                            <label style="font-size: 10px; font-weight: 600; color: var(--text-secondary);">Late Arrival ></label>
                                             <input type="number" id="shift-config-late-grace" class="form-control btn-sm" placeholder="20" min="0" value="20" title="Minutes late before marked Late">
                                         </div>
                                         <div class="form-group mb-0">
-                                            <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Half Day ></label>
+                                            <label style="font-size: 10px; font-weight: 600; color: var(--text-secondary);">Half Day ></label>
                                             <input type="number" id="shift-config-half-day" class="form-control btn-sm" placeholder="180" min="0" value="180" title="Minutes late/early before marked Half Day">
                                         </div>
                                         <div class="form-group mb-0">
-                                            <label style="font-size: 11px; font-weight: 600; color: var(--text-secondary);">Early Exit ></label>
+                                            <label style="font-size: 10px; font-weight: 600; color: var(--text-secondary);">Early Exit ></label>
                                             <input type="number" id="shift-config-early-grace" class="form-control btn-sm" placeholder="15" min="0" value="15" title="Minutes early exit before flagged">
                                         </div>
                                     </div>
                                 </div>
-                                <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                                    <button type="button" class="btn btn-outline" onclick="closeCreateShiftModal()">Cancel</button>
-                                    <button type="submit" class="btn btn-primary">Save Shift</button>
-                                </div>
-                            </form>
-                        </div>
+                            </div>
+                            <div class="modal-footer" style="padding: 8px 18px;">
+                                <button type="button" class="btn btn-outline btn-sm" onclick="closeCreateShiftModal()">Cancel</button>
+                                <button type="submit" class="btn btn-primary btn-sm">Save Shift</button>
+                            </div>
+                        </form>
                     </div>
 
                     <!-- Bulk Assign Employees Modal -->
