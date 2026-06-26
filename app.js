@@ -1603,15 +1603,17 @@ window.reactivateEmployee = async function (userId) {
         user.status = 'Active';
         user.endDate = null;
 
-        if (typeof saveUserOnServer === 'function') {
-            await saveUserOnServer(user);
-        }
-        await saveDb(db);
-
+        // Instant UI Update (0ms latency)
         showToast("Employee Reactivated", `${user.name} has been marked as active.`, "success");
         renderAdminEmployeesTab();
         const activeSubtabBtn = document.querySelector('#admin-tab-employees .btn-sub-tab[data-subtab="employees"]');
         if (activeSubtabBtn) activeSubtabBtn.click();
+
+        // Background Network Save
+        if (typeof saveUserOnServer === 'function') {
+            saveUserOnServer(user);
+        }
+        saveDb(db);
     }
 };
 
