@@ -1603,10 +1603,15 @@ window.reactivateEmployee = async function (userId) {
         user.status = 'Active';
         user.endDate = null;
 
-        const saved = await saveDb(db);
-        if (saved) {
-            showToast("Employee Reactivated", `${user.name} has been marked as active.`, "success");
-            renderAdminEmployeesTab();
+        if (typeof saveUserOnServer === 'function') {
+            await saveUserOnServer(user);
+        }
+        await saveDb(db);
+
+        showToast("Employee Reactivated", `${user.name} has been marked as active.`, "success");
+        renderAdminEmployeesTab();
+        if (typeof refreshTabContent === 'function') {
+            refreshTabContent('employees');
         }
     }
 };
