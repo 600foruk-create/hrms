@@ -2476,17 +2476,39 @@ window.executeShiftRotationLogic = function(db, cycleType, strategy = 'employees
     }
 };
 
+window.toggleAutoPilotEnableBtn = function() {
+    const cb = document.getElementById('shift-rot-enabled');
+    if (cb) {
+        cb.checked = !cb.checked;
+        toggleAutoRotationUI();
+        saveShiftRotationPolicy();
+    }
+};
+
 window.toggleAutoRotationUI = function() {
     const cb = document.getElementById('shift-rot-enabled');
     const box = document.getElementById('shift-rot-config-box');
+    const btn = document.getElementById('btn-toggle-shift-autopilot');
+
     if (cb && box) {
         box.style.opacity = cb.checked ? '1' : '0.5';
         box.style.pointerEvents = cb.checked ? 'auto' : 'none';
     }
+    if (cb && btn) {
+        if (cb.checked) {
+            btn.innerHTML = `<i class="fa-solid fa-toggle-on text-success" style="font-size:14px;"></i> <span class="text-success">Enabled</span>`;
+            btn.style.borderColor = "#22c55e";
+            btn.style.background = "rgba(34,197,94,0.1)";
+        } else {
+            btn.innerHTML = `<i class="fa-solid fa-toggle-off text-muted" style="font-size:14px;"></i> <span class="text-muted">Disabled</span>`;
+            btn.style.borderColor = "rgba(0,0,0,0.15)";
+            btn.style.background = "transparent";
+        }
+    }
 };
 
 window.loadShiftRotationPolicyUI = function(db) {
-    const policy = db.shiftRotationPolicy || { enabled: false, frequency: 'weekly', cycleType: '2-shift', strategy: 'employees', nextDate: '' };
+    const policy = db.shiftRotationPolicy || { enabled: false, frequency: 'weekly', cycleType: 'all', strategy: 'employees', nextDate: '' };
     const cb = document.getElementById('shift-rot-enabled');
     const freqEl = document.getElementById('shift-rot-freq');
     const cycleEl = document.getElementById('shift-rot-cycle');
@@ -2495,7 +2517,7 @@ window.loadShiftRotationPolicyUI = function(db) {
 
     if (cb) cb.checked = !!policy.enabled;
     if (freqEl) freqEl.value = policy.frequency || 'weekly';
-    if (cycleEl) cycleEl.value = policy.cycleType || '2-shift';
+    if (cycleEl) cycleEl.value = policy.cycleType || 'all';
     if (stratEl) stratEl.value = policy.strategy || 'employees';
     if (dateEl) {
         if (policy.nextDate) {
@@ -2520,7 +2542,7 @@ window.saveShiftRotationPolicy = function() {
     db.shiftRotationPolicy = {
         enabled: cb ? cb.checked : false,
         frequency: freqEl ? freqEl.value : 'weekly',
-        cycleType: cycleEl ? cycleEl.value : '2-shift',
+        cycleType: cycleEl ? cycleEl.value : 'all',
         strategy: stratEl ? stratEl.value : 'employees',
         nextDate: dateEl ? dateEl.value : ''
     };
@@ -2535,8 +2557,12 @@ window.checkAndRunAutoShiftRotation = function(db) {
 
     const todayStr = new Date().toISOString().split('T')[0];
     if (todayStr >= policy.nextDate) {
+        // Read the latest strategy dynamically from dropdown or saved policy
+        const stratEl = document.getElementById('shift-rot-strategy');
+        const activeStrat = stratEl ? stratEl.value : (policy.strategy || 'employees');
+
         // Execute automated rotation!
-        executeShiftRotationLogic(db, policy.cycleType || '2-shift', policy.strategy || 'employees');
+        executeShiftRotationLogic(db, 'all', activeStrat);
 
         // Advance nextDate
         const curDate = new Date(policy.nextDate);
@@ -2549,7 +2575,7 @@ window.checkAndRunAutoShiftRotation = function(db) {
         }
         policy.nextDate = curDate.toISOString().split('T')[0];
         saveDb(db);
-        showToast("Auto Shift Rotation", `Automated scheduled rotation executed successfully (${policy.strategy === 'employees' ? 'Roster Swap' : 'Timing Rotation'}). Next date: ${policy.nextDate}`, "info");
+        showToast("Auto Shift Rotation", `Automated scheduled rotation executed successfully (${activeStrat === 'employees' ? 'Roster Swap' : 'Timing Rotation'}). Next date: ${policy.nextDate}`, "info");
     }
 };
 
