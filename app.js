@@ -1081,9 +1081,9 @@ function renderAdminDashboard() {
     }
     const today = datePicker ? datePicker.value : new Date().toISOString().split('T')[0];
 
-    // Aggregate calculations
-    const employees = db.users.filter(u => u.role !== 'Admin');
-    const managers = db.users.filter(u => u.role === 'Manager');
+    // Aggregate calculations (include Admin as employee, filter out Inactive)
+    const employees = db.users.filter(u => u.status !== 'Inactive');
+    const managers = db.users.filter(u => u.role === 'Manager' && u.status !== 'Inactive');
     const pendingLeaves = db.leaves.filter(l => l.status === 'Pending' || l.status === 'Waiting for Admin Approval').length;
     const pendingProductivity = (db.productivity || []).filter(p => p.status === 'Pending').length;
     const totalPendingApprovals = pendingLeaves;
@@ -5878,8 +5878,8 @@ function generateReport(roleContext) {
         return;
     }
 
-    // Filter employees set based on parameters
-    let filteredEmployees = db.users.filter(u => u.role !== 'Admin');
+    // Filter employees set based on parameters (include Admin, exclude Inactive)
+    let filteredEmployees = db.users.filter(u => u.status !== 'Inactive');
     if (roleContext === 'Manager') {
         filteredEmployees = filteredEmployees.filter(e => e.managerId === currentUser.id || e.managerId === currentUser.name || e.managerId === currentUser.email);
     } else { // Admin
