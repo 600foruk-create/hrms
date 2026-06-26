@@ -53,6 +53,22 @@ try {
     } catch (Exception $e2) {}
 }
 
+// Auto-migrate legacy employee_shift_assignments table to shift_management master table and purge system_settings
+try {
+    $chkOld = $pdo->query("SHOW TABLES LIKE 'employee_shift_assignments'");
+    if ($chkOld && $chkOld->rowCount() > 0) {
+        $oldAss = $pdo->query("SELECT * FROM employee_shift_assignments")->fetchAll(PDO::FETCH_ASSOC);
+        if (!empty($oldAss)) {
+            $smIns = $pdo->prepare("INSERT INTO shift_management (record_type, shift_id, duty_from, duty_to, break_mins, is_flexible, employee_id) VALUES ('assignment', ?, ?, ?, ?, 0, ?)");
+            foreach ($oldAss as $oa) {
+                $smIns->execute([$oa['shift_id'] ?? 'shift_general', $oa['duty_from'] ?? '09:00', $oa['duty_to'] ?? '17:00', (int)($oa['break_mins'] ?? 60), $oa['employee_id']]);
+            }
+        }
+        $pdo->exec("DROP TABLE IF EXISTS `employee_shift_assignments`");
+        $pdo->exec("DELETE FROM system_settings WHERE setting_key IN ('assetCategories', 'productivityCategories', 'shifts', 'shiftRotationPolicy')");
+    }
+} catch (Exception $migEx) {}
+
 // Ensure single productivity table exists and drop old ones
 try {
     $pdo->exec("DROP TABLE IF EXISTS `practices`");
