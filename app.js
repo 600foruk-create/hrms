@@ -1610,9 +1610,8 @@ window.reactivateEmployee = async function (userId) {
 
         showToast("Employee Reactivated", `${user.name} has been marked as active.`, "success");
         renderAdminEmployeesTab();
-        if (typeof refreshTabContent === 'function') {
-            refreshTabContent('employees');
-        }
+        const activeSubtabBtn = document.querySelector('#admin-tab-employees .btn-sub-tab[data-subtab="employees"]');
+        if (activeSubtabBtn) activeSubtabBtn.click();
     }
 };
 
