@@ -1246,24 +1246,31 @@
 
                                 <!-- Automated & Manual Shift Rotation Engine -->
                                 <div style="margin-top: 30px; border-top: 1px solid rgba(0,0,0,0.08); padding-top: 25px;">
-                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
                                         <div>
                                             <h3 style="margin: 0; font-size: 18px; color: var(--text-primary);"><i class="fa-solid fa-arrows-rotate" style="color: var(--primary);"></i> Automated & Manual Shift Rotation Engine</h3>
-                                            <p class="text-secondary" style="font-size: 12px; margin: 4px 0 0 0;">Rotate rosters periodically across shifts. General Shift and Custom/Flexible Shift employees remain unaffected.</p>
+                                            <p class="text-secondary" style="font-size: 12px; margin: 4px 0 0 0;">Rotate rosters or shift schedules periodically across teams. General Shift and Custom/Flexible Shift employees remain unaffected.</p>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.03); padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.06);">
+                                            <label style="font-size: 12px; font-weight: 700; margin: 0; color: var(--text-primary);"><i class="fa-solid fa-gear text-primary"></i> Rotation Strategy:</label>
+                                            <select id="shift-rot-strategy" class="form-control btn-sm" style="font-size: 12px; font-weight: 700; border: none; background: transparent; cursor: pointer; color: var(--primary); padding: 2px 8px;">
+                                                <option value="employees">👥 Move Employees (Roster Rotation)</option>
+                                                <option value="timings">🕒 Rotate Timings (Schedule Rotation)</option>
+                                            </select>
                                         </div>
                                     </div>
                                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                                         <!-- Instant Manual Rotation -->
                                         <div style="background: rgba(255,255,255,0.6); padding: 18px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.06);">
                                             <h4 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 700; color: var(--text-primary);"><i class="fa-solid fa-bolt text-warning"></i> Instant Manual Execution</h4>
-                                            <p class="text-secondary" style="font-size: 11px; margin-bottom: 15px;">Trigger immediate roster rotation. Employees will swap schedules right now.</p>
+                                            <p class="text-secondary" style="font-size: 11px; margin-bottom: 15px;">Trigger immediate rotation using the currently selected strategy above.</p>
                                             <div style="display: flex; flex-direction: column; gap: 10px;">
                                                 <button onclick="triggerManualShiftRotation('2-shift')" class="btn btn-outline w-100 text-left" style="font-size: 12px; padding: 10px 14px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; border-color: rgba(0,0,0,0.15);">
-                                                    <span><i class="fa-solid fa-repeat text-primary mr-2"></i> 2-Shift Swap (Morning ↔ Night)</span>
+                                                    <span><i class="fa-solid fa-repeat text-primary mr-2"></i> Execute 2-Shift Swap (Morning ↔ Night)</span>
                                                     <i class="fa-solid fa-chevron-right text-muted" style="font-size: 10px;"></i>
                                                 </button>
                                                 <button onclick="triggerManualShiftRotation('3-shift')" class="btn btn-outline w-100 text-left" style="font-size: 12px; padding: 10px 14px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; border-color: rgba(0,0,0,0.15);">
-                                                    <span><i class="fa-solid fa-rotate text-success mr-2"></i> 3-Shift Cycle (Morning → Evening → Night)</span>
+                                                    <span><i class="fa-solid fa-rotate text-success mr-2"></i> Execute 3-Shift Cycle (Morning → Evening → Night)</span>
                                                     <i class="fa-solid fa-chevron-right text-muted" style="font-size: 10px;"></i>
                                                 </button>
                                             </div>
@@ -1277,7 +1284,7 @@
                                                     <input type="checkbox" id="shift-rot-enabled" onchange="toggleAutoRotationUI()"> Enable
                                                 </label>
                                             </div>
-                                            <p class="text-secondary" style="font-size: 11px; margin-bottom: 12px;">System will automatically rotate shifts on the scheduled date.</p>
+                                            <p class="text-secondary" style="font-size: 11px; margin-bottom: 12px;">System will automatically rotate shifts on the scheduled trigger date.</p>
                                             <div id="shift-rot-config-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; opacity: 0.5; pointer-events: none;">
                                                 <div>
                                                     <label class="form-label mb-1" style="font-size: 11px; font-weight: 700;">Frequency</label>
