@@ -2227,6 +2227,20 @@ window.saveShiftAssignments = function(shiftId) {
     renderAdminShiftManagement();
 };
 
+window.selectAllShiftEmpModal = function(selectAll) {
+    document.querySelectorAll('.shift-emp-chk').forEach(chk => {
+        chk.checked = selectAll;
+    });
+};
+
+window.filterShiftAssignModalList = function(query) {
+    const q = (query || '').toLowerCase();
+    document.querySelectorAll('#shift-assign-emp-list label').forEach(lbl => {
+        const text = lbl.textContent.toLowerCase();
+        lbl.style.display = text.includes(q) ? 'flex' : 'none';
+    });
+};
+
 window.toggleShiftBreakConfig = function(showBreak) {
     const box = document.getElementById('shift-break-timing-box');
     if (box) {
