@@ -42,14 +42,14 @@ try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS `salary_profiles` (`userId` varchar(50) NOT NULL, `isCustomSlab` tinyint(1), `allowances` longtext, `deductions` longtext, PRIMARY KEY (`userId`))");
     $pdo->exec("CREATE TABLE IF NOT EXISTS `loans` (`id` varchar(50) NOT NULL, `userId` varchar(50), `type` varchar(50), `totalAmount` decimal(10,2), `monthlyInstallment` decimal(10,2), `remainingAmount` decimal(10,2), `issuedAt` varchar(50), PRIMARY KEY (`id`))");
     $pdo->exec("CREATE TABLE IF NOT EXISTS `payroll_history` (`id` varchar(50) NOT NULL, `batchId` varchar(50), `userId` varchar(50), `startDate` varchar(50), `endDate` varchar(50), `netFixed` decimal(10,2), `absencyDeduction` decimal(10,2), `loanDeduction` decimal(10,2), `bonus` decimal(10,2), `otherDeduction` decimal(10,2), `netPay` decimal(10,2), `processedAt` varchar(50), PRIMARY KEY (`id`))");
-    $pdo->exec("CREATE TABLE IF NOT EXISTS `employee_shift_assignments` (`employee_id` varchar(50) NOT NULL, `shift_id` varchar(50) DEFAULT 'shift_general', `duty_from` varchar(20) DEFAULT '09:00', `duty_to` varchar(20) DEFAULT '17:00', `break_mins` int(11) DEFAULT '60', PRIMARY KEY (`employee_id`))");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `shift_management` (`id` int(11) NOT NULL AUTO_INCREMENT, `record_type` varchar(30) NOT NULL, `shift_id` varchar(50) DEFAULT NULL, `shift_name` varchar(100) DEFAULT NULL, `duty_from` varchar(20) DEFAULT NULL, `duty_to` varchar(20) DEFAULT NULL, `break_mins` int(11) DEFAULT 60, `is_flexible` tinyint(1) DEFAULT 0, `employee_id` varchar(50) DEFAULT NULL, `policy_json` text DEFAULT NULL, PRIMARY KEY (`id`))");
 } catch (Exception $e) {
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS `global_salary_settings` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `allowances` TEXT, `deductions` TEXT)");
         $pdo->exec("CREATE TABLE IF NOT EXISTS `salary_profiles` (`userId` TEXT PRIMARY KEY, `isCustomSlab` INTEGER, `allowances` TEXT, `deductions` TEXT)");
         $pdo->exec("CREATE TABLE IF NOT EXISTS `loans` (`id` TEXT PRIMARY KEY, `userId` TEXT, `type` TEXT, `totalAmount` REAL, `monthlyInstallment` REAL, `remainingAmount` REAL, `issuedAt` TEXT)");
         $pdo->exec("CREATE TABLE IF NOT EXISTS `payroll_history` (`id` TEXT PRIMARY KEY, `batchId` TEXT, `userId` TEXT, `startDate` TEXT, `endDate` TEXT, `netFixed` REAL, `absencyDeduction` REAL, `loanDeduction` REAL, `bonus` REAL, `otherDeduction` REAL, `netPay` REAL, `processedAt` TEXT)");
-        $pdo->exec("CREATE TABLE IF NOT EXISTS `employee_shift_assignments` (`employee_id` TEXT PRIMARY KEY, `shift_id` TEXT, `duty_from` TEXT, `duty_to` TEXT, `break_mins` INTEGER)");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `shift_management` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `record_type` TEXT, `shift_id` TEXT, `shift_name` TEXT, `duty_from` TEXT, `duty_to` TEXT, `break_mins` INTEGER, `is_flexible` INTEGER, `employee_id` TEXT, `policy_json` TEXT)");
     } catch (Exception $e2) {}
 }
 
@@ -687,10 +687,25 @@ if ($action === 'load_all') {
         $allBals = $balStmt->fetchAll();
 
         $shMap = [];
+        $dbState['shifts'] = [];
+        $dbState['shiftRotationPolicy'] = null;
         try {
-            $shStmt = $pdo->query("SELECT * FROM employee_shift_assignments");
+            $shStmt = $pdo->query("SELECT * FROM shift_management");
             while ($shRow = $shStmt->fetch(PDO::FETCH_ASSOC)) {
-                $shMap[$shRow['employee_id']] = $shRow;
+                if ($shRow['record_type'] === 'card') {
+                    $dbState['shifts'][] = [
+                        'id' => $shRow['shift_id'],
+                        'name' => $shRow['shift_name'],
+                        'start' => $shRow['duty_from'],
+                        'end' => $shRow['duty_to'],
+                        'breakMins' => (int)$shRow['break_mins'],
+                        'isFlexible' => !empty($shRow['is_flexible'])
+                    ];
+                } elseif ($shRow['record_type'] === 'assignment') {
+                    $shMap[$shRow['employee_id']] = $shRow;
+                } elseif ($shRow['record_type'] === 'policy') {
+                    $dbState['shiftRotationPolicy'] = json_decode($shRow['policy_json'], true);
+                }
             }
         } catch (Exception $ex) {}
 
@@ -741,6 +756,7 @@ if ($action === 'load_all') {
             $sysSettings = $stmt->fetchAll(PDO::FETCH_ASSOC);
             $dbState['systemSettings'] = (object)[];
             foreach ($sysSettings as $row) {
+                if (in_array($row['setting_key'], ['assetCategories', 'productivityCategories', 'shifts', 'shiftRotationPolicy'])) continue;
                 $val = json_decode($row['setting_value'], true);
                 if (json_last_error() === JSON_ERROR_NONE && !is_numeric($row['setting_value'])) {
                     $dbState['systemSettings']->{$row['setting_key']} = $val;
@@ -748,17 +764,8 @@ if ($action === 'load_all') {
                     $dbState['systemSettings']->{$row['setting_key']} = $row['setting_value'];
                 }
             }
-            if (isset($dbState['systemSettings']->shifts) && is_array($dbState['systemSettings']->shifts)) {
-                $dbState['shifts'] = $dbState['systemSettings']->shifts;
-            } else {
-                $dbState['shifts'] = [];
-            }
-            if (isset($dbState['systemSettings']->shiftRotationPolicy)) {
-                $dbState['shiftRotationPolicy'] = $dbState['systemSettings']->shiftRotationPolicy;
-            }
         } catch (Exception $e) {
             $dbState['systemSettings'] = (object)[];
-            $dbState['shifts'] = [];
         }
 
         // Fetch Leaves
@@ -1022,13 +1029,10 @@ elseif ($action === 'save_all') {
             $pdo->exec("DELETE FROM users");
             $pdo->exec("DELETE FROM employee_documents");
             $pdo->exec("DELETE FROM employee_leave_balances");
-            try { $pdo->exec("DELETE FROM employee_shift_assignments"); } catch(Exception $ex) {}
-
             if (!empty($data['users'])) {
                 $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, bloodGroup, designation, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 $docStmt = $pdo->prepare("INSERT INTO employee_documents (employee_id, doc_name, doc_url) VALUES (?, ?, ?)");
                 $balStmt = $pdo->prepare("INSERT INTO employee_leave_balances (employee_id, leave_type, balance) VALUES (?, ?, ?)");
-                $shStmt = $pdo->prepare("INSERT INTO employee_shift_assignments (employee_id, shift_id, duty_from, duty_to, break_mins) VALUES (?, ?, ?, ?, ?)");
                 
                 foreach ($data['users'] as $u) {
                     $stmt->execute([
@@ -1042,15 +1046,6 @@ elseif ($action === 'save_all') {
                         $u['emergencyContact'] ?? null, $u['bankName'] ?? null, $u['accountTitle'] ?? null,
                         $u['accountNumber'] ?? null, $u['iban'] ?? null, $u['branchCode'] ?? null
                     ]);
-                    try {
-                        $shStmt->execute([
-                            $u['id'],
-                            $u['shiftId'] ?? 'shift_general',
-                            $u['dutyFrom'] ?? '09:00',
-                            $u['dutyTo'] ?? '17:00',
-                            (int)($u['breakMins'] ?? 60)
-                        ]);
-                    } catch(Exception $ex) {}
                     
                     if (!empty($u['documents']) && is_array($u['documents'])) {
                         foreach ($u['documents'] as $doc) {
@@ -1333,11 +1328,11 @@ elseif ($action === 'save_all') {
 
         // 11. Sync System Settings
         try {
-            $pdo->exec("DELETE FROM system_settings WHERE setting_key NOT IN ('assetCategories', 'productivityCategories', 'shifts', 'shiftRotationPolicy')");
+            $pdo->exec("DELETE FROM system_settings");
             if (isset($data['systemSettings']) && (is_array($data['systemSettings']) || is_object($data['systemSettings']))) {
-                $stmt = $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
+                $stmt = $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?)");
                 foreach ($data['systemSettings'] as $k => $v) {
-                    if ($k === 'assetCategories' || $k === 'productivityCategories' || $k === 'shifts' || $k === 'shiftRotationPolicy') continue;
+                    if (in_array($k, ['assetCategories', 'productivityCategories', 'shifts', 'shiftRotationPolicy'])) continue;
                     if (is_bool($v)) {
                         $v = $v ? 'true' : 'false';
                     } elseif (is_array($v) || is_object($v)) {
@@ -1346,16 +1341,42 @@ elseif ($action === 'save_all') {
                     $stmt->execute([$k, (string)$v]);
                 }
             }
-            if (isset($data['shifts']) && is_array($data['shifts'])) {
-                $stmt = $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('shifts', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
-                $stmt->execute([json_encode($data['shifts'])]);
-            }
-            if (isset($data['shiftRotationPolicy'])) {
-                $stmt = $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('shiftRotationPolicy', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
-                $stmt->execute([is_string($data['shiftRotationPolicy']) ? $data['shiftRotationPolicy'] : json_encode($data['shiftRotationPolicy'])]);
-            }
         } catch (Exception $e) {
             error_log("System settings sync error: " . $e->getMessage());
+        }
+
+        // 12. Sync Shift Management (Cards, Policy, Assignments)
+        try {
+            $pdo->exec("DELETE FROM shift_management");
+            $smStmt = $pdo->prepare("INSERT INTO shift_management (record_type, shift_id, shift_name, duty_from, duty_to, break_mins, is_flexible, employee_id, policy_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            
+            // Cards
+            if (!empty($data['shifts']) && is_array($data['shifts'])) {
+                foreach ($data['shifts'] as $sc) {
+                    $smStmt->execute([
+                        'card', $sc['id'] ?? null, $sc['name'] ?? null, $sc['start'] ?? '09:00', $sc['end'] ?? '17:00',
+                        (int)($sc['breakMins'] ?? 60), !empty($sc['isFlexible']) ? 1 : 0, null, null
+                    ]);
+                }
+            }
+            // Assignments
+            if (!empty($data['users']) && is_array($data['users'])) {
+                foreach ($data['users'] as $su) {
+                    $smStmt->execute([
+                        'assignment', $su['shiftId'] ?? 'shift_general', null, $su['dutyFrom'] ?? '09:00', $su['dutyTo'] ?? '17:00',
+                        (int)($su['breakMins'] ?? 60), 0, $su['id'] ?? null, null
+                    ]);
+                }
+            }
+            // Policy
+            if (isset($data['shiftRotationPolicy'])) {
+                $smStmt->execute([
+                    'policy', null, null, null, null, 60, 0, null,
+                    is_string($data['shiftRotationPolicy']) ? $data['shiftRotationPolicy'] : json_encode($data['shiftRotationPolicy'])
+                ]);
+            }
+        } catch (Exception $e) {
+            error_log("Shift management sync error: " . $e->getMessage());
         }
 
         $pdo->commit();
@@ -1409,13 +1430,14 @@ elseif ($action === 'save_all') {
         }
         
         try {
-            $shStmt = $pdo->prepare("REPLACE INTO employee_shift_assignments (employee_id, shift_id, duty_from, duty_to, break_mins) VALUES (?, ?, ?, ?, ?)");
+            $pdo->exec("DELETE FROM shift_management WHERE record_type = 'assignment' AND employee_id = " . $pdo->quote($u['id']));
+            $shStmt = $pdo->prepare("INSERT INTO shift_management (record_type, shift_id, duty_from, duty_to, break_mins, is_flexible, employee_id) VALUES ('assignment', ?, ?, ?, ?, 0, ?)");
             $shStmt->execute([
-                $u['id'],
                 $u['shiftId'] ?? 'shift_general',
                 $u['dutyFrom'] ?? '09:00',
                 $u['dutyTo'] ?? '17:00',
-                (int)($u['breakMins'] ?? 60)
+                (int)($u['breakMins'] ?? 60),
+                $u['id']
             ]);
         } catch(Exception $ex) {}
         

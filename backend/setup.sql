@@ -179,14 +179,19 @@ CREATE TABLE `company_profile` (
 
 -- --------------------------------------------------------
 
--- Table structure for table `employee_shift_assignments`
-CREATE TABLE `employee_shift_assignments` (
-  `employee_id` varchar(50) NOT NULL,
-  `shift_id` varchar(50) DEFAULT 'shift_general',
-  `duty_from` varchar(20) DEFAULT '09:00',
-  `duty_to` varchar(20) DEFAULT '17:00',
+-- Table structure for table `shift_management`
+CREATE TABLE `shift_management` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `record_type` varchar(30) NOT NULL,
+  `shift_id` varchar(50) DEFAULT NULL,
+  `shift_name` varchar(100) DEFAULT NULL,
+  `duty_from` varchar(20) DEFAULT NULL,
+  `duty_to` varchar(20) DEFAULT NULL,
   `break_mins` int(11) DEFAULT 60,
-  PRIMARY KEY (`employee_id`)
+  `is_flexible` tinyint(1) DEFAULT 0,
+  `employee_id` varchar(50) DEFAULT NULL,
+  `policy_json` text DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Indexes
