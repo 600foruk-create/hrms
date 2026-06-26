@@ -1118,7 +1118,7 @@ function renderAdminDashboard() {
 
     // Apply Metrics to Cards
     document.getElementById('admin-metric-total-emp').textContent = totalEmpCount;
-    document.getElementById('admin-metric-attendance').textContent = `${presentTodayCount} (${attendancePct}%)`;
+    document.getElementById('admin-metric-attendance').textContent = presentTodayCount;
     document.getElementById('admin-metric-pending-leaves').textContent = pendingLeaves;
     
     const tasksSubmittedEl = document.getElementById('admin-metric-tasks-submitted');
