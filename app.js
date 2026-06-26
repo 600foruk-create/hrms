@@ -683,23 +683,77 @@ function setupSessionTimer() {
     resetTimer();
 }
 
+// Helper to parse time strings (HH:MM or HH:MM AM/PM) into minutes from midnight
+function parseTimeMins(timeStr) {
+    if (!timeStr || timeStr === 'Manual') return null;
+    let [t, modifier] = timeStr.trim().split(' ');
+    let [hours, minutes] = t.split(':').map(Number);
+    if (isNaN(hours) || isNaN(minutes)) return null;
+    if (modifier) {
+        if (hours === 12) hours = 0;
+        if (modifier.toUpperCase() === 'PM') hours += 12;
+    }
+    return hours * 60 + minutes;
+}
+
+// Evaluate attendance status against shift custom thresholds
+function evaluateAttendanceThresholds(emp, timeInStr, timeOutStr, db) {
+    const shiftId = emp.shiftId || 'shift_general';
+    const shift = (db.shifts || []).find(s => s.id === shiftId) || { start: '09:00', end: '17:00', lateGraceMins: 20, halfDayMins: 180, earlyGraceMins: 15 };
+    if (shift.isFlexible || shift.id === 'shift_flexible') return 'Present';
+
+    const lateGrace = Number(shift.lateGraceMins ?? 20);
+    const halfDay = Number(shift.halfDayMins ?? 180);
+    const earlyGrace = Number(shift.earlyGraceMins ?? 15);
+
+    let status = 'Present';
+    if (timeInStr) {
+        const schedStart = parseTimeMins(shift.start);
+        const actualIn = parseTimeMins(timeInStr);
+        if (schedStart !== null && actualIn !== null) {
+            let diff = actualIn - schedStart;
+            if (diff >= halfDay) {
+                status = 'Half Day';
+            } else if (diff > lateGrace) {
+                status = 'Late';
+            }
+        }
+    }
+
+    if (timeOutStr && status === 'Present') {
+        const schedEnd = parseTimeMins(shift.end);
+        const actualOut = parseTimeMins(timeOutStr);
+        if (schedEnd !== null && actualOut !== null) {
+            let earlyDiff = schedEnd - actualOut;
+            if (earlyDiff >= halfDay) {
+                status = 'Half Day';
+            }
+        }
+    }
+
+    return status;
+}
+
 // Attendance auto logger
 function markAutoAttendance(employee) {
     const db = getDb();
     const today = new Date().toISOString().split('T')[0];
+    const now = new Date().toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit' });
 
     const alreadyMarked = db.attendance.find(a => String(a.employeeId) === String(employee.id) && a.date === today);
     if (!alreadyMarked) {
+        const calcStatus = evaluateAttendanceThresholds(employee, now, null, db);
         db.attendance.push({
             date: today,
             employeeId: employee.id,
             employeeName: employee.name,
-            status: "Present",
-            markedBy: "Auto Login"
+            status: calcStatus,
+            markedBy: "Auto Login",
+            timeIn: now
         });
         saveDb(db);
-        logAudit(`Auto attendance marked Present for ${employee.name} via login.`);
-        addNotification(employee.id, "Your attendance has been automatically marked as Present for today.");
+        logAudit(`Auto attendance marked ${calcStatus} for ${employee.name} via login.`);
+        addNotification(employee.id, `Your attendance has been automatically marked as ${calcStatus} for today.`);
     }
 }
 
@@ -744,20 +798,25 @@ function handlePunchInOut() {
     let record = db.attendance.find(a => String(a.employeeId) === String(currentUser.id) && a.date === today);
 
     if (!record) {
+        const calcStatus = evaluateAttendanceThresholds(currentUser, now, null, db);
         // Create Punch In record
         db.attendance.push({
             date: today,
             employeeId: currentUser.id,
             employeeName: currentUser.name,
-            status: "Present",
+            status: calcStatus,
             markedBy: currentUser.name,
             timeIn: now,
             timeOut: null
         });
-        showToast("Punched In", `You successfully punched in at ${now}.`, "success");
+        showToast("Punched In", `You successfully punched in at ${now} (${calcStatus}).`, calcStatus === 'Late' ? 'warning' : 'success');
     } else if (record.timeIn && !record.timeOut) {
         // Punch Out
         record.timeOut = now;
+        const newStatus = evaluateAttendanceThresholds(currentUser, record.timeIn, now, db);
+        if (record.status === 'Present' && newStatus !== 'Present') {
+            record.status = newStatus;
+        }
         showToast("Punched Out", `You successfully punched out at ${now}.`, "info");
     } else {
         return; // Already punched out
@@ -1964,13 +2023,20 @@ window.renderAdminShiftManagement = function() {
     const db = getDb();
     if (!db.shifts || db.shifts.length === 0) {
         db.shifts = [
-            { id: 'shift_general', name: 'General Shift', start: '09:00', end: '17:00', hasBreak: true, breakStart: '13:00', breakEnd: '14:00', breakMins: 60, isFlexible: false },
-            { id: 'shift_morning', name: 'Morning Shift', start: '08:00', end: '16:00', hasBreak: true, breakStart: '12:00', breakEnd: '13:00', breakMins: 60, isFlexible: false },
-            { id: 'shift_evening', name: 'Evening Shift', start: '16:00', end: '00:00', hasBreak: true, breakStart: '20:00', breakEnd: '21:00', breakMins: 60, isFlexible: false },
-            { id: 'shift_night', name: 'Night Shift', start: '00:00', end: '08:00', hasBreak: true, breakStart: '04:00', breakEnd: '05:00', breakMins: 60, isFlexible: false },
-            { id: 'shift_flexible', name: 'Flexible / Custom Timings', start: 'Manual', end: 'Manual', hasBreak: true, breakStart: '13:00', breakEnd: '14:00', breakMins: 60, isFlexible: true }
+            { id: 'shift_general', name: 'General Shift', start: '09:00', end: '17:00', hasBreak: true, breakStart: '13:00', breakEnd: '14:00', breakMins: 60, isFlexible: false, lateGraceMins: 20, halfDayMins: 180, earlyGraceMins: 15 },
+            { id: 'shift_morning', name: 'Morning Shift', start: '08:00', end: '16:00', hasBreak: true, breakStart: '12:00', breakEnd: '13:00', breakMins: 60, isFlexible: false, lateGraceMins: 20, halfDayMins: 180, earlyGraceMins: 15 },
+            { id: 'shift_evening', name: 'Evening Shift', start: '16:00', end: '00:00', hasBreak: true, breakStart: '20:00', breakEnd: '21:00', breakMins: 60, isFlexible: false, lateGraceMins: 20, halfDayMins: 180, earlyGraceMins: 15 },
+            { id: 'shift_night', name: 'Night Shift', start: '00:00', end: '08:00', hasBreak: true, breakStart: '04:00', breakEnd: '05:00', breakMins: 60, isFlexible: false, lateGraceMins: 20, halfDayMins: 180, earlyGraceMins: 15 },
+            { id: 'shift_flexible', name: 'Flexible / Custom Timings', start: 'Manual', end: 'Manual', hasBreak: true, breakStart: '13:00', breakEnd: '14:00', breakMins: 60, isFlexible: true, lateGraceMins: 20, halfDayMins: 180, earlyGraceMins: 15 }
         ];
     }
+
+    // Ensure backwards compatibility for existing shifts
+    (db.shifts || []).forEach(s => {
+        if (s.lateGraceMins === undefined) s.lateGraceMins = 20;
+        if (s.halfDayMins === undefined) s.halfDayMins = 180;
+        if (s.earlyGraceMins === undefined) s.earlyGraceMins = 15;
+    });
 
     const gridEl = document.getElementById('admin-shifts-grid');
     if (gridEl) {
@@ -1984,6 +2050,7 @@ window.renderAdminShiftManagement = function() {
             const isFlex = s.isFlexible || s.id === 'shift_flexible';
             const assignedCount = allUsers.filter(u => (u.shiftId || 'shift_general') === s.id).length;
             const bText = (s.hasBreak === false || s.breakMins === 0) ? 'No Break' : `${s.breakStart || '13:00'} - ${s.breakEnd || '14:00'} (${s.breakMins || 60}m)`;
+            const policyBadge = `Late: >${s.lateGraceMins}m | Half Day: >${s.halfDayMins}m | Early Exit: >${s.earlyGraceMins}m`;
 
             return `
                 <div class="card stat-card bg-glass shift-card-draggable" draggable="true" data-shift-id="${s.id}" style="padding: 16px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); position: relative; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.04); cursor: grab; transition: transform 0.2s, box-shadow 0.2s; height: 100%;">
@@ -2004,6 +2071,7 @@ window.renderAdminShiftManagement = function() {
                         <div style="font-size: 11px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 4px;">
                             <div><i class="fa-regular fa-clock" style="width: 14px;"></i> Time: <strong style="color: var(--text-primary);">${isFlex ? 'Custom Set per User' : `${s.start} - ${s.end}`}</strong></div>
                             <div><i class="fa-solid fa-mug-hot" style="width: 14px;"></i> Break: <strong style="color: var(--text-primary);">${bText}</strong></div>
+                            <div><i class="fa-solid fa-user-clock text-primary" style="width: 14px;"></i> Policy: <strong style="color: var(--primary); font-size: 10px;">${policyBadge}</strong></div>
                         </div>
                     </div>
                     <div style="margin-top: 15px; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 12px;">
@@ -2054,99 +2122,63 @@ window.setupShiftDragAndDrop = function() {
         card.addEventListener('dragover', function(e) {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
-            this.style.transform = 'scale(1.02)';
-            this.style.borderColor = 'var(--primary)';
-        });
-
-        card.addEventListener('dragleave', function() {
-            this.style.transform = 'none';
-            this.style.borderColor = 'rgba(0,0,0,0.08)';
         });
 
         card.addEventListener('drop', function(e) {
-            e.stopPropagation();
-            this.style.transform = 'none';
-            this.style.borderColor = 'rgba(0,0,0,0.08)';
-
+            e.preventDefault();
             const targetId = this.getAttribute('data-shift-id');
-            if (draggedId && targetId && draggedId !== targetId) {
+            if (draggedId && draggedId !== targetId) {
                 const db = getDb();
-                const fromIndex = db.shifts.findIndex(s => s.id === draggedId);
-                const toIndex = db.shifts.findIndex(s => s.id === targetId);
-                if (fromIndex !== -1 && toIndex !== -1) {
-                    const [movedItem] = db.shifts.splice(fromIndex, 1);
-                    db.shifts.splice(toIndex, 0, movedItem);
+                const fromIdx = db.shifts.findIndex(s => s.id === draggedId);
+                const toIdx = db.shifts.findIndex(s => s.id === targetId);
+                if (fromIdx !== -1 && toIdx !== -1) {
+                    const [movedItem] = db.shifts.splice(fromIdx, 1);
+                    db.shifts.splice(toIdx, 0, movedItem);
                     saveDb(db);
                     renderAdminShiftManagement();
-                    showToast("Shifts Reordered", "Shift order saved successfully.", "success");
                 }
             }
-            return false;
         });
     });
 };
 
 window.openShiftAssignModal = function(shiftId) {
     const db = getDb();
-    const modal = document.getElementById('modal-admin-shift-assign');
-    const titleEl = document.getElementById('shift-assign-modal-title');
-    const targetIdInput = document.getElementById('shift-assign-target-id');
-    const listEl = document.getElementById('shift-assign-emp-list');
-    const searchInput = document.getElementById('shift-assign-search');
-
-    if (!modal || !listEl) return;
-
     const shift = (db.shifts || []).find(s => s.id === shiftId);
     if (!shift) return;
 
-    const isFlex = shift.isFlexible || shift.id === 'shift_flexible';
+    const modal = document.getElementById('modal-admin-shift-assign');
+    const titleEl = document.getElementById('shift-assign-modal-title');
+    const subEl = document.getElementById('shift-assign-modal-subtitle');
+    const listEl = document.getElementById('shift-assign-emp-list');
+    const btnSave = document.getElementById('btn-save-shift-assign');
 
-    titleEl.textContent = `Assign to: ${shift.name}`;
-    targetIdInput.value = shift.id;
-    if (searchInput) searchInput.value = '';
+    if (!modal) return;
 
-    const employees = (db.users || []).filter(u => u.role !== 'Admin' && u.status !== 'Inactive');
+    titleEl.textContent = `Assign Employees to '${shift.name}'`;
+    subEl.textContent = shift.isFlexible ? `Employees assigned here will have individual custom duty timings.` : `Standard Timing: ${shift.start} to ${shift.end}`;
 
-    if (employees.length === 0) {
-        listEl.innerHTML = `<div class="text-center text-muted py-4">No active employees found.</div>`;
-    } else {
-        listEl.innerHTML = employees.map(u => {
-            const isAssigned = (u.shiftId || 'shift_general') === shiftId;
-            const dFrom = u.dutyFrom || '09:00';
-            const dTo = u.dutyTo || '17:00';
-            const bMins = u.breakMins !== undefined ? u.breakMins : 60;
+    const allUsers = (db.users || []).filter(u => u.role !== 'Admin' && u.status !== 'Inactive');
 
-            return `
-                <div class="shift-assign-item" data-name="${u.name.toLowerCase()}" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(255,255,255,0.7); border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; transition: all 0.2s;">
-                    <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; flex: 1; margin: 0;">
-                        <input type="checkbox" name="shift_emp_cb" value="${u.id}" ${isAssigned ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;" onchange="toggleModalEmpFlexTiming(this, '${u.id}')">
-                        <span style="width:30px; height:30px; border-radius:50%; background:var(--primary-light); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">${getInitials(u.name)}</span>
-                        <div>
-                            <div style="font-weight: 700; font-size: 13px; color: var(--text-primary);">${u.name}</div>
-                            <div style="font-size: 11px; color: var(--text-secondary);">${u.department || 'General Department'}</div>
-                        </div>
-                    </label>
-                    ${isFlex ? `
-                        <div id="flex-timing-box-${u.id}" style="display: ${isAssigned ? 'flex' : 'none'}; align-items: center; gap: 8px; background: rgba(168,85,247,0.08); padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(168,85,247,0.2);">
-                            <div style="display:flex; align-items:center; gap:4px; font-size:11px; font-weight:600; color:#a855f7;">
-                                <span>Start:</span>
-                                <input type="time" class="form-control btn-sm" id="assign_start_${u.id}" value="${dFrom}" style="width: 100px; padding: 2px 4px; font-size:12px; font-weight:700; border-color:#a855f7;">
-                            </div>
-                            <div style="display:flex; align-items:center; gap:4px; font-size:11px; font-weight:600; color:#a855f7;">
-                                <span>End:</span>
-                                <input type="time" class="form-control btn-sm" id="assign_end_${u.id}" value="${dTo}" style="width: 100px; padding: 2px 4px; font-size:12px; font-weight:700; border-color:#a855f7;">
-                            </div>
-                            <div style="display:flex; align-items:center; gap:4px; font-size:11px; font-weight:600; color:#a855f7;">
-                                <span>Break(m):</span>
-                                <input type="number" class="form-control btn-sm" id="assign_break_${u.id}" value="${bMins}" min="0" max="300" style="width: 65px; padding: 2px 4px; font-size:12px; font-weight:700; border-color:#a855f7;">
-                            </div>
-                        </div>
-                    ` : ''}
+    listEl.innerHTML = allUsers.map(u => {
+        const isAssigned = (u.shiftId || 'shift_general') === shift.id;
+        return `
+            <label style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; cursor: pointer;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="checkbox" class="shift-emp-chk" data-emp-id="${u.id}" ${isAssigned ? 'checked' : ''}>
+                    <div>
+                        <div style="font-weight: 700; font-size: 13px; color: var(--text-primary);">${u.name}</div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">${u.displayId || u.id} • ${u.designation || 'Staff'}</div>
+                    </div>
                 </div>
-            `;
-        }).join('');
-    }
+                <span class="badge-status ${isAssigned ? 'approved' : 'neutral'}" style="font-size: 10px; padding: 2px 8px;">
+                    ${isAssigned ? 'Assigned' : 'Unassigned'}
+                </span>
+            </label>
+        `;
+    }).join('');
 
+    btnSave.onclick = () => saveShiftAssignments(shift.id);
     modal.classList.remove('hidden');
 };
 
@@ -2155,82 +2187,37 @@ window.closeShiftAssignModal = function() {
     if (modal) modal.classList.add('hidden');
 };
 
-window.toggleModalEmpFlexTiming = function(cbEl, empId) {
-    const box = document.getElementById(`flex-timing-box-${empId}`);
-    if (box) {
-        box.style.display = cbEl.checked ? 'flex' : 'none';
-    }
-};
-
-window.selectAllShiftEmpModal = function(selectStatus) {
-    const modal = document.getElementById('modal-admin-shift-assign');
-    if (!modal) return;
-    modal.querySelectorAll('input[name="shift_emp_cb"]').forEach(cb => {
-        if (cb.closest('.shift-assign-item') && cb.closest('.shift-assign-item').style.display !== 'none') {
-            cb.checked = selectStatus;
-            toggleModalEmpFlexTiming(cb, cb.value);
-        }
-    });
-};
-
-window.filterShiftAssignModalList = function(query) {
-    const modal = document.getElementById('modal-admin-shift-assign');
-    if (!modal) return;
-    const lower = query.toLowerCase();
-    modal.querySelectorAll('.shift-assign-item').forEach(item => {
-        const name = item.getAttribute('data-name') || '';
-        item.style.display = name.includes(lower) ? 'flex' : 'none';
-    });
-};
-
-window.submitShiftBulkForm = function() {
-    const form = document.getElementById('form-shift-assign');
-    if (form) form.dispatchEvent(new Event('submit'));
-};
-
-window.handleShiftAssignSubmit = function(e) {
-    e.preventDefault();
+window.saveShiftAssignments = function(shiftId) {
     const db = getDb();
-    const targetShiftId = document.getElementById('shift-assign-target-id').value;
-    const shift = (db.shifts || []).find(s => s.id === targetShiftId);
+    const shift = (db.shifts || []).find(s => s.id === shiftId);
     if (!shift) return;
 
-    const isFlex = shift.isFlexible || shift.id === 'shift_flexible';
-    const checkedBoxes = document.querySelectorAll('#modal-admin-shift-assign input[name="shift_emp_cb"]:checked');
-    const checkedEmpIds = Array.from(checkedBoxes).map(cb => String(cb.value));
-
-    // Update all users
-    (db.users || []).forEach(u => {
-        if (u.role === 'Admin' || u.status === 'Inactive') return;
-
-        if (checkedEmpIds.includes(String(u.id))) {
-            // Assigned to this shift
-            u.shiftId = targetShiftId;
-            if (isFlex) {
-                const sStartEl = document.getElementById(`assign_start_${u.id}`);
-                const sEndEl = document.getElementById(`assign_end_${u.id}`);
-                const sBreakEl = document.getElementById(`assign_break_${u.id}`);
-                if (sStartEl) u.dutyFrom = sStartEl.value || '09:00';
-                if (sEndEl) u.dutyTo = sEndEl.value || '17:00';
-                if (sBreakEl) u.breakMins = parseInt(sBreakEl.value) || 60;
-            } else {
-                u.dutyFrom = shift.start;
-                u.dutyTo = shift.end;
-                u.breakMins = shift.breakMins || 60;
+    const chks = document.querySelectorAll('.shift-emp-chk');
+    chks.forEach(chk => {
+        const empId = Number(chk.getAttribute('data-emp-id'));
+        const user = (db.users || []).find(u => u.id === empId);
+        if (user) {
+            if (chk.checked) {
+                user.shiftId = shift.id;
+                if (!shift.isFlexible) {
+                    user.dutyFrom = shift.start;
+                    user.dutyTo = shift.end;
+                    user.breakMins = shift.hasBreak ? shift.breakMins : 0;
+                }
+            } else if ((user.shiftId || 'shift_general') === shift.id) {
+                user.shiftId = 'shift_general';
+                const genShift = db.shifts.find(s => s.id === 'shift_general');
+                if (genShift) {
+                    user.dutyFrom = genShift.start;
+                    user.dutyTo = genShift.end;
+                    user.breakMins = genShift.breakMins;
+                }
             }
-        } else if ((u.shiftId || 'shift_general') === targetShiftId) {
-            // Was previously assigned to this shift, but unchecked -> reset to General
-            u.shiftId = 'shift_general';
-            const genShift = (db.shifts || []).find(s => s.id === 'shift_general');
-            u.dutyFrom = genShift ? genShift.start : '09:00';
-            u.dutyTo = genShift ? genShift.end : '17:00';
-            u.breakMins = genShift ? genShift.breakMins : 60;
         }
     });
 
     saveDb(db);
     closeShiftAssignModal();
-    showToast("Employees Assigned", `Successfully updated employee assignments for '${shift.name}'.`, "success");
     renderAdminShiftManagement();
 };
 
@@ -2251,6 +2238,9 @@ window.openCreateShiftModal = function(editShiftId = null) {
     const endInput = document.getElementById('shift-config-end');
     const bStartInput = document.getElementById('shift-config-break-start');
     const bEndInput = document.getElementById('shift-config-break-end');
+    const lateGraceInput = document.getElementById('shift-config-late-grace');
+    const halfDayInput = document.getElementById('shift-config-half-day');
+    const earlyGraceInput = document.getElementById('shift-config-early-grace');
 
     if (!modal) return;
 
@@ -2275,6 +2265,10 @@ window.openCreateShiftModal = function(editShiftId = null) {
             }
             if (bStartInput) bStartInput.value = s.breakStart || '13:00';
             if (bEndInput) bEndInput.value = s.breakEnd || '14:00';
+
+            if (lateGraceInput) lateGraceInput.value = s.lateGraceMins ?? 20;
+            if (halfDayInput) halfDayInput.value = s.halfDayMins ?? 180;
+            if (earlyGraceInput) earlyGraceInput.value = s.earlyGraceMins ?? 15;
         }
     } else {
         titleEl.textContent = "Create New Shift";
@@ -2287,6 +2281,10 @@ window.openCreateShiftModal = function(editShiftId = null) {
         toggleShiftBreakConfig(true);
         if (bStartInput) bStartInput.value = '13:00';
         if (bEndInput) bEndInput.value = '14:00';
+
+        if (lateGraceInput) lateGraceInput.value = 20;
+        if (halfDayInput) halfDayInput.value = 180;
+        if (earlyGraceInput) earlyGraceInput.value = 15;
     }
 
     modal.classList.remove('hidden');
@@ -2308,6 +2306,9 @@ window.handleShiftSubmit = function(e) {
     const hasBreak = hasBreakEl ? hasBreakEl.value === 'yes' : true;
     const bStartVal = document.getElementById('shift-config-break-start').value || '13:00';
     const bEndVal = document.getElementById('shift-config-break-end').value || '14:00';
+    const lateGraceVal = Number(document.getElementById('shift-config-late-grace')?.value ?? 20);
+    const halfDayVal = Number(document.getElementById('shift-config-half-day')?.value ?? 180);
+    const earlyGraceVal = Number(document.getElementById('shift-config-early-grace')?.value ?? 15);
 
     if (!nameVal || !startVal || !endVal) return;
 
@@ -2329,6 +2330,9 @@ window.handleShiftSubmit = function(e) {
             existing.breakStart = bStartVal;
             existing.breakEnd = bEndVal;
             existing.breakMins = hasBreak ? calcMins : 0;
+            existing.lateGraceMins = lateGraceVal;
+            existing.halfDayMins = halfDayVal;
+            existing.earlyGraceMins = earlyGraceVal;
 
             // Also update any employees currently assigned to this standard shift
             (db.users || []).forEach(u => {
@@ -2350,7 +2354,10 @@ window.handleShiftSubmit = function(e) {
             breakStart: bStartVal,
             breakEnd: bEndVal,
             breakMins: hasBreak ? calcMins : 0,
-            isFlexible: false
+            isFlexible: false,
+            lateGraceMins: lateGraceVal,
+            halfDayMins: halfDayVal,
+            earlyGraceMins: earlyGraceVal
         });
     }
 
