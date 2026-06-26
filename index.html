@@ -1251,9 +1251,9 @@
                                         <p class="text-secondary" style="font-size: 12px; margin: 4px 0 0 0;">Rotate rosters or shift schedules periodically across teams. General Shift and Custom/Flexible Shift employees remain unaffected.</p>
                                     </div>
                                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-                                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; background: rgba(0,0,0,0.03); padding: 10px 16px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); width: 100%;">
-                                            <label style="font-size: 12px; font-weight: 700; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-gear text-primary"></i> Rotation Strategy:</label>
-                                            <select id="shift-rot-strategy" class="form-control btn-sm" style="font-size: 12px; font-weight: 700; border: none; background: transparent; cursor: pointer; color: var(--primary); padding: 2px 8px;" onchange="if(window.saveShiftRotationPolicy) window.saveShiftRotationPolicy()">
+                                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; background: rgba(0,0,0,0.03); padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.08); width: 100%;">
+                                            <label style="font-size: 12px; font-weight: 700; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 6px; white-space: nowrap;"><i class="fa-solid fa-gear text-primary"></i> Rotation Strategy:</label>
+                                            <select id="shift-rot-strategy" class="form-control btn-sm" style="font-size: 12px; font-weight: 700; border: none; background: transparent; cursor: pointer; color: var(--primary); padding: 2px 4px; text-align: right;" onchange="if(window.saveShiftRotationPolicy) window.saveShiftRotationPolicy()">
                                                 <option value="employees">👥 Move Employees (Roster Rotation)</option>
                                                 <option value="timings">🕒 Rotate Timings (Schedule Rotation)</option>
                                             </select>
@@ -1277,9 +1277,10 @@
                                         <div style="background: rgba(255,255,255,0.6); padding: 18px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.06);">
                                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                                                 <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary);"><i class="fa-solid fa-calendar-check text-primary"></i> Automated Schedule (Auto-Pilot)</h4>
-                                                <button type="button" id="btn-toggle-shift-autopilot" onclick="toggleAutoPilotEnableBtn()" class="btn btn-outline btn-sm" style="font-size: 11px; font-weight: 700; border-radius: 20px; padding: 4px 14px; display: flex; align-items: center; gap: 6px; transition: all 0.2s; cursor: pointer;">
-                                                    <i class="fa-solid fa-toggle-off text-muted"></i> Disabled
-                                                </button>
+                                                <div id="autopilot-pill-switch" onclick="toggleAutoPilotEnableBtn()" style="display: inline-flex; align-items: center; width: 90px; height: 26px; background: #cbd5e1; border-radius: 13px; padding: 2px; cursor: pointer; position: relative; transition: background 0.3s; user-select: none;">
+                                                    <span id="autopilot-switch-text" style="position: absolute; right: 10px; font-size: 9.5px; font-weight: 800; color: #475569; letter-spacing: 0.5px;">DISABLED</span>
+                                                    <div id="autopilot-switch-knob" style="width: 22px; height: 22px; background: #fff; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.3); transform: translateX(0px); transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);"></div>
+                                                </div>
                                                 <input type="checkbox" id="shift-rot-enabled" style="display:none;" onchange="toggleAutoRotationUI()">
                                             </div>
                                             <p class="text-secondary" style="font-size: 11px; margin-bottom: 12px;">System will automatically rotate shifts on the scheduled trigger date.</p>

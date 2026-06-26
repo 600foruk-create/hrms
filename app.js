@@ -2488,21 +2488,29 @@ window.toggleAutoPilotEnableBtn = function() {
 window.toggleAutoRotationUI = function() {
     const cb = document.getElementById('shift-rot-enabled');
     const box = document.getElementById('shift-rot-config-box');
-    const btn = document.getElementById('btn-toggle-shift-autopilot');
+    const switchTrack = document.getElementById('autopilot-pill-switch');
+    const switchKnob = document.getElementById('autopilot-switch-knob');
+    const switchText = document.getElementById('autopilot-switch-text');
 
     if (cb && box) {
         box.style.opacity = cb.checked ? '1' : '0.5';
         box.style.pointerEvents = cb.checked ? 'auto' : 'none';
     }
-    if (cb && btn) {
+    if (cb && switchTrack && switchKnob && switchText) {
         if (cb.checked) {
-            btn.innerHTML = `<i class="fa-solid fa-toggle-on text-success" style="font-size:14px;"></i> <span class="text-success">Enabled</span>`;
-            btn.style.borderColor = "#22c55e";
-            btn.style.background = "rgba(34,197,94,0.1)";
+            switchTrack.style.background = "#10b981"; // vibrant green
+            switchKnob.style.transform = "translateX(64px)";
+            switchText.style.left = "10px";
+            switchText.style.right = "auto";
+            switchText.style.color = "#ffffff";
+            switchText.textContent = "ENABLED";
         } else {
-            btn.innerHTML = `<i class="fa-solid fa-toggle-off text-muted" style="font-size:14px;"></i> <span class="text-muted">Disabled</span>`;
-            btn.style.borderColor = "rgba(0,0,0,0.15)";
-            btn.style.background = "transparent";
+            switchTrack.style.background = "#cbd5e1"; // slate gray
+            switchKnob.style.transform = "translateX(0px)";
+            switchText.style.right = "10px";
+            switchText.style.left = "auto";
+            switchText.style.color = "#475569";
+            switchText.textContent = "DISABLED";
         }
     }
 };
