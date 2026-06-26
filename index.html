@@ -1205,20 +1205,20 @@
                                             <button class="btn btn-outline btn-sm" onclick="if(window.exportAttendanceSlabCSV) window.exportAttendanceSlabCSV()"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
                                         </div>
                                     </div>
-                                    <div style="overflow-x: auto;">
-                                        <table class="table" style="margin:0; min-width: 900px;" id="attendance-slab-main-table">
+                                    <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 10px; background: rgba(255,255,255,0.5); box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+                                        <table class="table" style="margin:0; width: 100%; min-width: 1050px; border-collapse: separate; border-spacing: 0;" id="attendance-slab-main-table">
                                             <thead>
-                                                <tr>
-                                                    <th style="text-align: left;">Employee Name</th>
-                                                    <th style="text-align: center;">Today's Status</th>
-                                                    <th style="text-align: center;">Present</th>
-                                                    <th style="text-align: center;">Late</th>
-                                                    <th style="text-align: center;">Absent</th>
-                                                    <th style="text-align: center;">Leave</th>
-                                                    <th style="text-align: center;">Attendance %</th>
-                                                    <th style="text-align: center;">Slab Grade</th>
-                                                    <th style="text-align: left;">Performance Score</th>
-                                                    <th style="text-align: center;">Status</th>
+                                                <tr style="background: rgba(0,0,0,0.025);">
+                                                    <th style="text-align: left; padding: 14px 18px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-secondary); border-bottom: 2px solid var(--border-color);">Employee Details</th>
+                                                    <th style="text-align: center; padding: 14px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-secondary); border-bottom: 2px solid var(--border-color);">Today's Status</th>
+                                                    <th style="text-align: center; padding: 14px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-secondary); border-bottom: 2px solid var(--border-color);">Present</th>
+                                                    <th style="text-align: center; padding: 14px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-secondary); border-bottom: 2px solid var(--border-color);">Late</th>
+                                                    <th style="text-align: center; padding: 14px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-secondary); border-bottom: 2px solid var(--border-color);">Absent</th>
+                                                    <th style="text-align: center; padding: 14px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-secondary); border-bottom: 2px solid var(--border-color);">Leave</th>
+                                                    <th style="text-align: center; padding: 14px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-secondary); border-bottom: 2px solid var(--border-color);">Attendance</th>
+                                                    <th style="text-align: center; padding: 14px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-secondary); border-bottom: 2px solid var(--border-color);">Grade</th>
+                                                    <th style="text-align: left; padding: 14px 18px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-secondary); border-bottom: 2px solid var(--border-color); width: 180px;">Performance Score</th>
+                                                    <th style="text-align: center; padding: 14px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-secondary); border-bottom: 2px solid var(--border-color);">Rating</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="admin-attendance-slab-table-body">

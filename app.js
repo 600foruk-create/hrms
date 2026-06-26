@@ -1781,7 +1781,7 @@ window.renderAdminAttendanceSlab = function() {
     // Initialize stats for active users
     (db.users || []).forEach(u => {
         if(u.status !== 'Inactive') {
-            employeeStats[String(u.id)] = { id: u.id, name: u.name, present: 0, late: 0, leave: 0, absent: 0, percentage: 0 };
+            employeeStats[String(u.id)] = { id: u.id, name: u.name, displayId: u.displayId || `EMP-${u.id}`, designation: u.designation || 'Staff Member', present: 0, late: 0, leave: 0, absent: 0, percentage: 0 };
             totalActiveEmployees++;
         }
     });
@@ -1954,7 +1954,7 @@ window.renderAttendanceSlabTable = function(data) {
     tableBody.innerHTML = '';
     
     if (data.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="10" class="empty-state text-center text-muted" style="padding: 20px;">No employees or data found.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="10" class="empty-state text-center text-muted" style="padding: 30px; font-size: 13px;">No employees or attendance data found for this period.</td></tr>`;
         return;
     }
 
@@ -1966,31 +1966,60 @@ window.renderAttendanceSlabTable = function(data) {
         const tLog = (db.attendance || []).find(a => a.date === todayStr && String(a.employeeId) === String(stat.id));
         let todayStatus = tLog ? tLog.status : 'Absent';
         let statusBadgeHTML = '';
-        if (todayStatus === 'Present') statusBadgeHTML = `<span class="badge-status approved" style="padding: 4px 10px;">Present</span>`;
-        else if (todayStatus === 'Late') statusBadgeHTML = `<span class="badge-status pending" style="background: var(--warning-light); color: var(--warning); padding: 4px 10px;">Late</span>`;
-        else if (todayStatus === 'On Leave') statusBadgeHTML = `<span class="badge-status" style="background: var(--primary-light); color: var(--primary); padding: 4px 10px;">On Leave</span>`;
-        else if (todayStatus === 'Half Day') statusBadgeHTML = `<span class="badge-status" style="background: rgba(168,85,247,0.15); color: #a855f7; padding: 4px 10px;">Half Day</span>`;
-        else statusBadgeHTML = `<span class="badge-status rejected" style="padding: 4px 10px;">Absent</span>`;
+        if (todayStatus === 'Present') statusBadgeHTML = `<span class="badge-status approved" style="padding: 5px 12px; font-size: 11px; font-weight: 600;"><i class="fa-solid fa-circle-check mr-1" style="font-size:10px;"></i> Present</span>`;
+        else if (todayStatus === 'Late') statusBadgeHTML = `<span class="badge-status pending" style="background: var(--warning-light); color: var(--warning); padding: 5px 12px; font-size: 11px; font-weight: 600;"><i class="fa-solid fa-clock mr-1" style="font-size:10px;"></i> Late</span>`;
+        else if (todayStatus === 'On Leave') statusBadgeHTML = `<span class="badge-status" style="background: var(--primary-light); color: var(--primary); padding: 5px 12px; font-size: 11px; font-weight: 600;"><i class="fa-solid fa-plane-departure mr-1" style="font-size:10px;"></i> On Leave</span>`;
+        else if (todayStatus === 'Half Day') statusBadgeHTML = `<span class="badge-status" style="background: rgba(168,85,247,0.15); color: #a855f7; padding: 5px 12px; font-size: 11px; font-weight: 600;"><i class="fa-solid fa-hourglass-half mr-1" style="font-size:10px;"></i> Half Day</span>`;
+        else statusBadgeHTML = `<span class="badge-status rejected" style="padding: 5px 12px; font-size: 11px; font-weight: 600;"><i class="fa-solid fa-circle-xmark mr-1" style="font-size:10px;"></i> Absent</span>`;
 
         tableBody.innerHTML += `
-            <tr class="slab-table-row">
-                <td style="font-weight: 600; text-align: left;" class="slab-emp-name">${stat.name}</td>
-                <td style="text-align: center;">${statusBadgeHTML}</td>
-                <td style="text-align: center;"><span class="badge-status approved" style="padding: 4px 8px;">${stat.present}</span></td>
-                <td style="text-align: center;"><span class="badge-status pending" style="background: var(--warning-light); color: var(--warning); padding: 4px 8px;">${stat.late}</span></td>
-                <td style="text-align: center;"><span class="badge-status rejected" style="padding: 4px 8px;">${stat.absent}</span></td>
-                <td style="text-align: center;"><span class="badge-status" style="background: var(--primary-light); color: var(--primary); padding: 4px 8px;">${stat.leave}</span></td>
-                <td style="text-align: center;"><strong style="color: ${stat.color};">${stat.percentage}%</strong></td>
-                <td style="text-align: center;"><span style="display:inline-block; font-weight:bold; padding: 4px 10px; background:${stat.color}; color:white; border-radius:12px; font-size:12px;">${stat.slab}</span></td>
-                <td style="text-align: left;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="flex:1; height: 8px; background: rgba(0,0,0,0.05); border-radius: 4px; overflow:hidden;">
-                            <div style="width: ${score}%; height: 100%; background: ${stat.color}; border-radius: 4px;"></div>
+            <tr class="slab-table-row" style="transition: background 0.2s ease;">
+                <td style="padding: 14px 18px; text-align: left; border-bottom: 1px solid var(--border-color);">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(95,59,246,0.15);">
+                            ${stat.name.charAt(0)}
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 13.5px; color: var(--text-primary); margin-bottom: 2px;" class="slab-emp-name">${stat.name}</div>
+                            <div style="font-size: 11px; color: var(--text-secondary);">${stat.displayId} • ${stat.designation}</div>
                         </div>
                     </div>
                 </td>
-                <td style="text-align: center;">
-                    <span style="font-size:11px; font-weight:600; color:${stat.color};">${stat.slab === 'A' ? 'Excellent' : (stat.slab === 'B' ? 'Good' : (stat.slab === 'C' ? 'Average' : 'Poor'))}</span>
+                <td style="padding: 14px 12px; text-align: center; border-bottom: 1px solid var(--border-color);">
+                    ${statusBadgeHTML}
+                </td>
+                <td style="padding: 14px 12px; text-align: center; border-bottom: 1px solid var(--border-color);">
+                    <div style="font-weight: 700; font-size: 14px; color: var(--success);">${stat.present}</div>
+                    <div style="font-size: 10px; color: var(--text-secondary); text-transform: lowercase;">days</div>
+                </td>
+                <td style="padding: 14px 12px; text-align: center; border-bottom: 1px solid var(--border-color);">
+                    <div style="font-weight: 700; font-size: 14px; color: ${stat.late > 0 ? 'var(--warning)' : 'var(--text-secondary)'};">${stat.late}</div>
+                    <div style="font-size: 10px; color: var(--text-secondary); text-transform: lowercase;">days</div>
+                </td>
+                <td style="padding: 14px 12px; text-align: center; border-bottom: 1px solid var(--border-color);">
+                    <div style="font-weight: 700; font-size: 14px; color: ${stat.absent > 0 ? 'var(--danger)' : 'var(--text-secondary)'};">${stat.absent}</div>
+                    <div style="font-size: 10px; color: var(--text-secondary); text-transform: lowercase;">days</div>
+                </td>
+                <td style="padding: 14px 12px; text-align: center; border-bottom: 1px solid var(--border-color);">
+                    <div style="font-weight: 700; font-size: 14px; color: ${stat.leave > 0 ? 'var(--primary)' : 'var(--text-secondary)'};">${stat.leave}</div>
+                    <div style="font-size: 10px; color: var(--text-secondary); text-transform: lowercase;">days</div>
+                </td>
+                <td style="padding: 14px 12px; text-align: center; border-bottom: 1px solid var(--border-color);">
+                    <span style="font-size: 14.5px; font-weight: 800; color: ${stat.color};">${stat.percentage}%</span>
+                </td>
+                <td style="padding: 14px 12px; text-align: center; border-bottom: 1px solid var(--border-color);">
+                    <span style="display:inline-flex; align-items:center; justify-content:center; width: 30px; height: 30px; font-weight: 800; background: ${stat.color}18; color: ${stat.color}; border: 1.5px solid ${stat.color}40; border-radius: 8px; font-size: 13px; box-shadow: 0 2px 5px ${stat.color}15;">${stat.slab}</span>
+                </td>
+                <td style="padding: 14px 18px; text-align: left; border-bottom: 1px solid var(--border-color); width: 180px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="flex: 1; height: 8px; background: rgba(0,0,0,0.06); border-radius: 10px; overflow: hidden;">
+                            <div style="width: ${score}%; height: 100%; background: ${stat.color}; border-radius: 10px; transition: width 0.5s ease;"></div>
+                        </div>
+                        <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary); min-width: 32px; text-align: right;">${score}%</span>
+                    </div>
+                </td>
+                <td style="padding: 14px 16px; text-align: center; border-bottom: 1px solid var(--border-color);">
+                    <span style="display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; background: ${stat.color}15; color: ${stat.color};">${stat.slab === 'A' ? 'Excellent' : (stat.slab === 'B' ? 'Good' : (stat.slab === 'C' ? 'Average' : 'Poor'))}</span>
                 </td>
             </tr>
         `;
