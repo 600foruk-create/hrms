@@ -709,13 +709,17 @@ if ($action === 'load_all') {
             $shStmt = $pdo->query("SELECT * FROM shift_management");
             while ($shRow = $shStmt->fetch(PDO::FETCH_ASSOC)) {
                 if ($shRow['record_type'] === 'card') {
+                    $pol = !empty($shRow['policy_json']) ? json_decode($shRow['policy_json'], true) : [];
                     $dbState['shifts'][] = [
                         'id' => $shRow['shift_id'],
                         'name' => $shRow['shift_name'],
                         'start' => $shRow['duty_from'],
                         'end' => $shRow['duty_to'],
                         'breakMins' => (int)$shRow['break_mins'],
-                        'isFlexible' => !empty($shRow['is_flexible'])
+                        'isFlexible' => !empty($shRow['is_flexible']),
+                        'lateGraceMins' => isset($pol['lateGraceMins']) ? (int)$pol['lateGraceMins'] : 20,
+                        'halfDayMins' => isset($pol['halfDayMins']) ? (int)$pol['halfDayMins'] : 180,
+                        'earlyGraceMins' => isset($pol['earlyGraceMins']) ? (int)$pol['earlyGraceMins'] : 15
                     ];
                 } elseif ($shRow['record_type'] === 'assignment') {
                     $shMap[$shRow['employee_id']] = $shRow;
@@ -1369,9 +1373,14 @@ elseif ($action === 'save_all') {
             // Cards
             if (!empty($data['shifts']) && is_array($data['shifts'])) {
                 foreach ($data['shifts'] as $sc) {
+                    $cardPol = json_encode([
+                        'lateGraceMins' => isset($sc['lateGraceMins']) ? (int)$sc['lateGraceMins'] : 20,
+                        'halfDayMins' => isset($sc['halfDayMins']) ? (int)$sc['halfDayMins'] : 180,
+                        'earlyGraceMins' => isset($sc['earlyGraceMins']) ? (int)$sc['earlyGraceMins'] : 15
+                    ]);
                     $smStmt->execute([
                         'card', $sc['id'] ?? null, $sc['name'] ?? null, $sc['start'] ?? '09:00', $sc['end'] ?? '17:00',
-                        (int)($sc['breakMins'] ?? 60), !empty($sc['isFlexible']) ? 1 : 0, null, null
+                        (int)($sc['breakMins'] ?? 60), !empty($sc['isFlexible']) ? 1 : 0, null, $cardPol
                     ]);
                 }
             }
