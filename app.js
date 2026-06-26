@@ -1974,19 +1974,19 @@ window.renderAdminShiftManagement = function() {
 
     const gridEl = document.getElementById('admin-shifts-grid');
     if (gridEl) {
-        gridEl.style.display = 'grid';
-        gridEl.style.gridTemplateColumns = 'repeat(5, minmax(0, 1fr))';
-        gridEl.style.gap = '15px';
+        gridEl.style.display = 'flex';
+        gridEl.style.flexDirection = 'column';
+        gridEl.style.gap = '20px';
 
         const allUsers = (db.users || []).filter(u => u.role !== 'Admin' && u.status !== 'Inactive');
 
-        gridEl.innerHTML = db.shifts.map(s => {
+        const renderCardHTML = (s) => {
             const isFlex = s.isFlexible || s.id === 'shift_flexible';
             const assignedCount = allUsers.filter(u => (u.shiftId || 'shift_general') === s.id).length;
             const bText = (s.hasBreak === false || s.breakMins === 0) ? 'No Break' : `${s.breakStart || '13:00'} - ${s.breakEnd || '14:00'} (${s.breakMins || 60}m)`;
 
             return `
-                <div class="card stat-card bg-glass shift-card-draggable" draggable="true" data-shift-id="${s.id}" style="padding: 16px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); position: relative; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.04); cursor: grab; transition: transform 0.2s, box-shadow 0.2s;">
+                <div class="card stat-card bg-glass shift-card-draggable" draggable="true" data-shift-id="${s.id}" style="padding: 16px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); position: relative; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.04); cursor: grab; transition: transform 0.2s, box-shadow 0.2s; height: 100%;">
                     <div>
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
                             <div style="display: flex; align-items: center; gap: 6px;">
@@ -2016,7 +2016,19 @@ window.renderAdminShiftManagement = function() {
                     </div>
                 </div>
             `;
-        }).join('');
+        };
+
+        const topShifts = db.shifts.filter(s => s.id === 'shift_general' || s.id === 'shift_flexible');
+        const bottomShifts = db.shifts.filter(s => s.id !== 'shift_general' && s.id !== 'shift_flexible');
+
+        gridEl.innerHTML = `
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; width: 100%;">
+                ${topShifts.map(renderCardHTML).join('')}
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; width: 100%;">
+                ${bottomShifts.map(renderCardHTML).join('')}
+            </div>
+        `;
 
         setupShiftDragAndDrop();
         loadShiftRotationPolicyUI(db);
