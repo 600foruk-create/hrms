@@ -4568,9 +4568,6 @@ window.openEditEmployeeModal = function (userId, isViewOnly = false) {
 
         document.getElementById('emp-role').value = user ? user.role : "User";
         document.getElementById('emp-status').value = user ? user.status : "Active";
-        document.getElementById('emp-duty-from').value = user && user.dutyFrom ? user.dutyFrom : "09:00";
-        document.getElementById('emp-duty-to').value = user && user.dutyTo ? user.dutyTo : "17:00";
-        document.getElementById('emp-break-mins').value = user && user.breakMins !== undefined ? user.breakMins : 60;
 
         // Fill reporting managers dropdown
         const managerSelect = document.getElementById('emp-manager');
@@ -4737,9 +4734,9 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
     const startDate = document.getElementById('emp-start-date').value;
     const endDate = document.getElementById('emp-end-date').value;
     const salary = document.getElementById('emp-salary').value;
-    const dutyFrom = document.getElementById('emp-duty-from').value;
-    const dutyTo = document.getElementById('emp-duty-to').value;
-    const breakMins = document.getElementById('emp-break-mins').value;
+    const dfEl = document.getElementById('emp-duty-from');
+    const dtEl = document.getElementById('emp-duty-to');
+    const bmEl = document.getElementById('emp-break-mins');
 
     const fatherName = document.getElementById('emp-father-name').value.trim();
     const gender = document.getElementById('emp-gender').value;
@@ -4833,9 +4830,9 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
             user.salary = salary;
             user.bloodGroup = bloodGroup;
             user.designation = designation;
-            user.dutyFrom = dutyFrom;
-            user.dutyTo = dutyTo;
-            user.breakMins = parseInt(breakMins) || 0;
+            user.dutyFrom = dfEl ? dfEl.value : (user.dutyFrom || "09:00");
+            user.dutyTo = dtEl ? dtEl.value : (user.dutyTo || "17:00");
+            user.breakMins = bmEl ? (parseInt(bmEl.value) || 0) : (user.breakMins !== undefined ? user.breakMins : 60);
 
             // Bank Details
             user.bankName = bankName;
@@ -4903,9 +4900,10 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
             salary,
             bloodGroup,
             designation,
-            dutyFrom,
-            dutyTo,
-            breakMins: parseInt(breakMins) || 0,
+            shiftId: 'shift_general',
+            dutyFrom: dfEl ? dfEl.value : "09:00",
+            dutyTo: dtEl ? dtEl.value : "17:00",
+            breakMins: bmEl ? (parseInt(bmEl.value) || 0) : 60,
             bankName,
             accountTitle,
             accountNumber,
