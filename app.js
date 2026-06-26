@@ -2193,20 +2193,20 @@ window.openShiftAssignModal = function(shiftId) {
     titleEl.textContent = `Assign Employees to '${shift.name}'`;
     subEl.textContent = shift.isFlexible ? `Employees assigned here will have individual custom duty timings.` : `Standard Timing: ${shift.start} to ${shift.end}`;
 
-    const allUsers = (db.users || []).filter(u => u.role !== 'Admin' && u.status !== 'Inactive');
+    const allUsers = (db.users || []).filter(u => u.status !== 'Inactive');
 
     listEl.innerHTML = allUsers.map(u => {
         const isAssigned = (u.shiftId || 'shift_general') === shift.id;
         return `
-            <label style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.06); border-radius: 8px; cursor: pointer;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <input type="checkbox" class="shift-emp-chk" data-emp-id="${u.id}" ${isAssigned ? 'checked' : ''}>
-                    <div>
-                        <div style="font-weight: 700; font-size: 13px; color: var(--text-primary);">${u.name}</div>
-                        <div style="font-size: 11px; color: var(--text-secondary);">${u.displayId || u.id} • ${u.designation || 'Staff'}</div>
+            <label class="shift-assign-row" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; border-bottom: 1px solid rgba(0,0,0,0.06); margin: 0; cursor: pointer; background: ${isAssigned ? 'rgba(45, 212, 191, 0.08)' : 'transparent'}; transition: background 0.15s;" onmouseover="if(!this.querySelector('input').checked) this.style.background='rgba(0,0,0,0.03)'" onmouseout="this.style.background=this.querySelector('input').checked ? 'rgba(45, 212, 191, 0.08)' : 'transparent'">
+                <div style="display: flex; align-items: center; gap: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <input type="checkbox" class="shift-emp-chk" data-emp-id="${u.id}" ${isAssigned ? 'checked' : ''} style="margin: 0; cursor: pointer;" onchange="const row = this.closest('label'); row.style.background = this.checked ? 'rgba(45, 212, 191, 0.08)' : 'transparent'; const b = row.querySelector('.badge-status'); if(b){ b.className = 'badge-status ' + (this.checked ? 'approved' : 'neutral'); b.textContent = this.checked ? 'Assigned' : 'Unassigned'; }">
+                    <div style="display: flex; align-items: baseline; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <span style="font-weight: 600; font-size: 13px; color: var(--text-primary);">${u.name}</span>
+                        <span style="font-size: 11px; color: var(--text-secondary); opacity: 0.85;">(${u.displayId || u.id} • ${u.designation || 'Staff'})</span>
                     </div>
                 </div>
-                <span class="badge-status ${isAssigned ? 'approved' : 'neutral'}" style="font-size: 10px; padding: 2px 8px;">
+                <span class="badge-status ${isAssigned ? 'approved' : 'neutral'}" style="font-size: 10px; padding: 2px 8px; flex-shrink: 0;">
                     ${isAssigned ? 'Assigned' : 'Unassigned'}
                 </span>
             </label>
@@ -2258,7 +2258,10 @@ window.saveShiftAssignments = function(shiftId) {
 
 window.selectAllShiftEmpModal = function(selectAll) {
     document.querySelectorAll('.shift-emp-chk').forEach(chk => {
-        chk.checked = selectAll;
+        if (chk.checked !== selectAll) {
+            chk.checked = selectAll;
+            chk.dispatchEvent(new Event('change'));
+        }
     });
 };
 

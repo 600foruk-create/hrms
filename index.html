@@ -1397,9 +1397,9 @@
                                 </div>
                                 <input type="text" id="shift-assign-search" class="form-control btn-sm" placeholder="Search employees..." style="max-width: 220px;" oninput="filterShiftAssignModalList(this.value)">
                             </div>
-                            <form id="form-shift-assign" onsubmit="event.preventDefault();" style="flex: 1; min-height: 250px; max-height: 380px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; background: rgba(0,0,0,0.02); margin-bottom: 0;">
+                            <form id="form-shift-assign" onsubmit="event.preventDefault();" style="flex: 1; min-height: 250px; max-height: 380px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; padding: 0; background: var(--bg-card, #fff); margin-bottom: 0;">
                                 <input type="hidden" id="shift-assign-target-id">
-                                <div id="shift-assign-emp-list" style="display: flex; flex-direction: column; gap: 8px;">
+                                <div id="shift-assign-emp-list" style="display: flex; flex-direction: column; gap: 0;">
                                     <!-- Dynamic employee checkboxes -->
                                 </div>
                             </form>
