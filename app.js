@@ -959,6 +959,16 @@ function switchTab(tabId) {
     activeTab = tabId;
     localStorage.setItem('active_tab', tabId);
 
+    // Reset scroll position to top whenever switching menu tabs (Admin, Manager, Employee)
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    const appShell = document.getElementById('app-shell');
+    if (appShell) {
+        appShell.scrollTop = 0;
+        appShell.querySelectorAll('.content, .main-content, .tab-view, div[style*="overflow"]').forEach(el => el.scrollTop = 0);
+    }
+
     // Update Sidebar Selection active state
     document.querySelectorAll('.sidebar-link').forEach(link => {
         const dataTab = link.getAttribute('data-tab');
