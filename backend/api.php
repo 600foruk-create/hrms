@@ -42,12 +42,14 @@ try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS `salary_profiles` (`userId` varchar(50) NOT NULL, `isCustomSlab` tinyint(1), `allowances` longtext, `deductions` longtext, PRIMARY KEY (`userId`))");
     $pdo->exec("CREATE TABLE IF NOT EXISTS `loans` (`id` varchar(50) NOT NULL, `userId` varchar(50), `type` varchar(50), `totalAmount` decimal(10,2), `monthlyInstallment` decimal(10,2), `remainingAmount` decimal(10,2), `issuedAt` varchar(50), PRIMARY KEY (`id`))");
     $pdo->exec("CREATE TABLE IF NOT EXISTS `payroll_history` (`id` varchar(50) NOT NULL, `batchId` varchar(50), `userId` varchar(50), `startDate` varchar(50), `endDate` varchar(50), `netFixed` decimal(10,2), `absencyDeduction` decimal(10,2), `loanDeduction` decimal(10,2), `bonus` decimal(10,2), `otherDeduction` decimal(10,2), `netPay` decimal(10,2), `processedAt` varchar(50), PRIMARY KEY (`id`))");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `employee_shift_assignments` (`employee_id` varchar(50) NOT NULL, `shift_id` varchar(50) DEFAULT 'shift_general', `duty_from` varchar(20) DEFAULT '09:00', `duty_to` varchar(20) DEFAULT '17:00', `break_mins` int(11) DEFAULT '60', PRIMARY KEY (`employee_id`))");
 } catch (Exception $e) {
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS `global_salary_settings` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `allowances` TEXT, `deductions` TEXT)");
         $pdo->exec("CREATE TABLE IF NOT EXISTS `salary_profiles` (`userId` TEXT PRIMARY KEY, `isCustomSlab` INTEGER, `allowances` TEXT, `deductions` TEXT)");
         $pdo->exec("CREATE TABLE IF NOT EXISTS `loans` (`id` TEXT PRIMARY KEY, `userId` TEXT, `type` TEXT, `totalAmount` REAL, `monthlyInstallment` REAL, `remainingAmount` REAL, `issuedAt` TEXT)");
         $pdo->exec("CREATE TABLE IF NOT EXISTS `payroll_history` (`id` TEXT PRIMARY KEY, `batchId` TEXT, `userId` TEXT, `startDate` TEXT, `endDate` TEXT, `netFixed` REAL, `absencyDeduction` REAL, `loanDeduction` REAL, `bonus` REAL, `otherDeduction` REAL, `netPay` REAL, `processedAt` TEXT)");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `employee_shift_assignments` (`employee_id` TEXT PRIMARY KEY, `shift_id` TEXT, `duty_from` TEXT, `duty_to` TEXT, `break_mins` INTEGER)");
     } catch (Exception $e2) {}
 }
 
@@ -142,11 +144,7 @@ $new_columns = [
     "ADD COLUMN `accountNumber` varchar(100) DEFAULT NULL",
     "ADD COLUMN `iban` varchar(100) DEFAULT NULL",
     "ADD COLUMN `branchCode` varchar(50) DEFAULT NULL",
-    "ADD COLUMN `themeColor` varchar(50) DEFAULT NULL",
-    "ADD COLUMN `shiftId` varchar(50) DEFAULT 'shift_general'",
-    "ADD COLUMN `dutyFrom` varchar(20) DEFAULT '09:00'",
-    "ADD COLUMN `dutyTo` varchar(20) DEFAULT '17:00'",
-    "ADD COLUMN `breakMins` int(11) DEFAULT '60'"
+    "ADD COLUMN `themeColor` varchar(50) DEFAULT NULL"
 ];
 
 foreach ($new_columns as $col) {
@@ -688,6 +686,14 @@ if ($action === 'load_all') {
         $balStmt = $pdo->query("SELECT employee_id, leave_type as id, balance FROM employee_leave_balances");
         $allBals = $balStmt->fetchAll();
 
+        $shMap = [];
+        try {
+            $shStmt = $pdo->query("SELECT * FROM employee_shift_assignments");
+            while ($shRow = $shStmt->fetch(PDO::FETCH_ASSOC)) {
+                $shMap[$shRow['employee_id']] = $shRow;
+            }
+        } catch (Exception $ex) {}
+
         foreach ($usersRecords as &$u) {
             $origDocs = $u['documents'] ?? '';
             $origBals = $u['leaveBalances'] ?? '';
@@ -704,13 +710,25 @@ if ($action === 'load_all') {
             if (empty($u['leaveBalances']) && !empty($origBals)) {
                 $u['leaveBalances'] = json_decode($origBals, true) ?: [];
             }
+
+            if (isset($shMap[$u['id']])) {
+                $u['shiftId'] = $shMap[$u['id']]['shift_id'];
+                $u['dutyFrom'] = $shMap[$u['id']]['duty_from'];
+                $u['dutyTo'] = $shMap[$u['id']]['duty_to'];
+                $u['breakMins'] = (int)$shMap[$u['id']]['break_mins'];
+            } else {
+                $u['shiftId'] = 'shift_general';
+                $u['dutyFrom'] = '09:00';
+                $u['dutyTo'] = '17:00';
+                $u['breakMins'] = 60;
+            }
         }
         if (empty($usersRecords)) {
             // Re-inject default admin if table is empty to prevent lockout
             $pdo->exec("INSERT INTO users (id, email, password, name, role, status) VALUES ('U1', 'admin@company.com', 'admin123', 'admin', 'Admin', 'Active')");
             $stmt = $pdo->query("SELECT * FROM users");
             $usersRecords = $stmt->fetchAll();
-            foreach ($usersRecords as &$u) { $u['documents'] = []; $u['leaveBalances'] = []; }
+            foreach ($usersRecords as &$u) { $u['documents'] = []; $u['leaveBalances'] = []; $u['shiftId'] = 'shift_general'; $u['dutyFrom'] = '09:00'; $u['dutyTo'] = '17:00'; $u['breakMins'] = 60; }
         }
         $dbState['users'] = $usersRecords;
 
@@ -1004,11 +1022,13 @@ elseif ($action === 'save_all') {
             $pdo->exec("DELETE FROM users");
             $pdo->exec("DELETE FROM employee_documents");
             $pdo->exec("DELETE FROM employee_leave_balances");
+            try { $pdo->exec("DELETE FROM employee_shift_assignments"); } catch(Exception $ex) {}
 
             if (!empty($data['users'])) {
-                $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, bloodGroup, designation, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode, shiftId, dutyFrom, dutyTo, breakMins) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, bloodGroup, designation, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 $docStmt = $pdo->prepare("INSERT INTO employee_documents (employee_id, doc_name, doc_url) VALUES (?, ?, ?)");
                 $balStmt = $pdo->prepare("INSERT INTO employee_leave_balances (employee_id, leave_type, balance) VALUES (?, ?, ?)");
+                $shStmt = $pdo->prepare("INSERT INTO employee_shift_assignments (employee_id, shift_id, duty_from, duty_to, break_mins) VALUES (?, ?, ?, ?, ?)");
                 
                 foreach ($data['users'] as $u) {
                     $stmt->execute([
@@ -1020,9 +1040,17 @@ elseif ($action === 'save_all') {
                         $u['fatherName'] ?? null, $u['gender'] ?? null, empty($u['dob']) ? null : $u['dob'],
                         $u['cnic'] ?? null, $u['maritalStatus'] ?? null, $u['phone'] ?? null, 
                         $u['emergencyContact'] ?? null, $u['bankName'] ?? null, $u['accountTitle'] ?? null,
-                        $u['accountNumber'] ?? null, $u['iban'] ?? null, $u['branchCode'] ?? null,
-                        $u['shiftId'] ?? 'shift_general', $u['dutyFrom'] ?? '09:00', $u['dutyTo'] ?? '17:00', (int)($u['breakMins'] ?? 60)
+                        $u['accountNumber'] ?? null, $u['iban'] ?? null, $u['branchCode'] ?? null
                     ]);
+                    try {
+                        $shStmt->execute([
+                            $u['id'],
+                            $u['shiftId'] ?? 'shift_general',
+                            $u['dutyFrom'] ?? '09:00',
+                            $u['dutyTo'] ?? '17:00',
+                            (int)($u['breakMins'] ?? 60)
+                        ]);
+                    } catch(Exception $ex) {}
                     
                     if (!empty($u['documents']) && is_array($u['documents'])) {
                         foreach ($u['documents'] as $doc) {
@@ -1352,7 +1380,7 @@ elseif ($action === 'save_all') {
         $exists = $stmt->fetch();
         
         if ($exists) {
-            $stmt = $pdo->prepare("UPDATE users SET displayId=?, email=?, password=?, name=?, role=?, managerId=?, status=?, salary=?, startDate=?, endDate=?, profilePic=?, bloodGroup=?, designation=?, fatherName=?, gender=?, dob=?, cnic=?, maritalStatus=?, phone=?, emergencyContact=?, bankName=?, accountTitle=?, accountNumber=?, iban=?, branchCode=?, shiftId=?, dutyFrom=?, dutyTo=?, breakMins=? WHERE id=?");
+            $stmt = $pdo->prepare("UPDATE users SET displayId=?, email=?, password=?, name=?, role=?, managerId=?, status=?, salary=?, startDate=?, endDate=?, profilePic=?, bloodGroup=?, designation=?, fatherName=?, gender=?, dob=?, cnic=?, maritalStatus=?, phone=?, emergencyContact=?, bankName=?, accountTitle=?, accountNumber=?, iban=?, branchCode=? WHERE id=?");
             $stmt->execute([
                 $u['displayId'] ?? null, $u['email'], $u['password'], $u['name'], $u['role'], 
                 $u['managerId'] ?? null, $u['status'], $u['salary'], 
@@ -1363,11 +1391,10 @@ elseif ($action === 'save_all') {
                 $u['cnic'] ?? null, $u['maritalStatus'] ?? null, $u['phone'] ?? null, 
                 $u['emergencyContact'] ?? null, $u['bankName'] ?? null, $u['accountTitle'] ?? null,
                 $u['accountNumber'] ?? null, $u['iban'] ?? null, $u['branchCode'] ?? null,
-                $u['shiftId'] ?? 'shift_general', $u['dutyFrom'] ?? '09:00', $u['dutyTo'] ?? '17:00', (int)($u['breakMins'] ?? 60),
                 $u['id']
             ]);
         } else {
-            $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, bloodGroup, designation, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode, shiftId, dutyFrom, dutyTo, breakMins) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, bloodGroup, designation, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $u['id'], $u['displayId'] ?? null, $u['email'], $u['password'], $u['name'], $u['role'], 
                 $u['managerId'] ?? null, $u['status'], $u['salary'], 
@@ -1377,10 +1404,20 @@ elseif ($action === 'save_all') {
                 $u['fatherName'] ?? null, $u['gender'] ?? null, empty($u['dob']) ? null : $u['dob'],
                 $u['cnic'] ?? null, $u['maritalStatus'] ?? null, $u['phone'] ?? null, 
                 $u['emergencyContact'] ?? null, $u['bankName'] ?? null, $u['accountTitle'] ?? null,
-                $u['accountNumber'] ?? null, $u['iban'] ?? null, $u['branchCode'] ?? null,
-                $u['shiftId'] ?? 'shift_general', $u['dutyFrom'] ?? '09:00', $u['dutyTo'] ?? '17:00', (int)($u['breakMins'] ?? 60)
+                $u['accountNumber'] ?? null, $u['iban'] ?? null, $u['branchCode'] ?? null
             ]);
         }
+        
+        try {
+            $shStmt = $pdo->prepare("REPLACE INTO employee_shift_assignments (employee_id, shift_id, duty_from, duty_to, break_mins) VALUES (?, ?, ?, ?, ?)");
+            $shStmt->execute([
+                $u['id'],
+                $u['shiftId'] ?? 'shift_general',
+                $u['dutyFrom'] ?? '09:00',
+                $u['dutyTo'] ?? '17:00',
+                (int)($u['breakMins'] ?? 60)
+            ]);
+        } catch(Exception $ex) {}
         
         $pdo->exec("DELETE FROM employee_documents WHERE employee_id = " . $pdo->quote($u['id']));
         $pdo->exec("DELETE FROM employee_leave_balances WHERE employee_id = " . $pdo->quote($u['id']));

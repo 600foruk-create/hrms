@@ -179,6 +179,16 @@ CREATE TABLE `company_profile` (
 
 -- --------------------------------------------------------
 
+-- Table structure for table `employee_shift_assignments`
+CREATE TABLE `employee_shift_assignments` (
+  `employee_id` varchar(50) NOT NULL,
+  `shift_id` varchar(50) DEFAULT 'shift_general',
+  `duty_from` varchar(20) DEFAULT '09:00',
+  `duty_to` varchar(20) DEFAULT '17:00',
+  `break_mins` int(11) DEFAULT 60,
+  PRIMARY KEY (`employee_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Indexes
 ALTER TABLE `users` ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `email` (`email`);
 ALTER TABLE `settings` ADD PRIMARY KEY (`key_name`);
