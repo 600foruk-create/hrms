@@ -1265,12 +1265,8 @@
                                             <h4 style="margin: 0 0 8px 0; font-size: 14px; font-weight: 700; color: var(--text-primary);"><i class="fa-solid fa-bolt text-warning"></i> Instant Manual Execution</h4>
                                             <p class="text-secondary" style="font-size: 11px; margin-bottom: 15px;">Trigger immediate rotation using the currently selected strategy above.</p>
                                             <div style="display: flex; flex-direction: column; gap: 10px;">
-                                                <button onclick="triggerManualShiftRotation('2-shift')" class="btn btn-outline w-100 text-left" style="font-size: 12px; padding: 10px 14px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; border-color: rgba(0,0,0,0.15);">
-                                                    <span><i class="fa-solid fa-repeat text-primary mr-2"></i> Execute 2-Shift Swap (Morning ↔ Night)</span>
-                                                    <i class="fa-solid fa-chevron-right text-muted" style="font-size: 10px;"></i>
-                                                </button>
-                                                <button onclick="triggerManualShiftRotation('3-shift')" class="btn btn-outline w-100 text-left" style="font-size: 12px; padding: 10px 14px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; border-color: rgba(0,0,0,0.15);">
-                                                    <span><i class="fa-solid fa-rotate text-success mr-2"></i> Execute 3-Shift Cycle (Morning → Evening → Night)</span>
+                                                <button onclick="triggerManualShiftRotation('all')" class="btn btn-outline w-100 text-left" style="font-size: 12px; padding: 12px 14px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; border-color: rgba(0,0,0,0.15); background: rgba(255,255,255,0.8);">
+                                                    <span><i class="fa-solid fa-rotate text-primary mr-2"></i> Execute Cycle Rotation Across All Rotating Shifts</span>
                                                     <i class="fa-solid fa-chevron-right text-muted" style="font-size: 10px;"></i>
                                                 </button>
                                             </div>
@@ -1286,23 +1282,17 @@
                                             </div>
                                             <p class="text-secondary" style="font-size: 11px; margin-bottom: 12px;">System will automatically rotate shifts on the scheduled trigger date.</p>
                                             <div id="shift-rot-config-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; opacity: 0.5; pointer-events: none;">
-                                                <div>
+                                                <div style="grid-column: span 2;">
                                                     <label class="form-label mb-1" style="font-size: 11px; font-weight: 700;">Frequency</label>
                                                     <select id="shift-rot-freq" class="form-control btn-sm" style="font-size: 11px; font-weight: 600;">
                                                         <option value="weekly">Weekly (Every 7 Days)</option>
                                                         <option value="biweekly">Bi-Weekly (Every 14 Days)</option>
                                                         <option value="monthly">Monthly (Every 30 Days)</option>
                                                     </select>
-                                                </div>
-                                                <div>
-                                                    <label class="form-label mb-1" style="font-size: 11px; font-weight: 700;">Cycle Mode</label>
-                                                    <select id="shift-rot-cycle" class="form-control btn-sm" style="font-size: 11px; font-weight: 600;">
-                                                        <option value="2-shift">2-Shift (Morning ↔ Night)</option>
-                                                        <option value="3-shift">3-Shift (Morn → Eve → Night)</option>
-                                                    </select>
+                                                    <input type="hidden" id="shift-rot-cycle" value="all">
                                                 </div>
                                                 <div style="grid-column: span 2;">
-                                                    <label class="form-label mb-1" style="font-size: 11px; font-weight: 700;">Next Rotation Trigger Date</label>
+                                                    <label class="form-label mb-1" style="font-size: 11px; font-weight: 700;">Shift Rotation Start Date</label>
                                                     <div style="display: flex; gap: 10px;">
                                                         <input type="date" id="shift-rot-nextdate" class="form-control btn-sm" style="font-size: 11px; font-weight: 700; flex: 1;">
                                                         <button type="button" class="btn btn-primary btn-sm" onclick="saveShiftRotationPolicy()" style="font-size: 11px; padding: 4px 12px; font-weight: 700;">Save Policy</button>

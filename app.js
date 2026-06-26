@@ -2361,6 +2361,10 @@ window.handleShiftSubmit = function(e) {
 };
 
 window.deleteShiftConfig = function(shiftId) {
+    if (shiftId === 'shift_general' || shiftId === 'shift_flexible') {
+        showToast("Access Denied", "General Shift and Flexible Timings cannot be deleted.", "error");
+        return;
+    }
     if (!confirm("Are you sure you want to delete this shift? Any assigned employees will revert to the General Shift.")) return;
     const db = getDb();
     db.shifts = (db.shifts || []).filter(s => s.id !== shiftId);
@@ -2383,99 +2387,80 @@ window.triggerManualShiftRotation = function(cycleType) {
     const db = getDb();
     const strategyEl = document.getElementById('shift-rot-strategy');
     const strategy = strategyEl ? strategyEl.value : 'employees';
-    const allUsers = (db.users || []).filter(u => u.role !== 'Admin' && u.status !== 'Inactive');
+    const rotShifts = (db.shifts || []).filter(s => s.id !== 'shift_general' && s.id !== 'shift_flexible');
 
-    let count1 = 0, count2 = 0, count3 = 0;
-    if (strategy === 'employees') {
-        if (cycleType === '2-shift') {
-            count1 = allUsers.filter(u => u.shiftId === 'shift_morning').length;
-            count2 = allUsers.filter(u => u.shiftId === 'shift_night').length;
-            if (!confirm(`Confirm Strategy: 👥 Move Employees (Roster Rotation)\n\n• ${count1} Morning Shift employees → Night Shift\n• ${count2} Night Shift employees → Morning Shift\n\nProceed with roster swap?`)) return;
-        } else {
-            count1 = allUsers.filter(u => u.shiftId === 'shift_morning').length;
-            count2 = allUsers.filter(u => u.shiftId === 'shift_evening').length;
-            count3 = allUsers.filter(u => u.shiftId === 'shift_night').length;
-            if (!confirm(`Confirm Strategy: 👥 Move Employees (3-Shift Cycle)\n\n• ${count1} Morning employees → Evening Shift\n• ${count2} Evening employees → Night Shift\n• ${count3} Night employees → Morning Shift\n\nProceed with roster rotation?`)) return;
-        }
-    } else {
-        if (cycleType === '2-shift') {
-            if (!confirm(`Confirm Strategy: 🕒 Rotate Timings (Schedule Rotation)\n\nEmployees stay on their permanent team cards.\n• Morning Shift card gets Night timings\n• Night Shift card gets Morning timings\n\nProceed with timing rotation?`)) return;
-        } else {
-            if (!confirm(`Confirm Strategy: 🕒 Rotate Timings (3-Shift Schedule Rotation)\n\nEmployees stay on their permanent team cards.\n• Morning Shift card gets Evening timings\n• Evening Shift card gets Night timings\n• Night Shift card gets Morning timings\n\nProceed with timing rotation?`)) return;
-        }
+    if (rotShifts.length < 2) {
+        showToast("Cannot Rotate", "At least 2 standard/rotating shifts are required to execute rotation.", "warning");
+        return;
     }
 
-    executeShiftRotationLogic(db, cycleType, strategy);
+    const shiftNames = rotShifts.map(s => s.name).join(' → ') + ' → ' + rotShifts[0].name;
+
+    if (strategy === 'employees') {
+        if (!confirm(`Confirm Strategy: 👥 Move Employees (Roster Cycle Rotation)\n\nShifts Sequence:\n${shiftNames}\n\nEmployees assigned to each shift will move to the next shift in sequence. General and Flexible shifts remain permanently fixed.\n\nProceed with roster rotation?`)) return;
+    } else {
+        if (!confirm(`Confirm Strategy: 🕒 Rotate Timings (Schedule Rotation)\n\nTimings Sequence:\n${shiftNames}\n\nEach shift card gets the timings of the previous shift in sequence. Employees stay on their permanent team cards. General and Flexible shifts remain permanently fixed.\n\nProceed with timing rotation?`)) return;
+    }
+
+    executeShiftRotationLogic(db, cycleType || 'all', strategy);
     saveDb(db);
     renderAdminShiftManagement();
-    showToast("Shift Rotation Complete", `Successfully rotated schedules via ${strategy === 'employees' ? 'Employee Roster Swap' : 'Shift Timing Rotation'} (${cycleType}).`, "success");
+    showToast("Shift Rotation Complete", `Successfully rotated schedules via ${strategy === 'employees' ? 'Employee Roster Swap' : 'Shift Timing Rotation'}.`, "success");
 };
 
 window.executeShiftRotationLogic = function(db, cycleType, strategy = 'employees') {
-    const sMorning = (db.shifts || []).find(s => s.id === 'shift_morning');
-    const sEvening = (db.shifts || []).find(s => s.id === 'shift_evening');
-    const sNight = (db.shifts || []).find(s => s.id === 'shift_night');
+    const rotShifts = (db.shifts || []).filter(s => s.id !== 'shift_general' && s.id !== 'shift_flexible');
+    const N = rotShifts.length;
+    if (N < 2) return;
 
     if (strategy === 'employees') {
-        // Fix circular permutation bug using immutable snapshot map
-        const origUserShifts = new Map((db.users || []).map(u => [u.id, u.shiftId]));
+        const origUserShifts = new Map((db.users || []).map(u => [u.id, u.shiftId || 'shift_general']));
+        const shiftIndexMap = new Map(rotShifts.map((s, idx) => [s.id, idx]));
 
         (db.users || []).forEach(u => {
             if (u.role === 'Admin' || u.status === 'Inactive') return;
             const origShiftId = origUserShifts.get(u.id);
 
-            if (cycleType === '2-shift') {
-                if (origShiftId === 'shift_morning') {
-                    u.shiftId = 'shift_night';
-                    if (sNight) { u.dutyFrom = sNight.start; u.dutyTo = sNight.end; u.breakMins = sNight.breakMins || 60; }
-                } else if (origShiftId === 'shift_night') {
-                    u.shiftId = 'shift_morning';
-                    if (sMorning) { u.dutyFrom = sMorning.start; u.dutyTo = sMorning.end; u.breakMins = sMorning.breakMins || 60; }
-                }
-            } else if (cycleType === '3-shift') {
-                if (origShiftId === 'shift_morning') {
-                    u.shiftId = 'shift_evening';
-                    if (sEvening) { u.dutyFrom = sEvening.start; u.dutyTo = sEvening.end; u.breakMins = sEvening.breakMins || 60; }
-                } else if (origShiftId === 'shift_evening') {
-                    u.shiftId = 'shift_night';
-                    if (sNight) { u.dutyFrom = sNight.start; u.dutyTo = sNight.end; u.breakMins = sNight.breakMins || 60; }
-                } else if (origShiftId === 'shift_night') {
-                    u.shiftId = 'shift_morning';
-                    if (sMorning) { u.dutyFrom = sMorning.start; u.dutyTo = sMorning.end; u.breakMins = sMorning.breakMins || 60; }
-                }
+            if (shiftIndexMap.has(origShiftId)) {
+                const curIdx = shiftIndexMap.get(origShiftId);
+                const nextIdx = (curIdx + 1) % N;
+                const nextShift = rotShifts[nextIdx];
+                u.shiftId = nextShift.id;
+                u.dutyFrom = nextShift.start;
+                u.dutyTo = nextShift.end;
+                u.breakMins = nextShift.breakMins || 60;
             }
         });
     } else if (strategy === 'timings') {
-        // Strategy 2: Keep employees on cards, rotate the card start/end/break timings!
-        if (!sMorning || !sEvening || !sNight) return;
+        // Create exact snapshots of original timing properties
+        const origTimings = rotShifts.map(s => ({
+            start: s.start,
+            end: s.end,
+            breakStart: s.breakStart,
+            breakEnd: s.breakEnd,
+            breakMins: s.breakMins,
+            hasBreak: s.hasBreak
+        }));
 
-        const copyMorn = { start: sMorning.start, end: sMorning.end, breakStart: sMorning.breakStart, breakEnd: sMorning.breakEnd, breakMins: sMorning.breakMins, hasBreak: sMorning.hasBreak };
-        const copyEve = { start: sEvening.start, end: sEvening.end, breakStart: sEvening.breakStart, breakEnd: sEvening.breakEnd, breakMins: sEvening.breakMins, hasBreak: sEvening.hasBreak };
-        const copyNight = { start: sNight.start, end: sNight.end, breakStart: sNight.breakStart, breakEnd: sNight.breakEnd, breakMins: sNight.breakMins, hasBreak: sNight.hasBreak };
+        // Shift timing rotation: shift[(idx + 1) % N] receives origTimings[idx]
+        rotShifts.forEach((s, idx) => {
+            const nextIdx = (idx + 1) % N;
+            const targetShift = rotShifts[nextIdx];
+            const sourceObj = origTimings[idx];
 
-        const applyTimings = (targetShift, sourceObj) => {
             targetShift.start = sourceObj.start;
             targetShift.end = sourceObj.end;
             targetShift.breakStart = sourceObj.breakStart;
             targetShift.breakEnd = sourceObj.breakEnd;
             targetShift.breakMins = sourceObj.breakMins;
             targetShift.hasBreak = sourceObj.hasBreak;
-        };
-
-        if (cycleType === '2-shift') {
-            applyTimings(sMorning, copyNight);
-            applyTimings(sNight, copyMorn);
-        } else if (cycleType === '3-shift') {
-            applyTimings(sMorning, copyEve);
-            applyTimings(sEvening, copyNight);
-            applyTimings(sNight, copyMorn);
-        }
+        });
 
         // Sync all employee dutyFrom/dutyTo to match their assigned card's newly rotated timings
         (db.users || []).forEach(u => {
             if (u.role === 'Admin' || u.status === 'Inactive') return;
-            const card = (db.shifts || []).find(s => s.id === u.shiftId);
-            if (card && card.id !== 'shift_general' && card.id !== 'shift_flexible') {
+            const card = rotShifts.find(s => s.id === u.shiftId);
+            if (card) {
                 u.dutyFrom = card.start;
                 u.dutyTo = card.end;
                 u.breakMins = card.breakMins || 60;
