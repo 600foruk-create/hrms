@@ -3475,6 +3475,43 @@ function renderManagerDashboard() {
             });
         }
     }
+
+    // Populate Manager Team Recent Tasks Table
+    const managerRecentTasksBody = document.getElementById('manager-recent-tasks-table-body');
+    if (managerRecentTasksBody) {
+        managerRecentTasksBody.innerHTML = '';
+        let list = (db.productivity || []).filter(p => teamEmails.includes(String(p.employeeId || p.employee_id)));
+        list.sort((a, b) => new Date(b.date || b.created_at) - new Date(a.date || a.created_at));
+
+        if (list.length === 0) {
+            managerRecentTasksBody.innerHTML = `<tr><td colspan="6" class="empty-state">No team tasks found.</td></tr>`;
+        } else {
+            list.slice(0, 10).forEach(task => {
+                const empId = task.employeeId || task.employee_id;
+                const emp = db.users.find(u => String(u.id) === String(empId));
+                const dept = emp ? (emp.managerId === 'U2' ? 'Operations' : (emp.managerId === 'U3' ? 'Billing' : 'Support')) : 'Support';
+                const statusClass = task.status === 'Approved' ? 'approved' : (task.status === 'Pending' ? 'pending' : 'rejected');
+
+                let actionBtn = `<div style="text-align: center; color: var(--text-muted); font-size: 11px;">View Log</div>`;
+
+                managerRecentTasksBody.innerHTML += `
+                    <tr>
+                        <td class="bold">${(task.tasks || []).join(', ') || task.category || 'Productivity Log'}</td>
+                        <td>
+                            <div style="display: flex; flex-direction: column;">
+                                <span style="font-weight: 600; color: var(--text-primary);">${task.employeeName || (emp ? emp.name : 'Unknown')}</span>
+                                <span style="font-size: 11px; color: var(--text-secondary);">${(db.users.find(u => String(u.id) === String(empId)) || {}).displayId || empId}</span>
+                            </div>
+                        </td>
+                        <td><span style="font-size: 11px; font-weight: 700; color: #38bdf8;">${dept}</span></td>
+                        <td>${task.date || task.log_date || '-'}</td>
+                        <td><span class="badge-status ${statusClass}">${task.status || 'Submitted'}</span></td>
+                        <td>${actionBtn}</td>
+                    </tr>
+                `;
+            });
+        }
+    }
 }
 
 function renderManagerTeamTab() {

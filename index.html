@@ -3499,6 +3499,53 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Dashboard Split Row 2 (Recent Tasks) -->
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 1.25rem; margin-top: 1.25rem; margin-bottom: 1.25rem;">
+                            <!-- Widget 4: Recent Tasks Table -->
+                            <div class="section-card bg-glass"
+                                style="display: flex; flex-direction: column; justify-content: space-between;">
+                                <div class="section-card-header" style="justify-content: space-between; display: flex;">
+                                    <h3 style="font-size: 14px; font-weight: 700; margin: 0;">Team Recent Tasks</h3>
+                                </div>
+                                <div class="table-container" style="flex: 1; margin-top: 10px;">
+                                    <table class="data-table" style="font-size: 13px;">
+                                        <thead>
+                                            <tr>
+                                                <th
+                                                    style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">
+                                                    Task Title</th>
+                                                <th
+                                                    style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">
+                                                    Employee</th>
+                                                <th
+                                                    style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">
+                                                    Department</th>
+                                                <th
+                                                    style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">
+                                                    Submitted</th>
+                                                <th
+                                                    style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase;">
+                                                    Status</th>
+                                                <th
+                                                    style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; text-align: center;">
+                                                    Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="manager-recent-tasks-table-body">
+                                            <!-- Dynamic rows populated by app.js -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div
+                                    style="text-align: center; padding-top: 15px; border-top: 1px solid var(--border-color); margin-top: 10px;">
+                                    <a href="#" onclick="window.switchTab ? window.switchTab('productivity') : null"
+                                        class="text-primary"
+                                        style="font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">View
+                                        All Team Tasks <i class="fa-solid fa-arrow-right"></i></a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Manager Team Tab -->
