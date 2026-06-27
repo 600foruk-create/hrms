@@ -2599,18 +2599,18 @@ window.toggleAutoRotationUI = function() {
     if (cb && switchTrack && switchKnob && switchText) {
         if (cb.checked) {
             switchTrack.style.background = "#10b981"; // vibrant green
-            switchKnob.style.transform = "translateX(64px)";
-            switchText.style.left = "10px";
+            switchKnob.style.transform = "translateX(32px)";
+            switchText.style.left = "9px";
             switchText.style.right = "auto";
             switchText.style.color = "#ffffff";
-            switchText.textContent = "ENABLED";
+            switchText.textContent = "ON";
         } else {
             switchTrack.style.background = "#cbd5e1"; // slate gray
             switchKnob.style.transform = "translateX(0px)";
-            switchText.style.right = "10px";
+            switchText.style.right = "8px";
             switchText.style.left = "auto";
             switchText.style.color = "#475569";
-            switchText.textContent = "DISABLED";
+            switchText.textContent = "OFF";
         }
     }
 };
