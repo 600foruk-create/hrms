@@ -4693,6 +4693,15 @@ window.openEditEmployeeModal = function (userId, isViewOnly = false) {
         document.getElementById('emp-emergency-contact').value = user && user.emergencyContact ? user.emergencyContact : "";
         document.getElementById('emp-designation').value = user && user.designation ? user.designation : "";
 
+        const deptEl = document.getElementById('emp-department');
+        if (deptEl) {
+            deptEl.innerHTML = '<option value="">-- Select Department --</option>';
+            (db.productivity || []).forEach(bu => {
+                deptEl.innerHTML += `<option value="${bu.name}">${bu.name}</option>`;
+            });
+            deptEl.value = user && user.department ? user.department : "";
+        }
+
         // Bank Details
         document.getElementById('emp-bank-name').value = user && user.bankName ? user.bankName : "";
         document.getElementById('emp-account-title').value = user && user.accountTitle ? user.accountTitle : "";
@@ -4937,6 +4946,8 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
     const phone = document.getElementById('emp-phone').value.trim();
     const emergencyContact = document.getElementById('emp-emergency-contact').value.trim();
     const designation = document.getElementById('emp-designation').value.trim();
+    const departmentEl = document.getElementById('emp-department');
+    const department = departmentEl ? departmentEl.value : "";
 
     // Bank Details
     const bankName = document.getElementById('emp-bank-name').value.trim();
@@ -5020,6 +5031,7 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
             user.salary = salary;
             user.bloodGroup = bloodGroup;
             user.designation = designation;
+            user.department = department;
             user.dutyFrom = dfEl ? dfEl.value : (user.dutyFrom || "09:00");
             user.dutyTo = dtEl ? dtEl.value : (user.dutyTo || "17:00");
             user.breakMins = bmEl ? (parseInt(bmEl.value) || 0) : (user.breakMins !== undefined ? user.breakMins : 60);
@@ -5090,6 +5102,7 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
             salary,
             bloodGroup,
             designation,
+            department,
             shiftId: 'shift_general',
             dutyFrom: dfEl ? dfEl.value : "09:00",
             dutyTo: dtEl ? dtEl.value : "17:00",
@@ -7248,7 +7261,7 @@ window.renderAdminCategoriesConfig = function () {
     if (buList) {
         buList.innerHTML = '';
         if (settings.businessUnits.length === 0) {
-            buList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">No Business Units found.</div>';
+            buList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">No Departments found.</div>';
             if (btnEditBu) btnEditBu.style.display = 'none';
             if (btnDelBu) btnDelBu.style.display = 'none';
             window.selectedAdminBuId = null;
@@ -7283,7 +7296,7 @@ window.renderAdminCategoriesConfig = function () {
     const activeBuName = document.getElementById('grid-active-bu-name');
     if (prList) {
         if (!window.selectedAdminBuId) {
-            prList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">Select a Business Unit to view practices</div>';
+            prList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">Select a Department to view practices</div>';
             if (btnAddPractice) btnAddPractice.style.display = 'none';
             if (btnEditPractice) btnEditPractice.style.display = 'none';
             if (btnDelPractice) btnDelPractice.style.display = 'none';
@@ -7296,7 +7309,7 @@ window.renderAdminCategoriesConfig = function () {
 
             prList.innerHTML = '';
             if (!bu.practices || bu.practices.length === 0) {
-                prList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">No practices found for this Business Unit.</div>';
+                prList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">No practices found for this Department.</div>';
                 if (btnEditPractice) btnEditPractice.style.display = 'none';
                 if (btnDelPractice) btnDelPractice.style.display = 'none';
                 window.selectedAdminPracticeId = null;
@@ -7426,9 +7439,9 @@ window.toggleTree = function (id) {
 // --------- ADMIN ACTIONS ---------
 window.addBuModal = function () {
     Swal.fire({
-        title: 'Add Business Unit',
+        title: 'Add Department',
         input: 'text',
-        inputPlaceholder: 'Enter Business Unit name',
+        inputPlaceholder: 'Enter Department name',
         showCancelButton: true,
         confirmButtonText: 'Add',
         preConfirm: (name) => {
@@ -7440,7 +7453,7 @@ window.addBuModal = function () {
             const settings = getProdSettings();
             settings.businessUnits.push({ id: generateId('BU'), name: result.value, practices: [] });
             saveProdSettings(settings);
-            showToast('Success', 'Business Unit added');
+            showToast('Success', 'Department added');
         }
     });
 };
@@ -7450,7 +7463,7 @@ window.deleteSelectedBu = function () {
     if (!id) return;
     Swal.fire({
         title: 'Are you sure?',
-        text: "This will delete the Business Unit and all its practices.",
+        text: "This will delete the Department and all its practices.",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes, delete it!'
@@ -7460,7 +7473,7 @@ window.deleteSelectedBu = function () {
             settings.businessUnits = settings.businessUnits.filter(bu => bu.id !== id);
             saveProdSettings(settings);
             window.selectedAdminBuId = null;
-            showToast('Deleted', 'Business Unit removed');
+            showToast('Deleted', 'Department removed');
         }
     });
 };
@@ -7472,10 +7485,10 @@ window.editSelectedBu = function () {
     const bu = settings.businessUnits.find(b => b.id === id);
     if (!bu) return;
     Swal.fire({
-        title: 'Edit Business Unit',
+        title: 'Edit Department',
         input: 'text',
         inputValue: bu.name,
-        inputPlaceholder: 'Enter Business Unit name',
+        inputPlaceholder: 'Enter Department name',
         showCancelButton: true,
         confirmButtonText: 'Save',
         preConfirm: (name) => {
@@ -7486,7 +7499,7 @@ window.editSelectedBu = function () {
         if (result.isConfirmed) {
             bu.name = result.value;
             saveProdSettings(settings);
-            showToast('Success', 'Business Unit updated');
+            showToast('Success', 'Department updated');
         }
     });
 };
@@ -7569,9 +7582,9 @@ window.editSelectedPractice = function () {
 
 window.addTesModal = function () {
     Swal.fire({
-        title: 'Add TES Category',
+        title: 'Add Task Category',
         input: 'text',
-        inputPlaceholder: 'Enter TES Category name',
+        inputPlaceholder: 'Enter Task Category name',
         showCancelButton: true,
         confirmButtonText: 'Add',
         preConfirm: (name) => {
@@ -7583,7 +7596,7 @@ window.addTesModal = function () {
             const settings = getProdSettings();
             settings.tesCategories.push({ id: generateId('TC'), name: result.value, tasks: [] });
             saveProdSettings(settings);
-            showToast('Success', 'TES Category added');
+            showToast('Success', 'Task Category added');
         }
     });
 };
@@ -7593,7 +7606,7 @@ window.deleteSelectedTes = function () {
     if (!id) return;
     Swal.fire({
         title: 'Are you sure?',
-        text: "This will delete the TES Category and all its tasks.",
+        text: "This will delete the Task Category and all its sub categories.",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Yes, delete it!'
@@ -7603,7 +7616,7 @@ window.deleteSelectedTes = function () {
             settings.tesCategories = settings.tesCategories.filter(tc => tc.id !== id);
             saveProdSettings(settings);
             window.selectedAdminTesId = null;
-            showToast('Deleted', 'TES Category removed');
+            showToast('Deleted', 'Task Category removed');
         }
     });
 };
@@ -7615,10 +7628,10 @@ window.editSelectedTes = function () {
     const tes = settings.tesCategories.find(tc => tc.id === id);
     if (!tes) return;
     Swal.fire({
-        title: 'Edit TES Category',
+        title: 'Edit Task Category',
         input: 'text',
         inputValue: tes.name,
-        inputPlaceholder: 'Enter TES Category name',
+        inputPlaceholder: 'Enter Task Category name',
         showCancelButton: true,
         confirmButtonText: 'Save',
         preConfirm: (name) => {
@@ -7629,16 +7642,16 @@ window.editSelectedTes = function () {
         if (result.isConfirmed) {
             tes.name = result.value;
             saveProdSettings(settings);
-            showToast('Success', 'TES Category updated');
+            showToast('Success', 'Task Category updated');
         }
     });
 };
 
 window.addTesTaskModal = function (tesId) {
     Swal.fire({
-        title: 'Add Task',
+        title: 'Add Task Sub Category',
         input: 'text',
-        inputPlaceholder: 'Enter Task name',
+        inputPlaceholder: 'Enter Task Sub Category name',
         showCancelButton: true,
         confirmButtonText: 'Add',
         preConfirm: (name) => {
@@ -7652,7 +7665,7 @@ window.addTesTaskModal = function (tesId) {
             if (tes) {
                 tes.tasks.push({ id: generateId('T'), name: result.value });
                 saveProdSettings(settings);
-                showToast('Success', 'Task added');
+                showToast('Success', 'Task Sub Category added');
             }
         }
     });
@@ -7740,11 +7753,11 @@ window.populateProdDropdowns = function () {
     const eptTesSelect = document.getElementById('ept-tes-select');
 
     if (eptBuSelect) {
-        eptBuSelect.innerHTML = '<option value="">-- Select Business Unit --</option>' +
+        eptBuSelect.innerHTML = '<option value="">-- Select Department --</option>' +
             settings.businessUnits.map(bu => `<option value="${bu.id}">${bu.name}</option>`).join('');
     }
     if (eptTesSelect) {
-        eptTesSelect.innerHTML = '<option value="">-- Select TES Category --</option>' +
+        eptTesSelect.innerHTML = '<option value="">-- Select Task Category --</option>' +
             settings.tesCategories.map(tes => `<option value="${tes.id}">${tes.name}</option>`).join('');
     }
 
@@ -7752,11 +7765,11 @@ window.populateProdDropdowns = function () {
     const prodBuSelect = document.getElementById('prod-bu-select');
     const prodTesSelect = document.getElementById('prod-tes-select');
     if (prodBuSelect) {
-        prodBuSelect.innerHTML = '<option value="">-- Select Business Unit --</option>' +
+        prodBuSelect.innerHTML = '<option value="">-- Select Department --</option>' +
             settings.businessUnits.map(bu => `<option value="${bu.id}">${bu.name}</option>`).join('');
     }
     if (prodTesSelect) {
-        prodTesSelect.innerHTML = '<option value="">-- Select TES Category --</option>' +
+        prodTesSelect.innerHTML = '<option value="">-- Select Task Category --</option>' +
             settings.tesCategories.map(tes => `<option value="${tes.id}">${tes.name}</option>`).join('');
     }
 };
@@ -7769,11 +7782,11 @@ window.onEptBuChange = function () {
 
     document.querySelector('#ept-bu-practices-multiselect .selected-text').textContent = 'Select Practices';
     if (!bu) {
-        optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">Select a Business Unit first</div>';
+        optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">Select a Department first</div>';
         return;
     }
     if (bu.practices.length === 0) {
-        optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">No practices found in this Business Unit</div>';
+        optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">No practices found in this Department</div>';
         return;
     }
 
@@ -7788,13 +7801,13 @@ window.onEptTesChange = function () {
     const tes = settings.tesCategories.find(t => t.id === tesId);
     const optionsContainer = document.getElementById('ept-tes-tasks-options');
 
-    document.querySelector('#ept-tes-tasks-multiselect .selected-text').textContent = 'Select Tasks';
+    document.querySelector('#ept-tes-tasks-multiselect .selected-text').textContent = 'Select Sub Categories';
     if (!tes) {
-        optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">Select a TES Category first</div>';
+        optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">Select a Task Category first</div>';
         return;
     }
     if (tes.tasks.length === 0) {
-        optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">No tasks found in this Category</div>';
+        optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">No sub categories found in this Category</div>';
         return;
     }
 
@@ -7894,7 +7907,7 @@ window.addStagedProductivity = async function () {
         const notes = document.getElementById('prod-notes').value.trim();
 
         // Required Validations based on generic use case (At least BU or TES should be selected)
-        if (!buId && !tesId) return showToast('Error', 'Please select at least a Business Unit or TES Category', 'error');
+        if (!buId && !tesId) return showToast('Error', 'Please select at least a Department or Task Category', 'error');
         if (!date) return showToast('Error', 'Date is required', 'error');
         if (totalMins <= 0) return showToast('Error', 'Total Minutes must be > 0', 'error');
 

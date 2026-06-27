@@ -1902,7 +1902,7 @@
                                         <div class="p-2 px-3 border-bottom"
                                             style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05);">
                                             <h3 class="mb-0" style="font-size: 16px; color: var(--primary-color);">
-                                                Business Units</h3>
+                                                Departments</h3>
                                             <div style="display: flex; gap: 4px;">
                                                 <button class="btn btn-sm btn-outline-primary" id="btn-edit-bu"
                                                     style="padding: 2px 8px; font-size: 12px; border-radius: 4px; display: none;"
@@ -1951,7 +1951,7 @@
                                         <div class="p-2 px-3" id="admin-grid-practices-list"
                                             style="flex: 1; overflow-y: auto;">
                                             <div class="text-secondary text-center"
-                                                style="margin-top: 40px; font-size: 13px;">Select a Business Unit to
+                                                style="margin-top: 40px; font-size: 13px;">Select a Department to
                                                 view practices</div>
                                         </div>
                                     </div>
@@ -1961,7 +1961,7 @@
                                         style="border-radius: 8px 0 0 8px; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; height: 210px;">
                                         <div class="p-2 px-3 border-bottom"
                                             style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05);">
-                                            <h3 class="mb-0" style="font-size: 16px; color: var(--success);">TES
+                                            <h3 class="mb-0" style="font-size: 16px; color: var(--success);">Task
                                                 Categories</h3>
                                             <div style="display: flex; gap: 4px;">
                                                 <button class="btn btn-sm btn-outline-success" id="btn-edit-tes"
@@ -1989,7 +1989,7 @@
                                         style="border-radius: 0 8px 8px 0; display: flex; flex-direction: column; height: 210px;">
                                         <div class="p-2 px-3 border-bottom"
                                             style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05);">
-                                            <h3 class="mb-0" style="font-size: 16px; color: var(--success);">Tasks <span
+                                            <h3 class="mb-0" style="font-size: 16px; color: var(--success);">Task Sub Category <span
                                                     id="grid-active-tes-name"
                                                     style="font-size: 12px; color: var(--text-secondary); font-weight: normal; margin-left: 8px;"></span>
                                             </h3>
@@ -5230,6 +5230,12 @@
                         <label for="emp-designation">Designation</label>
                         <input type="text" id="emp-designation" class="form-control"
                             placeholder="e.g. Software Engineer">
+                    </div>
+                    <div class="form-group">
+                        <label for="emp-department">Department</label>
+                        <select id="emp-department" class="form-control">
+                            <option value="">-- Select Department --</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="emp-salary">Current Salary</label>
