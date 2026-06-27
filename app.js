@@ -4696,7 +4696,8 @@ window.openEditEmployeeModal = function (userId, isViewOnly = false) {
         const deptEl = document.getElementById('emp-department');
         if (deptEl) {
             deptEl.innerHTML = '<option value="">-- Select Department --</option>';
-            (db.productivity || []).forEach(bu => {
+            const prodSettings = typeof getProdSettings === 'function' ? getProdSettings() : { businessUnits: [] };
+            (prodSettings.businessUnits || []).forEach(bu => {
                 deptEl.innerHTML += `<option value="${bu.name}">${bu.name}</option>`;
             });
             deptEl.value = user && user.department ? user.department : "";
