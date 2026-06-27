@@ -1130,8 +1130,8 @@ body.light-mode .btn-action-circle {
     color: var(--danger);
 }
 .badge-status.pending {
-    background-color: rgba(245, 158, 11, 0.15);
-    color: #d97706;
+    background-color: var(--success-light);
+    color: var(--success);
 }
 .badge-status::before {
     content: '';
