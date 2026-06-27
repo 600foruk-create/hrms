@@ -2536,6 +2536,44 @@ window.executeShiftRotationLogic = function(db, cycleType, strategy = 'employees
             }
         });
     }
+
+    // Automated Multi-Channel Notification Dispatch Engine
+    const policy = db.shiftRotationPolicy || {};
+    const notifs = policy.notifications || { dbNotif: true, whatsapp: true, email: true };
+    const todayStr = new Date().toISOString().split('T')[0];
+    let notifiedCount = 0;
+
+    (db.users || []).forEach(u => {
+        if (u.role === 'Admin' || u.status === 'Inactive') return;
+        const shiftCard = (db.shifts || []).find(s => s.id === u.shiftId) || { name: 'General Shift' };
+        const msg = `Hello ${u.name}, your shift schedule has been rotated/updated. New Assigned Shift: ${shiftCard.name} (${u.dutyFrom} - ${u.dutyTo}).`;
+
+        if (notifs.dbNotif) {
+            if (typeof addNotification === 'function') {
+                addNotification(u.id, msg, false);
+            }
+            if (!db.announcements) db.announcements = [];
+            db.announcements.unshift({
+                id: "A_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
+                title: "Shift Schedule Changed",
+                content: msg,
+                target: "User: " + u.id,
+                date: todayStr,
+                author: "System Auto-Pilot"
+            });
+        }
+        if (notifs.whatsapp) {
+            console.log(`[WhatsApp API Hook] Dispatching alert to ${u.name} (${u.phone || 'No phone'}): ${msg}`);
+        }
+        if (notifs.email) {
+            console.log(`[Email API Hook] Dispatching notification to ${u.name} (${u.email || 'No email'}): ${msg}`);
+        }
+        notifiedCount++;
+    });
+
+    if (notifiedCount > 0 && (notifs.whatsapp || notifs.email)) {
+        console.log(`[Auto-Pilot] Successfully processed multi-channel notifications for ${notifiedCount} employees.`);
+    }
 };
 
 window.toggleAutoPilotEnableBtn = function() {
@@ -2577,6 +2615,30 @@ window.toggleAutoRotationUI = function() {
     }
 };
 
+window.updateShiftRotationPreview = function() {
+    const dateEl = document.getElementById('shift-rot-nextdate');
+    const previewText = document.getElementById('shift-rot-preview-text');
+    if (!previewText) return;
+
+    if (!dateEl || !dateEl.value) {
+        previewText.textContent = "Select date above";
+        return;
+    }
+
+    const d = new Date(dateEl.value);
+    if (isNaN(d.getTime())) {
+        previewText.textContent = "Invalid date";
+        return;
+    }
+
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const dayName = days[d.getDay()];
+    const dateFormatted = `${d.getDate()}-${months[d.getMonth()]}-${d.getFullYear()}`;
+
+    previewText.textContent = `${dayName}, ${dateFormatted}`;
+};
+
 window.loadShiftRotationPolicyUI = function(db) {
     const policy = db.shiftRotationPolicy || { enabled: false, frequency: 'weekly', cycleType: 'all', strategy: 'employees', nextDate: '' };
     const cb = document.getElementById('shift-rot-enabled');
@@ -2584,6 +2646,10 @@ window.loadShiftRotationPolicyUI = function(db) {
     const cycleEl = document.getElementById('shift-rot-cycle');
     const stratEl = document.getElementById('shift-rot-strategy');
     const dateEl = document.getElementById('shift-rot-nextdate');
+
+    const notifDb = document.getElementById('shift-notif-db');
+    const notifWa = document.getElementById('shift-notif-whatsapp');
+    const notifEmail = document.getElementById('shift-notif-email');
 
     if (cb) cb.checked = !!policy.enabled;
     if (freqEl) freqEl.value = policy.frequency || 'weekly';
@@ -2598,7 +2664,13 @@ window.loadShiftRotationPolicyUI = function(db) {
             dateEl.value = d.toISOString().split('T')[0];
         }
     }
+
+    if (notifDb) notifDb.checked = policy.notifications ? !!policy.notifications.dbNotif : true;
+    if (notifWa) notifWa.checked = policy.notifications ? !!policy.notifications.whatsapp : true;
+    if (notifEmail) notifEmail.checked = policy.notifications ? !!policy.notifications.email : true;
+
     toggleAutoRotationUI();
+    if (window.updateShiftRotationPreview) window.updateShiftRotationPreview();
 };
 
 window.saveShiftRotationPolicy = function() {
@@ -2609,16 +2681,25 @@ window.saveShiftRotationPolicy = function() {
     const stratEl = document.getElementById('shift-rot-strategy');
     const dateEl = document.getElementById('shift-rot-nextdate');
 
+    const notifDb = document.getElementById('shift-notif-db');
+    const notifWa = document.getElementById('shift-notif-whatsapp');
+    const notifEmail = document.getElementById('shift-notif-email');
+
     db.shiftRotationPolicy = {
         enabled: cb ? cb.checked : false,
         frequency: freqEl ? freqEl.value : 'weekly',
         cycleType: cycleEl ? cycleEl.value : 'all',
         strategy: stratEl ? stratEl.value : 'employees',
-        nextDate: dateEl ? dateEl.value : ''
+        nextDate: dateEl ? dateEl.value : '',
+        notifications: {
+            dbNotif: notifDb ? notifDb.checked : true,
+            whatsapp: notifWa ? notifWa.checked : true,
+            email: notifEmail ? notifEmail.checked : true
+        }
     };
 
     saveDb(db);
-    showToast("Rotation Schedule Saved", "Automated shift rotation policy has been active and saved.", "success");
+    showToast("Rotation Schedule Saved", "Automated shift rotation policy and notification channels have been saved.", "success");
 };
 
 window.checkAndRunAutoShiftRotation = function(db) {

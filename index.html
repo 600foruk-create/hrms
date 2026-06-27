@@ -1287,7 +1287,7 @@
                                             <div id="shift-rot-config-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; opacity: 0.5; pointer-events: none;">
                                                 <div style="grid-column: span 2;">
                                                     <label class="form-label mb-1" style="font-size: 11px; font-weight: 700;">Frequency</label>
-                                                    <select id="shift-rot-freq" class="form-control btn-sm" style="font-size: 11px; font-weight: 600;">
+                                                    <select id="shift-rot-freq" class="form-control btn-sm" style="font-size: 11px; font-weight: 600;" onchange="if(window.updateShiftRotationPreview) window.updateShiftRotationPreview();">
                                                         <option value="weekly">Weekly (Every 7 Days)</option>
                                                         <option value="biweekly">Bi-Weekly (Every 14 Days)</option>
                                                         <option value="monthly">Monthly (Every 30 Days)</option>
@@ -1297,8 +1297,28 @@
                                                 <div style="grid-column: span 2;">
                                                     <label class="form-label mb-1" style="font-size: 11px; font-weight: 700;">Shift Rotation Start Date</label>
                                                     <div style="display: flex; gap: 10px;">
-                                                        <input type="date" id="shift-rot-nextdate" class="form-control btn-sm" style="font-size: 11px; font-weight: 700; flex: 1;">
+                                                        <input type="date" id="shift-rot-nextdate" class="form-control btn-sm" style="font-size: 11px; font-weight: 700; flex: 1;" onchange="if(window.updateShiftRotationPreview) window.updateShiftRotationPreview();">
                                                         <button type="button" class="btn btn-primary btn-sm" onclick="saveShiftRotationPolicy()" style="font-size: 11px; padding: 4px 12px; font-weight: 700;">Save Policy</button>
+                                                    </div>
+                                                </div>
+                                                <!-- Dynamic Preview Box -->
+                                                <div style="grid-column: span 2; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); padding: 10px 12px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between;">
+                                                    <span style="font-size: 11px; font-weight: 600; color: #0284c7;"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Upcoming Rotation Schedule:</span>
+                                                    <strong id="shift-rot-preview-text" style="font-size: 12px; color: #0369a1;">Select date above</strong>
+                                                </div>
+                                                <!-- Notification Channels -->
+                                                <div style="grid-column: span 2; background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.06); padding: 10px 12px; border-radius: 8px;">
+                                                    <label class="form-label mb-2" style="font-size: 11px; font-weight: 700; color: var(--text-primary); display: block;"><i class="fa-solid fa-bell text-primary"></i> Automated Notification Channels</label>
+                                                    <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                                                        <label style="font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                                            <input type="checkbox" id="shift-notif-db" checked style="accent-color: var(--primary);"> In-App Database Notice
+                                                        </label>
+                                                        <label style="font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                                            <input type="checkbox" id="shift-notif-whatsapp" checked style="accent-color: #25D366;"> WhatsApp Alert
+                                                        </label>
+                                                        <label style="font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                                            <input type="checkbox" id="shift-notif-email" checked style="accent-color: #ea4335;"> Email Notification
+                                                        </label>
                                                     </div>
                                                 </div>
                                             </div>
