@@ -52,7 +52,7 @@ function getGraphPeriodConfig(period, prefix) {
 // ==================== DATABASE ENGINE (Hostinger PHP Backend) ====================
 const API_URL = 'backend/api.php';
 window.dbLoaded = false;
-window.hrmsDatabase = { users: [], weights: {}, leaves: [], practices: [], manager_practices: [], productivity: [], productivity_tasks: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [], globalSalarySettings: { allowances: [], deductions: [] }, shifts: [] };
+window.hrmsDatabase = { users: [], weights: {}, leaves: [], practices: [], manager_practices: [], productivity: [], productivity_tasks: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [], globalSalarySettings: { allowances: [], deductions: [] }, shifts: [], productivityCategories: { businessUnits: [], tesCategories: [] } };
 
 async function syncServer() {
     let success = false;
@@ -72,18 +72,18 @@ async function syncServer() {
             const validUserIdsStr = result.data.users.map(u => String(u.id));
             let needsCleanup = false;
 
-            const cleanList = (list, idField) => {
+            const cleanList = (list, idField, fallbackField) => {
                 if (!list) return [];
                 const origLen = list.length;
-                const filtered = list.filter(item => validUserIdsStr.includes(String(item[idField])));
+                const filtered = list.filter(item => validUserIdsStr.includes(String(item[idField] !== undefined ? item[idField] : (fallbackField ? item[fallbackField] : ''))));
                 if (filtered.length !== origLen) needsCleanup = true;
                 return filtered;
             };
 
-            result.data.leaves = cleanList(result.data.leaves, 'employeeId');
-            result.data.productivity = cleanList(result.data.productivity, 'employee_id');
-            result.data.attendance = cleanList(result.data.attendance, 'employeeId');
-            result.data.payrollHistory = cleanList(result.data.payrollHistory, 'userId');
+            result.data.leaves = cleanList(result.data.leaves, 'employeeId', 'employee_id');
+            result.data.productivity = cleanList(result.data.productivity, 'employee_id', 'employeeId');
+            result.data.attendance = cleanList(result.data.attendance, 'employeeId', 'employee_id');
+            result.data.payrollHistory = cleanList(result.data.payrollHistory, 'userId', 'user_id');
 
             // Deduplicate attendance records (prioritize manual override over Auto/Present)
             if (result.data.attendance) {
@@ -8255,10 +8255,11 @@ window.renderManagerProductivityTab = function () {
     // Group logs by employee and date
     const groupedLogs = {};
     teamLogs.forEach(log => {
-        const key = `${log.employee_id}_${log.date}`;
+        const empId = log.employee_id || log.employeeId;
+        const key = `${empId}_${log.date}`;
         if (!groupedLogs[key]) {
             groupedLogs[key] = {
-                employee_id: log.employee_id,
+                employee_id: empId,
                 date: log.date,
                 totalScore: 0,
                 logs: []
@@ -8359,6 +8360,7 @@ window.renderAdminProductivityTab = function () {
 
     const db = getDb();
     const settings = db.systemSettings || {};
+    const prodSettings = typeof getProdSettings === 'function' ? getProdSettings() : (db.productivityCategories || { businessUnits: [], tesCategories: [] });
 
     // Setup Filter Dropdowns if empty
     const dateFilter = document.getElementById('admin-log-filter-date');
@@ -8378,10 +8380,10 @@ window.renderAdminProductivityTab = function () {
 
     if (catFilter && catFilter.options.length <= 1) {
         let allCats = [];
-        (settings.businessUnits || []).forEach(bu => {
+        (prodSettings.businessUnits || []).forEach(bu => {
             (bu.practices || []).forEach(p => allCats.push(p.name));
         });
-        (settings.tesCategories || []).forEach(tc => {
+        (prodSettings.tesCategories || []).forEach(tc => {
             (tc.tasks || []).forEach(t => allCats.push(t.name));
         });
         (db.productivity || []).forEach(l => {

@@ -1108,7 +1108,7 @@ elseif ($action === 'save_all') {
 
         // 4. Sync Productivity Categories & Logs
         try {
-            if (!empty($data['productivityCategories'])) {
+            if (!empty($data['productivityCategories']) && (!empty($data['productivityCategories']['businessUnits']) || !empty($data['productivityCategories']['tesCategories']))) {
                 $pData = $data['productivityCategories'];
                 $pdo->exec("DELETE FROM productivity_categories");
                 $stmt = $pdo->prepare("INSERT INTO productivity_categories (id, type, parent_id, name, weightage, description) VALUES (?, ?, ?, ?, ?, ?)");
