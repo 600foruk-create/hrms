@@ -736,11 +736,10 @@ function renderAssetRequestForm(db, pfx) {
     if (!mainCatSelect) return;
     
     mainCatSelect.innerHTML = '<option value="">-- Select Category --</option>';
-    if (db.systemSettings && db.systemSettings.assetCategories) {
-        db.systemSettings.assetCategories.forEach(c => {
-            mainCatSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-        });
-    }
+    const uniqueCats = [...new Set((db.assets || []).map(a => a.category).filter(Boolean))];
+    uniqueCats.forEach(c => {
+        mainCatSelect.innerHTML += `<option value="${c}">${c}</option>`;
+    });
     document.getElementById(`${pfx}-req-sub-cat`).innerHTML = '<option value="">-- Select Sub Category --</option>';
     const assetSelect = document.getElementById(`${pfx}-req-asset`);
     if (assetSelect) assetSelect.innerHTML = '<option value="">-- Any Available Asset --</option>';
@@ -759,12 +758,10 @@ window.updateEmpReqSubCat = function() {
     
     if (!mainCat) return;
     
-    const category = db.systemSettings.assetCategories.find(c => c.name === mainCat);
-    if (category && category.subCategories) {
-        category.subCategories.forEach(sub => {
-            subCatSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
-        });
-    }
+    const uniqueSubs = [...new Set((db.assets || []).filter(a => a.category === mainCat).map(a => a.sub_category).filter(Boolean))];
+    uniqueSubs.forEach(sub => {
+        subCatSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
+    });
 };
 
 window.updateEmpReqAsset = function() {
@@ -912,11 +909,10 @@ window.openBulkAddAssetModal = function() {
 window.generateMainCatOptions = function(selectedValue = '') {
     const db = window.getDb ? window.getDb() : window.db;
     let html = '<option value="">-- Select --</option>';
-    if (db.systemSettings && db.systemSettings.assetCategories) {
-        db.systemSettings.assetCategories.forEach(c => {
-            html += `<option value="${c.name}" ${selectedValue === c.name ? 'selected' : ''}>${c.name}</option>`;
-        });
-    }
+    const uniqueCats = [...new Set((db.assets || []).map(a => a.category).filter(Boolean))];
+    uniqueCats.forEach(c => {
+        html += `<option value="${c}" ${selectedValue === c ? 'selected' : ''}>${c}</option>`;
+    });
     return html;
 };
 
@@ -925,12 +921,10 @@ window.generateSubCatOptions = function(mainCatName, selectedValue = '') {
     let html = '<option value="">-- Select --</option>';
     if (!mainCatName) return html;
     
-    const category = db.systemSettings.assetCategories.find(c => c.name === mainCatName);
-    if (category && category.subCategories) {
-        category.subCategories.forEach(sub => {
-            html += `<option value="${sub}" ${selectedValue === sub ? 'selected' : ''}>${sub}</option>`;
-        });
-    }
+    const uniqueSubs = [...new Set((db.assets || []).filter(a => a.category === mainCatName).map(a => a.sub_category).filter(Boolean))];
+    uniqueSubs.forEach(sub => {
+        html += `<option value="${sub}" ${selectedValue === sub ? 'selected' : ''}>${sub}</option>`;
+    });
     return html;
 };
 
