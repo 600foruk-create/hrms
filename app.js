@@ -2617,6 +2617,7 @@ window.toggleAutoRotationUI = function() {
 
 window.updateShiftRotationPreview = function() {
     const dateEl = document.getElementById('shift-rot-nextdate');
+    const freqEl = document.getElementById('shift-rot-freq');
     const previewText = document.getElementById('shift-rot-preview-text');
     if (!previewText) return;
 
@@ -2629,6 +2630,15 @@ window.updateShiftRotationPreview = function() {
     if (isNaN(d.getTime())) {
         previewText.textContent = "Invalid date";
         return;
+    }
+
+    const freq = freqEl ? freqEl.value : 'weekly';
+    if (freq === 'biweekly') {
+        d.setDate(d.getDate() + 14);
+    } else if (freq === 'monthly') {
+        d.setMonth(d.getMonth() + 1);
+    } else {
+        d.setDate(d.getDate() + 7);
     }
 
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
