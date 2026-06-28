@@ -75,10 +75,11 @@ async function syncServer(maxRetries = 3, delayMs = 1500) {
             }
 
             if (result.status === 'success' && result.data && result.data.users && result.data.users.length > 0) {
-                // Dynamic correction: ensure "Syed Admin" is shown/logged in as "admin" with "admin123"
+                // Dynamic correction: ensure Admin is shown/logged in as "admin" / "admin@oceanstack.com" with "admin123"
                 result.data.users.forEach(u => {
-                    if (u.name === 'Syed Admin' || u.name === 'admin') {
+                    if (u.name === 'Syed Admin' || u.name === 'admin' || u.role === 'Admin' || u.email === 'admin@company.com' || u.email === 'admin@oceanstack.com') {
                         u.name = 'admin';
+                        u.email = 'admin@oceanstack.com';
                         u.password = 'admin123';
                     }
                 });
@@ -569,9 +570,15 @@ function handleLogin(usernameOrEmail, password) {
     try {
         const db = getDb();
         const usersList = (db && db.users && Array.isArray(db.users)) ? db.users : [];
+        
+        let loginInput = usernameOrEmail.trim().toLowerCase();
+        if (loginInput === 'admin@oceanstack.com' || loginInput === 'admin@company.com') {
+            loginInput = 'admin';
+        }
+
         // Match by name (dropdown) OR email (legacy fallback) - case-insensitive
         const user = usersList.find(u =>
-            u && ((u.name && u.name.toLowerCase() === usernameOrEmail.toLowerCase()) || (u.email && u.email.toLowerCase() === usernameOrEmail.toLowerCase()))
+            u && ((u.name && u.name.toLowerCase() === loginInput) || (u.email && u.email.toLowerCase() === loginInput) || (u.role === 'Admin' && loginInput === 'admin'))
             && u.password === password
         );
 
