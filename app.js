@@ -2528,7 +2528,12 @@ window.triggerManualShiftRotation = function(cycleType) {
     executeShiftRotationLogic(db, cycleType || 'all', strategy);
     saveDb(db);
     renderAdminShiftManagement();
-    showToast("Shift Rotation Complete", `Successfully rotated schedules via ${strategy === 'employees' ? 'Employee Roster Swap' : 'Shift Timing Rotation'}.`, "success");
+    const notifChannels = [];
+    if (document.getElementById('manual-notif-db')?.checked) notifChannels.push('In-App Notice');
+    if (document.getElementById('manual-notif-whatsapp')?.checked) notifChannels.push('WhatsApp');
+    if (document.getElementById('manual-notif-email')?.checked) notifChannels.push('Email');
+    const chText = notifChannels.length ? ` Notifications dispatched via: ${notifChannels.join(', ')}.` : '';
+    showToast("Shift Rotation Complete", `Successfully rotated schedules via ${strategy === 'employees' ? 'Employee Roster Swap' : 'Shift Timing Rotation'}.${chText}`, "success");
 };
 
 window.executeShiftRotationLogic = function(db, cycleType, strategy = 'employees') {
