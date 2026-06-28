@@ -54,119 +54,154 @@ const API_URL = 'backend/api.php';
 window.dbLoaded = false;
 window.hrmsDatabase = { users: [], weights: {}, leaves: [], practices: [], manager_practices: [], productivity: [], productivity_tasks: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [], globalSalarySettings: { allowances: [], deductions: [] }, shifts: [], productivityCategories: { businessUnits: [], tesCategories: [] } };
 
-async function syncServer() {
+async function syncServer(maxRetries = 3, delayMs = 1500) {
     let success = false;
-    try {
-        const response = await fetch(API_URL + '?action=load_all&_t=' + new Date().getTime());
-        const result = await response.json();
-        if (result.status === 'success' && result.data.users && result.data.users.length > 0) {
-            // Dynamic correction: ensure "Syed Admin" is shown/logged in as "admin" with "admin123"
-            result.data.users.forEach(u => {
-                if (u.name === 'Syed Admin' || u.name === 'admin') {
-                    u.name = 'admin';
-                    u.password = 'admin123';
+    let lastErrorMsg = "Could not connect to the live SQL database. Please check backend configuration.";
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const response = await fetch(API_URL + '?action=load_all&_t=' + new Date().getTime());
+            const textResponse = await response.text();
+            let result;
+            try {
+                result = JSON.parse(textResponse);
+            } catch (jsonErr) {
+                lastErrorMsg = "Server returned non-JSON response (likely CDN security challenge verifying browser).";
+                if (attempt < maxRetries) {
+                    await new Promise(r => setTimeout(r, delayMs));
+                    continue;
                 }
-            });
+                break;
+            }
 
-            // Auto-cleanup orphaned/dummy records
-            const validUserIdsStr = result.data.users.map(u => String(u.id));
-            let needsCleanup = false;
+            if (result.status === 'success' && result.data && result.data.users && result.data.users.length > 0) {
+                // Dynamic correction: ensure "Syed Admin" is shown/logged in as "admin" with "admin123"
+                result.data.users.forEach(u => {
+                    if (u.name === 'Syed Admin' || u.name === 'admin') {
+                        u.name = 'admin';
+                        u.password = 'admin123';
+                    }
+                });
 
-            const cleanList = (list, idField, fallbackField) => {
-                if (!list) return [];
-                const origLen = list.length;
-                const filtered = list.filter(item => validUserIdsStr.includes(String(item[idField] !== undefined ? item[idField] : (fallbackField ? item[fallbackField] : ''))));
-                if (filtered.length !== origLen) needsCleanup = true;
-                return filtered;
-            };
+                // Auto-cleanup orphaned/dummy records
+                const validUserIdsStr = result.data.users.map(u => String(u.id));
+                let needsCleanup = false;
 
-            result.data.leaves = cleanList(result.data.leaves, 'employeeId', 'employee_id');
-            result.data.productivity = cleanList(result.data.productivity, 'employee_id', 'employeeId');
-            result.data.attendance = cleanList(result.data.attendance, 'employeeId', 'employee_id');
-            result.data.payrollHistory = cleanList(result.data.payrollHistory, 'userId', 'user_id');
+                const cleanList = (list, idField, fallbackField) => {
+                    if (!list) return [];
+                    const origLen = list.length;
+                    const filtered = list.filter(item => validUserIdsStr.includes(String(item[idField] !== undefined ? item[idField] : (fallbackField ? item[fallbackField] : ''))));
+                    if (filtered.length !== origLen) needsCleanup = true;
+                    return filtered;
+                };
 
-            // Deduplicate attendance records (prioritize manual override over Auto/Present)
-            if (result.data.attendance) {
-                const attMap = new Map();
-                result.data.attendance.forEach(a => {
-                    const key = `${String(a.employeeId)}_${a.date}`;
-                    const prev = attMap.get(key);
-                    if (!prev) {
-                        attMap.set(key, a);
-                    } else {
-                        // If previous was Present (Auto/Default) and current is Absent/Leave/Half Day (override), keep override
-                        if (prev.status === 'Present' && a.status !== 'Present') {
+                result.data.leaves = cleanList(result.data.leaves, 'employeeId', 'employee_id');
+                result.data.productivity = cleanList(result.data.productivity, 'employee_id', 'employeeId');
+                result.data.attendance = cleanList(result.data.attendance, 'employeeId', 'employee_id');
+                result.data.payrollHistory = cleanList(result.data.payrollHistory, 'userId', 'user_id');
+
+                // Deduplicate attendance records (prioritize manual override over Auto/Present)
+                if (result.data.attendance) {
+                    const attMap = new Map();
+                    result.data.attendance.forEach(a => {
+                        const key = `${String(a.employeeId)}_${a.date}`;
+                        const prev = attMap.get(key);
+                        if (!prev) {
                             attMap.set(key, a);
-                        } else if (a.markedBy && a.markedBy !== 'Auto Login' && a.markedBy !== 'System') {
-                            attMap.set(key, a);
+                        } else {
+                            // If previous was Present (Auto/Default) and current is Absent/Leave/Half Day (override), keep override
+                            if (prev.status === 'Present' && a.status !== 'Present') {
+                                attMap.set(key, a);
+                            } else if (a.markedBy && a.markedBy !== 'Auto Login' && a.markedBy !== 'System') {
+                                attMap.set(key, a);
+                            }
                         }
-                    }
-                });
-                if (attMap.size !== result.data.attendance.length) needsCleanup = true;
-                result.data.attendance = Array.from(attMap.values());
-            }
-
-            if (!result.data.shifts || !Array.isArray(result.data.shifts) || result.data.shifts.length === 0) {
-                result.data.shifts = [
-                    { id: 'shift_general', name: 'General Shift', start: '09:00', end: '17:00', breakMins: 60, isFlexible: false },
-                    { id: 'shift_morning', name: 'Morning Shift', start: '08:00', end: '16:00', breakMins: 60, isFlexible: false },
-                    { id: 'shift_evening', name: 'Evening Shift', start: '16:00', end: '00:00', breakMins: 60, isFlexible: false },
-                    { id: 'shift_night', name: 'Night Shift', start: '00:00', end: '08:00', breakMins: 60, isFlexible: false },
-                    { id: 'shift_flexible', name: 'Flexible / Custom Timings', start: 'Manual', end: 'Manual', breakMins: 60, isFlexible: true }
-                ];
-            }
-
-            window.hrmsDatabase = result.data;
-            window.dbLoaded = true;
-            success = true;
-
-            // Deep clean localStorage of all legacy or unrecognized keys to absolutely prevent QuotaExceededError
-            try {
-                Object.keys(localStorage).forEach(key => {
-                    if (!['current_user', 'active_tab', 'hrms_fallback_db'].includes(key)) {
-                        localStorage.removeItem(key);
-                    }
-                });
-            } catch (e) { }
-
-            // Cache DB for offline/reload persistence (Strip large base64 data to prevent QuotaExceededError)
-            try {
-                const cacheData = JSON.parse(JSON.stringify(result.data));
-                if (cacheData.users) {
-                    cacheData.users.forEach(u => { delete u.documents; delete u.profileImageBase64; delete u.profilePic; });
+                    });
+                    if (attMap.size !== result.data.attendance.length) needsCleanup = true;
+                    result.data.attendance = Array.from(attMap.values());
                 }
-                if (cacheData.companyProfile) {
-                    delete cacheData.companyProfile.letterheadBase64;
-                    delete cacheData.companyProfile.signatureBase64;
-                    delete cacheData.companyProfile.idCardFrontBase64;
-                    delete cacheData.companyProfile.idCardBackBase64;
-                    delete cacheData.companyProfile.logoBase64;
+
+                if (!result.data.shifts || !Array.isArray(result.data.shifts) || result.data.shifts.length === 0) {
+                    result.data.shifts = [
+                        { id: 'shift_general', name: 'General Shift', start: '09:00', end: '17:00', breakMins: 60, isFlexible: false },
+                        { id: 'shift_morning', name: 'Morning Shift', start: '08:00', end: '16:00', breakMins: 60, isFlexible: false },
+                        { id: 'shift_evening', name: 'Evening Shift', start: '16:00', end: '00:00', breakMins: 60, isFlexible: false },
+                        { id: 'shift_night', name: 'Night Shift', start: '00:00', end: '08:00', breakMins: 60, isFlexible: false },
+                        { id: 'shift_flexible', name: 'Flexible / Custom Timings', start: 'Manual', end: 'Manual', breakMins: 60, isFlexible: true }
+                    ];
                 }
-                localStorage.setItem('hrms_fallback_db', JSON.stringify(cacheData));
-            } catch (e) {
-                console.warn("Could not cache DB to localStorage. Quota exceeded.", e);
-            }
 
-            // Apply Global Settings (Theme) immediately upon sync
-            if (result.data.systemSettings && result.data.systemSettings.themeColor) {
-                document.documentElement.style.setProperty('--primary', result.data.systemSettings.themeColor);
-            }
+                window.hrmsDatabase = result.data;
+                window.dbLoaded = true;
+                success = true;
 
-            if (needsCleanup) {
-                console.log("Orphaned/Dummy records detected. Auto-cleaning SQL database...");
-                setTimeout(() => saveDb(result.data), 2000);
+                // Deep clean localStorage of all legacy or unrecognized keys to absolutely prevent QuotaExceededError
+                try {
+                    Object.keys(localStorage).forEach(key => {
+                        if (!['current_user', 'active_tab', 'hrms_fallback_db'].includes(key)) {
+                            localStorage.removeItem(key);
+                        }
+                    });
+                } catch (e) { }
+
+                // Cache DB for offline/reload persistence (Strip large base64 data to prevent QuotaExceededError)
+                try {
+                    const cacheData = JSON.parse(JSON.stringify(result.data));
+                    if (cacheData.users) {
+                        cacheData.users.forEach(u => { delete u.documents; delete u.profileImageBase64; delete u.profilePic; });
+                    }
+                    if (cacheData.companyProfile) {
+                        delete cacheData.companyProfile.letterheadBase64;
+                        delete cacheData.companyProfile.signatureBase64;
+                        delete cacheData.companyProfile.idCardFrontBase64;
+                        delete cacheData.companyProfile.idCardBackBase64;
+                        delete cacheData.companyProfile.logoBase64;
+                    }
+                    localStorage.setItem('hrms_fallback_db', JSON.stringify(cacheData));
+                } catch (e) {
+                    console.warn("Could not cache DB to localStorage. Quota exceeded.", e);
+                }
+
+                // Apply Global Settings (Theme) immediately upon sync
+                if (result.data.systemSettings && result.data.systemSettings.themeColor) {
+                    document.documentElement.style.setProperty('--primary', result.data.systemSettings.themeColor);
+                }
+
+                if (needsCleanup) {
+                    console.log("Orphaned/Dummy records detected. Auto-cleaning SQL database...");
+                    setTimeout(() => saveDb(result.data), 2000);
+                }
+                break;
+            } else {
+                lastErrorMsg = result.message || "Failed to load DB state or DB is empty.";
+                console.error("Attempt " + attempt + " failed:", lastErrorMsg);
+                if (attempt < maxRetries) {
+                    await new Promise(r => setTimeout(r, delayMs));
+                }
             }
-        } else {
-            console.error("Failed to load DB state or DB is empty:", result.message);
+        } catch (e) {
+            lastErrorMsg = e.message || "Network error loading DB.";
+            console.error("Attempt " + attempt + " network error:", e);
+            if (attempt < maxRetries) {
+                await new Promise(r => setTimeout(r, delayMs));
+            }
         }
-    } catch (e) {
-        console.error("Network error loading DB:", e);
     }
 
     // DO NOT use Fallback Mock Database if API fails. This prevents dummy data from overwriting live SQL data.
     if (!success) {
-        console.error("Critical Error: Failed to sync with live SQL Database. Preventing dummy data load to protect integrity.");
-        showToast("Database Connection Failed", "Could not connect to the live SQL database. Please check backend configuration.", "error");
+        console.error("Critical Error: Failed to sync with live SQL Database after " + maxRetries + " attempts. Preventing dummy data load to protect integrity.");
+        try {
+            const fallbackStr = localStorage.getItem('hrms_fallback_db');
+            if (fallbackStr) {
+                const fallbackData = JSON.parse(fallbackStr);
+                if (fallbackData && fallbackData.users && fallbackData.users.length > 0) {
+                    window.hrmsDatabase = fallbackData;
+                    console.warn("Loaded cached DB for UI rendering while offline/retrying.");
+                }
+            }
+        } catch (err) {}
+        showToast("Database Connection Failed", lastErrorMsg, "error");
         return;
     }
 }
