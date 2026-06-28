@@ -1271,14 +1271,14 @@
                                                     <i class="fa-solid fa-chevron-right text-muted" style="font-size: 10px;"></i>
                                                 </button>
 
-                                                <div style="margin-top: 6px; padding: 14px; background: rgba(99, 102, 241, 0.04); border: 1px dashed rgba(99, 102, 241, 0.25); border-radius: 10px;">
-                                                    <h5 style="margin: 0 0 8px 0; font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
-                                                        <i class="fa-solid fa-microchip"></i> Auto-Pilot Intelligence Protocol
+                                                <div style="margin-top: 6px; padding: 14px; background: rgba(245, 158, 11, 0.04); border: 1px dashed rgba(245, 158, 11, 0.3); border-radius: 10px;">
+                                                    <h5 style="margin: 0 0 8px 0; font-size: 11px; font-weight: 800; color: #d97706; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+                                                        <i class="fa-solid fa-bolt text-warning"></i> Manual Execution Protocol
                                                     </h5>
                                                     <ul style="margin: 0; padding-left: 18px; font-size: 11px; color: var(--text-secondary); line-height: 1.6;">
-                                                        <li style="margin-bottom: 5px;"><strong>Strategy Synchronization:</strong> Automated execution reads directly from MySQL database policy to execute exact roster swaps or timing updates.</li>
-                                                        <li style="margin-bottom: 5px;"><strong>Trigger Protection:</strong> Engaging Auto-Pilot locks Start Date and Frequency controls to prevent accidental schedule disruption.</li>
-                                                        <li style="margin-bottom: 0;"><strong>Continuous Loop:</strong> When a shift cycle completes, the system autonomously advances the start date to the next trigger cycle and dispatches alerts via active notification channels.</li>
+                                                        <li style="margin-bottom: 5px;"><strong>Instant Override:</strong> Triggering manual rotation immediately executes roster swaps or shift timing updates regardless of scheduled dates.</li>
+                                                        <li style="margin-bottom: 5px;"><strong>Strategy Target:</strong> Execution strictly applies the rotation strategy selected in the top dropdown across all active rotating teams.</li>
+                                                        <li style="margin-bottom: 0;"><strong>State Synchronization:</strong> Changes are instantly synchronized with the live SQL server and reflected across employee profiles.</li>
                                                     </ul>
                                                 </div>
                                             </div>
@@ -1331,6 +1331,18 @@
                                                             <input type="checkbox" id="shift-notif-email" checked style="accent-color: #ea4335;"> Email Notification
                                                         </label>
                                                     </div>
+                                                </div>
+
+                                                <!-- Auto-Pilot Intelligence Protocol -->
+                                                <div style="grid-column: span 2; margin-top: 2px; padding: 14px; background: rgba(99, 102, 241, 0.04); border: 1px dashed rgba(99, 102, 241, 0.25); border-radius: 10px;">
+                                                    <h5 style="margin: 0 0 8px 0; font-size: 11px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+                                                        <i class="fa-solid fa-microchip"></i> Auto-Pilot Intelligence Protocol
+                                                    </h5>
+                                                    <ul style="margin: 0; padding-left: 18px; font-size: 11px; color: var(--text-secondary); line-height: 1.6;">
+                                                        <li style="margin-bottom: 5px;"><strong>Autonomous Execution:</strong> Background engine reads saved MySQL policy to trigger automated rotations on the scheduled date.</li>
+                                                        <li style="margin-bottom: 5px;"><strong>Config Lock:</strong> Enabling Auto-Pilot locks Start Date and Frequency controls to safeguard schedule continuity.</li>
+                                                        <li style="margin-bottom: 0;"><strong>Self-Sustaining Cycle:</strong> Upon completion, trigger dates automatically advance forward and dispatch alerts across selected channels.</li>
+                                                    </ul>
                                                 </div>
                                             </div>
                                         </div>
