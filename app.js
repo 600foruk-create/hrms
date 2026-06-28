@@ -2591,10 +2591,22 @@ window.toggleAutoRotationUI = function() {
     const switchTrack = document.getElementById('autopilot-pill-switch');
     const switchKnob = document.getElementById('autopilot-switch-knob');
     const switchText = document.getElementById('autopilot-switch-text');
+    const dateEl = document.getElementById('shift-rot-nextdate');
+    const freqEl = document.getElementById('shift-rot-freq');
 
     if (cb && box) {
-        box.style.opacity = cb.checked ? '1' : '0.5';
-        box.style.pointerEvents = cb.checked ? 'auto' : 'none';
+        box.style.opacity = '1';
+        box.style.pointerEvents = 'auto';
+    }
+    if (dateEl) {
+        dateEl.disabled = cb ? cb.checked : false;
+        dateEl.style.cursor = (cb && cb.checked) ? 'not-allowed' : 'pointer';
+        dateEl.style.opacity = (cb && cb.checked) ? '0.7' : '1';
+    }
+    if (freqEl) {
+        freqEl.disabled = cb ? cb.checked : false;
+        freqEl.style.cursor = (cb && cb.checked) ? 'not-allowed' : 'pointer';
+        freqEl.style.opacity = (cb && cb.checked) ? '0.7' : '1';
     }
     if (cb && switchTrack && switchKnob && switchText) {
         if (cb.checked) {
@@ -2717,26 +2729,38 @@ window.checkAndRunAutoShiftRotation = function(db) {
     if (!policy || !policy.enabled || !policy.nextDate) return;
 
     const todayStr = new Date().toISOString().split('T')[0];
-    if (todayStr >= policy.nextDate) {
-        // Read the latest strategy dynamically from dropdown or saved policy
-        const stratEl = document.getElementById('shift-rot-strategy');
-        const activeStrat = stratEl ? stratEl.value : (policy.strategy || 'employees');
+    
+    // Calculate trigger date based on saved shift start date (policy.nextDate) and frequency
+    const startD = new Date(policy.nextDate);
+    if (isNaN(startD.getTime())) return;
+
+    const triggerD = new Date(startD);
+    if (policy.frequency === 'biweekly') {
+        triggerD.setDate(triggerD.getDate() + 14);
+    } else if (policy.frequency === 'monthly') {
+        triggerD.setMonth(triggerD.getMonth() + 1);
+    } else {
+        triggerD.setDate(triggerD.getDate() + 7);
+    }
+    const triggerDateStr = triggerD.toISOString().split('T')[0];
+
+    if (todayStr >= triggerDateStr) {
+        // Reliably use the saved strategy from database
+        const activeStrat = policy.strategy || 'employees';
 
         // Execute automated rotation!
         executeShiftRotationLogic(db, 'all', activeStrat);
 
-        // Advance nextDate
-        const curDate = new Date(policy.nextDate);
-        if (policy.frequency === 'biweekly') {
-            curDate.setDate(curDate.getDate() + 14);
-        } else if (policy.frequency === 'monthly') {
-            curDate.setMonth(curDate.getMonth() + 1);
-        } else {
-            curDate.setDate(curDate.getDate() + 7);
-        }
-        policy.nextDate = curDate.toISOString().split('T')[0];
+        // Advance nextDate (Shift Start Date) to the trigger date that just occurred
+        policy.nextDate = triggerDateStr;
         saveDb(db);
-        showToast("Auto Shift Rotation", `Automated scheduled rotation executed successfully (${activeStrat === 'employees' ? 'Roster Swap' : 'Timing Rotation'}). Next date: ${policy.nextDate}`, "info");
+        
+        // Update UI if visible
+        const dateEl = document.getElementById('shift-rot-nextdate');
+        if (dateEl) dateEl.value = policy.nextDate;
+        if (window.updateShiftRotationPreview) window.updateShiftRotationPreview();
+
+        showToast("Auto Shift Rotation", `Automated scheduled rotation executed successfully (${activeStrat === 'employees' ? 'Roster Swap' : 'Timing Rotation'}). New shift start date: ${policy.nextDate}`, "info");
     }
 };
 
