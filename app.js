@@ -209,7 +209,6 @@ async function syncServer(maxRetries = 3, delayMs = 1500) {
         if (!loadedFallback || !window.hrmsDatabase.users || window.hrmsDatabase.users.length === 0) {
             // Emergency Admin injection so login screen never locks out when CDN challenges block initial AJAX fetch
             window.hrmsDatabase.users = [{ id: 'U1', name: 'admin', email: 'admin@oceanstack.com', password: 'admin123', role: 'Admin', status: 'Active' }];
-            window.dbLoaded = true;
         }
 
         // Suppress scary red error toast on login page so user is not discouraged from logging in
@@ -235,8 +234,12 @@ function getInitials(name) {
 }
 
 async function saveDb(data) {
+    if (!data || !data.users || (data.users.length === 1 && data.users[0].id === 'U1' && data.users[0].email === 'admin@oceanstack.com')) {
+        console.warn("Save skipped: currently running on emergency fallback state.");
+        return;
+    }
     if (!window.dbLoaded) {
-        if (window.hrmsDatabase && window.hrmsDatabase.users && window.hrmsDatabase.users.length > 0) {
+        if (window.hrmsDatabase && window.hrmsDatabase.users && window.hrmsDatabase.users.length > 0 && !(window.hrmsDatabase.users.length === 1 && window.hrmsDatabase.users[0].id === 'U1')) {
             window.dbLoaded = true;
         } else {
             console.warn("Save blocked: Database was not properly loaded from server.");
@@ -264,8 +267,8 @@ async function saveDb(data) {
     if (window.isDemoMode) return true;
 
     // Prevent accidental wipe if data is incomplete
-    if (!data || !data.users) {
-        console.error("Invalid database state. Aborting network sync.");
+    if (!data || !data.users || (data.users.length === 1 && data.users[0].id === 'U1' && data.users[0].email === 'admin@oceanstack.com')) {
+        console.error("Invalid or emergency fallback database state. Aborting network sync to protect server data.");
         return false;
     }
 
