@@ -97,7 +97,7 @@ async function syncServer(maxRetries = 3, delayMs = 1500) {
                 };
 
                 result.data.leaves = cleanList(result.data.leaves, 'employeeId', 'employee_id');
-                result.data.productivity = cleanList(result.data.productivity, 'employee_id', 'employeeId');
+                result.data.productivity = result.data.productivity || [];
                 result.data.attendance = cleanList(result.data.attendance, 'employeeId', 'employee_id');
                 result.data.payrollHistory = cleanList(result.data.payrollHistory, 'userId', 'user_id');
 

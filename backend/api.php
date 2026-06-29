@@ -805,16 +805,17 @@ if ($action === 'load_all') {
             
             // First pass: Build BUs and TESs
             foreach ($pcats as $cat) {
-                if ($cat['type'] === 'BU') {
+                $cType = strtoupper(trim($cat['type']));
+                if ($cType === 'BU') {
                     $dbState['productivityCategories']['businessUnits'][] = [
-                        'id' => $cat['id'],
+                        'id' => trim($cat['id']),
                         'name' => $cat['name'],
                         'practices' => []
                     ];
-                } else if ($cat['type'] === 'TES') {
+                } else if ($cType === 'TES') {
                     $dbState['productivityCategories']['tesCategories'][] = [
-                        'id' => $cat['id'],
-                        'buId' => $cat['parent_id'],
+                        'id' => trim($cat['id']),
+                        'buId' => trim($cat['parent_id']),
                         'name' => $cat['name'],
                         'weightage' => (int)$cat['weightage'],
                         'desc' => $cat['description'],
@@ -825,21 +826,23 @@ if ($action === 'load_all') {
             
             // Second pass: Populate Practices and Tasks
             foreach ($pcats as $cat) {
-                if ($cat['type'] === 'PRACTICE') {
+                $cType = strtoupper(trim($cat['type']));
+                $pId = trim($cat['parent_id']);
+                if ($cType === 'PRACTICE') {
                     foreach ($dbState['productivityCategories']['businessUnits'] as &$bu) {
-                        if ($bu['id'] === $cat['parent_id']) {
+                        if ($bu['id'] === $pId) {
                             $bu['practices'][] = [
-                                'id' => $cat['id'],
+                                'id' => trim($cat['id']),
                                 'name' => $cat['name']
                             ];
                             break;
                         }
                     }
-                } else if ($cat['type'] === 'TASK') {
+                } else if ($cType === 'TASK') {
                     foreach ($dbState['productivityCategories']['tesCategories'] as &$tes) {
-                        if ($tes['id'] === $cat['parent_id']) {
+                        if ($tes['id'] === $pId) {
                             $tes['tasks'][] = [
-                                'id' => $cat['id'],
+                                'id' => trim($cat['id']),
                                 'name' => $cat['name'],
                                 'weightage' => (int)$cat['weightage']
                             ];
@@ -1110,34 +1113,38 @@ elseif ($action === 'save_all') {
         try {
             if (!empty($data['productivityCategories']) && (!empty($data['productivityCategories']['businessUnits']) || !empty($data['productivityCategories']['tesCategories']))) {
                 $pData = $data['productivityCategories'];
+                $pdo->beginTransaction();
                 $pdo->exec("DELETE FROM productivity_categories");
                 $stmt = $pdo->prepare("INSERT INTO productivity_categories (id, type, parent_id, name, weightage, description) VALUES (?, ?, ?, ?, ?, ?)");
                 if (!empty($pData['businessUnits'])) {
                     foreach ($pData['businessUnits'] as $bu) {
-                        $stmt->execute([$bu['id'], 'BU', null, $bu['name'], 0, '']);
+                        $stmt->execute([trim($bu['id']), 'BU', null, $bu['name'], 0, '']);
                         if (!empty($bu['practices'])) {
                             foreach ($bu['practices'] as $practice) {
-                                $stmt->execute([$practice['id'], 'PRACTICE', $bu['id'], $practice['name'], 0, '']);
+                                $stmt->execute([trim($practice['id']), 'PRACTICE', trim($bu['id']), $practice['name'], 0, '']);
                             }
                         }
                     }
                 }
                 if (!empty($pData['tesCategories'])) {
                     foreach ($pData['tesCategories'] as $tes) {
-                        $stmt->execute([$tes['id'], 'TES', $tes['buId'] ?? null, $tes['name'], $tes['weightage'] ?? 0, $tes['desc'] ?? '']);
+                        $stmt->execute([trim($tes['id']), 'TES', trim($tes['buId'] ?? ''), $tes['name'], $tes['weightage'] ?? 0, $tes['desc'] ?? '']);
                         if (!empty($tes['tasks'])) {
                             foreach ($tes['tasks'] as $task) {
-                                $stmt->execute([$task['id'], 'TASK', $tes['id'], $task['name'], $task['weightage'] ?? 0, '']);
+                                $stmt->execute([trim($task['id']), 'TASK', trim($tes['id']), $task['name'], $task['weightage'] ?? 0, '']);
                             }
                         }
                     }
                 }
+                $pdo->commit();
             }
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+        }
 
         try {
             if (!empty($data['productivity'])) {
-                $stmt = $pdo->prepare("INSERT INTO productivity (id, employee_id, date, category, sub_category, electronic_mins, manual_mins, total_mins, score_percentage, notes, doc_path, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE status = VALUES(status), notes = VALUES(notes), score_percentage = VALUES(score_percentage)");
+                $stmt = $pdo->prepare("INSERT INTO productivity (id, employee_id, date, category, sub_category, electronic_mins, manual_mins, total_mins, score_percentage, notes, doc_path, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE employee_id = VALUES(employee_id), date = VALUES(date), category = VALUES(category), sub_category = VALUES(sub_category), electronic_mins = VALUES(electronic_mins), manual_mins = VALUES(manual_mins), total_mins = VALUES(total_mins), score_percentage = VALUES(score_percentage), notes = VALUES(notes), doc_path = VALUES(doc_path), status = VALUES(status)");
                 foreach ($data['productivity'] as $p) {
                     $stmt->execute([
                         $p['id'], $p['employee_id'] ?? ($p['employeeId'] ?? ''), $p['date'], $p['category'] ?? '', $p['sub_category'] ?? '',
