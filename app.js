@@ -2490,6 +2490,10 @@ window.triggerManualShiftRotation = function(cycleType) {
         if (!confirm(`Confirm Strategy: 🕒 Rotate Timings (Schedule Rotation)\n\nTimings Sequence:\n${shiftNames}\n\nEach shift card gets the timings of the previous shift in sequence. Employees stay on their permanent team cards. General and Flexible shifts remain permanently fixed.\n\nProceed with timing rotation?`)) return;
     }
 
+    if (!db.shiftRotationPolicy) db.shiftRotationPolicy = {};
+    db.shiftRotationPolicy.strategy = strategy;
+    if (window.saveShiftRotationPolicy) window.saveShiftRotationPolicy(true);
+
     executeShiftRotationLogic(db, cycleType || 'all', strategy);
     saveDb(db);
     renderAdminShiftManagement();
