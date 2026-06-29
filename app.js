@@ -2544,6 +2544,11 @@ window.executeShiftRotationLogic = function(db, cycleType, strategy = 'employees
     }
 
     // Automated Multi-Channel Notification Dispatch Engine
+    const sysSettings = db.systemSettings || {};
+    if (sysSettings.shiftNotificationsEnabled === false) {
+        console.log("[Auto-Pilot] Shift rotation notifications are globally disabled in System Settings.");
+        return;
+    }
     const policy = db.shiftRotationPolicy || {};
     const notifs = policy.notifications || { dbNotif: true, whatsapp: true, email: true };
     const todayStr = new Date().toISOString().split('T')[0];
@@ -2687,6 +2692,7 @@ window.loadShiftRotationPolicyUI = function(db) {
 
     toggleAutoRotationUI();
     if (window.updateShiftRotationPreview) window.updateShiftRotationPreview();
+    if (window.updateShiftNotifSectionVisibility) window.updateShiftNotifSectionVisibility();
 };
 
 window.saveShiftRotationPolicy = function() {
@@ -3104,6 +3110,9 @@ function renderAdminSettingsTab() {
     }
     if (document.getElementById('prod-show-emp-admin')) {
         document.getElementById('prod-show-emp-admin').checked = sysSettings.showEmployeeLogsToAdmin === 'true' || sysSettings.showEmployeeLogsToAdmin === true;
+    }
+    if (document.getElementById('setting-shift-notif-enabled')) {
+        document.getElementById('setting-shift-notif-enabled').checked = sysSettings.shiftNotificationsEnabled !== false;
     }
 
     // Populate Company Profile Inline Form
@@ -5898,6 +5907,31 @@ window.saveProductivitySettings = async function () {
 
     showToast("Productivity Settings", "Settings saved successfully.");
     saveDb(db);
+};
+
+window.saveShiftNotificationSettings = function () {
+    const db = getDb();
+    if (!db) return;
+
+    if (!db.systemSettings) {
+        db.systemSettings = {};
+    }
+    const sysSettings = db.systemSettings;
+
+    sysSettings.shiftNotificationsEnabled = document.getElementById('setting-shift-notif-enabled').checked;
+
+    if (window.updateShiftNotifSectionVisibility) window.updateShiftNotifSectionVisibility();
+    showToast("Notification Settings", "Shift rotation notification channel setting saved.", "success");
+    saveDb(db);
+};
+
+window.updateShiftNotifSectionVisibility = function() {
+    const db = getDb();
+    const isEnabled = db?.systemSettings?.shiftNotificationsEnabled !== false;
+    const section = document.getElementById('shift-rot-notif-section');
+    if (section) {
+        section.style.display = isEnabled ? 'block' : 'none';
+    }
 };
 
 // Settings Event Delegation (Click actions like Reset/Test)

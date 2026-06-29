@@ -1314,7 +1314,7 @@
                                                     <strong id="shift-rot-preview-text" style="font-size: 12px; color: #0369a1;">Select date above</strong>
                                                 </div>
                                                 <!-- Notification Channels -->
-                                                <div style="grid-column: span 2; background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.06); padding: 10px 12px; border-radius: 8px;">
+                                                <div id="shift-rot-notif-section" style="grid-column: span 2; background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.06); padding: 10px 12px; border-radius: 8px;">
                                                     <label class="form-label mb-2" style="font-size: 11px; font-weight: 700; color: var(--text-primary); display: block;"><i class="fa-solid fa-bell text-primary"></i> Automated Notification Channels</label>
                                                     <div style="display: flex; gap: 16px; flex-wrap: wrap;">
                                                         <label style="font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
@@ -3273,6 +3273,22 @@
                                         <label class="switch" style="margin: 0;">
                                             <input type="checkbox" id="prod-show-emp-admin"
                                                 onchange="if(window.saveProductivitySettings) window.saveProductivitySettings();">
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Shift Rotation Notification Row -->
+                                <div
+                                    style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; padding: 15px 20px; border-top: 1px solid var(--border-color);">
+                                    <h3
+                                        style="margin: 0; font-size: 15px; display: flex; align-items: center; gap: 10px;">
+                                        <i class="fa-solid fa-bell text-primary"></i> Automated Notification Channels</h3>
+                                    <div style="display: flex; align-items: center; gap: 15px;">
+                                        <span style="font-weight: 500;">Enable Shift Rotation Notifications</span>
+                                        <label class="switch" style="margin: 0;">
+                                            <input type="checkbox" id="setting-shift-notif-enabled"
+                                                onchange="if(window.saveShiftNotificationSettings) window.saveShiftNotificationSettings();">
                                             <span class="slider round"></span>
                                         </label>
                                     </div>
