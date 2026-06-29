@@ -199,7 +199,6 @@ async function syncServer(maxRetries = 3, delayMs = 1500) {
                 const fallbackData = JSON.parse(fallbackStr);
                 if (fallbackData && fallbackData.users && fallbackData.users.length > 0) {
                     window.hrmsDatabase = fallbackData;
-                    window.dbLoaded = true;
                     console.warn("Loaded cached DB for UI rendering while offline/retrying.");
                     loadedFallback = true;
                 }
@@ -234,17 +233,10 @@ function getInitials(name) {
 }
 
 async function saveDb(data) {
-    if (!data || !data.users || (data.users.length === 1 && data.users[0].id === 'U1' && data.users[0].email === 'admin@oceanstack.com')) {
-        console.warn("Save skipped: currently running on emergency fallback state.");
-        return;
-    }
     if (!window.dbLoaded) {
-        if (window.hrmsDatabase && window.hrmsDatabase.users && window.hrmsDatabase.users.length > 0 && !(window.hrmsDatabase.users.length === 1 && window.hrmsDatabase.users[0].id === 'U1')) {
-            window.dbLoaded = true;
-        } else {
-            console.warn("Save blocked: Database was not properly loaded from server.");
-            return;
-        }
+        console.error("Save blocked: Database was not properly loaded from server. Preventing accidental data wipe.");
+        showToast("Save Error", "Cannot save changes because the database connection failed on startup. Please refresh the page.", "error");
+        return;
     }
     window.hrmsDatabase = data; // Immediate local update for UI speed
     try {
@@ -267,8 +259,8 @@ async function saveDb(data) {
     if (window.isDemoMode) return true;
 
     // Prevent accidental wipe if data is incomplete
-    if (!data || !data.users || (data.users.length === 1 && data.users[0].id === 'U1' && data.users[0].email === 'admin@oceanstack.com')) {
-        console.error("Invalid or emergency fallback database state. Aborting network sync to protect server data.");
+    if (!data || !data.users) {
+        console.error("Invalid database state. Aborting network sync.");
         return false;
     }
 
