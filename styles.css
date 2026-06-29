@@ -2112,6 +2112,7 @@ body.light-mode .quick-action-btn:hover {
 .legend-dot.absent { background-color: var(--danger); }
 .legend-dot.late { background-color: #d97706; }
 .legend-dot.leave { background-color: var(--primary); }
+.legend-dot.halfday { background-color: #a855f7; }
 .legend-value {
     font-weight: 600;
     color: var(--text-primary);

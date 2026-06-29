@@ -1104,9 +1104,10 @@ function renderAdminDashboard() {
     const presentTodayCount = db.attendance.filter(a => a.date === today && a.status === 'Present' && validEmpIds.includes(String(a.employeeId))).length;
     const lateTodayCount = db.attendance.filter(a => a.date === today && a.status === 'Late' && validEmpIds.includes(String(a.employeeId))).length;
     const leaveTodayCount = db.attendance.filter(a => a.date === today && a.status === 'On Leave' && validEmpIds.includes(String(a.employeeId))).length;
+    const halfdayTodayCount = db.attendance.filter(a => a.date === today && a.status === 'Half Day' && validEmpIds.includes(String(a.employeeId))).length;
     const explicitAbsentCount = db.attendance.filter(a => a.date === today && a.status === 'Absent' && validEmpIds.includes(String(a.employeeId))).length;
     
-    const accountedCount = presentTodayCount + lateTodayCount + leaveTodayCount + explicitAbsentCount;
+    const accountedCount = presentTodayCount + lateTodayCount + leaveTodayCount + halfdayTodayCount + explicitAbsentCount;
     const unmarkedAbsentCount = totalEmpCount > accountedCount ? (totalEmpCount - accountedCount) : 0;
     const absentTodayCount = explicitAbsentCount + unmarkedAbsentCount;
     const attendancePct = totalEmpCount > 0 ? Math.round((presentTodayCount / totalEmpCount) * 100) : 0;
@@ -1137,22 +1138,25 @@ function renderAdminDashboard() {
     let absent = absentTodayCount;
     let late = lateTodayCount;
     let leave = leaveTodayCount;
-    let total = present + absent + late + leave;
+    let halfday = halfdayTodayCount;
+    let total = present + absent + late + leave + halfday;
     if (total === 0) {
-        total = 0; present = 0; absent = 0; late = 0; leave = 0;
+        total = 0; present = 0; absent = 0; late = 0; leave = 0; halfday = 0;
     }
     const presentPct = total === 0 ? 0 : Math.round((present / total) * 100);
     const absentPct = total === 0 ? 0 : Math.round((absent / total) * 100);
     const latePct = total === 0 ? 0 : Math.round((late / total) * 100);
     const leavePct = total === 0 ? 0 : Math.round((leave / total) * 100);
+    const halfdayPct = total === 0 ? 0 : Math.max(0, 100 - (presentPct + absentPct + latePct + leavePct));
 
     const absStart = presentPct;
     const lateStart = absStart + absentPct;
     const leaveStart = lateStart + latePct;
+    const halfdayStart = leaveStart + leavePct;
 
     const doughnutEl = document.getElementById('attendance-doughnut-chart');
     if (doughnutEl) {
-        doughnutEl.style.background = `conic-gradient(var(--success) 0% ${absStart}%, var(--danger) ${absStart}% ${lateStart}%, var(--warning) ${lateStart}% ${leaveStart}%, var(--primary) ${leaveStart}% 100%)`;
+        doughnutEl.style.background = `conic-gradient(var(--success) 0% ${absStart}%, var(--danger) ${absStart}% ${lateStart}%, var(--warning) ${lateStart}% ${leaveStart}%, var(--primary) ${leaveStart}% ${halfdayStart}%, #a855f7 ${halfdayStart}% 100%)`;
     }
 
     const doughnutTotalEl = document.getElementById('attendance-doughnut-total');
@@ -1162,10 +1166,12 @@ function renderAdminDashboard() {
     const lAbs = document.getElementById('legend-absent-val');
     const lLate = document.getElementById('legend-late-val');
     const lLeave = document.getElementById('legend-leave-val');
+    const lHalfday = document.getElementById('legend-halfday-val');
     if (lPres) lPres.textContent = `${present} (${presentPct}%)`;
     if (lAbs) lAbs.textContent = `${absent} (${absentPct}%)`;
     if (lLate) lLate.textContent = `${late} (${latePct}%)`;
     if (lLeave) lLeave.textContent = `${leave} (${leavePct}%)`;
+    if (lHalfday) lHalfday.textContent = `${halfday} (${halfdayPct}%)`;
 
     // 2. Tasks Overview SVG Line Chart (Dynamic from DB)
     const adminGraphPeriod = document.getElementById('admin-graph-period')?.value || 'week';
@@ -3403,9 +3409,10 @@ function renderManagerDashboard() {
     const presentCount = db.attendance.filter(a => a.date === today && a.status === 'Present' && teamEmails.includes(String(a.employeeId))).length;
     const lateCount = db.attendance.filter(a => a.date === today && a.status === 'Late' && teamEmails.includes(String(a.employeeId))).length;
     const leaveCount = db.attendance.filter(a => a.date === today && a.status === 'On Leave' && teamEmails.includes(String(a.employeeId))).length;
+    const halfdayCount = db.attendance.filter(a => a.date === today && a.status === 'Half Day' && teamEmails.includes(String(a.employeeId))).length;
     const explicitAbsentCount = db.attendance.filter(a => a.date === today && a.status === 'Absent' && teamEmails.includes(String(a.employeeId))).length;
     
-    const accountedCount = presentCount + lateCount + leaveCount + explicitAbsentCount;
+    const accountedCount = presentCount + lateCount + leaveCount + halfdayCount + explicitAbsentCount;
     const absentCount = explicitAbsentCount + Math.max(0, teamSize - accountedCount);
 
     // Pending Approvals
@@ -3423,23 +3430,26 @@ function renderManagerDashboard() {
     let absent = absentCount;
     let late = lateCount;
     let leave = leaveCount;
-    let total = present + absent + late + leave;
+    let halfday = halfdayCount;
+    let total = present + absent + late + leave + halfday;
     if (total === 0) {
-        present = 0; absent = teamSize; late = 0; leave = 0; total = teamSize;
+        present = 0; absent = teamSize; late = 0; leave = 0; halfday = 0; total = teamSize;
     }
 
     let presentPct = total > 0 ? Math.round((present / total) * 100) : 0;
     let absentPct = total > 0 ? Math.round((absent / total) * 100) : 0;
     let latePct = total > 0 ? Math.round((late / total) * 100) : 0;
     let leavePct = total > 0 ? Math.round((leave / total) * 100) : 0;
+    let halfdayPct = total > 0 ? Math.max(0, 100 - (presentPct + absentPct + latePct + leavePct)) : 0;
 
     const absStart = presentPct;
     const lateStart = absStart + absentPct;
     const leaveStart = lateStart + latePct;
+    const halfdayStart = leaveStart + leavePct;
 
     const doughnutEl = document.getElementById('manager-attendance-doughnut-chart');
     if (doughnutEl) {
-        doughnutEl.style.background = `conic-gradient(var(--success) 0% ${absStart}%, var(--danger) ${absStart}% ${lateStart}%, var(--warning) ${lateStart}% ${leaveStart}%, var(--primary) ${leaveStart}% 100%)`;
+        doughnutEl.style.background = `conic-gradient(var(--success) 0% ${absStart}%, var(--danger) ${absStart}% ${lateStart}%, var(--warning) ${lateStart}% ${leaveStart}%, var(--primary) ${leaveStart}% ${halfdayStart}%, #a855f7 ${halfdayStart}% 100%)`;
     }
 
     const doughnutTotalEl = document.getElementById('manager-attendance-doughnut-total');
@@ -3449,10 +3459,12 @@ function renderManagerDashboard() {
     const lAbs = document.getElementById('manager-legend-absent-val');
     const lLate = document.getElementById('manager-legend-late-val');
     const lLeave = document.getElementById('manager-legend-leave-val');
+    const lHalfday = document.getElementById('manager-legend-halfday-val');
     if (lPres) lPres.textContent = `${present} (${presentPct}%)`;
     if (lAbs) lAbs.textContent = `${absent} (${absentPct}%)`;
     if (lLate) lLate.textContent = `${late} (${latePct}%)`;
     if (lLeave) lLeave.textContent = `${leave} (${leavePct}%)`;
+    if (lHalfday) lHalfday.textContent = `${halfday} (${halfdayPct}%)`;
 
     // 2. Tasks Overview SVG Line Chart
     const managerGraphPeriod = document.getElementById('manager-graph-period')?.value || 'week';
@@ -3919,38 +3931,43 @@ function renderEmployeeDashboard() {
     let present = monthlyLogs.filter(a => a.status === 'Present').length;
     let late = monthlyLogs.filter(a => a.status === 'Late').length;
     let leave = monthlyLogs.filter(a => a.status === 'On Leave').length;
+    let halfday = monthlyLogs.filter(a => a.status === 'Half Day').length;
     let absent = monthlyLogs.filter(a => a.status === 'Absent').length;
 
-    let total = present + absent + late + leave;
+    let total = present + absent + late + leave + halfday;
     if (total === 0) {
-        total = 1; present = 0; absent = 0; late = 0; leave = 0;
+        total = 1; present = 0; absent = 0; late = 0; leave = 0; halfday = 0;
     }
 
     let presentPct = Math.round((present / total) * 100);
     let absentPct = Math.round((absent / total) * 100);
     let latePct = Math.round((late / total) * 100);
     let leavePct = Math.round((leave / total) * 100);
+    let halfdayPct = Math.max(0, 100 - (presentPct + absentPct + latePct + leavePct));
 
     const absStart = presentPct;
     const lateStart = absStart + absentPct;
     const leaveStart = lateStart + latePct;
+    const halfdayStart = leaveStart + leavePct;
 
     const doughnutEl = document.getElementById('employee-attendance-doughnut-chart');
     if (doughnutEl) {
-        doughnutEl.style.background = `conic-gradient(var(--success) 0% ${absStart}%, var(--danger) ${absStart}% ${lateStart}%, var(--warning) ${lateStart}% ${leaveStart}%, var(--primary) ${leaveStart}% 100%)`;
+        doughnutEl.style.background = `conic-gradient(var(--success) 0% ${absStart}%, var(--danger) ${absStart}% ${lateStart}%, var(--warning) ${lateStart}% ${leaveStart}%, var(--primary) ${leaveStart}% ${halfdayStart}%, #a855f7 ${halfdayStart}% 100%)`;
     }
 
     const doughnutTotalEl = document.getElementById('employee-attendance-doughnut-total');
-    if (doughnutTotalEl) doughnutTotalEl.textContent = total === 1 && present === 0 && absent === 0 ? 0 : total;
+    if (doughnutTotalEl) doughnutTotalEl.textContent = total === 1 && present === 0 && absent === 0 && halfday === 0 ? 0 : total;
 
     const lPres = document.getElementById('employee-legend-present-val');
     const lAbs = document.getElementById('employee-legend-absent-val');
     const lLate = document.getElementById('employee-legend-late-val');
     const lLeave = document.getElementById('employee-legend-leave-val');
+    const lHalfday = document.getElementById('employee-legend-halfday-val');
     if (lPres) lPres.textContent = `${present} (${presentPct}%)`;
     if (lAbs) lAbs.textContent = `${absent} (${absentPct}%)`;
     if (lLate) lLate.textContent = `${late} (${latePct}%)`;
     if (lLeave) lLeave.textContent = `${leave} (${leavePct}%)`;
+    if (lHalfday) lHalfday.textContent = `${halfday} (${halfdayPct}%)`;
 
     // 2. Employee Tasks Overview SVG Line Chart
     const employeeGraphPeriod = document.getElementById('employee-graph-period')?.value || 'week';
