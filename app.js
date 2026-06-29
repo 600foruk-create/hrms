@@ -53,6 +53,15 @@ function getGraphPeriodConfig(period, prefix) {
 const API_URL = 'backend/api.php';
 window.dbLoaded = false;
 window.hrmsDatabase = { users: [], weights: {}, leaves: [], practices: [], manager_practices: [], productivity: [], productivity_tasks: [], attendance: [], announcements: [], auditLogs: [], notifications: [], salaryProfiles: [], loans: [], payrollHistory: [], globalSalarySettings: { allowances: [], deductions: [] }, shifts: [], productivityCategories: { businessUnits: [], tesCategories: [] } };
+try {
+    const _cachedFb = localStorage.getItem('hrms_fallback_db');
+    if (_cachedFb) {
+        const _parsedFb = JSON.parse(_cachedFb);
+        if (_parsedFb && typeof _parsedFb === 'object') {
+            Object.assign(window.hrmsDatabase, _parsedFb);
+        }
+    }
+} catch (_e) {}
 
 async function syncServer() {
     let success = false;
@@ -150,6 +159,10 @@ async function syncServer() {
             // Apply Global Settings (Theme) immediately upon sync
             if (result.data.systemSettings && result.data.systemSettings.themeColor) {
                 document.documentElement.style.setProperty('--primary', result.data.systemSettings.themeColor);
+            }
+
+            if (typeof window.loadShiftRotationPolicyUI === 'function') {
+                window.loadShiftRotationPolicyUI(result.data);
             }
 
             if (needsCleanup) {
@@ -2599,6 +2612,7 @@ window.toggleAutoPilotEnableBtn = function() {
 window.toggleAutoRotationUI = function() {
     const cb = document.getElementById('shift-rot-enabled');
     const freqEl = document.getElementById('shift-rot-freq');
+    const stratEl = document.getElementById('shift-rot-strategy');
     const dateEl = document.getElementById('shift-rot-nextdate');
     const saveBtn = document.getElementById('btn-save-shift-policy');
     const switchTrack = document.getElementById('autopilot-pill-switch');
@@ -2608,11 +2622,13 @@ window.toggleAutoRotationUI = function() {
     if (cb && freqEl && dateEl && saveBtn) {
         const isLocked = cb.checked;
         freqEl.disabled = isLocked;
+        if (stratEl) stratEl.disabled = isLocked;
         dateEl.disabled = isLocked;
         saveBtn.disabled = isLocked;
         saveBtn.style.opacity = isLocked ? '0.5' : '1';
         saveBtn.style.pointerEvents = isLocked ? 'none' : 'auto';
         freqEl.style.cursor = isLocked ? 'not-allowed' : 'pointer';
+        if (stratEl) stratEl.style.cursor = isLocked ? 'not-allowed' : 'pointer';
         dateEl.style.cursor = isLocked ? 'not-allowed' : 'pointer';
     }
     if (cb && switchTrack && switchKnob && switchText) {
@@ -2703,7 +2719,7 @@ window.loadShiftRotationPolicyUI = function(db) {
     if (window.updateShiftNotifSectionVisibility) window.updateShiftNotifSectionVisibility();
 };
 
-window.saveShiftRotationPolicy = function() {
+window.saveShiftRotationPolicy = function(silent = false) {
     const db = getDb();
     const cb = document.getElementById('shift-rot-enabled');
     const freqEl = document.getElementById('shift-rot-freq');
@@ -2729,7 +2745,9 @@ window.saveShiftRotationPolicy = function() {
     };
 
     saveDb(db);
-    showToast("Rotation Schedule Saved", "Automated shift rotation policy and notification channels have been saved.", "success");
+    if (!silent && typeof showToast === 'function') {
+        showToast("Rotation Schedule Saved", "Automated shift rotation policy and notification channels have been saved.", "success");
+    }
 };
 
 window.checkAndRunAutoShiftRotation = function(db) {
