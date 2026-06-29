@@ -1291,7 +1291,7 @@
                                                 <input type="checkbox" id="shift-rot-enabled" style="display:none;" onchange="toggleAutoRotationUI()">
                                             </div>
                                             <p class="text-secondary" style="font-size: 11px; margin-bottom: 12px;">System will automatically rotate shifts on the scheduled trigger date.</p>
-                                            <div id="shift-rot-config-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; opacity: 0.5; pointer-events: none;">
+                                            <div id="shift-rot-config-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                                                 <div style="grid-column: span 2;">
                                                     <label class="form-label mb-1" style="font-size: 11px; font-weight: 700;">Frequency</label>
                                                     <select id="shift-rot-freq" class="form-control btn-sm" style="font-size: 11px; font-weight: 600;" onchange="if(window.updateShiftRotationPreview) window.updateShiftRotationPreview();">
@@ -1305,7 +1305,7 @@
                                                     <label class="form-label mb-1" style="font-size: 11px; font-weight: 700;">Shift Rotation Start Date</label>
                                                     <div style="display: flex; gap: 10px;">
                                                         <input type="date" id="shift-rot-nextdate" class="form-control btn-sm" style="font-size: 11px; font-weight: 700; flex: 1;" onchange="if(window.updateShiftRotationPreview) window.updateShiftRotationPreview();">
-                                                        <button type="button" class="btn btn-primary btn-sm" onclick="saveShiftRotationPolicy()" style="font-size: 11px; padding: 4px 12px; font-weight: 700;">Save Policy</button>
+                                                        <button type="button" id="btn-save-shift-policy" class="btn btn-primary btn-sm" onclick="saveShiftRotationPolicy()" style="font-size: 11px; padding: 4px 12px; font-weight: 700;">Save Policy</button>
                                                     </div>
                                                 </div>
                                                 <!-- Dynamic Preview Box -->

@@ -2598,14 +2598,22 @@ window.toggleAutoPilotEnableBtn = function() {
 
 window.toggleAutoRotationUI = function() {
     const cb = document.getElementById('shift-rot-enabled');
-    const box = document.getElementById('shift-rot-config-box');
+    const freqEl = document.getElementById('shift-rot-freq');
+    const dateEl = document.getElementById('shift-rot-nextdate');
+    const saveBtn = document.getElementById('btn-save-shift-policy');
     const switchTrack = document.getElementById('autopilot-pill-switch');
     const switchKnob = document.getElementById('autopilot-switch-knob');
     const switchText = document.getElementById('autopilot-switch-text');
 
-    if (cb && box) {
-        box.style.opacity = cb.checked ? '1' : '0.5';
-        box.style.pointerEvents = cb.checked ? 'auto' : 'none';
+    if (cb && freqEl && dateEl && saveBtn) {
+        const isLocked = cb.checked;
+        freqEl.disabled = isLocked;
+        dateEl.disabled = isLocked;
+        saveBtn.disabled = isLocked;
+        saveBtn.style.opacity = isLocked ? '0.5' : '1';
+        saveBtn.style.pointerEvents = isLocked ? 'none' : 'auto';
+        freqEl.style.cursor = isLocked ? 'not-allowed' : 'pointer';
+        dateEl.style.cursor = isLocked ? 'not-allowed' : 'pointer';
     }
     if (cb && switchTrack && switchKnob && switchText) {
         if (cb.checked) {
@@ -2729,7 +2737,21 @@ window.checkAndRunAutoShiftRotation = function(db) {
     if (!policy || !policy.enabled || !policy.nextDate) return;
 
     const todayStr = new Date().toISOString().split('T')[0];
-    if (todayStr >= policy.nextDate) {
+    const startDate = new Date(policy.nextDate);
+    if (isNaN(startDate.getTime())) return;
+
+    // Compute trigger date based on Start Date + Frequency
+    const triggerDate = new Date(startDate);
+    if (policy.frequency === 'biweekly') {
+        triggerDate.setDate(triggerDate.getDate() + 14);
+    } else if (policy.frequency === 'monthly') {
+        triggerDate.setMonth(triggerDate.getMonth() + 1);
+    } else {
+        triggerDate.setDate(triggerDate.getDate() + 7);
+    }
+    let triggerDateStr = triggerDate.toISOString().split('T')[0];
+
+    if (todayStr >= triggerDateStr) {
         // Read the latest strategy dynamically from dropdown or saved policy
         const stratEl = document.getElementById('shift-rot-strategy');
         const activeStrat = stratEl ? stratEl.value : (policy.strategy || 'employees');
@@ -2737,18 +2759,23 @@ window.checkAndRunAutoShiftRotation = function(db) {
         // Execute automated rotation!
         executeShiftRotationLogic(db, 'all', activeStrat);
 
-        // Advance nextDate
-        const curDate = new Date(policy.nextDate);
-        if (policy.frequency === 'biweekly') {
-            curDate.setDate(curDate.getDate() + 14);
-        } else if (policy.frequency === 'monthly') {
-            curDate.setMonth(curDate.getMonth() + 1);
-        } else {
-            curDate.setDate(curDate.getDate() + 7);
+        // Advance start date to the date rotation triggered
+        while (todayStr >= triggerDateStr) {
+            policy.nextDate = triggerDateStr;
+            const nextD = new Date(triggerDateStr);
+            if (policy.frequency === 'biweekly') {
+                nextD.setDate(nextD.getDate() + 14);
+            } else if (policy.frequency === 'monthly') {
+                nextD.setMonth(nextD.getMonth() + 1);
+            } else {
+                nextD.setDate(nextD.getDate() + 7);
+            }
+            triggerDateStr = nextD.toISOString().split('T')[0];
         }
-        policy.nextDate = curDate.toISOString().split('T')[0];
+
         saveDb(db);
-        showToast("Auto Shift Rotation", `Automated scheduled rotation executed successfully (${activeStrat === 'employees' ? 'Roster Swap' : 'Timing Rotation'}). Next date: ${policy.nextDate}`, "info");
+        if (window.loadShiftRotationPolicyUI) window.loadShiftRotationPolicyUI(db);
+        showToast("Auto Shift Rotation", `Automated scheduled rotation executed successfully (${activeStrat === 'employees' ? 'Roster Swap' : 'Timing Rotation'}). New Start Date: ${policy.nextDate}`, "info");
     }
 };
 
