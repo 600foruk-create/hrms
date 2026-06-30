@@ -126,6 +126,12 @@ async function syncServer() {
             }
 
             window.hrmsDatabase = result.data;
+            if (!window.hrmsDatabase.settings) window.hrmsDatabase.settings = {};
+            const loadedMachines = (window.hrmsDatabase.settings.biometricMachines && window.hrmsDatabase.settings.biometricMachines.length > 0)
+                ? window.hrmsDatabase.settings.biometricMachines
+                : (window.hrmsDatabase.biometricMachines || []);
+            window.hrmsDatabase.settings.biometricMachines = loadedMachines;
+            window.hrmsDatabase.biometricMachines = loadedMachines;
             window.dbLoaded = true;
             success = true;
 
@@ -6007,7 +6013,11 @@ document.addEventListener('click', async (e) => {
         if (!tbody) return;
         const db = getDb();
         if (!db.settings) db.settings = {};
-        const machines = db.settings.biometricMachines || [];
+        const machines = (db.settings && db.settings.biometricMachines && db.settings.biometricMachines.length > 0)
+            ? db.settings.biometricMachines
+            : (db.biometricMachines || []);
+        db.settings.biometricMachines = machines;
+        db.biometricMachines = machines;
 
         if (machines.length === 0) {
             tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding: 20px;">No biometric attendance machines configured yet. Add your first device below.</td></tr>`;
