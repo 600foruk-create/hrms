@@ -3308,80 +3308,92 @@
 
                         <!-- 3. APIs / IP Configuration -->
                         <div id="settings-content-api-ip-config" class="settings-sub-tab-content hidden"
-                            style="max-height: calc(100vh - 180px); overflow-y: auto; padding-right: 10px;">
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 24px; align-items: start; margin-bottom: 24px;">
+                            style="max-height: calc(100vh - 140px); overflow-y: auto; padding-right: 15px; padding-bottom: 80px;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; align-items: stretch; margin-bottom: 20px;">
                                 <!-- Email API -->
-                                <div class="section-card bg-glass" style="margin: 0;">
-                                    <h3>Email API Configuration</h3>
-                                    <p class="text-secondary mb-3">Link your Email API to send automated notifications.</p>
-                                    <form id="settings-email-form">
-                                        <div class="form-group">
-                                            <label for="email-api-provider">API Provider</label>
-                                            <select id="email-api-provider" class="form-control">
-                                                <option value="smtp">Custom SMTP / Default Mail</option>
-                                                <option value="sendgrid">SendGrid</option>
-                                                <option value="brevo">Brevo (Sendinblue)</option>
-                                                <option value="mailgun">Mailgun</option>
-                                            </select>
+                                <div class="section-card bg-glass" style="margin: 0; padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
+                                    <div>
+                                        <h3 style="font-size: 16px; margin-bottom: 4px;">Email API Configuration</h3>
+                                        <p class="text-secondary mb-3" style="font-size: 12px;">Link your Email API to send automated notifications.</p>
+                                    </div>
+                                    <form id="settings-email-form" style="display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1;">
+                                        <div>
+                                            <div class="form-group" style="margin-bottom: 12px;">
+                                                <label for="email-api-provider" style="font-size: 12px; margin-bottom: 4px;">API Provider</label>
+                                                <select id="email-api-provider" class="form-control" style="padding: 6px 10px; font-size: 13px; height: 36px;">
+                                                    <option value="smtp">Custom SMTP / Default Mail</option>
+                                                    <option value="sendgrid">SendGrid</option>
+                                                    <option value="brevo">Brevo (Sendinblue)</option>
+                                                    <option value="mailgun">Mailgun</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group" style="margin-bottom: 12px;">
+                                                <label for="email-api-key" style="font-size: 12px; margin-bottom: 4px;">API Key / Password</label>
+                                                <input type="password" id="email-api-key" class="form-control" style="padding: 6px 10px; font-size: 13px; height: 36px;" placeholder="Enter API Key">
+                                            </div>
+                                            <div class="form-group" style="margin-bottom: 12px;">
+                                                <label for="email-api-sender" style="font-size: 12px; margin-bottom: 4px;">Sender Email Address</label>
+                                                <input type="email" id="email-api-sender" class="form-control" style="padding: 6px 10px; font-size: 13px; height: 36px;" placeholder="noreply@yourcompany.com">
+                                            </div>
+                                            <div class="form-group" style="margin-bottom: 16px;">
+                                                <label for="email-api-extra" style="font-size: 12px; margin-bottom: 4px;">API URL / Domain (Optional)</label>
+                                                <input type="text" id="email-api-extra" class="form-control" style="padding: 6px 10px; font-size: 13px; height: 36px;" placeholder="Only if required by provider (e.g. Mailgun Domain)">
+                                            </div>
                                         </div>
-                                        <div class="form-group">
-                                            <label for="email-api-key">API Key / Password</label>
-                                            <input type="password" id="email-api-key" class="form-control" placeholder="Enter API Key">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="email-api-sender">Sender Email Address</label>
-                                            <input type="email" id="email-api-sender" class="form-control" placeholder="noreply@yourcompany.com">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="email-api-extra">API URL / Domain (Optional)</label>
-                                            <input type="text" id="email-api-extra" class="form-control" placeholder="Only if required by provider (e.g. Mailgun Domain)">
-                                        </div>
-                                        <button type="submit" id="btn-save-email" class="btn btn-primary"><i class="fa-solid fa-link"></i> Save Email API</button>
+                                        <button type="submit" id="btn-save-email" class="btn btn-primary" style="padding: 8px 14px; font-size: 13px; font-weight: 600;"><i class="fa-solid fa-link"></i> Save Email API</button>
                                     </form>
                                 </div>
 
                                 <!-- WhatsApp API -->
-                                <div class="section-card bg-glass" style="margin: 0;">
-                                    <h3>WhatsApp API Configuration</h3>
-                                    <p class="text-secondary mb-3">Link your WhatsApp Business API for instant messaging.</p>
-                                    <form id="settings-whatsapp-form">
-                                        <div class="form-group">
-                                            <label for="wa-api-url">API Endpoint URL</label>
-                                            <input type="url" id="wa-api-url" class="form-control" placeholder="https://api.whatsapp.com/v1/">
+                                <div class="section-card bg-glass" style="margin: 0; padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
+                                    <div>
+                                        <h3 style="font-size: 16px; margin-bottom: 4px;">WhatsApp API Configuration</h3>
+                                        <p class="text-secondary mb-3" style="font-size: 12px;">Link your WhatsApp Business API for instant messaging.</p>
+                                    </div>
+                                    <form id="settings-whatsapp-form" style="display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1;">
+                                        <div>
+                                            <div class="form-group" style="margin-bottom: 12px;">
+                                                <label for="wa-api-url" style="font-size: 12px; margin-bottom: 4px;">API Endpoint URL</label>
+                                                <input type="url" id="wa-api-url" class="form-control" style="padding: 6px 10px; font-size: 13px; height: 36px;" placeholder="https://api.whatsapp.com/v1/">
+                                            </div>
+                                            <div class="form-group" style="margin-bottom: 12px;">
+                                                <label for="wa-api-token" style="font-size: 12px; margin-bottom: 4px;">Access Token</label>
+                                                <input type="password" id="wa-api-token" class="form-control" style="padding: 6px 10px; font-size: 13px; height: 36px;" placeholder="Enter Bearer Token">
+                                            </div>
+                                            <div class="form-group" style="margin-bottom: 12px;">
+                                                <label for="wa-api-phone" style="font-size: 12px; margin-bottom: 4px;">Business Phone ID</label>
+                                                <input type="text" id="wa-api-phone" class="form-control" style="padding: 6px 10px; font-size: 13px; height: 36px;" placeholder="e.g. 1234567890">
+                                            </div>
+                                            <div class="form-group" style="margin-bottom: 16px;">
+                                                <label for="wa-api-secret" style="font-size: 12px; margin-bottom: 4px;">Webhook Verify Token (Optional)</label>
+                                                <input type="text" id="wa-api-secret" class="form-control" style="padding: 6px 10px; font-size: 13px; height: 36px;" placeholder="App Secret / Verify Token for Webhooks">
+                                            </div>
                                         </div>
-                                        <div class="form-group">
-                                            <label for="wa-api-token">Access Token</label>
-                                            <input type="password" id="wa-api-token" class="form-control" placeholder="Enter Bearer Token">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="wa-api-phone">Business Phone ID</label>
-                                            <input type="text" id="wa-api-phone" class="form-control" placeholder="e.g. 1234567890">
-                                        </div>
-                                        <button type="submit" id="btn-save-whatsapp" class="btn btn-primary"><i class="fa-brands fa-whatsapp"></i> Save WhatsApp API</button>
+                                        <button type="submit" id="btn-save-whatsapp" class="btn btn-primary" style="padding: 8px 14px; font-size: 13px; font-weight: 600;"><i class="fa-brands fa-whatsapp"></i> Save WhatsApp API</button>
                                     </form>
                                 </div>
                             </div>
 
                             <!-- Biometric Machines Grid (Full Width across columns) -->
-                            <div class="section-card bg-glass" style="margin-bottom: 24px;">
+                            <div class="section-card bg-glass" style="margin-bottom: 24px; padding: 20px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                                     <div>
-                                        <h3 style="margin: 0;">Biometric Machine Integration</h3>
-                                        <p class="text-secondary" style="margin: 4px 0 0 0;">Configure multiple local or remote biometric attendance devices across branches.</p>
+                                        <h3 style="font-size: 16px; margin: 0;">Biometric Machine Integration</h3>
+                                        <p class="text-secondary" style="font-size: 12px; margin: 4px 0 0 0;">Configure multiple local or remote biometric attendance devices across branches.</p>
                                     </div>
                                 </div>
 
                                 <!-- Configured Machines List -->
-                                <div class="table-responsive mb-4" style="border: 1px solid rgba(0,0,0,0.08); border-radius: 10px; overflow: hidden; background: rgba(255,255,255,0.4);">
+                                <div class="table-responsive mb-4" style="border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden; background: rgba(255,255,255,0.4); max-height: 250px; overflow-y: auto;">
                                     <table class="table" style="margin: 0; font-size: 13px;">
-                                        <thead style="background: rgba(0,0,0,0.04);">
+                                        <thead style="background: rgba(0,0,0,0.04); position: sticky; top: 0; z-index: 2;">
                                             <tr>
-                                                <th style="padding: 10px 14px;">Device Name / Location</th>
-                                                <th style="padding: 10px 14px;">IP Address</th>
-                                                <th style="padding: 10px 14px;">Port</th>
-                                                <th style="padding: 10px 14px; text-align: center;">Auto-Sync</th>
-                                                <th style="padding: 10px 14px; text-align: center;">Status</th>
-                                                <th style="padding: 10px 14px; text-align: right;">Actions</th>
+                                                <th style="padding: 8px 12px;">Device Name / Location</th>
+                                                <th style="padding: 8px 12px;">IP Address</th>
+                                                <th style="padding: 8px 12px;">Port</th>
+                                                <th style="padding: 8px 12px; text-align: center;">Auto-Sync</th>
+                                                <th style="padding: 8px 12px; text-align: center;">Status</th>
+                                                <th style="padding: 8px 12px; text-align: right;">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody id="biometric-machines-list-body">
@@ -3391,21 +3403,21 @@
                                 </div>
 
                                 <!-- Add New Biometric Machine Form -->
-                                <div style="background: rgba(0,0,0,0.02); padding: 18px; border-radius: 10px; border: 1px dashed rgba(0,0,0,0.15);">
-                                    <h4 style="font-size: 14px; margin: 0 0 12px 0; color: var(--text-primary);"><i class="fa-solid fa-plus-circle text-primary"></i> Add New Biometric Machine</h4>
+                                <div style="background: rgba(0,0,0,0.02); padding: 15px; border-radius: 8px; border: 1px dashed rgba(0,0,0,0.15);">
+                                    <h4 style="font-size: 13px; margin: 0 0 10px 0; color: var(--text-primary);"><i class="fa-solid fa-plus-circle text-primary"></i> Add New Biometric Machine</h4>
                                     <form id="settings-biometric-add-form" onsubmit="return false;">
-                                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; align-items: end;">
+                                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; align-items: end;">
                                             <div>
                                                 <label style="font-size: 11px; font-weight: 700; margin-bottom: 4px; display: block;">Device Name / Location</label>
-                                                <input type="text" id="new-bio-name" class="form-control btn-sm" placeholder="e.g. HQ Gate 1" required>
+                                                <input type="text" id="new-bio-name" class="form-control btn-sm" style="height: 34px; font-size: 12px;" placeholder="e.g. HQ Gate 1" required>
                                             </div>
                                             <div>
                                                 <label style="font-size: 11px; font-weight: 700; margin-bottom: 4px; display: block;">IP Address</label>
-                                                <input type="text" id="new-bio-ip" class="form-control btn-sm" placeholder="192.168.1.200" required>
+                                                <input type="text" id="new-bio-ip" class="form-control btn-sm" style="height: 34px; font-size: 12px;" placeholder="192.168.1.200" required>
                                             </div>
                                             <div>
                                                 <label style="font-size: 11px; font-weight: 700; margin-bottom: 4px; display: block;">Port Number</label>
-                                                <input type="number" id="new-bio-port" class="form-control btn-sm" placeholder="4370" value="4370" required>
+                                                <input type="number" id="new-bio-port" class="form-control btn-sm" style="height: 34px; font-size: 12px;" placeholder="4370" value="4370" required>
                                             </div>
                                             <div style="display: flex; align-items: center; gap: 8px; padding-bottom: 6px;">
                                                 <label class="switch" style="transform: scale(0.8);">
@@ -3415,7 +3427,7 @@
                                                 <span style="font-size: 11px; font-weight: 600;">Auto-sync Logs</span>
                                             </div>
                                             <div>
-                                                <button type="button" onclick="if(window.addBiometricMachine) window.addBiometricMachine()" class="btn btn-primary btn-sm w-100" style="padding: 8px 12px; font-weight: 700;">
+                                                <button type="button" onclick="if(window.addBiometricMachine) window.addBiometricMachine()" class="btn btn-primary btn-sm w-100" style="height: 34px; font-size: 12px; font-weight: 700;">
                                                     <i class="fa-solid fa-plus"></i> Add Machine
                                                 </button>
                                             </div>

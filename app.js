@@ -3129,6 +3129,7 @@ function renderAdminSettingsTab() {
         document.getElementById('wa-api-url').value = settings.whatsappApi.url || '';
         document.getElementById('wa-api-token').value = settings.whatsappApi.token || '';
         document.getElementById('wa-api-phone').value = settings.whatsappApi.phoneId || '';
+        if (document.getElementById('wa-api-secret')) document.getElementById('wa-api-secret').value = settings.whatsappApi.secret || '';
     }
 
     // Biometric Machines
@@ -5846,7 +5847,8 @@ document.addEventListener('submit', async (e) => {
             db.settings.whatsappApi = {
                 url: document.getElementById('wa-api-url').value,
                 token: document.getElementById('wa-api-token').value,
-                phoneId: document.getElementById('wa-api-phone').value
+                phoneId: document.getElementById('wa-api-phone').value,
+                secret: document.getElementById('wa-api-secret') ? document.getElementById('wa-api-secret').value : ''
             };
             showToast("WhatsApp API Saved", "WhatsApp API configuration has been updated.");
             await saveDb(db);
