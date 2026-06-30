@@ -335,6 +335,16 @@ try {
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
     
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `biometric_machines` (
+        `id` varchar(50) NOT NULL,
+        `name` varchar(100) DEFAULT NULL,
+        `ip` varchar(50) NOT NULL,
+        `port` int(11) DEFAULT 4370,
+        `auto_sync` tinyint(1) DEFAULT 0,
+        `status` varchar(30) DEFAULT 'Untested',
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    
     $pdo->exec("CREATE TABLE IF NOT EXISTS `announcements` (
         `id` varchar(100) NOT NULL,
         `title` varchar(255) DEFAULT NULL,
@@ -446,6 +456,15 @@ try {
             `api_key` TEXT,
             `sender` TEXT,
             `extra` TEXT
+        )");
+        
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `biometric_machines` (
+            `id` TEXT PRIMARY KEY,
+            `name` TEXT,
+            `ip` TEXT,
+            `port` INTEGER,
+            `auto_sync` INTEGER,
+            `status` TEXT
         )");
         
         $pdo->exec("CREATE TABLE IF NOT EXISTS `announcements` (
@@ -696,8 +715,14 @@ if ($action === 'ping_biometric') {
     $fp = @fsockopen($ip, $port, $errno, $errstr, $timeout);
     if ($fp) {
         fclose($fp);
+        try {
+            $pdo->prepare("UPDATE biometric_machines SET status = 'Online' WHERE ip = ?")->execute([$ip]);
+        } catch (Exception $ex) {}
         echo json_encode(["status" => "success", "message" => "Connected successfully to biometric machine at $ip:$port"]);
     } else {
+        try {
+            $pdo->prepare("UPDATE biometric_machines SET status = 'Offline' WHERE ip = ?")->execute([$ip]);
+        } catch (Exception $ex) {}
         $reason = !empty($errstr) ? $errstr : "Connection timed out or connection refused";
         echo json_encode(["status" => "error", "message" => "Unable to connect to biometric machine at $ip:$port ($reason)"]);
     }
@@ -1051,6 +1076,23 @@ if ($action === 'load_all') {
                 $ph['netSalary'] = (float)$ph['netSalary'];
             }
         } catch (Exception $e) { $dbState['payrollHistory'] = []; }
+        try {
+            $stmt = $pdo->query("SELECT * FROM biometric_machines");
+            $bms = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $biometricList = [];
+            foreach ($bms as $bm) {
+                $biometricList[] = [
+                    'id' => $bm['id'],
+                    'name' => $bm['name'],
+                    'ip' => $bm['ip'],
+                    'port' => (string)($bm['port'] ?: '4370'),
+                    'autoSync' => !empty($bm['auto_sync']),
+                    'status' => $bm['status'] ?: 'Untested'
+                ];
+            }
+            if (!isset($dbState['settings'])) $dbState['settings'] = [];
+            $dbState['settings']['biometricMachines'] = $biometricList;
+        } catch (Exception $e) {}
 
         echo json_encode(["status" => "success", "data" => $dbState]);
     } catch (Exception $e) {
@@ -1428,6 +1470,27 @@ elseif ($action === 'save_all') {
             }
         } catch (Exception $e) {
             error_log("Shift management sync error: " . $e->getMessage());
+        }
+
+        // 13. Sync Biometric Machines
+        try {
+            $pdo->exec("DELETE FROM biometric_machines");
+            $bList = !empty($data['settings']) && !empty($data['settings']['biometricMachines']) ? $data['settings']['biometricMachines'] : (!empty($data['biometricMachines']) ? $data['biometricMachines'] : []);
+            if (!empty($bList) && is_array($bList)) {
+                $bmStmt = $pdo->prepare("INSERT INTO biometric_machines (id, name, ip, port, auto_sync, status) VALUES (?, ?, ?, ?, ?, ?)");
+                foreach ($bList as $bm) {
+                    $bmStmt->execute([
+                        $bm['id'] ?? ('BIO_' . uniqid()),
+                        $bm['name'] ?? '',
+                        $bm['ip'] ?? '',
+                        (int)($bm['port'] ?? 4370),
+                        !empty($bm['autoSync']) ? 1 : 0,
+                        $bm['status'] ?? 'Untested'
+                    ]);
+                }
+            }
+        } catch (Exception $e) {
+            error_log("Biometric machines sync error: " . $e->getMessage());
         }
 
         $pdo->commit();
