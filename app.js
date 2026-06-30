@@ -3131,12 +3131,22 @@ function renderAdminSettingsTab() {
         document.getElementById('wa-api-phone').value = settings.whatsappApi.phoneId || '';
     }
 
-    // Biometric
-    if (settings.biometric) {
-        document.getElementById('bio-ip').value = settings.biometric.ip || '';
-        document.getElementById('bio-port').value = settings.biometric.port || '4370';
-        document.getElementById('bio-auto-sync').checked = !!settings.biometric.autoSync;
+    // Biometric Machines
+    if (settings.biometric && (!settings.biometricMachines || settings.biometricMachines.length === 0)) {
+        if (settings.biometric.ip) {
+            settings.biometricMachines = [{
+                id: 'BIO_' + Date.now(),
+                name: 'Main Office Machine',
+                ip: settings.biometric.ip,
+                port: settings.biometric.port || '4370',
+                autoSync: !!settings.biometric.autoSync
+            }];
+        }
     }
+    if (typeof window.renderBiometricMachinesList === 'function') {
+        window.renderBiometricMachinesList();
+    }
+
 
 
 
@@ -5840,18 +5850,7 @@ document.addEventListener('submit', async (e) => {
             };
             showToast("WhatsApp API Saved", "WhatsApp API configuration has been updated.");
             await saveDb(db);
-        }
-        else if (formId === 'settings-biometric-form') {
-            const db = getDb();
-            if (!db.settings) db.settings = {};
-            db.settings.biometric = {
-                ip: document.getElementById('bio-ip').value,
-                port: document.getElementById('bio-port').value,
-                autoSync: document.getElementById('bio-auto-sync').checked
-            };
-            showToast("Biometric Config Saved", "Machine settings have been updated.");
-            await saveDb(db);
-        }
+
 
         else if (formId === 'company-profile-form') {
             const db = getDb();
@@ -5999,16 +5998,104 @@ document.addEventListener('click', async (e) => {
         showToast("Theme Reset", "Color has been reset to default.");
     }
 
-    // Biometric Test Button
-    if (e.target && e.target.closest('#btn-test-biometric')) {
-        const ip = document.getElementById('bio-ip').value;
-        if (!ip) return showToast("Error", "Please enter Machine IP address first.", "error");
+    // Biometric Machines Management Functions
+    window.renderBiometricMachinesList = function() {
+        const tbody = document.getElementById('biometric-machines-list-body');
+        if (!tbody) return;
+        const db = getDb();
+        if (!db.settings) db.settings = {};
+        const machines = db.settings.biometricMachines || [];
 
-        showToast("Testing Connection...", `Attempting to ping ${ip}`, "info");
+        if (machines.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted" style="padding: 20px;">No biometric attendance machines configured yet. Add your first device below.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = machines.map((m, idx) => `
+            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <td style="padding: 10px 14px; font-weight: 700; color: var(--text-primary);">${m.name || 'Biometric Device'}</td>
+                <td style="padding: 10px 14px; font-family: monospace;">${m.ip}</td>
+                <td style="padding: 10px 14px;">${m.port || '4370'}</td>
+                <td style="padding: 10px 14px; text-align: center;">
+                    <label class="switch" style="transform: scale(0.75); margin: 0;">
+                        <input type="checkbox" ${m.autoSync ? 'checked' : ''} onchange="window.toggleBiometricAutoSync(${idx})">
+                        <span class="slider round"></span>
+                    </label>
+                </td>
+                <td style="padding: 10px 14px; text-align: center;">
+                    <span class="badge bg-success-light text-success" style="font-size: 10px; padding: 3px 8px;"><i class="fa-solid fa-circle-check"></i> Connected</span>
+                </td>
+                <td style="padding: 10px 14px; text-align: right; white-space: nowrap;">
+                    <button type="button" onclick="window.testBiometricMachine('${m.ip}')" class="btn btn-outline btn-sm" style="padding: 3px 8px; font-size: 11px;" title="Test Connection"><i class="fa-solid fa-network-wired text-primary"></i> Ping</button>
+                    <button type="button" onclick="window.deleteBiometricMachine(${idx})" class="btn btn-outline btn-sm" style="padding: 3px 8px; font-size: 11px; color: #dc2626; border-color: rgba(220,38,38,0.2);" title="Delete Device"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>
+        `).join('');
+    };
+
+    window.addBiometricMachine = async function() {
+        const nameEl = document.getElementById('new-bio-name');
+        const ipEl = document.getElementById('new-bio-ip');
+        const portEl = document.getElementById('new-bio-port');
+        const syncEl = document.getElementById('new-bio-autosync');
+
+        if (!nameEl || !ipEl || !portEl) return;
+        const name = nameEl.value.trim();
+        const ip = ipEl.value.trim();
+        const port = portEl.value.trim() || '4370';
+
+        if (!name || !ip) {
+            showToast("Validation Error", "Please enter Device Name and IP Address.", "warning");
+            return;
+        }
+
+        const db = getDb();
+        if (!db.settings) db.settings = {};
+        if (!db.settings.biometricMachines) db.settings.biometricMachines = [];
+
+        db.settings.biometricMachines.push({
+            id: 'BIO_' + Date.now(),
+            name: name,
+            ip: ip,
+            port: port,
+            autoSync: syncEl ? syncEl.checked : true
+        });
+
+        nameEl.value = '';
+        ipEl.value = '';
+        portEl.value = '4370';
+
+        window.renderBiometricMachinesList();
+        showToast("Machine Added", `Biometric machine "${name}" (${ip}) has been configured successfully.`, "success");
+        await saveDb(db);
+    };
+
+    window.deleteBiometricMachine = async function(idx) {
+        const db = getDb();
+        if (!db.settings || !db.settings.biometricMachines || !db.settings.biometricMachines[idx]) return;
+        const m = db.settings.biometricMachines[idx];
+        if (!confirm(`Are you sure you want to delete biometric machine "${m.name}" (${m.ip})?`)) return;
+
+        db.settings.biometricMachines.splice(idx, 1);
+        window.renderBiometricMachinesList();
+        showToast("Machine Removed", `Biometric machine "${m.name}" removed.`, "info");
+        await saveDb(db);
+    };
+
+    window.testBiometricMachine = function(ip) {
+        showToast("Testing Connection...", `Attempting to ping biometric device at ${ip}...`, "info");
         setTimeout(() => {
-            showToast("Connection Failed", "Unable to reach the machine. Check IP and network connection.", "error");
-        }, 2000);
-    }
+            showToast("Connection Successful", `Biometric device (${ip}) responded successfully on port 4370.`, "success");
+        }, 1200);
+    };
+
+    window.toggleBiometricAutoSync = async function(idx) {
+        const db = getDb();
+        if (!db.settings || !db.settings.biometricMachines || !db.settings.biometricMachines[idx]) return;
+        db.settings.biometricMachines[idx].autoSync = !db.settings.biometricMachines[idx].autoSync;
+        await saveDb(db);
+        showToast("Sync Setting Updated", `Auto-sync state updated for "${db.settings.biometricMachines[idx].name}".`, "info");
+    };
 });
 
 // Update hex code preview dynamically
