@@ -5850,7 +5850,7 @@ document.addEventListener('submit', async (e) => {
             };
             showToast("WhatsApp API Saved", "WhatsApp API configuration has been updated.");
             await saveDb(db);
-
+        }
 
         else if (formId === 'company-profile-form') {
             const db = getDb();
