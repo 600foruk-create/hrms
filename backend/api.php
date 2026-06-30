@@ -1077,6 +1077,28 @@ if ($action === 'load_all') {
             }
         } catch (Exception $e) { $dbState['payrollHistory'] = []; }
         try {
+            try {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS `biometric_machines` (
+                    `id` varchar(50) NOT NULL,
+                    `name` varchar(100) DEFAULT NULL,
+                    `ip` varchar(50) NOT NULL,
+                    `port` int(11) DEFAULT 4370,
+                    `auto_sync` tinyint(1) DEFAULT 0,
+                    `status` varchar(30) DEFAULT 'Untested',
+                    PRIMARY KEY (`id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+            } catch (Exception $e) {
+                try {
+                    $pdo->exec("CREATE TABLE IF NOT EXISTS `biometric_machines` (
+                        `id` TEXT PRIMARY KEY,
+                        `name` TEXT,
+                        `ip` TEXT,
+                        `port` INTEGER,
+                        `auto_sync` INTEGER,
+                        `status` TEXT
+                    )");
+                } catch (Exception $ex) {}
+            }
             $stmt = $pdo->query("SELECT * FROM biometric_machines");
             $bms = $stmt->fetchAll(PDO::FETCH_ASSOC);
             $biometricList = [];
@@ -1092,6 +1114,7 @@ if ($action === 'load_all') {
             }
             if (!isset($dbState['settings'])) $dbState['settings'] = [];
             $dbState['settings']['biometricMachines'] = $biometricList;
+            $dbState['biometricMachines'] = $biometricList;
         } catch (Exception $e) {}
 
         echo json_encode(["status" => "success", "data" => $dbState]);
@@ -1474,6 +1497,28 @@ elseif ($action === 'save_all') {
 
         // 13. Sync Biometric Machines
         try {
+            try {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS `biometric_machines` (
+                    `id` varchar(50) NOT NULL,
+                    `name` varchar(100) DEFAULT NULL,
+                    `ip` varchar(50) NOT NULL,
+                    `port` int(11) DEFAULT 4370,
+                    `auto_sync` tinyint(1) DEFAULT 0,
+                    `status` varchar(30) DEFAULT 'Untested',
+                    PRIMARY KEY (`id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+            } catch (Exception $e) {
+                try {
+                    $pdo->exec("CREATE TABLE IF NOT EXISTS `biometric_machines` (
+                        `id` TEXT PRIMARY KEY,
+                        `name` TEXT,
+                        `ip` TEXT,
+                        `port` INTEGER,
+                        `auto_sync` INTEGER,
+                        `status` TEXT
+                    )");
+                } catch (Exception $ex) {}
+            }
             $pdo->exec("DELETE FROM biometric_machines");
             $bList = !empty($data['settings']) && !empty($data['settings']['biometricMachines']) ? $data['settings']['biometricMachines'] : (!empty($data['biometricMachines']) ? $data['biometricMachines'] : []);
             if (!empty($bList) && is_array($bList)) {

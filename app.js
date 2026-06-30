@@ -6074,6 +6074,8 @@ document.addEventListener('click', async (e) => {
             status: 'Untested'
         });
 
+        db.biometricMachines = db.settings.biometricMachines;
+
         nameEl.value = '';
         ipEl.value = '';
         portEl.value = '4370';
@@ -6090,6 +6092,7 @@ document.addEventListener('click', async (e) => {
         if (!confirm(`Are you sure you want to delete biometric machine "${m.name}" (${m.ip})?`)) return;
 
         db.settings.biometricMachines.splice(idx, 1);
+        db.biometricMachines = db.settings.biometricMachines;
         window.renderBiometricMachinesList();
         showToast("Machine Removed", `Biometric machine "${m.name}" removed.`, "info");
         await saveDb(db);
