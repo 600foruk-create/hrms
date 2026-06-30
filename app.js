@@ -6013,7 +6013,15 @@ document.addEventListener('click', async (e) => {
             return;
         }
 
-        tbody.innerHTML = machines.map((m, idx) => `
+        tbody.innerHTML = machines.map((m, idx) => {
+            let statusHtml = `<span class="badge bg-secondary-light text-secondary" style="font-size: 11px; padding: 4px 10px; font-weight: 600; background: rgba(0,0,0,0.06); color: #666;"><i class="fa-solid fa-circle-question"></i> Untested</span>`;
+            if (m.status === 'Online') {
+                statusHtml = `<span class="badge bg-success-light text-success" style="font-size: 11px; padding: 4px 10px; font-weight: 700;"><i class="fa-solid fa-circle-check"></i> Online</span>`;
+            } else if (m.status === 'Offline') {
+                statusHtml = `<span class="badge bg-danger-light text-danger" style="font-size: 11px; padding: 4px 10px; font-weight: 700; background: rgba(220,38,38,0.1); color: #dc2626;"><i class="fa-solid fa-circle-xmark"></i> Offline</span>`;
+            }
+
+            return `
             <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
                 <td style="padding: 10px 14px; font-weight: 700; color: var(--text-primary);">${m.name || 'Biometric Device'}</td>
                 <td style="padding: 10px 14px; font-family: monospace;">${m.ip}</td>
@@ -6025,14 +6033,15 @@ document.addEventListener('click', async (e) => {
                     </label>
                 </td>
                 <td style="padding: 10px 14px; text-align: center;">
-                    <span class="badge bg-success-light text-success" style="font-size: 10px; padding: 3px 8px;"><i class="fa-solid fa-circle-check"></i> Connected</span>
+                    ${statusHtml}
                 </td>
                 <td style="padding: 10px 14px; text-align: right; white-space: nowrap;">
-                    <button type="button" onclick="window.testBiometricMachine('${m.ip}')" class="btn btn-outline btn-sm" style="padding: 3px 8px; font-size: 11px;" title="Test Connection"><i class="fa-solid fa-network-wired text-primary"></i> Ping</button>
-                    <button type="button" onclick="window.deleteBiometricMachine(${idx})" class="btn btn-outline btn-sm" style="padding: 3px 8px; font-size: 11px; color: #dc2626; border-color: rgba(220,38,38,0.2);" title="Delete Device"><i class="fa-solid fa-trash"></i></button>
+                    <button type="button" onclick="window.testBiometricMachine(${idx})" class="btn btn-outline btn-sm" style="padding: 4px 10px; font-size: 11px; font-weight: 600;" title="Test Connection"><i class="fa-solid fa-network-wired text-primary"></i> Ping</button>
+                    <button type="button" onclick="window.deleteBiometricMachine(${idx})" class="btn btn-outline btn-sm" style="padding: 4px 10px; font-size: 11px; color: #dc2626; border-color: rgba(220,38,38,0.2);" title="Delete Device"><i class="fa-solid fa-trash"></i></button>
                 </td>
             </tr>
-        `).join('');
+            `;
+        }).join('');
     };
 
     window.addBiometricMachine = async function() {
@@ -6060,7 +6069,8 @@ document.addEventListener('click', async (e) => {
             name: name,
             ip: ip,
             port: port,
-            autoSync: syncEl ? syncEl.checked : true
+            autoSync: syncEl ? syncEl.checked : true,
+            status: 'Untested'
         });
 
         nameEl.value = '';
@@ -6068,7 +6078,7 @@ document.addEventListener('click', async (e) => {
         portEl.value = '4370';
 
         window.renderBiometricMachinesList();
-        showToast("Machine Added", `Biometric machine "${name}" (${ip}) has been configured successfully.`, "success");
+        showToast("Machine Added", `Biometric machine "${name}" (${ip}) has been configured. Click Ping to verify connection.`, "success");
         await saveDb(db);
     };
 
@@ -6084,11 +6094,31 @@ document.addEventListener('click', async (e) => {
         await saveDb(db);
     };
 
-    window.testBiometricMachine = function(ip) {
-        showToast("Testing Connection...", `Attempting to ping biometric device at ${ip}...`, "info");
-        setTimeout(() => {
-            showToast("Connection Successful", `Biometric device (${ip}) responded successfully on port 4370.`, "success");
-        }, 1200);
+    window.testBiometricMachine = async function(idx) {
+        const db = getDb();
+        if (!db.settings || !db.settings.biometricMachines || !db.settings.biometricMachines[idx]) return;
+        const m = db.settings.biometricMachines[idx];
+
+        showToast("Testing Connection...", `Pinging biometric machine at ${m.ip}:${m.port || 4370}...`, "info");
+        
+        try {
+            const response = await fetch(`backend/api.php?action=ping_biometric&ip=${encodeURIComponent(m.ip)}&port=${encodeURIComponent(m.port || 4370)}`);
+            const res = await response.json();
+            
+            if (res.status === 'success') {
+                m.status = 'Online';
+                showToast("Machine Online", res.message, "success");
+            } else {
+                m.status = 'Offline';
+                showToast("Machine Offline", res.message, "error");
+            }
+        } catch (err) {
+            m.status = 'Offline';
+            showToast("Connection Error", `Could not reach server or machine offline (${err.message})`, "error");
+        }
+
+        window.renderBiometricMachinesList();
+        await saveDb(db);
     };
 
     window.toggleBiometricAutoSync = async function(idx) {

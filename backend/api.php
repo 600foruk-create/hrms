@@ -679,6 +679,32 @@ if ($action === 'load_api_configs') {
     exit;
 }
 
+if ($action === 'ping_biometric') {
+    $ip = $_GET['ip'] ?? '';
+    $port = (int)($_GET['port'] ?? 4370);
+    
+    if (empty($ip)) {
+        echo json_encode(["status" => "error", "message" => "IP address is required"]);
+        exit;
+    }
+
+    $errno = 0;
+    $errstr = '';
+    $timeout = 1.5; // 1.5s connection timeout
+    
+    // Suppress warnings from fsockopen if connection fails
+    $fp = @fsockopen($ip, $port, $errno, $errstr, $timeout);
+    if ($fp) {
+        fclose($fp);
+        echo json_encode(["status" => "success", "message" => "Connected successfully to biometric machine at $ip:$port"]);
+    } else {
+        $reason = !empty($errstr) ? $errstr : "Connection timed out or connection refused";
+        echo json_encode(["status" => "error", "message" => "Unable to connect to biometric machine at $ip:$port ($reason)"]);
+    }
+    exit;
+}
+
+
 if ($action === 'load_all') {
     try {
         $dbState = [];
