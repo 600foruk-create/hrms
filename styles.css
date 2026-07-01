@@ -2754,3 +2754,24 @@ body.light-mode .flex-table-card .data-table thead th {
 /* Temporary print class to hide non-active reports */
 .no-print-temp { display: none !important; }
 
+/* --- Tasks & Productivity Module Redesign Styles --- */
+.prod-item-card:hover {
+    transform: translateY(-1px);
+    background: rgba(0,0,0,0.03) !important;
+}
+body.light-mode .prod-item-card:hover {
+    background: rgba(0,0,0,0.04) !important;
+}
+.bg-primary-soft {
+    background-color: rgba(0, 210, 255, 0.15) !important;
+    color: var(--primary) !important;
+}
+.bg-success-soft {
+    background-color: rgba(40, 167, 69, 0.15) !important;
+    color: var(--success) !important;
+}
+.bg-secondary-soft {
+    background-color: rgba(108, 117, 125, 0.15) !important;
+    color: var(--text-secondary) !important;
+}
+
