@@ -15,7 +15,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="styles.css?v=6.9.16">
+    <link rel="stylesheet" href="styles.css?v=6.9.17">
 </head>
 
 <body class="light-mode login-view">
@@ -3285,6 +3285,22 @@
                                         <label class="switch" style="margin: 0;">
                                             <input type="checkbox" id="prod-show-emp-admin"
                                                 onchange="if(window.saveProductivitySettings) window.saveProductivitySettings();">
+                                            <span class="slider round"></span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Attendance Punch Button Setting Row -->
+                                <div
+                                    style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; padding: 15px 20px; border-top: 1px solid var(--border-color);">
+                                    <h3
+                                        style="margin: 0; font-size: 15px; display: flex; align-items: center; gap: 10px;">
+                                        <i class="fa-solid fa-fingerprint text-primary"></i> Manual Punch Configuration</h3>
+                                    <div style="display: flex; align-items: center; gap: 15px;">
+                                        <span style="font-weight: 500;">Enable Manual Punch In / Out Button</span>
+                                        <label class="switch" style="margin: 0;">
+                                            <input type="checkbox" id="setting-punch-enabled" checked
+                                                onchange="if(window.savePunchButtonSettings) window.savePunchButtonSettings();">
                                             <span class="slider round"></span>
                                         </label>
                                     </div>

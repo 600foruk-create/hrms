@@ -1553,6 +1553,12 @@ body.light-mode .report-preview-container {
     border-color: #f43f5e;
     color: #f43f5e;
 }
+
+.attendance-toggle-group input[value="On Leave"]:checked + label {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: #f59e0b;
+    color: #f59e0b !important;
+}
 @keyframes modalPop {
     to { transform: translate(-50%, -50%) scale(1); }
 }

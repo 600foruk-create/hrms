@@ -772,36 +772,27 @@ function evaluateAttendanceThresholds(emp, timeInStr, timeOutStr, db) {
 
 // Attendance auto logger
 function markAutoAttendance(employee) {
-    const db = getDb();
-    const today = new Date().toISOString().split('T')[0];
-    const now = new Date().toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: '2-digit' });
-
-    const alreadyMarked = db.attendance.find(a => String(a.employeeId) === String(employee.id) && a.date === today);
-    if (!alreadyMarked) {
-        const calcStatus = evaluateAttendanceThresholds(employee, now, null, db);
-        db.attendance.push({
-            date: today,
-            employeeId: employee.id,
-            employeeName: employee.name,
-            status: calcStatus,
-            markedBy: "Auto Login",
-            timeIn: now
-        });
-        saveDb(db);
-        logAudit(`Auto attendance marked ${calcStatus} for ${employee.name} via login.`);
-        addNotification(employee.id, `Your attendance has been automatically marked as ${calcStatus} for today.`);
-    }
+    // Disabled per user request: attendance should not be marked automatically on login
+    return;
 }
 
 // Attendance Punch In / Out logic
 function updatePunchButtonState() {
     if (!currentUser) return;
     const db = getDb();
+    const btn = document.getElementById('btn-punch-attendance');
+
+    if (db?.systemSettings?.enablePunchInOut === false) {
+        if (btn) btn.style.display = 'none';
+        return;
+    } else {
+        if (btn) btn.style.display = 'flex';
+    }
+
     const today = new Date().toISOString().split('T')[0];
     const record = db.attendance.find(a => String(a.employeeId) === String(currentUser.id) && a.date === today);
     const btnText = document.getElementById('punch-btn-text');
     const btnIcon = document.querySelector('#btn-punch-attendance i');
-    const btn = document.getElementById('btn-punch-attendance');
 
     if (record && record.timeIn && !record.timeOut) {
         btnText.textContent = "Punch Out";
@@ -3204,6 +3195,9 @@ function renderAdminSettingsTab() {
     if (document.getElementById('setting-shift-notif-enabled')) {
         document.getElementById('setting-shift-notif-enabled').checked = sysSettings.shiftNotificationsEnabled !== false;
     }
+    if (document.getElementById('setting-punch-enabled')) {
+        document.getElementById('setting-punch-enabled').checked = sysSettings.enablePunchInOut !== false;
+    }
 
     // Populate Company Profile Inline Form
     if (typeof window.openCompanyProfileModal === 'function') {
@@ -5496,6 +5490,9 @@ window.openManualAttendanceModal = function () {
 
                             <input type="radio" name="att_status_${emp.id}" id="att_absent_${emp.id}" value="Absent" ${status === 'Absent' ? 'checked' : ''}>
                             <label for="att_absent_${emp.id}">Absent</label>
+
+                            <input type="radio" name="att_status_${emp.id}" id="att_leave_${emp.id}" value="On Leave" ${status === 'On Leave' ? 'checked' : ''}>
+                            <label for="att_leave_${emp.id}" style="color: var(--warning-color);">On Leave</label>
                         </div>
                     </td>
                 </tr>
@@ -5542,7 +5539,7 @@ document.getElementById('attendance-log-form').addEventListener('submit', (e) =>
             let tOut = existing ? existing.timeOut : '-';
             if (status === 'Present') {
                 if (!tIn || tIn === '-') tIn = nowStr;
-            } else if (status === 'Absent') {
+            } else if (status === 'Absent' || status === 'On Leave') {
                 tIn = '-';
                 tOut = '-';
             }
@@ -6002,6 +5999,17 @@ window.saveShiftNotificationSettings = function () {
 
     if (window.updateShiftNotifSectionVisibility) window.updateShiftNotifSectionVisibility();
     showToast("Notification Settings", "Shift rotation notification channel setting saved.", "success");
+    saveDb(db);
+};
+
+window.savePunchButtonSettings = function () {
+    const db = getDb();
+    if (!db) return;
+    if (!db.systemSettings) db.systemSettings = {};
+    db.systemSettings.enablePunchInOut = document.getElementById('setting-punch-enabled').checked;
+
+    if (typeof updatePunchButtonState === 'function') updatePunchButtonState();
+    showToast("Punch Setting Updated", `Manual Punch In/Out button is now ${db.systemSettings.enablePunchInOut ? 'Enabled' : 'Disabled'}.`, "success");
     saveDb(db);
 };
 
