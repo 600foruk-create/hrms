@@ -103,11 +103,14 @@ async function syncServer() {
                     if (!prev) {
                         attMap.set(key, a);
                     } else {
-                        // If previous was Present (Auto/Default) and current is Absent/Leave/Half Day (override), keep override
-                        if (prev.status === 'Present' && a.status !== 'Present') {
+                        const isPrevManual = prev.markedBy && prev.markedBy !== 'Auto Login' && prev.markedBy !== 'System';
+                        const isCurrentManual = a.markedBy && a.markedBy !== 'Auto Login' && a.markedBy !== 'System';
+                        if (isCurrentManual && !isPrevManual) {
                             attMap.set(key, a);
-                        } else if (a.markedBy && a.markedBy !== 'Auto Login' && a.markedBy !== 'System') {
+                        } else if (isCurrentManual && isPrevManual) {
                             attMap.set(key, a);
+                        } else if (!isPrevManual && !isCurrentManual) {
+                            if (a.status !== 'Absent') attMap.set(key, a);
                         }
                     }
                 });

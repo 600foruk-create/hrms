@@ -210,7 +210,19 @@ try {
 
 // Auto-upgrade attendance status column and add time columns
 try {
-    $pdo->exec("ALTER TABLE attendance MODIFY COLUMN `status` varchar(50) NOT NULL");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `attendance` (
+      `id` int(11) NOT NULL AUTO_INCREMENT,
+      `date` date NOT NULL,
+      `employeeId` varchar(50) NOT NULL,
+      `employeeName` varchar(150) DEFAULT NULL,
+      `status` varchar(100) NOT NULL,
+      `markedBy` varchar(100) DEFAULT 'System',
+      `timeIn` varchar(50) DEFAULT NULL,
+      `timeOut` varchar(50) DEFAULT NULL,
+      PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    $pdo->exec("ALTER TABLE attendance MODIFY COLUMN `status` varchar(100) NOT NULL");
+    $pdo->exec("ALTER TABLE attendance MODIFY COLUMN `employeeName` varchar(150) DEFAULT NULL");
     $pdo->exec("ALTER TABLE attendance ADD COLUMN `timeIn` varchar(50) DEFAULT NULL");
     $pdo->exec("ALTER TABLE attendance ADD COLUMN `timeOut` varchar(50) DEFAULT NULL");
 } catch (Exception $e) {}
@@ -1243,7 +1255,8 @@ elseif ($action === 'save_all') {
         // 5. Sync Attendance
         try {
             try {
-                $pdo->exec("ALTER TABLE attendance MODIFY COLUMN `status` varchar(50) NOT NULL");
+                $pdo->exec("ALTER TABLE attendance MODIFY COLUMN `status` varchar(100) NOT NULL");
+                $pdo->exec("ALTER TABLE attendance MODIFY COLUMN `employeeName` varchar(150) DEFAULT NULL");
                 $pdo->exec("ALTER TABLE attendance ADD COLUMN `timeIn` varchar(50) DEFAULT NULL");
                 $pdo->exec("ALTER TABLE attendance ADD COLUMN `timeOut` varchar(50) DEFAULT NULL");
             } catch (Exception $colEx) {}
@@ -1252,7 +1265,19 @@ elseif ($action === 'save_all') {
             if (!empty($data['attendance'])) {
                 $stmt = $pdo->prepare("INSERT INTO attendance (date, employeeId, employeeName, status, markedBy, timeIn, timeOut) VALUES (?, ?, ?, ?, ?, ?, ?)");
                 foreach ($data['attendance'] as $a) {
-                    $stmt->execute([$a['date'], $a['employeeId'], $a['employeeName'], $a['status'], $a['markedBy'] ?? 'System', $a['timeIn'] ?? null, $a['timeOut'] ?? null]);
+                    try {
+                        $dateVal = !empty($a['date']) ? $a['date'] : date('Y-m-d');
+                        $empIdVal = !empty($a['employeeId']) ? (string)$a['employeeId'] : '';
+                        if (empty($empIdVal)) continue;
+                        $empNameVal = !empty($a['employeeName']) ? $a['employeeName'] : 'Employee';
+                        $statusVal = !empty($a['status']) ? $a['status'] : 'Present';
+                        $markedByVal = !empty($a['markedBy']) ? $a['markedBy'] : 'System';
+                        $timeInVal = isset($a['timeIn']) ? $a['timeIn'] : null;
+                        $timeOutVal = isset($a['timeOut']) ? $a['timeOut'] : null;
+                        $stmt->execute([$dateVal, $empIdVal, $empNameVal, $statusVal, $markedByVal, $timeInVal, $timeOutVal]);
+                    } catch (Exception $rowEx) {
+                        error_log("Attendance row insert error: " . $rowEx->getMessage());
+                    }
                 }
             }
         } catch (Exception $e) {
