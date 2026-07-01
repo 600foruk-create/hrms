@@ -1052,6 +1052,20 @@ body.light-mode .notification-item:hover {
     padding: 12px 16px;
     border-bottom: 1px solid var(--border-color);
 }
+#subtab-content-employees .data-table th,
+#subtab-content-employees .data-table td,
+#subtab-content-inactive .data-table th,
+#subtab-content-inactive .data-table td,
+#sub-manager-team-members .data-table th,
+#sub-manager-team-members .data-table td {
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+#subtab-content-employees .data-table td .btn-action-group,
+#subtab-content-inactive .data-table td .btn-action-group,
+#sub-manager-team-members .data-table td .btn-action-group {
+    justify-content: center !important;
+}
 .data-table th {
     font-weight: 600;
     color: var(--text-secondary);
