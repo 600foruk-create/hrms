@@ -6036,7 +6036,7 @@ window.updateShiftNotifSectionVisibility = function() {
     const isEnabled = db?.systemSettings?.shiftNotificationsEnabled !== false;
     const section = document.getElementById('shift-rot-notif-section');
     if (section) {
-        section.style.display = isEnabled ? 'block' : 'none';
+        section.style.display = isEnabled ? 'flex' : 'none';
     }
 };
 
