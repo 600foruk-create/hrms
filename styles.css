@@ -2104,15 +2104,17 @@ body.light-mode .quick-action-btn:hover {
     gap: 8px;
 }
 .legend-dot {
+    display: inline-block;
     width: 8px;
     height: 8px;
     border-radius: 50%;
+    flex-shrink: 0;
 }
 .legend-dot.present { background-color: var(--success); }
 .legend-dot.absent { background-color: var(--danger); }
 .legend-dot.late { background-color: #d97706; }
 .legend-dot.leave { background-color: var(--primary); }
-.legend-dot.halfday { background-color: #a855f7; }
+.legend-dot.halfday { background-color: #a855f7 !important; }
 .legend-value {
     font-weight: 600;
     color: var(--text-primary);
