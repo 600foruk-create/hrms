@@ -69,13 +69,6 @@ async function syncServer() {
         const response = await fetch(API_URL + '?action=load_all&_t=' + new Date().getTime());
         const result = await response.json();
         if (result.status === 'success' && result.data.users && result.data.users.length > 0) {
-            // Dynamic correction: ensure admin user has proper name and password
-            result.data.users.forEach(u => {
-                if (u.id === 'U1' || u.role === 'Admin' || u.name === 'Syed Admin' || u.name === 'admin') {
-                    if (u.name === 'admin' || !u.name) u.name = 'Syed Admin';
-                    u.password = 'admin123';
-                }
-            });
 
             // Auto-cleanup orphaned/dummy records
             const validUserIdsStr = result.data.users.map(u => String(u.id));
@@ -129,6 +122,18 @@ async function syncServer() {
             }
 
             window.hrmsDatabase = result.data;
+            if (currentUser && window.hrmsDatabase.users) {
+                const updatedMe = window.hrmsDatabase.users.find(u => String(u.id) === String(currentUser.id));
+                if (updatedMe) {
+                    currentUser = { ...updatedMe };
+                    const sessionUser = { ...updatedMe };
+                    delete sessionUser.documents;
+                    delete sessionUser.profileImageBase64;
+                    delete sessionUser.profilePic;
+                    localStorage.setItem('current_user', JSON.stringify(sessionUser));
+                    if (typeof updateTopbar === 'function') updateTopbar();
+                }
+            }
             if (!window.hrmsDatabase.settings) window.hrmsDatabase.settings = {};
             const loadedMachines = (window.hrmsDatabase.settings.biometricMachines && window.hrmsDatabase.settings.biometricMachines.length > 0)
                 ? window.hrmsDatabase.settings.biometricMachines
@@ -7330,10 +7335,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (prevSession) {
 
         currentUser = JSON.parse(prevSession);
-        if (currentUser && (currentUser.id === 'U1' || currentUser.role === 'Admin') && (currentUser.name === 'admin' || !currentUser.name)) {
-            currentUser.name = 'Syed Admin';
-            localStorage.setItem('current_user', JSON.stringify(currentUser));
-        }
 
         // Apply Custom Theme if exists
         const cachedDb = JSON.parse(localStorage.getItem('hrms_fallback_db') || '{}');
