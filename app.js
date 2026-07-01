@@ -3195,6 +3195,15 @@ function renderAdminSettingsTab() {
     if (document.getElementById('setting-shift-notif-enabled')) {
         document.getElementById('setting-shift-notif-enabled').checked = sysSettings.shiftNotificationsEnabled !== false;
     }
+    const notifDb = document.getElementById('shift-notif-db');
+    const notifWa = document.getElementById('shift-notif-whatsapp');
+    const notifEmail = document.getElementById('shift-notif-email');
+    const policyNotifs = db.shiftRotationPolicy?.notifications || {};
+    if (notifDb) notifDb.checked = policyNotifs.dbNotif !== false;
+    if (notifWa) notifWa.checked = policyNotifs.whatsapp !== false;
+    if (notifEmail) notifEmail.checked = policyNotifs.email !== false;
+    if (window.updateShiftNotifSectionVisibility) window.updateShiftNotifSectionVisibility();
+
     if (document.getElementById('setting-punch-enabled')) {
         document.getElementById('setting-punch-enabled').checked = sysSettings.enablePunchInOut !== false;
     }
@@ -5996,6 +6005,15 @@ window.saveShiftNotificationSettings = function () {
     const sysSettings = db.systemSettings;
 
     sysSettings.shiftNotificationsEnabled = document.getElementById('setting-shift-notif-enabled').checked;
+
+    if (!db.shiftRotationPolicy) db.shiftRotationPolicy = {};
+    if (!db.shiftRotationPolicy.notifications) db.shiftRotationPolicy.notifications = {};
+    const notifDb = document.getElementById('shift-notif-db');
+    const notifWa = document.getElementById('shift-notif-whatsapp');
+    const notifEmail = document.getElementById('shift-notif-email');
+    if (notifDb) db.shiftRotationPolicy.notifications.dbNotif = notifDb.checked;
+    if (notifWa) db.shiftRotationPolicy.notifications.whatsapp = notifWa.checked;
+    if (notifEmail) db.shiftRotationPolicy.notifications.email = notifEmail.checked;
 
     if (window.updateShiftNotifSectionVisibility) window.updateShiftNotifSectionVisibility();
     showToast("Notification Settings", "Shift rotation notification channel setting saved.", "success");

@@ -15,7 +15,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="styles.css?v=6.9.18">
+    <link rel="stylesheet" href="styles.css?v=6.9.19">
 </head>
 
 <body class="light-mode login-view">
@@ -1324,21 +1324,6 @@
                                                 <div style="grid-column: span 2; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); padding: 10px 12px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between;">
                                                     <span style="font-size: 11px; font-weight: 600; color: #0284c7;"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Upcoming Rotation Schedule:</span>
                                                     <strong id="shift-rot-preview-text" style="font-size: 12px; color: #0369a1;">Select date above</strong>
-                                                </div>
-                                                <!-- Notification Channels -->
-                                                <div id="shift-rot-notif-section" style="grid-column: span 2; background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.06); padding: 10px 12px; border-radius: 8px;">
-                                                    <label class="form-label mb-2" style="font-size: 11px; font-weight: 700; color: var(--text-primary); display: block;"><i class="fa-solid fa-bell text-primary"></i> Automated Notification Channels</label>
-                                                    <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-                                                        <label style="font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                                                            <input type="checkbox" id="shift-notif-db" checked style="accent-color: var(--primary);"> In-App Database Notice
-                                                        </label>
-                                                        <label style="font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                                                            <input type="checkbox" id="shift-notif-whatsapp" checked style="accent-color: #25D366;"> WhatsApp Alert
-                                                        </label>
-                                                        <label style="font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                                                            <input type="checkbox" id="shift-notif-email" checked style="accent-color: #ea4335;"> Email Notification
-                                                        </label>
-                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -3308,17 +3293,32 @@
 
                                 <!-- Shift Rotation Notification Row -->
                                 <div
-                                    style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; padding: 15px 20px; border-top: 1px solid var(--border-color);">
-                                    <h3
-                                        style="margin: 0; font-size: 15px; display: flex; align-items: center; gap: 10px;">
-                                        <i class="fa-solid fa-bell text-primary"></i> Automated Notification Channels</h3>
-                                    <div style="display: flex; align-items: center; gap: 15px;">
-                                        <span style="font-weight: 500;">Enable Shift Rotation Notifications</span>
-                                        <label class="switch" style="margin: 0;">
-                                            <input type="checkbox" id="setting-shift-notif-enabled"
-                                                onchange="if(window.saveShiftNotificationSettings) window.saveShiftNotificationSettings();">
-                                            <span class="slider round"></span>
-                                        </label>
+                                    style="display: flex; flex-direction: column; gap: 15px; padding: 15px 20px; border-top: 1px solid var(--border-color);">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+                                        <h3
+                                            style="margin: 0; font-size: 15px; display: flex; align-items: center; gap: 10px;">
+                                            <i class="fa-solid fa-bell text-primary"></i> Automated Notification Channels</h3>
+                                        <div style="display: flex; align-items: center; gap: 15px;">
+                                            <span style="font-weight: 500;">Enable Shift Rotation Notifications</span>
+                                            <label class="switch" style="margin: 0;">
+                                                <input type="checkbox" id="setting-shift-notif-enabled"
+                                                    onchange="if(window.saveShiftNotificationSettings) window.saveShiftNotificationSettings();">
+                                                <span class="slider round"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div id="shift-rot-notif-section" style="background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.08); padding: 12px 15px; border-radius: 8px;">
+                                        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                                            <label style="font-size: 12.5px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                                                <input type="checkbox" id="shift-notif-db" checked style="accent-color: var(--primary);" onchange="if(window.saveShiftNotificationSettings) window.saveShiftNotificationSettings();"> In-App Database Notice
+                                            </label>
+                                            <label style="font-size: 12.5px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                                                <input type="checkbox" id="shift-notif-whatsapp" checked style="accent-color: #25D366;" onchange="if(window.saveShiftNotificationSettings) window.saveShiftNotificationSettings();"> WhatsApp Alert
+                                            </label>
+                                            <label style="font-size: 12.5px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                                                <input type="checkbox" id="shift-notif-email" checked style="accent-color: #ea4335;" onchange="if(window.saveShiftNotificationSettings) window.saveShiftNotificationSettings();"> Email Notification
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
