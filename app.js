@@ -7537,21 +7537,6 @@ window.selectedAdminTaskId = null;
 window.renderAdminCategoriesConfig = function () {
     const settings = getProdSettings();
 
-    // Update KPI counters
-    let totalPractices = 0;
-    settings.businessUnits.forEach(bu => totalPractices += (bu.practices || []).length);
-    let totalTasks = 0;
-    settings.tesCategories.forEach(tes => totalTasks += (tes.tasks || []).length);
-
-    const elDeptCount = document.getElementById('kpi-prod-dept-count');
-    if (elDeptCount) elDeptCount.textContent = settings.businessUnits.length;
-    const elPracCount = document.getElementById('kpi-prod-prac-count');
-    if (elPracCount) elPracCount.textContent = totalPractices;
-    const elCatCount = document.getElementById('kpi-prod-cat-count');
-    if (elCatCount) elCatCount.textContent = settings.tesCategories.length;
-    const elSubCatCount = document.getElementById('kpi-prod-subcat-count');
-    if (elSubCatCount) elSubCatCount.textContent = totalTasks;
-
     // 1. Render Business Units List
     const buList = document.getElementById('admin-grid-bu-list');
     const btnEditBu = document.getElementById('btn-edit-bu');
@@ -7559,7 +7544,7 @@ window.renderAdminCategoriesConfig = function () {
     if (buList) {
         buList.innerHTML = '';
         if (settings.businessUnits.length === 0) {
-            buList.innerHTML = '<div class="text-secondary text-center mt-5" style="font-size: 13px;"><i class="fa-regular fa-folder-open mb-2 d-block" style="font-size: 24px; opacity: 0.5;"></i>No Departments configured yet.</div>';
+            buList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">No Departments found.</div>';
             if (btnEditBu) btnEditBu.style.display = 'none';
             if (btnDelBu) btnDelBu.style.display = 'none';
             window.selectedAdminBuId = null;
@@ -7569,22 +7554,17 @@ window.renderAdminCategoriesConfig = function () {
                 window.selectedAdminBuId = settings.businessUnits.length > 0 ? settings.businessUnits[0].id : null;
             }
 
-            if (btnEditBu) btnEditBu.style.display = window.selectedAdminBuId ? 'inline-flex' : 'none';
-            if (btnDelBu) btnDelBu.style.display = window.selectedAdminBuId ? 'inline-flex' : 'none';
+            if (btnEditBu) btnEditBu.style.display = window.selectedAdminBuId ? 'block' : 'none';
+            if (btnDelBu) btnDelBu.style.display = window.selectedAdminBuId ? 'block' : 'none';
 
             settings.businessUnits.forEach(bu => {
                 const isActive = bu.id === window.selectedAdminBuId;
-                const pracCount = (bu.practices || []).length;
-                const bgStyle = isActive ? 'background: rgba(0, 210, 255, 0.12); border-left: 4px solid var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.05);' : 'background: rgba(0,0,0,0.02); border-left: 4px solid transparent;';
-                const textStyle = isActive ? 'color: var(--primary); font-weight: 700;' : 'color: var(--text-color); font-weight: 600;';
+                const bgStyle = isActive ? 'background: linear-gradient(0deg, rgba(255,255,255,0.85), rgba(255,255,255,0.85)), var(--primary); border-left: 3px solid var(--primary);' : 'background: rgba(0,0,0,0.02); border-left: 3px solid transparent;';
+                const textStyle = isActive ? 'color: var(--primary); font-weight: 600;' : 'color: var(--text-color);';
 
                 buList.innerHTML += `
-                    <div class="p-3 mb-2 rounded prod-item-card" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; ${bgStyle} transition: all 0.2s ease;" onclick="window.selectedAdminBuId='${bu.id}'; window.renderAdminCategoriesConfig();">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <i class="fa-solid fa-building" style="${isActive ? 'color: var(--primary);' : 'color: var(--text-secondary);'} font-size: 14px;"></i>
-                            <span style="font-size: 14px; ${textStyle}">${bu.name}</span>
-                        </div>
-                        <span class="badge ${isActive ? 'bg-primary text-white' : 'bg-secondary-soft text-secondary'}" style="font-size: 11px; padding: 4px 8px; border-radius: 6px;">${pracCount} Practices</span>
+                    <div class="p-2 px-3 mb-2 rounded" style="display: flex; align-items: center; cursor: pointer; ${bgStyle} transition: all 0.2s;" onclick="window.selectedAdminBuId='${bu.id}'; window.renderAdminCategoriesConfig();">
+                        <strong style="font-size: 14px; ${textStyle}">${bu.name}</strong>
                     </div>
                 `;
             });
@@ -7599,7 +7579,7 @@ window.renderAdminCategoriesConfig = function () {
     const activeBuName = document.getElementById('grid-active-bu-name');
     if (prList) {
         if (!window.selectedAdminBuId) {
-            prList.innerHTML = '<div class="text-secondary text-center mt-5" style="font-size: 13px;"><i class="fa-solid fa-arrow-left me-2"></i>Select a Department from the left to view its practices</div>';
+            prList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">Select a Department to view practices</div>';
             if (btnAddPractice) btnAddPractice.style.display = 'none';
             if (btnEditPractice) btnEditPractice.style.display = 'none';
             if (btnDelPractice) btnDelPractice.style.display = 'none';
@@ -7607,12 +7587,12 @@ window.renderAdminCategoriesConfig = function () {
             window.selectedAdminPracticeId = null;
         } else {
             const bu = settings.businessUnits.find(b => b.id === window.selectedAdminBuId);
-            if (btnAddPractice) btnAddPractice.style.display = 'inline-flex';
-            if (activeBuName) activeBuName.textContent = `(${bu.name})`;
+            if (btnAddPractice) btnAddPractice.style.display = 'block';
+            if (activeBuName) activeBuName.textContent = `(for ${bu.name})`;
 
             prList.innerHTML = '';
             if (!bu.practices || bu.practices.length === 0) {
-                prList.innerHTML = '<div class="text-secondary text-center mt-5" style="font-size: 13px;"><i class="fa-regular fa-folder-open mb-2 d-block" style="font-size: 24px; opacity: 0.5;"></i>No practices added for this Department yet.</div>';
+                prList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">No practices found for this Department.</div>';
                 if (btnEditPractice) btnEditPractice.style.display = 'none';
                 if (btnDelPractice) btnDelPractice.style.display = 'none';
                 window.selectedAdminPracticeId = null;
@@ -7621,21 +7601,17 @@ window.renderAdminCategoriesConfig = function () {
                     window.selectedAdminPracticeId = bu.practices.length > 0 ? bu.practices[0].id : null;
                 }
 
-                if (btnEditPractice) btnEditPractice.style.display = window.selectedAdminPracticeId ? 'inline-flex' : 'none';
-                if (btnDelPractice) btnDelPractice.style.display = window.selectedAdminPracticeId ? 'inline-flex' : 'none';
+                if (btnEditPractice) btnEditPractice.style.display = window.selectedAdminPracticeId ? 'block' : 'none';
+                if (btnDelPractice) btnDelPractice.style.display = window.selectedAdminPracticeId ? 'block' : 'none';
 
                 bu.practices.forEach(p => {
                     const isActive = p.id === window.selectedAdminPracticeId;
-                    const bgStyle = isActive ? 'background: rgba(0, 210, 255, 0.12); border-left: 4px solid var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.05);' : 'background: rgba(0,0,0,0.02); border-left: 4px solid transparent;';
-                    const textStyle = isActive ? 'color: var(--primary); font-weight: 700;' : 'color: var(--text-color); font-weight: 500;';
+                    const bgStyle = isActive ? 'background: linear-gradient(0deg, rgba(255,255,255,0.85), rgba(255,255,255,0.85)), var(--primary); border-left: 3px solid var(--primary);' : 'background: rgba(0,0,0,0.02); border-left: 3px solid transparent;';
+                    const textStyle = isActive ? 'color: var(--primary); font-weight: 600;' : 'color: var(--text-color);';
 
                     prList.innerHTML += `
-                        <div class="mb-2 p-3 rounded prod-item-card" style="display: flex; justify-content: space-between; align-items: center; font-size: 13.5px; cursor: pointer; ${bgStyle} transition: all 0.2s ease;" onclick="window.selectedAdminPracticeId='${p.id}'; window.renderAdminCategoriesConfig();">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <i class="fa-solid fa-tag" style="${isActive ? 'color: var(--primary);' : 'color: var(--text-secondary);'} font-size: 13px;"></i>
-                                <span style="${textStyle}">${p.name}</span>
-                            </div>
-                            <span class="badge bg-primary-soft text-primary" style="font-size: 10.5px; padding: 3px 8px; border-radius: 4px;"><i class="fa-solid fa-check me-1"></i>Active</span>
+                        <div class="mb-2 p-2 rounded" style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; cursor: pointer; ${bgStyle} transition: all 0.2s;" onclick="window.selectedAdminPracticeId='${p.id}'; window.renderAdminCategoriesConfig();">
+                            <span style="${textStyle}">${p.name}</span>
                         </div>
                     `;
                 });
@@ -7650,7 +7626,7 @@ window.renderAdminCategoriesConfig = function () {
     if (tesList) {
         tesList.innerHTML = '';
         if (settings.tesCategories.length === 0) {
-            tesList.innerHTML = '<div class="text-secondary text-center mt-5" style="font-size: 13px;"><i class="fa-regular fa-folder-open mb-2 d-block" style="font-size: 24px; opacity: 0.5;"></i>No Task Categories configured yet.</div>';
+            tesList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">No TES Categories found.</div>';
             if (btnEditTes) btnEditTes.style.display = 'none';
             if (btnDelTes) btnDelTes.style.display = 'none';
             window.selectedAdminTesId = null;
@@ -7659,22 +7635,17 @@ window.renderAdminCategoriesConfig = function () {
                 window.selectedAdminTesId = settings.tesCategories.length > 0 ? settings.tesCategories[0].id : null;
             }
 
-            if (btnEditTes) btnEditTes.style.display = window.selectedAdminTesId ? 'inline-flex' : 'none';
-            if (btnDelTes) btnDelTes.style.display = window.selectedAdminTesId ? 'inline-flex' : 'none';
+            if (btnEditTes) btnEditTes.style.display = window.selectedAdminTesId ? 'block' : 'none';
+            if (btnDelTes) btnDelTes.style.display = window.selectedAdminTesId ? 'block' : 'none';
 
             settings.tesCategories.forEach(tes => {
                 const isActive = tes.id === window.selectedAdminTesId;
-                const taskCount = (tes.tasks || []).length;
-                const bgStyle = isActive ? 'background: rgba(40, 167, 69, 0.12); border-left: 4px solid var(--success); box-shadow: 0 4px 12px rgba(0,0,0,0.05);' : 'background: rgba(0,0,0,0.02); border-left: 4px solid transparent;';
-                const textStyle = isActive ? 'color: var(--success); font-weight: 700;' : 'color: var(--text-color); font-weight: 600;';
+                const bgStyle = isActive ? 'background: linear-gradient(0deg, rgba(255,255,255,0.85), rgba(255,255,255,0.85)), var(--primary); border-left: 3px solid var(--primary);' : 'background: rgba(0,0,0,0.02); border-left: 3px solid transparent;';
+                const textStyle = isActive ? 'color: var(--primary); font-weight: 600;' : 'color: var(--text-color);';
 
                 tesList.innerHTML += `
-                    <div class="p-3 mb-2 rounded prod-item-card" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; ${bgStyle} transition: all 0.2s ease;" onclick="window.selectedAdminTesId='${tes.id}'; window.renderAdminCategoriesConfig();">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <i class="fa-solid fa-folder-open" style="${isActive ? 'color: var(--success);' : 'color: var(--text-secondary);'} font-size: 14px;"></i>
-                            <span style="font-size: 14px; ${textStyle}">${tes.name}</span>
-                        </div>
-                        <span class="badge ${isActive ? 'bg-success text-white' : 'bg-secondary-soft text-secondary'}" style="font-size: 11px; padding: 4px 8px; border-radius: 6px;">${taskCount} Sub Categories</span>
+                    <div class="p-2 px-3 mb-2 rounded" style="display: flex; align-items: center; cursor: pointer; ${bgStyle} transition: all 0.2s;" onclick="window.selectedAdminTesId='${tes.id}'; window.renderAdminCategoriesConfig();">
+                        <strong style="font-size: 14px; ${textStyle}">${tes.name}</strong>
                     </div>
                 `;
             });
@@ -7689,7 +7660,7 @@ window.renderAdminCategoriesConfig = function () {
     const activeTesName = document.getElementById('grid-active-tes-name');
     if (taskList) {
         if (!window.selectedAdminTesId) {
-            taskList.innerHTML = '<div class="text-secondary text-center mt-5" style="font-size: 13px;"><i class="fa-solid fa-arrow-left me-2"></i>Select a Task Category from the left to view sub-categories</div>';
+            taskList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">Select a TES Category to view tasks</div>';
             if (btnAddTask) btnAddTask.style.display = 'none';
             if (btnEditTask) btnEditTask.style.display = 'none';
             if (btnDelTask) btnDelTask.style.display = 'none';
@@ -7697,12 +7668,12 @@ window.renderAdminCategoriesConfig = function () {
             window.selectedAdminTaskId = null;
         } else {
             const tes = settings.tesCategories.find(t => t.id === window.selectedAdminTesId);
-            if (btnAddTask) btnAddTask.style.display = 'inline-flex';
-            if (activeTesName) activeTesName.textContent = `(${tes.name})`;
+            if (btnAddTask) btnAddTask.style.display = 'block';
+            if (activeTesName) activeTesName.textContent = `(for ${tes.name})`;
 
             taskList.innerHTML = '';
             if (!tes.tasks || tes.tasks.length === 0) {
-                taskList.innerHTML = '<div class="text-secondary text-center mt-5" style="font-size: 13px;"><i class="fa-regular fa-folder-open mb-2 d-block" style="font-size: 24px; opacity: 0.5;"></i>No task sub-categories added yet.</div>';
+                taskList.innerHTML = '<div class="text-secondary text-center mt-4" style="font-size: 13px;">No tasks found for this Category.</div>';
                 if (btnEditTask) btnEditTask.style.display = 'none';
                 if (btnDelTask) btnDelTask.style.display = 'none';
                 window.selectedAdminTaskId = null;
@@ -7711,21 +7682,17 @@ window.renderAdminCategoriesConfig = function () {
                     window.selectedAdminTaskId = tes.tasks.length > 0 ? tes.tasks[0].id : null;
                 }
 
-                if (btnEditTask) btnEditTask.style.display = window.selectedAdminTaskId ? 'inline-flex' : 'none';
-                if (btnDelTask) btnDelTask.style.display = window.selectedAdminTaskId ? 'inline-flex' : 'none';
+                if (btnEditTask) btnEditTask.style.display = window.selectedAdminTaskId ? 'block' : 'none';
+                if (btnDelTask) btnDelTask.style.display = window.selectedAdminTaskId ? 'block' : 'none';
 
                 tes.tasks.forEach(t => {
                     const isActive = t.id === window.selectedAdminTaskId;
-                    const bgStyle = isActive ? 'background: rgba(40, 167, 69, 0.12); border-left: 4px solid var(--success); box-shadow: 0 4px 12px rgba(0,0,0,0.05);' : 'background: rgba(0,0,0,0.02); border-left: 4px solid transparent;';
-                    const textStyle = isActive ? 'color: var(--success); font-weight: 700;' : 'color: var(--text-color); font-weight: 500;';
+                    const bgStyle = isActive ? 'background: linear-gradient(0deg, rgba(255,255,255,0.85), rgba(255,255,255,0.85)), var(--primary); border-left: 3px solid var(--primary);' : 'background: rgba(0,0,0,0.02); border-left: 3px solid transparent;';
+                    const textStyle = isActive ? 'color: var(--primary); font-weight: 600;' : 'color: var(--text-color);';
 
                     taskList.innerHTML += `
-                        <div class="mb-2 p-3 rounded prod-item-card" style="display: flex; justify-content: space-between; align-items: center; font-size: 13.5px; cursor: pointer; ${bgStyle} transition: all 0.2s ease;" onclick="window.selectedAdminTaskId='${t.id}'; window.renderAdminCategoriesConfig();">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <i class="fa-solid fa-list-check" style="${isActive ? 'color: var(--success);' : 'color: var(--text-secondary);'} font-size: 13px;"></i>
-                                <span style="${textStyle}">${t.name}</span>
-                            </div>
-                            <span class="badge bg-success-soft text-success" style="font-size: 10.5px; padding: 3px 8px; border-radius: 4px;">Standard Task</span>
+                        <div class="mb-2 p-2 rounded" style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; cursor: pointer; ${bgStyle} transition: all 0.2s;" onclick="window.selectedAdminTaskId='${t.id}'; window.renderAdminCategoriesConfig();">
+                            <span style="${textStyle}">${t.name}</span>
                         </div>
                     `;
                 });
