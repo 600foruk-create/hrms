@@ -69,10 +69,10 @@ async function syncServer() {
         const response = await fetch(API_URL + '?action=load_all&_t=' + new Date().getTime());
         const result = await response.json();
         if (result.status === 'success' && result.data.users && result.data.users.length > 0) {
-            // Dynamic correction: ensure "Syed Admin" is shown/logged in as "admin" with "admin123"
+            // Dynamic correction: ensure admin user has proper name and password
             result.data.users.forEach(u => {
-                if (u.name === 'Syed Admin' || u.name === 'admin') {
-                    u.name = 'admin';
+                if (u.id === 'U1' || u.role === 'Admin' || u.name === 'Syed Admin' || u.name === 'admin') {
+                    if (u.name === 'admin' || !u.name) u.name = 'Syed Admin';
                     u.password = 'admin123';
                 }
             });
@@ -572,7 +572,7 @@ function handleLogin(usernameOrEmail, password) {
         const usersList = (db && db.users && Array.isArray(db.users)) ? db.users : [];
         // Match by name (dropdown) OR email (legacy fallback) - case-insensitive
         const user = usersList.find(u =>
-            u && ((u.name && u.name.toLowerCase() === usernameOrEmail.toLowerCase()) || (u.email && u.email.toLowerCase() === usernameOrEmail.toLowerCase()))
+            u && ((u.name && u.name.toLowerCase() === usernameOrEmail.toLowerCase()) || (u.email && u.email.toLowerCase() === usernameOrEmail.toLowerCase()) || ((u.role === 'Admin' || u.id === 'U1') && usernameOrEmail.toLowerCase() === 'admin'))
             && u.password === password
         );
 
@@ -7330,6 +7330,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (prevSession) {
 
         currentUser = JSON.parse(prevSession);
+        if (currentUser && (currentUser.id === 'U1' || currentUser.role === 'Admin') && (currentUser.name === 'admin' || !currentUser.name)) {
+            currentUser.name = 'Syed Admin';
+            localStorage.setItem('current_user', JSON.stringify(currentUser));
+        }
 
         // Apply Custom Theme if exists
         const cachedDb = JSON.parse(localStorage.getItem('hrms_fallback_db') || '{}');
