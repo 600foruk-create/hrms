@@ -206,11 +206,14 @@ function getInitials(name) {
     return name.trim().substring(0, 2).toUpperCase();
 }
 
+let isSavingDb = false;
+let pendingSaveData = null;
+
 async function saveDb(data) {
     if (!window.dbLoaded) {
         console.error("Save blocked: Database was not properly loaded from server. Preventing accidental data wipe.");
         showToast("Save Error", "Cannot save changes because the database connection failed on startup. Please refresh the page.", "error");
-        return;
+        return false;
     }
     window.hrmsDatabase = data; // Immediate local update for UI speed
     try {
@@ -238,22 +241,33 @@ async function saveDb(data) {
         return false;
     }
 
+    if (isSavingDb) {
+        pendingSaveData = data;
+        return true;
+    }
+    isSavingDb = true;
+
     try {
-        const response = await fetch(API_URL + '?action=save_all', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        const result = await response.json();
-        if (result.status !== 'success') {
-            console.warn("Sync Warning: Failed to backup data to server: " + result.message);
-            alert("Database Error: Could not save to server. " + result.message);
-            return false;
+        let currentDataToSave = data;
+        while (currentDataToSave) {
+            pendingSaveData = null;
+            const response = await fetch(API_URL + '?action=save_all', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(currentDataToSave)
+            });
+            const result = await response.json();
+            if (result.status !== 'success') {
+                console.warn("Sync Warning: Failed to backup data to server: " + result.message);
+            }
+            currentDataToSave = pendingSaveData;
         }
         return true;
     } catch (error) {
         console.warn("Network Warning: Could not connect to database server. Using local storage.", error);
         return false;
+    } finally {
+        isSavingDb = false;
     }
 }
 
@@ -5544,18 +5558,18 @@ document.getElementById('attendance-log-form').addEventListener('submit', (e) =>
             });
 
             if (existing && existing.status !== status) {
-                addNotification(empId, `Your attendance for ${date} was updated to ${status} manually by your manager/admin.`);
+                addNotification(empId, `Your attendance for ${date} was updated to ${status} manually by your manager/admin.`, false);
                 saveCount++;
             } else if (!existing) {
-                addNotification(empId, `Your attendance for ${date} was marked as ${status} manually by your manager/admin.`);
+                addNotification(empId, `Your attendance for ${date} was marked as ${status} manually by your manager/admin.`, false);
                 saveCount++;
             }
         }
     });
 
-    saveDb(db);
     showToast("Attendance Saved", `Successfully marked attendance for ${saveCount} employee(s) on ${date}.`, "success");
-    logAudit(`Bulk logged attendance for ${saveCount} employee(s) on ${date} by ${currentUser.name}.`);
+    logAudit(`Bulk logged attendance for ${saveCount} employee(s) on ${date} by ${currentUser.name}.`, false);
+    saveDb(db);
 
     closeAllModals();
     refreshTabContent(activeTab);
