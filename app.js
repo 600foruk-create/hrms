@@ -1449,40 +1449,39 @@ function renderAdminDashboard() {
         adminTeamsContainer.innerHTML = '';
         const teamManagers = db.users.filter(user => (user.role === 'Manager' || user.role === 'Admin') && user.status === 'Active');
 
-        if (teamManagers.length === 0) {
-            adminTeamsContainer.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--text-muted); background: rgba(255,255,255,0.02); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">No team managers or admins found in the company.</div>`;
-        }
-
+        let activeCompanyTeamsCount = 0;
         teamManagers.forEach(manager => {
             const mgrInitials = getInitials(manager.name);
             const teamEmployees = db.users.filter(u => (u.role !== 'Admin') && (u.managerId === manager.id || u.managerId === manager.name || u.managerId === manager.email) && u.status === 'Active');
 
+            if (teamEmployees.length === 0) return; // Only show managers with assigned active members
+            activeCompanyTeamsCount++;
+
             let membersHTML = '';
-            if (teamEmployees.length === 0) {
-                membersHTML = `<div style="color: var(--text-muted); font-size: 12px; font-style: italic; text-align: center; padding: 15px 0;">No team members assigned</div>`;
-            } else {
-                teamEmployees.forEach(emp => {
-                    const empInitials = getInitials(emp.name);
-                    const statusClass = emp.status === 'Active' ? 'active' : 'inactive';
-                    membersHTML += `
-                        <div class="team-member-item" style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                            <div class="team-member-left">
-                                <div class="team-member-avatar" style="background: var(--primary); color: #fff; width: 24px; height: 24px; font-size: 10px;">${empInitials}</div>
-                                <div class="team-member-info">
-                                    <span class="team-member-name" style="font-size: 12px;">${emp.name}</span>
-                                </div>
+            teamEmployees.forEach(emp => {
+                const empInitials = getInitials(emp.name);
+                const statusClass = emp.status === 'Active' ? 'active' : 'inactive';
+                membersHTML += `
+                    <div class="team-member-item" style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <div class="team-member-left">
+                            <div class="team-member-avatar" style="background: var(--primary); color: #fff; width: 24px; height: 24px; font-size: 10px;">${empInitials}</div>
+                            <div class="team-member-info">
+                                <span class="team-member-name" style="font-size: 12px;">${emp.name}</span>
                             </div>
                         </div>
-                    `;
-                });
-            }
+                    </div>
+                `;
+            });
 
             adminTeamsContainer.innerHTML += `
                 <div class="team-card bg-glass" style="padding: 1rem; gap: 0.75rem;">
                     <div class="team-leader" style="padding-bottom: 0.75rem;">
                         <div class="avatar" style="width: 32px; height: 32px; font-size: 12px;">${mgrInitials}</div>
-                        <div class="team-leader-info">
-                            <h4 style="font-size: 13px;">${manager.name}</h4>
+                        <div class="team-leader-info" style="flex: 1;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                                <h4 style="font-size: 13px; margin: 0;">${manager.name}</h4>
+                                <span style="font-size: 10px; font-weight: 700; background: rgba(95, 59, 246, 0.15); color: var(--primary); padding: 2px 6px; border-radius: 8px;">${teamEmployees.length} ${teamEmployees.length === 1 ? 'Member' : 'Members'}</span>
+                            </div>
                             <span style="font-size: 10px;">${manager.role}</span>
                         </div>
                     </div>
@@ -1492,6 +1491,10 @@ function renderAdminDashboard() {
                 </div>
             `;
         });
+
+        if (activeCompanyTeamsCount === 0) {
+            adminTeamsContainer.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--text-muted); background: rgba(255,255,255,0.02); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">No active teams with assigned members found.</div>`;
+        }
     }
 }
 
@@ -1548,42 +1551,41 @@ function renderAdminEmployeesTab() {
         teamsContainer.innerHTML = '';
         const managers = db.users.filter(user => (user.role === 'Manager' || user.role === 'Admin') && user.status === 'Active');
 
-        if (managers.length === 0) {
-            teamsContainer.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-muted); background: var(--bg-card); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">No team managers or admins found. Create a Manager to build a team.</div>`;
-        }
-
+        let activeTeamsCount = 0;
         managers.forEach(manager => {
             const mgrInitials = getInitials(manager.name);
             const teamEmployees = db.users.filter(u => (u.role !== 'Admin') && (u.managerId === manager.id || u.managerId === manager.name || u.managerId === manager.email) && u.status === 'Active');
 
+            if (teamEmployees.length === 0) return; // Only show cards for managers who have active team members
+            activeTeamsCount++;
+
             let membersHTML = '';
-            if (teamEmployees.length === 0) {
-                membersHTML = `<div style="color: var(--text-muted); font-size: 12px; font-style: italic; text-align: center; padding: 15px 0;">No team members assigned</div>`;
-            } else {
-                teamEmployees.forEach(emp => {
-                    const empInitials = getInitials(emp.name);
-                    const statusClass = emp.status === 'Active' ? 'active' : 'inactive';
-                    membersHTML += `
-                        <div class="team-member-item">
-                            <div class="team-member-left">
-                                <div class="team-member-avatar" style="background: var(--primary); color: #fff;">${empInitials}</div>
-                                <div class="team-member-info">
-                                    <span class="team-member-name">${emp.name}</span>
-                                    <span class="team-member-email">${emp.email}</span>
-                                </div>
+            teamEmployees.forEach(emp => {
+                const empInitials = getInitials(emp.name);
+                const statusClass = emp.status === 'Active' ? 'active' : 'inactive';
+                membersHTML += `
+                    <div class="team-member-item">
+                        <div class="team-member-left">
+                            <div class="team-member-avatar" style="background: var(--primary); color: #fff;">${empInitials}</div>
+                            <div class="team-member-info">
+                                <span class="team-member-name">${emp.name}</span>
+                                <span class="team-member-email">${emp.email}</span>
                             </div>
-                            <span class="team-member-status ${statusClass}">${emp.status}</span>
                         </div>
-                    `;
-                });
-            }
+                        <span class="team-member-status ${statusClass}">${emp.status}</span>
+                    </div>
+                `;
+            });
 
             teamsContainer.innerHTML += `
                 <div class="team-card bg-glass">
                     <div class="team-leader">
                         <div class="avatar">${mgrInitials}</div>
-                        <div class="team-leader-info">
-                            <h4>${manager.name}</h4>
+                        <div class="team-leader-info" style="flex: 1;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                                <h4 style="margin: 0;">${manager.name}</h4>
+                                <span style="font-size: 11px; font-weight: 700; background: rgba(95, 59, 246, 0.15); color: var(--primary); padding: 2px 8px; border-radius: 10px;">${teamEmployees.length} ${teamEmployees.length === 1 ? 'Member' : 'Members'}</span>
+                            </div>
                             <span>Team Lead / Manager</span>
                         </div>
                     </div>
@@ -1593,6 +1595,10 @@ function renderAdminEmployeesTab() {
                 </div>
             `;
         });
+
+        if (activeTeamsCount === 0) {
+            teamsContainer.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-muted); background: var(--bg-card); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">No active teams with assigned members found. Assign employees to a Manager to view teams here.</div>`;
+        }
 
         // Unassigned employees are intentionally hidden from Teams view
         // They appear in the Employees tab with no manager label

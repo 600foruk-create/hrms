@@ -2507,21 +2507,15 @@ body.light-mode .btn-sub-tab:hover {
     box-shadow: 0 8px 24px rgba(95, 59, 246, 0.15);
     border-color: rgba(95, 59, 246, 0.3);
 }
-.team-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-    background: linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%);
-}
 .team-leader {
     display: flex;
     align-items: center;
     gap: 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid var(--border-color);
     padding-bottom: 12px;
+}
+body.light-mode .team-leader {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
 }
 .team-leader .avatar {
     width: 40px;
