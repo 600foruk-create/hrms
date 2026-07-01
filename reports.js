@@ -62,7 +62,7 @@ window.initAdminReportsTab = function() {
     const activeUser = window.currentUser || JSON.parse(localStorage.getItem('current_user'));
     
     // Fill Employee Selects (for Admin)
-    const empSelectsAdmin = ['admin-rep-att-emp', 'admin-rep-leave-emp', 'admin-rep-pay-emp', 'admin-rep-prod-emp'];
+    const empSelectsAdmin = ['admin-rep-att-emp', 'admin-rep-leave-emp', 'admin-rep-pay-emp', 'admin-rep-prod-emp', 'admin-rep-loan-emp'];
     const employees = db.users; // Show all users including managers and admins
     empSelectsAdmin.forEach(id => {
         const el = document.getElementById(id);
@@ -131,7 +131,7 @@ window.initManagerReportsTab = function() {
     if (activeUser && activeUser.role === 'Manager') {
         const teamMembers = db.users.filter(u => u.managerId === activeUser.id || u.managerId === activeUser.name || u.managerId === activeUser.email);
         const team = [activeUser, ...teamMembers];
-        const mgrSelects = ['mgr-rep-att-emp', 'mgr-rep-leave-emp', 'mgr-rep-prod-emp'];
+        const mgrSelects = ['mgr-rep-att-emp', 'mgr-rep-leave-emp', 'mgr-rep-prod-emp', 'mgr-rep-loan-emp'];
         mgrSelects.forEach(id => {
             const el = document.getElementById(id);
             if(el) {
@@ -159,6 +159,7 @@ window.generateAdminReport = function(type) {
     else if (type === 'payroll') generateAdminPayrollReport(db);
     else if (type === 'productivity') generateAdminProductivityReport(db);
     else if (type === 'assets') generateAdminAssetsReport(db);
+    else if (type === 'loans') generateAdminLoansReport(db);
 };
 
 window.generateManagerReport = function(type) {
@@ -173,6 +174,7 @@ window.generateManagerReport = function(type) {
     else if (type === 'attendance') generateMgrAttendanceReport(db, teamIds);
     else if (type === 'leave') generateMgrLeaveReport(db, teamIds);
     else if (type === 'productivity') generateMgrProductivityReport(db, teamIds);
+    else if (type === 'loans') generateMgrLoansReport(db, teamIds);
 };
 
 function generateAdminEmployeesReport(db) {
@@ -400,6 +402,57 @@ function generateAdminAssetsReport(db) {
     document.getElementById('print-subtitle-admin-assets').innerText = 'Category: ' + cat + ' | Status: ' + status + ' | Total: ' + logs.length;
 }
 
+function generateAdminLoansReport(db) {
+    const emp = document.getElementById('admin-rep-loan-emp').value;
+    const status = document.getElementById('admin-rep-loan-status').value;
+
+    let loans = db.loans || [];
+    let filtered = loans.filter(l => {
+        if (emp !== 'All' && String(l.userId) !== String(emp)) return false;
+        const isCleared = (parseFloat(l.remainingAmount) || 0) <= 0;
+        const currentStatus = isCleared ? 'Cleared' : 'Active';
+        if (status !== 'All' && currentStatus !== status) return false;
+        return true;
+    });
+
+    const tbody = document.getElementById('admin-rep-body-loans');
+    tbody.innerHTML = '';
+
+    let totalIssued = 0;
+    let totalEmi = 0;
+    let totalRemaining = 0;
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No loan records found</td></tr>';
+    } else {
+        filtered.forEach(l => {
+            const u = db.users.find(user => user.id === l.userId);
+            const uname = u ? u.name : 'Unknown Employee';
+            const tot = parseFloat(l.totalAmount) || 0;
+            const emi = parseFloat(l.monthlyInstallment) || 0;
+            const rem = parseFloat(l.remainingAmount) || 0;
+            const isCleared = rem <= 0;
+            const statusBadge = isCleared ? '<span class="status-badge status-approved">Cleared</span>' : '<span class="status-badge status-pending">Active</span>';
+            const issueDate = l.issuedAt ? l.issuedAt.split('T')[0] : '-';
+
+            totalIssued += tot;
+            totalEmi += emi;
+            totalRemaining += rem;
+
+            tbody.innerHTML += `<tr><td>${l.id || '-'}</td><td><strong>${uname}</strong><br><span class="text-secondary" style="font-size:11px">${l.userId}</span></td><td>${l.type || '-'}</td><td>Rs ${tot.toLocaleString()}</td><td>Rs ${emi.toLocaleString()}</td><td class="bold ${rem > 0 ? 'text-danger' : 'text-success'}">Rs ${rem.toLocaleString()}</td><td>${statusBadge}</td><td>${issueDate}</td></tr>`;
+        });
+    }
+
+    const elIssued = document.getElementById('admin-rep-loans-total-issued');
+    const elEmi = document.getElementById('admin-rep-loans-total-emi');
+    const elRem = document.getElementById('admin-rep-loans-total-remaining');
+    if (elIssued) elIssued.innerText = 'Rs ' + totalIssued.toLocaleString();
+    if (elEmi) elEmi.innerText = 'Rs ' + totalEmi.toLocaleString();
+    if (elRem) elRem.innerText = 'Rs ' + totalRemaining.toLocaleString();
+
+    document.getElementById('print-subtitle-admin-loans').innerText = 'Employee Filter: ' + (emp === 'All' ? 'All Employees' : emp) + ' | Status: ' + status + ' | Total Records: ' + filtered.length;
+}
+
 // Manager functions
 function generateMgrEmployeesReport(db, teamIds) {
     const status = document.getElementById('mgr-rep-emp-status').value;
@@ -517,6 +570,58 @@ function generateMgrProductivityReport(db, teamIds) {
     document.getElementById('print-subtitle-manager-productivity').innerText = 'Date Range: ' + start + ' to ' + end;
 }
 
+function generateMgrLoansReport(db, teamIds) {
+    const emp = document.getElementById('mgr-rep-loan-emp').value;
+    const status = document.getElementById('mgr-rep-loan-status').value;
+
+    let loans = db.loans || [];
+    let filtered = loans.filter(l => {
+        if (!teamIds.includes(l.userId)) return false;
+        if (emp !== 'All' && String(l.userId) !== String(emp)) return false;
+        const isCleared = (parseFloat(l.remainingAmount) || 0) <= 0;
+        const currentStatus = isCleared ? 'Cleared' : 'Active';
+        if (status !== 'All' && currentStatus !== status) return false;
+        return true;
+    });
+
+    const tbody = document.getElementById('mgr-rep-body-loans');
+    tbody.innerHTML = '';
+
+    let totalIssued = 0;
+    let totalEmi = 0;
+    let totalRemaining = 0;
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No loan records found</td></tr>';
+    } else {
+        filtered.forEach(l => {
+            const u = db.users.find(user => user.id === l.userId);
+            const uname = u ? u.name : 'Unknown Employee';
+            const tot = parseFloat(l.totalAmount) || 0;
+            const emi = parseFloat(l.monthlyInstallment) || 0;
+            const rem = parseFloat(l.remainingAmount) || 0;
+            const isCleared = rem <= 0;
+            const statusBadge = isCleared ? '<span class="status-badge status-approved">Cleared</span>' : '<span class="status-badge status-pending">Active</span>';
+            const issueDate = l.issuedAt ? l.issuedAt.split('T')[0] : '-';
+
+            totalIssued += tot;
+            totalEmi += emi;
+            totalRemaining += rem;
+
+            tbody.innerHTML += `<tr><td>${l.id || '-'}</td><td><strong>${uname}</strong><br><span class="text-secondary" style="font-size:11px">${l.userId}</span></td><td>${l.type || '-'}</td><td>Rs ${tot.toLocaleString()}</td><td>Rs ${emi.toLocaleString()}</td><td class="bold ${rem > 0 ? 'text-danger' : 'text-success'}">Rs ${rem.toLocaleString()}</td><td>${statusBadge}</td><td>${issueDate}</td></tr>`;
+        });
+    }
+
+    const elIssued = document.getElementById('mgr-rep-loans-total-issued');
+    const elEmi = document.getElementById('mgr-rep-loans-total-emi');
+    const elRem = document.getElementById('mgr-rep-loans-total-remaining');
+    if (elIssued) elIssued.innerText = 'Rs ' + totalIssued.toLocaleString();
+    if (elEmi) elEmi.innerText = 'Rs ' + totalEmi.toLocaleString();
+    if (elRem) elRem.innerText = 'Rs ' + totalRemaining.toLocaleString();
+
+    document.getElementById('print-subtitle-manager-loans').innerText = 'Team Filter: ' + (emp === 'All' ? 'All Team Members' : emp) + ' | Status: ' + status + ' | Records: ' + filtered.length;
+}
+
 // Employee functions
 window.initEmployeeReportsTab = function() {
     const end = new Date();
@@ -556,6 +661,7 @@ window.generateEmployeeReport = function(type) {
     if (type === 'attendance') generateEmpAttendanceReport(db, empId);
     else if (type === 'leave') generateEmpLeaveReport(db, empId);
     else if (type === 'productivity') generateEmpProductivityReport(db, empId);
+    else if (type === 'loans') generateEmpLoansReport(db, empId);
 };
 
 function generateEmpAttendanceReport(db, empId) {
@@ -643,4 +749,52 @@ function generateEmpProductivityReport(db, empId) {
         });
     }
     document.getElementById('print-subtitle-employee-productivity').innerText = 'Date Range: ' + start + ' to ' + end;
+}
+
+function generateEmpLoansReport(db, empId) {
+    const status = document.getElementById('emp-rep-loan-status').value;
+
+    let loans = db.loans || [];
+    let filtered = loans.filter(l => {
+        if (l.userId !== empId) return false;
+        const isCleared = (parseFloat(l.remainingAmount) || 0) <= 0;
+        const currentStatus = isCleared ? 'Cleared' : 'Active';
+        if (status !== 'All' && currentStatus !== status) return false;
+        return true;
+    });
+
+    const tbody = document.getElementById('emp-rep-body-loans');
+    tbody.innerHTML = '';
+
+    let totalIssued = 0;
+    let totalEmi = 0;
+    let totalRemaining = 0;
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No loan records found</td></tr>';
+    } else {
+        filtered.forEach(l => {
+            const tot = parseFloat(l.totalAmount) || 0;
+            const emi = parseFloat(l.monthlyInstallment) || 0;
+            const rem = parseFloat(l.remainingAmount) || 0;
+            const isCleared = rem <= 0;
+            const statusBadge = isCleared ? '<span class="status-badge status-approved">Cleared</span>' : '<span class="status-badge status-pending">Active</span>';
+            const issueDate = l.issuedAt ? l.issuedAt.split('T')[0] : '-';
+
+            totalIssued += tot;
+            totalEmi += emi;
+            totalRemaining += rem;
+
+            tbody.innerHTML += `<tr><td>${l.id || '-'}</td><td>${l.type || '-'}</td><td>Rs ${tot.toLocaleString()}</td><td>Rs ${emi.toLocaleString()}</td><td class="bold ${rem > 0 ? 'text-danger' : 'text-success'}">Rs ${rem.toLocaleString()}</td><td>${statusBadge}</td><td>${issueDate}</td></tr>`;
+        });
+    }
+
+    const elIssued = document.getElementById('emp-rep-loans-total-issued');
+    const elEmi = document.getElementById('emp-rep-loans-total-emi');
+    const elRem = document.getElementById('emp-rep-loans-total-remaining');
+    if (elIssued) elIssued.innerText = 'Rs ' + totalIssued.toLocaleString();
+    if (elEmi) elEmi.innerText = 'Rs ' + totalEmi.toLocaleString();
+    if (elRem) elRem.innerText = 'Rs ' + totalRemaining.toLocaleString();
+
+    document.getElementById('print-subtitle-employee-loans').innerText = 'Status: ' + status + ' | Records: ' + filtered.length;
 }
