@@ -15,6 +15,7 @@ window.renderAdminReportsTab = function(tabId) {
 
     const activeBtn = document.querySelector('#admin-tab-reports .btn-sub-tab[data-subtab=\"admin-report-' + tabId + '\"]');
     if (activeBtn) activeBtn.classList.add('active');
+    if (window.generateAdminReport) window.generateAdminReport(tabId);
 };
 
 // Manager Reports Tab Switcher
@@ -30,6 +31,7 @@ window.renderManagerReportsTab = function(tabId) {
 
     const activeBtn = document.querySelector('#manager-tab-reports .btn-sub-tab[data-subtab=\"manager-report-' + tabId + '\"]');
     if (activeBtn) activeBtn.classList.add('active');
+    if (window.generateManagerReport) window.generateManagerReport(tabId);
 };
 
 // Unified Print Function
