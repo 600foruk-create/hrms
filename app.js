@@ -8998,7 +8998,12 @@ window.sendWhatsAppMessage = async function(phone, message) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phone: phone, message: message })
         });
-        return await response.json();
+        const textResponse = await response.text();
+        try {
+            return JSON.parse(textResponse);
+        } catch (e) {
+            return { status: 'error', message: 'Server response error: ' + textResponse.substring(0, 150) };
+        }
     } catch (err) {
         console.error("WhatsApp Dispatch Error:", err);
         return { status: 'error', message: err.message || 'Network error' };

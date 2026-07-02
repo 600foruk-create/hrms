@@ -723,6 +723,9 @@ if ($action === 'send_whatsapp') {
 
     // Clean phone number (remove non-digits except +)
     $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
+    if (preg_match('/^03[0-9]{9}$/', $cleanPhone)) {
+        $cleanPhone = '92' . substr($cleanPhone, 1);
+    }
 
     $url = '';
     $token = '';
@@ -759,9 +762,26 @@ if ($action === 'send_whatsapp') {
         exit;
     }
 
+    // Clean and normalize URL
+    $url = trim($url);
+    if (!empty($url) && !preg_match('/^https?:\/\//i', $url)) {
+        $url = 'https://' . $url;
+    }
+
     // Replace placeholders if URL contains them
     if (strpos($url, '{instanceId}') !== false || strpos($url, '{instance_id}') !== false) {
         $url = str_replace(['{instanceId}', '{instance_id}'], $instanceId, $url);
+    }
+
+    // Normalize UltraMsg URLs
+    if (stripos($url, 'ultramsg.com') !== false) {
+        $url = rtrim($url, '/');
+        if (!empty($instanceId) && stripos($url, $instanceId) === false && stripos($url, 'instance') === false) {
+            $url .= '/' . (stripos($instanceId, 'instance') === 0 ? $instanceId : 'instance' . $instanceId);
+        }
+        if (stripos($url, '/messages/chat') === false) {
+            $url .= '/messages/chat';
+        }
     }
 
     $payload = [
