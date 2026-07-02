@@ -2534,6 +2534,18 @@ window.executeShiftRotationLogic = function(db, cycleType, strategy = 'employees
     const N = rotShifts.length;
     if (N < 2) return;
 
+    // Snapshot user previous shift state before rotation
+    const userOldStates = new Map();
+    (db.users || []).forEach(u => {
+        if (u.role === 'Admin' || u.status === 'Inactive') return;
+        const oldCard = (db.shifts || []).find(s => s.id === u.shiftId) || { name: 'General Shift', start: u.dutyFrom || '09:00', end: u.dutyTo || '17:00' };
+        userOldStates.set(u.id, {
+            oldShiftName: oldCard.name || 'General Shift',
+            oldFrom: u.dutyFrom || oldCard.start || 'N/A',
+            oldTo: u.dutyTo || oldCard.end || 'N/A'
+        });
+    });
+
     if (strategy === 'employees') {
         const origUserShifts = new Map((db.users || []).map(u => [u.id, u.shiftId || 'shift_general']));
         const shiftIndexMap = new Map(rotShifts.map((s, idx) => [s.id, idx]));
@@ -2603,7 +2615,17 @@ window.executeShiftRotationLogic = function(db, cycleType, strategy = 'employees
     (db.users || []).forEach(u => {
         if (u.role === 'Admin' || u.status === 'Inactive') return;
         const shiftCard = (db.shifts || []).find(s => s.id === u.shiftId) || { name: 'General Shift' };
-        const msg = `Hello ${u.name}, your shift schedule has been rotated/updated. New Assigned Shift: ${shiftCard.name} (${u.dutyFrom} - ${u.dutyTo}).`;
+        const oldInfo = userOldStates.get(u.id) || { oldShiftName: 'Previous Shift', oldFrom: 'N/A', oldTo: 'N/A' };
+        
+        const msg = `Hello ${u.name},\n\n` +
+                    `Your shift schedule has been rotated by the system.\n\n` +
+                    `*Previous Shift Details:*\n` +
+                    `• Shift Name: ${oldInfo.oldShiftName}\n` +
+                    `• Timing: ${oldInfo.oldFrom} to ${oldInfo.oldTo}\n\n` +
+                    `*New Assigned Shift:*\n` +
+                    `• Shift Name: ${shiftCard.name}\n` +
+                    `• Timing: ${u.dutyFrom} to ${u.dutyTo}\n\n` +
+                    `Please ensure your attendance complies with your updated schedule.`;
 
         if (notifs.dbNotif) {
             if (typeof addNotification === 'function') {
