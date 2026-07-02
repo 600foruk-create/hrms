@@ -2610,13 +2610,21 @@ window.executeShiftRotationLogic = function(db, cycleType, strategy = 'employees
                 addNotification(u.id, msg, false);
             }
             if (!db.announcements) db.announcements = [];
+            const nowIso = new Date().toISOString();
             db.announcements.unshift({
-                id: "A_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
+                id: "ANN_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
                 title: "Shift Schedule Changed",
+                message: msg,
                 content: msg,
-                target: "User: " + u.id,
-                date: todayStr,
-                author: "System Auto-Pilot"
+                target_audience: `Shift: ${shiftCard.name} (${u.name})`,
+                target: `User: ${u.id}`,
+                created_by: "System Auto-Pilot",
+                author: "System Auto-Pilot",
+                created_at: nowIso,
+                date: nowIso.split('T')[0],
+                read_by: [],
+                hidden_by: [],
+                reactions: {}
             });
         }
         if (notifs.whatsapp) {
@@ -2894,25 +2902,34 @@ function renderAdminAnnouncementsTab() {
     tbody.innerHTML = '';
     
     const visibleAnnouncements = (db.announcements || []).filter(a => !(a.hidden_by && a.hidden_by.includes(currentUser.id)));
-    const sortedAnnouncements = [...visibleAnnouncements].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    const sortedAnnouncements = [...visibleAnnouncements].sort((a, b) => {
+        const dateA = new Date(a.created_at || a.date || 0);
+        const dateB = new Date(b.created_at || b.date || 0);
+        return dateB - dateA;
+    });
 
     if (sortedAnnouncements.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted" style="padding:20px;">No company announcements found. Create one above.</td></tr>`;
     } else {
         sortedAnnouncements.forEach(ann => {
-            const dateStr = new Date(ann.created_at).toLocaleString();
-            let displayAudience = ann.target_audience;
+            const rawDate = ann.created_at || ann.date || new Date().toISOString();
+            const dateObj = new Date(rawDate);
+            const dateStr = isNaN(dateObj.getTime()) ? rawDate : dateObj.toLocaleString();
+            
+            let displayAudience = ann.target_audience || ann.target || 'All';
             if (displayAudience.startsWith('User: ')) {
                 const userId = displayAudience.split('User: ')[1];
                 const u = db.users.find(x => x.id === userId);
                 if (u) displayAudience = `${u.name}`;
             }
 
+            const displayMsg = ann.message || ann.content || '';
+
             tbody.innerHTML += `
                 <tr>
                     <td>${dateStr}</td>
                     <td class="bold text-primary" style="word-break: break-word; white-space: pre-wrap;">${ann.title}</td>
-                    <td style="word-break: break-word; white-space: pre-wrap; min-width: 200px;">${ann.message}</td>
+                    <td style="word-break: break-word; white-space: pre-wrap; min-width: 200px;">${displayMsg}</td>
                     <td><span class="badge-role" style="background:var(--primary-light); color:var(--primary);">${displayAudience}</span></td>
                     <td style="text-align:right;">
                         <button class="btn btn-sm btn-outline text-primary" onclick="viewAnnouncementReactions('${ann.id}')" title="View Reactions"><i class="fa-solid fa-face-smile"></i></button>
@@ -2968,7 +2985,11 @@ window.renderUserAnnouncementsTab = function(subtab = 'today') {
         }
     }
 
-    const sortedAnns = relevantAnns.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    const sortedAnns = relevantAnns.sort((a, b) => {
+        const dateA = new Date(a.created_at || a.date || 0);
+        const dateB = new Date(b.created_at || b.date || 0);
+        return dateB - dateA;
+    });
 
     if (sortedAnns.length === 0) {
         container.innerHTML = `<div class="empty-state" style="text-align:center; padding: 40px; grid-column: 1 / -1;">
@@ -2978,7 +2999,10 @@ window.renderUserAnnouncementsTab = function(subtab = 'today') {
         </div>`;
     } else {
         sortedAnns.forEach(ann => {
-            const dateStr = new Date(ann.created_at).toLocaleString();
+            const rawDate = ann.created_at || ann.date || new Date().toISOString();
+            const dateObj = new Date(rawDate);
+            const dateStr = isNaN(dateObj.getTime()) ? rawDate : dateObj.toLocaleString();
+            const authorName = ann.created_by || ann.author || "Admin";
             
             // Render reactions
             const myReaction = (ann.reactions && ann.reactions[currentUser.id]) ? ann.reactions[currentUser.id] : null;
@@ -3000,13 +3024,13 @@ window.renderUserAnnouncementsTab = function(subtab = 'today') {
                                 <div>
                                     <h3 style="margin:0; color:var(--text-primary); font-weight:700; font-size: 15px;">${ann.title}</h3>
                                     <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">
-                                        <strong>${ann.created_by}</strong> &bull; ${dateStr}
+                                        <strong>${authorName}</strong> &bull; ${dateStr}
                                     </div>
                                 </div>
                             </div>
                             <button class="btn-action-circle text-muted" onclick="hideAnnouncement('${ann.id}')" title="Hide Announcement" style="background:var(--bg-card); width: 28px; height: 28px; font-size: 12px;"><i class="fa-solid fa-xmark"></i></button>
                         </div>
-                        <p style="margin:0; margin-bottom: 10px; color:var(--text-primary); line-height:1.4; font-size: 13.5px; white-space:pre-wrap; word-break: break-word;">${ann.message}</p>
+                        <p style="margin:0; margin-bottom: 10px; color:var(--text-primary); line-height:1.4; font-size: 13.5px; white-space:pre-wrap; word-break: break-word;">${ann.message || ann.content || ''}</p>
                         
                         <div style="display:flex; align-items:center; gap: 8px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px;">
                             <button class="btn btn-sm ${myReaction === 'like' ? 'btn-primary' : 'btn-outline'}" onclick="reactToAnnouncement('${ann.id}', 'like')" style="border-radius: 20px; display:flex; align-items:center; gap:5px;">
@@ -5606,15 +5630,21 @@ document.getElementById('announcement-form').addEventListener('submit', (e) => {
         return;
     }
 
-    const today = new Date().toISOString().split('T')[0];
-
+    const nowIso = new Date().toISOString();
     const newAnn = {
-        id: "A_" + Date.now(),
-        title,
-        content,
-        target,
-        date: today,
-        author: currentUser.name
+        id: "ANN_" + Date.now(),
+        title: title,
+        message: content,
+        content: content,
+        target_audience: target,
+        target: target,
+        created_by: currentUser?.name || "Admin",
+        author: currentUser?.name || "Admin",
+        created_at: nowIso,
+        date: nowIso.split('T')[0],
+        read_by: [],
+        hidden_by: [],
+        reactions: {}
     };
 
     db.announcements.unshift(newAnn);
@@ -5721,55 +5751,66 @@ window.createAnnouncement = function() {
         }
     }
 
-    // Process Internal Database
-    if (channel === 'System' || channel === 'All') {
-        if (includeCreds && targetUsers.length > 1) {
-            // If broadcasting credentials to multiple users in DB, create individual rows to prevent sharing passwords
-            targetUsers.forEach((u, idx) => {
-                let personalizedMsg = messageBase;
-                personalizedMsg += `\n\n--- Login Credentials ---\nEmail: ${u.email}\nPassword: ${u.password}`;
-                
-                const newAnn = {
-                    id: 'ANN-' + Date.now() + '-' + idx,
-                    title: title,
-                    message: personalizedMsg,
-                    target_audience: `User: ${u.id}`,
-                    created_by: currentUser.name || "Admin",
-                    created_at: new Date().toISOString(),
-                    read_by: [],
-                    hidden_by: [],
-                    reactions: {}
-                };
-                db.announcements.push(newAnn);
-                addNotification(u.id, `New Direct Announcement: "${title}"`, false);
-            });
-            dbAnnouncementsCreated = true;
-        } else {
-            // Standard shared announcement (or single targeted)
-            let finalMsg = messageBase;
-            if (includeCreds && targetUsers.length === 1) {
-                const u = targetUsers[0];
-                finalMsg += `\n\n--- Login Credentials ---\nEmail: ${u.email}\nPassword: ${u.password}`;
-            }
+    // Always record in Internal Database Announcements list for Admin tracking
+    const audienceTag = (channel && channel !== 'System') ? `${audience} [via ${channel}]` : audience;
+    const nowIso = new Date().toISOString();
+
+    if (includeCreds && targetUsers.length > 1) {
+        targetUsers.forEach((u, idx) => {
+            let personalizedMsg = messageBase;
+            personalizedMsg += `\n\n--- Login Credentials ---\nEmail: ${u.email}\nPassword: ${u.password}`;
             
             const newAnn = {
-                id: 'ANN-' + Date.now(),
+                id: 'ANN-' + Date.now() + '-' + idx,
                 title: title,
-                message: finalMsg,
-                target_audience: audience,
+                message: personalizedMsg,
+                content: personalizedMsg,
+                target_audience: `User: ${u.name || u.id}` + ((channel && channel !== 'System') ? ` [via ${channel}]` : ''),
+                target: `User: ${u.id}`,
                 created_by: currentUser.name || "Admin",
-                created_at: new Date().toISOString(),
+                author: currentUser.name || "Admin",
+                created_at: nowIso,
+                date: nowIso.split('T')[0],
                 read_by: [],
                 hidden_by: [],
                 reactions: {}
             };
             db.announcements.push(newAnn);
-            
+            if (channel === 'System' || channel === 'All') {
+                addNotification(u.id, `New Direct Announcement: "${title}"`, false);
+            }
+        });
+        dbAnnouncementsCreated = true;
+    } else {
+        let finalMsg = messageBase;
+        if (includeCreds && targetUsers.length === 1) {
+            const u = targetUsers[0];
+            finalMsg += `\n\n--- Login Credentials ---\nEmail: ${u.email}\nPassword: ${u.password}`;
+        }
+        
+        const newAnn = {
+            id: 'ANN-' + Date.now(),
+            title: title,
+            message: finalMsg,
+            content: finalMsg,
+            target_audience: audienceTag,
+            target: audience,
+            created_by: currentUser.name || "Admin",
+            author: currentUser.name || "Admin",
+            created_at: nowIso,
+            date: nowIso.split('T')[0],
+            read_by: [],
+            hidden_by: [],
+            reactions: {}
+        };
+        db.announcements.push(newAnn);
+        
+        if (channel === 'System' || channel === 'All') {
             targetUsers.forEach(u => {
                 addNotification(u.id, `New Announcement: "${title}"`, false);
             });
-            dbAnnouncementsCreated = true;
         }
+        dbAnnouncementsCreated = true;
     }
 
     if (dbAnnouncementsCreated) {
