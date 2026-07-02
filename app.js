@@ -6079,11 +6079,11 @@ document.addEventListener('click', async (e) => {
         }
 
         tbody.innerHTML = machines.map((m, idx) => {
-            let statusHtml = `<span class="badge" style="display: inline-block; font-size: 11px; padding: 4px 10px; font-weight: 600; background: rgba(0,0,0,0.06); color: #666; border-radius: 4px;"><i class="fa-solid fa-circle-question"></i> Untested</span>`;
+            let statusHtml = `<span style="display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 4px 10px; font-weight: 600; background: rgba(0,0,0,0.06); color: #666; border-radius: 4px;"><i class="fa-solid fa-circle-question"></i> Untested</span>`;
             if (m.status === 'Online') {
-                statusHtml = `<span class="badge" style="display: inline-block; font-size: 11px; padding: 4px 10px; font-weight: 700; background: rgba(16,185,129,0.15); color: #059669; border-radius: 4px;"><i class="fa-solid fa-circle-check"></i> Online</span>`;
+                statusHtml = `<span style="display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 4px 10px; font-weight: 700; background: rgba(16,185,129,0.15); color: #059669; border-radius: 4px;"><i class="fa-solid fa-circle-check"></i> Online</span>`;
             } else if (m.status === 'Offline') {
-                statusHtml = `<span class="badge" style="display: inline-block; font-size: 11px; padding: 4px 10px; font-weight: 700; background: rgba(220,38,38,0.15); color: #dc2626; border-radius: 4px;"><i class="fa-solid fa-circle-xmark"></i> Offline</span>`;
+                statusHtml = `<span style="display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 4px 10px; font-weight: 700; background: rgba(220,38,38,0.15); color: #dc2626; border-radius: 4px;"><i class="fa-solid fa-circle-xmark"></i> Offline</span>`;
             }
 
             return `
