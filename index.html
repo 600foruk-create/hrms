@@ -15,7 +15,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="styles.css?v=6.9.29">
+    <link rel="stylesheet" href="styles.css?v=6.9.30">
 </head>
 
 <body class="light-mode login-view">
@@ -625,8 +625,11 @@
                         <button class="dropdown-item" id="btn-view-id-card"><i class="fa-solid fa-id-badge"></i> My ID
                             Card</button>
                         <button class="dropdown-item" id="btn-toggle-2fa"><i class="fa-solid fa-shield-halved"></i>
-                            2-Step Verification <span id="2fa-status-badge" class="badge bg-secondary ms-2"
-                                style="font-size: 10px;">Off</span></button>
+                            2-Step Verification <span id="2fa-status-badge"
+                                style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(107, 114, 128, 0.15); color: #6b7280; font-weight: 600; margin-left: auto;">Off</span></button>
+                        <button class="dropdown-item" id="btn-auto-logout-config"><i class="fa-solid fa-clock-rotate-left"></i>
+                            Auto-Logout Setting <span id="auto-logout-status-badge"
+                                style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 600; margin-left: auto;">5m</span></button>
                         <hr>
                         <button class="dropdown-item text-danger" id="btn-profile-logout"><i
                                 class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>
@@ -6410,6 +6413,42 @@
             <div id="announcement-reactions-list" style="max-height: 50vh; overflow-y: auto; overflow-x: hidden; padding-right: 5px;">
                 <!-- List of users and their reactions -->
             </div>
+        </div>
+    </div>
+
+    <!-- Auto-Logout Configuration Modal -->
+    <div id="modal-auto-logout-config" class="modal hidden" style="max-width: 420px; z-index: 10005;">
+        <div class="modal-header">
+            <h3>Auto-Logout Setting</h3>
+            <div class="modal-header-controls">
+                <button class="modal-close" onclick="closeModal('modal-auto-logout-config')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        <div class="modal-body" style="padding: 24px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color, rgba(0,0,0,0.08));">
+                <div>
+                    <h4 style="margin: 0; font-size: 15px; color: var(--text-dark);">Inactivity Auto-Logout</h4>
+                    <p style="margin: 4px 0 0; font-size: 12px; color: var(--text-muted);">Automatically log out when idle or away from desk.</p>
+                </div>
+                <label class="switch" style="margin: 0;">
+                    <input type="checkbox" id="auto-logout-toggle-input" onchange="window.toggleAutoLogoutInputVisibility()">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div id="auto-logout-minutes-container" style="margin-bottom: 24px;">
+                <label for="auto-logout-minutes-input" style="font-size: 13px; font-weight: 600; color: var(--text-dark); display: block; margin-bottom: 8px;">
+                    Inactivity Timeout (Minutes)
+                </label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="number" id="auto-logout-minutes-input" class="form-control" min="1" max="240" value="5" style="width: 100%; height: 40px; font-size: 14px;">
+                </div>
+                <p style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">Specify how many minutes of inactivity before the system signs you out.</p>
+            </div>
+
+            <button type="button" class="btn btn-primary" style="width: 100%; height: 42px; font-weight: 600;" onclick="window.saveAutoLogoutSettings()">
+                <i class="fa-solid fa-check"></i> Save Settings
+            </button>
         </div>
     </div>
 

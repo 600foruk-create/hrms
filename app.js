@@ -708,10 +708,14 @@ function setupSessionTimer() {
     const resetTimer = () => {
         if (!currentUser) return;
         clearTimeout(inactivityTimeout);
+        if (currentUser.autoLogoutEnabled === false) return;
+
+        const mins = Number(currentUser.autoLogoutMinutes) || 5;
+        const limitMs = mins * 60 * 1000;
         inactivityTimeout = setTimeout(() => {
-            showToast("Session Expired", "Logged out automatically due to 5 minutes of inactivity.", "warning");
+            showToast("Session Expired", `Logged out automatically due to ${mins} minutes of inactivity.`, "warning");
             handleLogout();
-        }, INACTIVITY_LIMIT);
+        }, limitMs);
     };
 
     // User activities events
@@ -6815,12 +6819,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Update 2FA status badge
             const badge2FA = document.getElementById('2fa-status-badge');
             if (badge2FA) {
+                badge2FA.className = '';
                 if (currentUser.twoFactorEnabled) {
                     badge2FA.textContent = 'On';
-                    badge2FA.className = 'badge bg-success ms-2';
+                    badge2FA.style.cssText = 'font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 600; margin-left: auto;';
                 } else {
                     badge2FA.textContent = 'Off';
-                    badge2FA.className = 'badge bg-secondary ms-2';
+                    badge2FA.style.cssText = 'font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(107, 114, 128, 0.15); color: #6b7280; font-weight: 600; margin-left: auto;';
+                }
+            }
+            // Update Auto-Logout status badge
+            const badgeAutoLogout = document.getElementById('auto-logout-status-badge');
+            if (badgeAutoLogout) {
+                badgeAutoLogout.className = '';
+                if (currentUser.autoLogoutEnabled === false) {
+                    badgeAutoLogout.textContent = 'Off';
+                    badgeAutoLogout.style.cssText = 'font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(107, 114, 128, 0.15); color: #6b7280; font-weight: 600; margin-left: auto;';
+                } else {
+                    const mins = Number(currentUser.autoLogoutMinutes) || 5;
+                    badgeAutoLogout.textContent = mins + 'm';
+                    badgeAutoLogout.style.cssText = 'font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 600; margin-left: auto;';
                 }
             }
         });
@@ -6855,6 +6873,63 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
     });
+    safeAddListener('btn-auto-logout-config', 'click', () => {
+        if (profileMenu) profileMenu.classList.add('hidden');
+        window.openAutoLogoutConfigModal();
+    });
+
+    window.openAutoLogoutConfigModal = function() {
+        const modal = document.getElementById('modal-auto-logout-config');
+        if (!modal) return;
+        
+        const toggleEl = document.getElementById('auto-logout-toggle-input');
+        const minsEl = document.getElementById('auto-logout-minutes-input');
+        
+        const isEnabled = currentUser.autoLogoutEnabled !== false;
+        if (toggleEl) toggleEl.checked = isEnabled;
+        if (minsEl) minsEl.value = Number(currentUser.autoLogoutMinutes) || 5;
+        
+        window.toggleAutoLogoutInputVisibility();
+        modal.classList.remove('hidden');
+    };
+
+    window.toggleAutoLogoutInputVisibility = function() {
+        const toggleEl = document.getElementById('auto-logout-toggle-input');
+        const container = document.getElementById('auto-logout-minutes-container');
+        if (toggleEl && container) {
+            container.style.display = toggleEl.checked ? 'block' : 'none';
+        }
+    };
+
+    window.saveAutoLogoutSettings = function() {
+        const toggleEl = document.getElementById('auto-logout-toggle-input');
+        const minsEl = document.getElementById('auto-logout-minutes-input');
+        if (!toggleEl || !minsEl) return;
+
+        const isEnabled = toggleEl.checked;
+        let mins = parseInt(minsEl.value, 10);
+        if (isNaN(mins) || mins < 1) mins = 1;
+        if (mins > 240) mins = 240;
+
+        currentUser.autoLogoutEnabled = isEnabled;
+        currentUser.autoLogoutMinutes = mins;
+
+        const db = getDb();
+        if (db && db.users) {
+            const u = db.users.find(usr => usr.id === currentUser.id);
+            if (u) {
+                u.autoLogoutEnabled = isEnabled;
+                u.autoLogoutMinutes = mins;
+                saveDb(db);
+            }
+        }
+        localStorage.setItem('current_user', JSON.stringify(currentUser));
+
+        closeModal('modal-auto-logout-config');
+        setupSessionTimer();
+
+        showToast("Settings Saved", isEnabled ? `Auto-logout enabled after ${mins} minutes of inactivity.` : "Auto-logout disabled.", "success");
+    };
 
     // Close dropdowns on global click
     document.addEventListener('click', () => {
