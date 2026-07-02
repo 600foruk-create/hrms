@@ -34,6 +34,29 @@ window.renderManagerReportsTab = function(tabId) {
     if (window.generateManagerReport) window.generateManagerReport(tabId);
 };
 
+// Loan Report Inner Tab Switcher (Active vs Cleared vs All)
+window.switchLoanInnerTab = function(role, status) {
+    const tabs = ['Active', 'Cleared', 'All'];
+    tabs.forEach(t => {
+        const btn = document.getElementById(`${role}-loan-tab-${t}`);
+        if (btn) {
+            if (t === status) {
+                btn.className = 'btn btn-primary btn-sm loan-inner-tab active';
+            } else {
+                btn.className = 'btn btn-outline btn-sm loan-inner-tab';
+            }
+        }
+    });
+
+    const prefixMap = { 'admin': 'admin-rep-loan-status', 'mgr': 'mgr-rep-loan-status', 'emp': 'emp-rep-loan-status' };
+    const statusSelect = document.getElementById(prefixMap[role]);
+    if (statusSelect) statusSelect.value = status;
+
+    if (role === 'admin' && window.generateAdminReport) window.generateAdminReport('loans');
+    else if (role === 'mgr' && window.generateManagerReport) window.generateManagerReport('loans');
+    else if (role === 'emp' && window.generateEmployeeReport) window.generateEmployeeReport('loans');
+};
+
 // Unified Print Function
 window.printReport = function(reportId) {
     const printAreas = document.querySelectorAll('.printable-area');

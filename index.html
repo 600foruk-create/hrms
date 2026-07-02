@@ -15,7 +15,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="styles.css?v=6.9.26">
+    <link rel="stylesheet" href="styles.css?v=6.9.27">
 </head>
 
 <body class="light-mode login-view">
@@ -2861,6 +2861,19 @@
                                 </div>
                             </div>
 
+                            <!-- Inner Tabs (Active vs Cleared) -->
+                            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                                <button type="button" class="btn btn-primary btn-sm loan-inner-tab active" id="admin-loan-tab-Active" onclick="window.switchLoanInnerTab('admin', 'Active')">
+                                    <i class="fa-solid fa-clock-rotate-left"></i> Active Loans
+                                </button>
+                                <button type="button" class="btn btn-outline btn-sm loan-inner-tab" id="admin-loan-tab-Cleared" onclick="window.switchLoanInnerTab('admin', 'Cleared')">
+                                    <i class="fa-solid fa-check-circle"></i> Cleared Loans
+                                </button>
+                                <button type="button" class="btn btn-outline btn-sm loan-inner-tab" id="admin-loan-tab-All" onclick="window.switchLoanInnerTab('admin', 'All')">
+                                    <i class="fa-solid fa-list"></i> All Loans
+                                </button>
+                            </div>
+
                             <div class="section-card bg-glass flex-table-card">
                                 <div class="section-card-header report-filters-header"
                                     style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 15px;">
@@ -2871,11 +2884,11 @@
                                                 <option value="All">All Employees</option>
                                             </select>
                                         </div>
-                                        <div class="form-group" style="margin-bottom: 0;">
+                                        <div class="form-group" style="display: none;">
                                             <label>Status</label>
                                             <select id="admin-rep-loan-status" class="form-control">
-                                                <option value="All">All Statuses</option>
                                                 <option value="Active">Active</option>
+                                                <option value="All">All Statuses</option>
                                                 <option value="Cleared">Cleared</option>
                                             </select>
                                         </div>
@@ -4340,6 +4353,19 @@
                                 </div>
                             </div>
 
+                            <!-- Inner Tabs (Active vs Cleared) -->
+                            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                                <button type="button" class="btn btn-primary btn-sm loan-inner-tab active" id="mgr-loan-tab-Active" onclick="window.switchLoanInnerTab('mgr', 'Active')">
+                                    <i class="fa-solid fa-clock-rotate-left"></i> Active Loans
+                                </button>
+                                <button type="button" class="btn btn-outline btn-sm loan-inner-tab" id="mgr-loan-tab-Cleared" onclick="window.switchLoanInnerTab('mgr', 'Cleared')">
+                                    <i class="fa-solid fa-check-circle"></i> Cleared Loans
+                                </button>
+                                <button type="button" class="btn btn-outline btn-sm loan-inner-tab" id="mgr-loan-tab-All" onclick="window.switchLoanInnerTab('mgr', 'All')">
+                                    <i class="fa-solid fa-list"></i> All Loans
+                                </button>
+                            </div>
+
                             <div class="section-card bg-glass flex-table-card">
                                 <div class="section-card-header report-filters-header"
                                     style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 15px;">
@@ -4350,11 +4376,11 @@
                                                 <option value="All">All Team Members</option>
                                             </select>
                                         </div>
-                                        <div class="form-group" style="margin-bottom: 0;">
+                                        <div class="form-group" style="display: none;">
                                             <label>Status</label>
                                             <select id="mgr-rep-loan-status" class="form-control">
-                                                <option value="All">All Statuses</option>
                                                 <option value="Active">Active</option>
+                                                <option value="All">All Statuses</option>
                                                 <option value="Cleared">Cleared</option>
                                             </select>
                                         </div>
@@ -5126,15 +5152,28 @@
                                 </div>
                             </div>
 
+                            <!-- Inner Tabs (Active vs Cleared) -->
+                            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                                <button type="button" class="btn btn-primary btn-sm loan-inner-tab active" id="emp-loan-tab-Active" onclick="window.switchLoanInnerTab('emp', 'Active')">
+                                    <i class="fa-solid fa-clock-rotate-left"></i> Active Loans
+                                </button>
+                                <button type="button" class="btn btn-outline btn-sm loan-inner-tab" id="emp-loan-tab-Cleared" onclick="window.switchLoanInnerTab('emp', 'Cleared')">
+                                    <i class="fa-solid fa-check-circle"></i> Cleared Loans
+                                </button>
+                                <button type="button" class="btn btn-outline btn-sm loan-inner-tab" id="emp-loan-tab-All" onclick="window.switchLoanInnerTab('emp', 'All')">
+                                    <i class="fa-solid fa-list"></i> All Loans
+                                </button>
+                            </div>
+
                             <div class="section-card bg-glass flex-table-card">
                                 <div class="section-card-header report-filters-header"
                                     style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 15px;">
                                     <div style="display: flex; gap: 15px; flex-wrap: wrap; flex: 1;">
-                                        <div class="form-group" style="margin-bottom: 0;">
+                                        <div class="form-group" style="display: none;">
                                             <label>Status</label>
                                             <select id="emp-rep-loan-status" class="form-control">
-                                                <option value="All">All Statuses</option>
                                                 <option value="Active">Active</option>
+                                                <option value="All">All Statuses</option>
                                                 <option value="Cleared">Cleared</option>
                                             </select>
                                         </div>
