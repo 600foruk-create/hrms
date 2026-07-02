@@ -6982,9 +6982,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             const purpose = user.twoFactorEnabled ? 'disable' : 'enable';
             openOtpModal(purpose, user.email, user.id, (success) => {
                 if (success) {
-                    user.twoFactorEnabled = !user.twoFactorEnabled;
+                    user.twoFactorEnabled = (purpose === 'enable');
                     currentUser.twoFactorEnabled = user.twoFactorEnabled;
                     saveDb(db);
+                    
+                    const badge2FA = document.getElementById('2fa-status-badge');
+                    if (badge2FA) {
+                        badge2FA.className = '';
+                        if (currentUser.twoFactorEnabled) {
+                            badge2FA.textContent = 'On';
+                            badge2FA.style.cssText = 'font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 600; margin-left: auto;';
+                        } else {
+                            badge2FA.textContent = 'Off';
+                            badge2FA.style.cssText = 'font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(107, 114, 128, 0.15); color: #6b7280; font-weight: 600; margin-left: auto;';
+                        }
+                    }
+                    
                     showToast("Success", "2-Step Verification turned " + (user.twoFactorEnabled ? "ON" : "OFF"), "success");
                 }
             });
