@@ -6993,7 +6993,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     safeAddListener('btn-toggle-2fa', 'click', () => {
         if (profileMenu) profileMenu.classList.add('hidden');
         const db = getDb();
-        const user = db.users.find(u => u.id === currentUser.id);
+        const user = (db.users || []).find(u => String(u.id) === String(currentUser?.id) || u.email === currentUser?.email) || currentUser;
         if (user) {
             const purpose = user.twoFactorEnabled ? 'disable' : 'enable';
             openOtpModal(purpose, user.email, user.id, (success) => {
