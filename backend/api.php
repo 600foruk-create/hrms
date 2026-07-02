@@ -43,6 +43,7 @@ try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS `loans` (`id` varchar(50) NOT NULL, `userId` varchar(50), `type` varchar(50), `totalAmount` decimal(10,2), `monthlyInstallment` decimal(10,2), `remainingAmount` decimal(10,2), `issuedAt` varchar(50), PRIMARY KEY (`id`))");
     $pdo->exec("CREATE TABLE IF NOT EXISTS `payroll_history` (`id` varchar(50) NOT NULL, `batchId` varchar(50), `userId` varchar(50), `startDate` varchar(50), `endDate` varchar(50), `netFixed` decimal(10,2), `absencyDeduction` decimal(10,2), `loanDeduction` decimal(10,2), `bonus` decimal(10,2), `otherDeduction` decimal(10,2), `netPay` decimal(10,2), `processedAt` varchar(50), PRIMARY KEY (`id`))");
     $pdo->exec("CREATE TABLE IF NOT EXISTS `shift_management` (`id` int(11) NOT NULL AUTO_INCREMENT, `record_type` varchar(30) NOT NULL, `shift_id` varchar(50) DEFAULT NULL, `shift_name` varchar(100) DEFAULT NULL, `duty_from` varchar(20) DEFAULT NULL, `duty_to` varchar(20) DEFAULT NULL, `break_mins` int(11) DEFAULT 60, `is_flexible` tinyint(1) DEFAULT 0, `employee_id` varchar(50) DEFAULT NULL, `policy_json` text DEFAULT NULL, PRIMARY KEY (`id`))");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `otps` (`id` int(11) NOT NULL AUTO_INCREMENT, `user_email` varchar(150) NOT NULL, `otp_code` varchar(10) NOT NULL, `expires_at` int(11) NOT NULL, PRIMARY KEY (`id`))");
 } catch (Exception $e) {
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS `global_salary_settings` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `allowances` TEXT, `deductions` TEXT)");
@@ -50,6 +51,7 @@ try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS `loans` (`id` TEXT PRIMARY KEY, `userId` TEXT, `type` TEXT, `totalAmount` REAL, `monthlyInstallment` REAL, `remainingAmount` REAL, `issuedAt` TEXT)");
         $pdo->exec("CREATE TABLE IF NOT EXISTS `payroll_history` (`id` TEXT PRIMARY KEY, `batchId` TEXT, `userId` TEXT, `startDate` TEXT, `endDate` TEXT, `netFixed` REAL, `absencyDeduction` REAL, `loanDeduction` REAL, `bonus` REAL, `otherDeduction` REAL, `netPay` REAL, `processedAt` TEXT)");
         $pdo->exec("CREATE TABLE IF NOT EXISTS `shift_management` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `record_type` TEXT, `shift_id` TEXT, `shift_name` TEXT, `duty_from` TEXT, `duty_to` TEXT, `break_mins` INTEGER, `is_flexible` INTEGER, `employee_id` TEXT, `policy_json` TEXT)");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `otps` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `user_email` TEXT, `otp_code` TEXT, `expires_at` INTEGER)");
     } catch (Exception $e2) {}
 }
 

@@ -31,7 +31,8 @@ CREATE TABLE `users` (
   `profilePic` longtext DEFAULT NULL,
   `documents` longtext DEFAULT NULL,
   `bloodGroup` varchar(10) DEFAULT NULL,
-  `designation` varchar(100) DEFAULT NULL
+  `designation` varchar(100) DEFAULT NULL,
+  `twoFactorEnabled` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Dumping data for table `users`
@@ -191,6 +192,17 @@ CREATE TABLE `shift_management` (
   `is_flexible` tinyint(1) DEFAULT 0,
   `employee_id` varchar(50) DEFAULT NULL,
   `policy_json` text DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+-- Table structure for table `otps`
+CREATE TABLE `otps` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_email` varchar(150) NOT NULL,
+  `otp_code` varchar(10) NOT NULL,
+  `expires_at` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
