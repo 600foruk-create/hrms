@@ -75,6 +75,17 @@ body.light-mode {
     box-sizing: border-box;
 }
 
+/* Ensure FontAwesome icons always render with correct font-family and font-weight regardless of parent inheritance */
+i.fa, i.fa-solid, i.fa-regular, i.fa-light, i[class*="fa-"] {
+    font-family: "Font Awesome 6 Free" !important;
+    font-style: normal !important;
+    font-variant: normal !important;
+    text-rendering: auto !important;
+    line-height: 1;
+}
+i.fa-solid, i.fas { font-weight: 900 !important; }
+i.fa-regular, i.far { font-weight: 400 !important; }
+
 body {
     background-color: var(--bg-base);
     color: var(--text-primary);
