@@ -2903,9 +2903,12 @@ function renderAdminAnnouncementsTab() {
     
     const visibleAnnouncements = (db.announcements || []).filter(a => !(a.hidden_by && a.hidden_by.includes(currentUser.id)));
     const sortedAnnouncements = [...visibleAnnouncements].sort((a, b) => {
-        const dateA = new Date(a.created_at || a.date || 0);
-        const dateB = new Date(b.created_at || b.date || 0);
-        return dateB - dateA;
+        const timeA = new Date(a.created_at || a.date || 0).getTime();
+        const timeB = new Date(b.created_at || b.date || 0).getTime();
+        if (timeB !== timeA) return timeB - timeA;
+        const idTimeA = parseInt((a.id || '').replace(/[^0-9]/g, '')) || 0;
+        const idTimeB = parseInt((b.id || '').replace(/[^0-9]/g, '')) || 0;
+        return idTimeB - idTimeA;
     });
 
     if (sortedAnnouncements.length === 0) {
@@ -5775,7 +5778,7 @@ window.createAnnouncement = function() {
                 hidden_by: [],
                 reactions: {}
             };
-            db.announcements.push(newAnn);
+            db.announcements.unshift(newAnn);
             if (channel === 'System' || channel === 'All') {
                 addNotification(u.id, `New Direct Announcement: "${title}"`, false);
             }
@@ -5803,7 +5806,7 @@ window.createAnnouncement = function() {
             hidden_by: [],
             reactions: {}
         };
-        db.announcements.push(newAnn);
+        db.announcements.unshift(newAnn);
         
         if (channel === 'System' || channel === 'All') {
             targetUsers.forEach(u => {
