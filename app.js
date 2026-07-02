@@ -7002,6 +7002,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     currentUser.twoFactorEnabled = user.twoFactorEnabled;
                     localStorage.setItem('current_user', JSON.stringify(currentUser));
                     saveDb(db);
+                    if (typeof saveUserOnServer === 'function') saveUserOnServer(user);
                     
                     const badge2FA = document.getElementById('2fa-status-badge');
                     if (badge2FA) {
