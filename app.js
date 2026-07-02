@@ -506,22 +506,100 @@ window.selectOtpChannel = function(ch) {
 
 async function openOtpModal(purpose, email, userId, callback) {
     const db = typeof getDb === 'function' ? getDb() : { users: [] };
-    const userObj = (db.users || []).find(u => u.id === userId || u.email === email);
+    const userObj = (db.users || []).find(u => String(u.id) === String(userId) || u.email === email) || currentUser;
     const phone = userObj?.phone || '';
-    
+
     otpState = { purpose, email, userId, phone, channel: 'Email', callback };
-    document.getElementById('otp-input').value = '';
-    
-    // Reset UI for manual send
+
+    // Reset OTP input and send/entry sections
+    const otpInput = document.getElementById('otp-input');
+    if (otpInput) otpInput.value = '';
+    const reqBtn = document.getElementById('btn-request-otp');
+    if (reqBtn) { reqBtn.classList.remove('hidden'); reqBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send Verification Code'; reqBtn.disabled = false; }
+    const entrySection = document.getElementById('otp-entry-section');
+    if (entrySection) entrySection.classList.add('hidden');
     const msgEl = document.getElementById('otp-message');
-    msgEl.innerHTML = 'Select your preferred delivery channel and click below to receive your 6-digit verification code.';
-    document.getElementById('btn-request-otp').classList.remove('hidden');
-    document.getElementById('otp-entry-section').classList.add('hidden');
+    if (msgEl) msgEl.innerHTML = 'Select your preferred delivery channel and click below to receive your 6-digit verification code.';
     if (typeof selectOtpChannel === 'function') selectOtpChannel('Email');
-    
+
+    // Set toggle switch state based on current 2FA status
+    const toggleSwitch = document.getElementById('modal-2fa-toggle-switch');
+    const isCurrentlyEnabled = !!(userObj?.twoFactorEnabled || currentUser?.twoFactorEnabled);
+    if (toggleSwitch) toggleSwitch.checked = isCurrentlyEnabled;
+
+    // Show appropriate section
+    toggleModal2faSwitch(isCurrentlyEnabled, true); // true = init (no flip)
+
     document.getElementById('modal-otp-verification').classList.remove('hidden');
     document.getElementById('modal-backdrop').classList.remove('hidden');
 }
+
+// Toggle 2FA section visibility based on switch state
+window.toggleModal2faSwitch = function(checked, isInit) {
+    const enableSection  = document.getElementById('modal-2fa-enable-section');
+    const disableSection = document.getElementById('modal-2fa-disable-section');
+    const alreadyOnSection = document.getElementById('modal-2fa-already-on-section');
+    const isCurrentlyEnabled = !!(currentUser?.twoFactorEnabled);
+
+    if (!enableSection || !disableSection || !alreadyOnSection) return;
+
+    // Hide all first
+    enableSection.classList.add('hidden');
+    disableSection.classList.add('hidden');
+    alreadyOnSection.classList.add('hidden');
+
+    if (checked) {
+        // User toggled ON
+        if (isCurrentlyEnabled && isInit) {
+            // Already enabled — show info state
+            alreadyOnSection.classList.remove('hidden');
+        } else {
+            // Needs OTP to enable
+            enableSection.classList.remove('hidden');
+        }
+    } else {
+        // User toggled OFF
+        if (isCurrentlyEnabled) {
+            // Show disable confirmation button
+            disableSection.classList.remove('hidden');
+        } else {
+            // Was already off — nothing needed, hide all
+        }
+    }
+};
+
+// Save 2FA status directly (for disable case — no OTP needed)
+window.save2faStatusDirectly = async function(enabled) {
+    const db = typeof getDb === 'function' ? getDb() : { users: [] };
+    const user = (db.users || []).find(u => String(u.id) === String(otpState.userId) || u.email === otpState.email) || currentUser;
+    if (!user) { showToast("Error", "User not found", "error"); return; }
+
+    user.twoFactorEnabled = enabled;
+    if (currentUser) currentUser.twoFactorEnabled = enabled;
+
+    // Persist to localStorage
+    try { localStorage.setItem('current_user', JSON.stringify(currentUser)); } catch(e) {}
+
+    // Persist to db and server
+    if (typeof saveDb === 'function') saveDb(db);
+    if (typeof saveUserOnServer === 'function') saveUserOnServer(user);
+
+    // Update badge in dropdown
+    const badge2FA = document.getElementById('2fa-status-badge');
+    if (badge2FA) {
+        if (enabled) {
+            badge2FA.textContent = 'On';
+            badge2FA.style.cssText = 'font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 600; margin-left: auto;';
+        } else {
+            badge2FA.textContent = 'Off';
+            badge2FA.style.cssText = 'font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(107, 114, 128, 0.15); color: #6b7280; font-weight: 600; margin-left: auto;';
+        }
+    }
+
+    closeOtpModal();
+    showToast("Success", `2-Step Verification turned ${enabled ? 'ON' : 'OFF'}`, "success");
+};
+
 
 window.closeOtpModal = function() {
     document.getElementById('modal-otp-verification').classList.add('hidden');
@@ -6995,31 +7073,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         const db = getDb();
         const user = (db.users || []).find(u => String(u.id) === String(currentUser?.id) || u.email === currentUser?.email) || currentUser;
         if (user) {
-            const purpose = user.twoFactorEnabled ? 'disable' : 'enable';
-            openOtpModal(purpose, user.email, user.id, (success) => {
+            // Open modal — it will initialize toggle based on current twoFactorEnabled
+            // OTP callback is only triggered on successful verification (enable path)
+            openOtpModal('enable', user.email, user.id, (success) => {
                 if (success) {
-                    user.twoFactorEnabled = (purpose === 'enable');
-                    currentUser.twoFactorEnabled = user.twoFactorEnabled;
-                    localStorage.setItem('current_user', JSON.stringify(currentUser));
+                    // OTP verified → enable 2FA
+                    user.twoFactorEnabled = true;
+                    currentUser.twoFactorEnabled = true;
+                    try { localStorage.setItem('current_user', JSON.stringify(currentUser)); } catch(e) {}
                     saveDb(db);
                     if (typeof saveUserOnServer === 'function') saveUserOnServer(user);
-                    
+
                     const badge2FA = document.getElementById('2fa-status-badge');
                     if (badge2FA) {
-                        badge2FA.className = '';
-                        if (currentUser.twoFactorEnabled) {
-                            badge2FA.textContent = 'On';
-                            badge2FA.style.cssText = 'font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 600; margin-left: auto;';
-                        } else {
-                            badge2FA.textContent = 'Off';
-                            badge2FA.style.cssText = 'font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(107, 114, 128, 0.15); color: #6b7280; font-weight: 600; margin-left: auto;';
-                        }
+                        badge2FA.textContent = 'On';
+                        badge2FA.style.cssText = 'font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 600; margin-left: auto;';
                     }
-                    
-                    showToast("Success", "2-Step Verification turned " + (user.twoFactorEnabled ? "ON" : "OFF"), "success");
+                    showToast("Success", "2-Step Verification is now ON", "success");
                 }
             });
         }
+
     });
     safeAddListener('btn-auto-logout-config', 'click', () => {
         if (profileMenu) profileMenu.classList.add('hidden');

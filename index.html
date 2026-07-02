@@ -15,7 +15,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="styles.css?v=6.9.42">
+    <link rel="stylesheet" href="styles.css?v=6.9.43">
 </head>
 
 <body class="light-mode login-view">
@@ -6363,44 +6363,80 @@
     </div>
 
     <!-- OTP Verification Modal -->
-    <div id="modal-otp-verification" class="modal hidden" style="max-width: 400px; z-index: 10005;">
+    <div id="modal-otp-verification" class="modal hidden" style="max-width: 420px; z-index: 10005;">
         <div class="modal-header">
-            <h3>2-Step Verification</h3>
+            <h3><i class="fa-solid fa-shield-halved" style="margin-right:8px; color:var(--primary);"></i>2-Step Verification</h3>
             <div class="modal-header-controls">
                 <button class="modal-close" onclick="closeOtpModal()"><i class="fa-solid fa-xmark"></i></button>
             </div>
         </div>
-        <div class="modal-body" style="text-align: center; padding: 30px 20px;">
-            <div style="font-size: 40px; color: var(--primary-color); margin-bottom: 15px;">
-                <i class="fa-solid fa-envelope-circle-check"></i>
+        <div class="modal-body" style="padding: 24px 22px;">
+
+            <!-- Toggle Switch Row -->
+            <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-base); border:1px solid var(--border-color); border-radius:10px; padding:14px 16px; margin-bottom:18px;">
+                <div>
+                    <div style="font-size:14px; font-weight:700; color:var(--text-primary);">Enable 2-Step Verification</div>
+                    <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">Require OTP code on every login</div>
+                </div>
+                <label class="switch" style="margin:0; flex-shrink:0;">
+                    <input type="checkbox" id="modal-2fa-toggle-switch" onchange="toggleModal2faSwitch(this.checked)">
+                    <span class="slider round"></span>
+                </label>
             </div>
-            <h4 style="margin-bottom: 10px; color: var(--text-dark);">2-Step Verification</h4>
-            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 15px;" id="otp-message">
-                Select your preferred delivery channel and click below to receive your 6-digit verification code.
-            </p>
 
-            <div id="otp-channel-selector" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 18px;">
-                <button type="button" class="btn btn-sm btn-primary otp-channel-btn active" data-channel="Email" onclick="selectOtpChannel('Email')" style="flex: 1; border-radius: 20px; font-size: 12px; font-weight: 600;"><i class="fa-solid fa-envelope"></i> Email</button>
-                <button type="button" class="btn btn-sm btn-outline otp-channel-btn" data-channel="WhatsApp" onclick="selectOtpChannel('WhatsApp')" style="flex: 1; border-radius: 20px; font-size: 12px; font-weight: 600;"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
-                <button type="button" class="btn btn-sm btn-outline otp-channel-btn" data-channel="Both" onclick="selectOtpChannel('Both')" style="flex: 1; border-radius: 20px; font-size: 12px; font-weight: 600;"><i class="fa-solid fa-layer-group"></i> Both</button>
-            </div>
+            <!-- Section shown when turning ON (needs OTP verification) -->
+            <div id="modal-2fa-enable-section" class="hidden">
+                <div style="text-align:center; margin-bottom:14px;">
+                    <div style="font-size:32px; color:var(--primary); margin-bottom:8px;"><i class="fa-solid fa-envelope-circle-check"></i></div>
+                    <p id="otp-message" style="color:var(--text-muted); font-size:13px; margin:0;">
+                        Select your preferred delivery channel and click below to receive your 6-digit verification code.
+                    </p>
+                </div>
 
-            <button id="btn-request-otp" class="btn btn-primary" style="width: 80%; margin-bottom: 15px;"
-                onclick="resendOtp()"><i class="fa-solid fa-paper-plane"></i> Send Code</button>
+                <div id="otp-channel-selector" style="display:flex; gap:8px; margin-bottom:14px;">
+                    <button type="button" class="btn btn-sm btn-primary otp-channel-btn active" data-channel="Email" onclick="selectOtpChannel('Email')" style="flex:1; border-radius:20px; font-size:12px;"><i class="fa-solid fa-envelope"></i> Email</button>
+                    <button type="button" class="btn btn-sm btn-outline otp-channel-btn" data-channel="WhatsApp" onclick="selectOtpChannel('WhatsApp')" style="flex:1; border-radius:20px; font-size:12px;"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
+                    <button type="button" class="btn btn-sm btn-outline otp-channel-btn" data-channel="Both" onclick="selectOtpChannel('Both')" style="flex:1; border-radius:20px; font-size:12px;"><i class="fa-solid fa-layer-group"></i> Both</button>
+                </div>
 
-            <div id="otp-entry-section" class="hidden">
-                <div class="form-group" style="margin-bottom: 20px;">
+                <button id="btn-request-otp" class="btn btn-primary btn-block" onclick="resendOtp()" style="margin-bottom:12px;">
+                    <i class="fa-solid fa-paper-plane"></i> Send Verification Code
+                </button>
+
+                <div id="otp-entry-section" class="hidden">
                     <input type="text" id="otp-input" class="form-control"
-                        style="text-align: center; font-size: 24px; letter-spacing: 5px; font-weight: bold; width: 80%; margin: 0 auto;"
-                        placeholder="------" maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                </div>
-                <button id="btn-verify-otp" class="btn btn-primary" style="width: 80%;" onclick="submitOtp()">Verify
-                    Code</button>
-                <div style="margin-top: 15px; font-size: 12px;">
-                    <a href="#" onclick="resendOtp()" style="color: var(--primary-color); text-decoration: none;">Didn't
-                        receive the code? Resend</a>
+                        style="text-align:center; font-size:26px; letter-spacing:8px; font-weight:bold; margin-bottom:10px;"
+                        placeholder="------" maxlength="6" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                    <button id="btn-verify-otp" class="btn btn-primary btn-block" onclick="submitOtp()">
+                        <i class="fa-solid fa-shield-check"></i> Verify &amp; Enable 2FA
+                    </button>
+                    <div style="margin-top:10px; text-align:center; font-size:12px;">
+                        <a href="#" onclick="resendOtp(); return false;" style="color:var(--primary); text-decoration:none;">Didn't receive the code? Resend</a>
+                    </div>
                 </div>
             </div>
+
+            <!-- Section shown when turning OFF -->
+            <div id="modal-2fa-disable-section" class="hidden">
+                <div style="background:var(--danger-light); border:1px solid rgba(239,68,68,0.2); border-radius:8px; padding:14px; text-align:center; margin-bottom:14px;">
+                    <i class="fa-solid fa-triangle-exclamation" style="color:var(--danger); font-size:22px; margin-bottom:6px; display:block;"></i>
+                    <div style="font-size:13px; color:var(--text-primary); font-weight:600;">Disable 2-Step Verification?</div>
+                    <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">Your account will only require a password to log in.</div>
+                </div>
+                <button id="modal-2fa-disable-btn" class="btn btn-danger btn-block" onclick="save2faStatusDirectly(false)">
+                    <i class="fa-solid fa-shield-xmark"></i> Disable 2FA &amp; Save
+                </button>
+            </div>
+
+            <!-- Already enabled info state -->
+            <div id="modal-2fa-already-on-section" class="hidden">
+                <div style="background:var(--success-light); border:1px solid rgba(16,185,129,0.2); border-radius:8px; padding:14px; text-align:center;">
+                    <i class="fa-solid fa-shield-check" style="color:var(--success); font-size:28px; margin-bottom:6px; display:block;"></i>
+                    <div style="font-size:14px; color:var(--text-primary); font-weight:700;">2-Step Verification is Active</div>
+                    <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">Toggle the switch above to disable it.</div>
+                </div>
+            </div>
+
         </div>
     </div>
     <!-- Announcement Reactions Modal -->
