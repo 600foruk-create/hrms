@@ -2621,6 +2621,9 @@ window.executeShiftRotationLogic = function(db, cycleType, strategy = 'employees
         }
         if (notifs.whatsapp) {
             console.log(`[WhatsApp API Hook] Dispatching alert to ${u.name} (${u.phone || 'No phone'}): ${msg}`);
+            if (u.phone && typeof window.sendWhatsAppMessage === 'function') {
+                window.sendWhatsAppMessage(u.phone, msg);
+            }
         }
         if (notifs.email) {
             console.log(`[Email API Hook] Dispatching notification to ${u.name} (${u.email || 'No email'}): ${msg}`);
@@ -3155,10 +3158,9 @@ function renderAdminSettingsTab() {
 
     // WhatsApp API
     if (settings.whatsappApi) {
-        document.getElementById('wa-api-url').value = settings.whatsappApi.url || '';
-        document.getElementById('wa-api-token').value = settings.whatsappApi.token || '';
-        document.getElementById('wa-api-phone').value = settings.whatsappApi.phoneId || '';
-        if (document.getElementById('wa-api-secret')) document.getElementById('wa-api-secret').value = settings.whatsappApi.secret || '';
+        if (document.getElementById('wa-api-url')) document.getElementById('wa-api-url').value = settings.whatsappApi.url || '';
+        if (document.getElementById('wa-api-token')) document.getElementById('wa-api-token').value = settings.whatsappApi.token || '';
+        if (document.getElementById('wa-api-instance')) document.getElementById('wa-api-instance').value = settings.whatsappApi.instanceId || settings.whatsappApi.phoneId || '';
     }
 
     // Biometric Machines
@@ -5710,6 +5712,9 @@ window.createAnnouncement = function() {
                 personalizedMsg += `\n\n--- Login Credentials ---\nEmail: ${u.email}\nPassword: ${u.password}`;
             }
             console.log(`[Mock ${channel}] To: ${u.name} - ${title}\n${personalizedMsg}`);
+            if ((channel === 'WhatsApp' || channel === 'All') && u.phone && typeof window.sendWhatsAppMessage === 'function') {
+                window.sendWhatsAppMessage(u.phone, `*${title}*\n\n${personalizedMsg}`);
+            }
         });
         if (channel !== 'All') {
             showToast("Success", `Broadcast sent via ${channel}.`, "success");
@@ -5889,14 +5894,33 @@ document.addEventListener('submit', async (e) => {
         else if (formId === 'settings-whatsapp-form') {
             const db = getDb();
             if (!db.settings) db.settings = {};
+            const urlVal = document.getElementById('wa-api-url') ? document.getElementById('wa-api-url').value : '';
+            const instVal = document.getElementById('wa-api-instance') ? document.getElementById('wa-api-instance').value : '';
+            const tokVal = document.getElementById('wa-api-token') ? document.getElementById('wa-api-token').value : '';
+
             db.settings.whatsappApi = {
-                url: document.getElementById('wa-api-url').value,
-                token: document.getElementById('wa-api-token').value,
-                phoneId: document.getElementById('wa-api-phone').value,
-                secret: document.getElementById('wa-api-secret') ? document.getElementById('wa-api-secret').value : ''
+                url: urlVal,
+                instanceId: instVal,
+                token: tokVal
             };
-            showToast("WhatsApp API Saved", "WhatsApp API configuration has been updated.");
             await saveDb(db);
+
+            try {
+                await fetch(API_URL + '?action=save_api_config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        config_type: 'whatsapp',
+                        provider: urlVal,
+                        api_key: tokVal,
+                        extra: instVal
+                    })
+                });
+            } catch (e) {
+                console.warn("Could not sync WhatsApp config to server SQL table:", e);
+            }
+
+            showToast("WhatsApp API Saved", "WhatsApp API configuration has been updated successfully.");
         }
 
         else if (formId === 'company-profile-form') {
@@ -8918,3 +8942,66 @@ window.downloadAdminProdLogsPdf = function () {
         printWindow.print();
     }, 500);
 };
+
+// WhatsApp API Live Dispatch Engine & Tester
+window.openTestWhatsAppModal = function() {
+    const modal = document.getElementById('modal-test-whatsapp');
+    if (!modal) return;
+    const phoneInput = document.getElementById('test-wa-phone');
+    if (phoneInput && currentUser && currentUser.phone) {
+        phoneInput.value = currentUser.phone;
+    }
+    modal.classList.remove('hidden');
+};
+
+window.sendTestWhatsAppMessage = async function() {
+    const phoneInput = document.getElementById('test-wa-phone');
+    const msgInput = document.getElementById('test-wa-message');
+    const btn = document.getElementById('btn-send-test-wa');
+    if (!phoneInput || !msgInput) return;
+
+    const phone = phoneInput.value.trim();
+    const msg = msgInput.value.trim();
+    if (!phone) {
+        showToast("Error", "Please enter a recipient phone number.", "error");
+        return;
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+    }
+
+    try {
+        const res = await window.sendWhatsAppMessage(phone, msg);
+        if (res && res.status === 'success') {
+            showToast("Success", "Test message dispatched via WhatsApp API successfully!", "success");
+            closeModal('modal-test-whatsapp');
+        } else {
+            showToast("WhatsApp API Error", (res && res.message) ? res.message : "Failed to send message.", "error");
+        }
+    } catch (err) {
+        showToast("Error", "Network error dispatching WhatsApp message.", "error");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-brands fa-whatsapp"></i> Send Test Message';
+        }
+    }
+};
+
+window.sendWhatsAppMessage = async function(phone, message) {
+    if (!phone) return { status: 'error', message: 'No phone number provided' };
+    try {
+        const response = await fetch(API_URL + '?action=send_whatsapp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: phone, message: message })
+        });
+        return await response.json();
+    } catch (err) {
+        console.error("WhatsApp Dispatch Error:", err);
+        return { status: 'error', message: err.message || 'Network error' };
+    }
+};
+

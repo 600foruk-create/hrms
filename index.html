@@ -15,7 +15,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="styles.css?v=6.9.30">
+    <link rel="stylesheet" href="styles.css?v=6.9.31">
 </head>
 
 <body class="light-mode login-view">
@@ -3463,23 +3463,22 @@
                                     <form id="settings-whatsapp-form" style="display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1;">
                                         <div>
                                             <div class="form-group" style="margin-bottom: 12px;">
-                                                <label for="wa-api-url" style="font-size: 12px; margin-bottom: 4px;">API Endpoint URL</label>
-                                                <input type="url" id="wa-api-url" class="form-control" style="padding: 6px 10px; font-size: 13px; height: 36px;" placeholder="https://api.whatsapp.com/v1/">
+                                                <label for="wa-api-url" style="font-size: 12px; margin-bottom: 4px; font-weight: 600;">API URL</label>
+                                                <input type="url" id="wa-api-url" class="form-control" style="padding: 6px 10px; font-size: 13px; height: 36px;" placeholder="e.g. https://api.ultramsg.com/">
                                             </div>
                                             <div class="form-group" style="margin-bottom: 12px;">
-                                                <label for="wa-api-token" style="font-size: 12px; margin-bottom: 4px;">Access Token</label>
-                                                <input type="password" id="wa-api-token" class="form-control" style="padding: 6px 10px; font-size: 13px; height: 36px;" placeholder="Enter Bearer Token">
-                                            </div>
-                                            <div class="form-group" style="margin-bottom: 12px;">
-                                                <label for="wa-api-phone" style="font-size: 12px; margin-bottom: 4px;">Business Phone ID</label>
-                                                <input type="text" id="wa-api-phone" class="form-control" style="padding: 6px 10px; font-size: 13px; height: 36px;" placeholder="e.g. 1234567890">
+                                                <label for="wa-api-instance" style="font-size: 12px; margin-bottom: 4px; font-weight: 600;">Instance ID</label>
+                                                <input type="text" id="wa-api-instance" class="form-control" style="padding: 6px 10px; font-size: 13px; height: 36px;" placeholder="e.g. instance12345">
                                             </div>
                                             <div class="form-group" style="margin-bottom: 16px;">
-                                                <label for="wa-api-secret" style="font-size: 12px; margin-bottom: 4px;">Webhook Verify Token (Optional)</label>
-                                                <input type="text" id="wa-api-secret" class="form-control" style="padding: 6px 10px; font-size: 13px; height: 36px;" placeholder="App Secret / Verify Token for Webhooks">
+                                                <label for="wa-api-token" style="font-size: 12px; margin-bottom: 4px; font-weight: 600;">Token</label>
+                                                <input type="password" id="wa-api-token" class="form-control" style="padding: 6px 10px; font-size: 13px; height: 36px;" placeholder="Enter API Access Token">
                                             </div>
                                         </div>
-                                        <button type="submit" id="btn-save-whatsapp" class="btn btn-primary" style="padding: 8px 14px; font-size: 13px; font-weight: 600;"><i class="fa-brands fa-whatsapp"></i> Save WhatsApp API</button>
+                                        <div style="display: flex; gap: 8px;">
+                                            <button type="submit" id="btn-save-whatsapp" class="btn btn-primary" style="flex: 1; padding: 8px 14px; font-size: 13px; font-weight: 600;"><i class="fa-brands fa-whatsapp"></i> Save API</button>
+                                            <button type="button" id="btn-test-whatsapp" class="btn btn-outline-success" style="padding: 8px 14px; font-size: 13px; font-weight: 600;" onclick="window.openTestWhatsAppModal()"><i class="fa-solid fa-paper-plane"></i> Test</button>
+                                        </div>
                                     </form>
                                 </div>
                             </div>
@@ -6448,6 +6447,32 @@
 
             <button type="button" class="btn btn-primary" style="width: 100%; height: 42px; font-weight: 600;" onclick="window.saveAutoLogoutSettings()">
                 <i class="fa-solid fa-check"></i> Save Settings
+            </button>
+        </div>
+    </div>
+
+    <!-- Test WhatsApp API Modal -->
+    <div id="modal-test-whatsapp" class="modal hidden" style="max-width: 440px; z-index: 10006;">
+        <div class="modal-header">
+            <h3>Test WhatsApp API Delivery</h3>
+            <div class="modal-header-controls">
+                <button class="modal-close" onclick="closeModal('modal-test-whatsapp')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        <div class="modal-body" style="padding: 24px;">
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+                Send a test message directly to any phone number using your configured WhatsApp API (API URL, Instance ID, and Token).
+            </p>
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label for="test-wa-phone" style="font-size: 12px; font-weight: 600; margin-bottom: 6px; display: block;">Recipient Phone Number (with country code)</label>
+                <input type="text" id="test-wa-phone" class="form-control" style="padding: 8px 12px; font-size: 14px;" placeholder="e.g. 923001234567">
+            </div>
+            <div class="form-group" style="margin-bottom: 24px;">
+                <label for="test-wa-message" style="font-size: 12px; font-weight: 600; margin-bottom: 6px; display: block;">Message Text</label>
+                <textarea id="test-wa-message" class="form-control" rows="3" style="padding: 8px 12px; font-size: 13px;">Hello from HRMS! This is a test message to verify WhatsApp API connectivity.</textarea>
+            </div>
+            <button type="button" id="btn-send-test-wa" class="btn btn-success" style="width: 100%; height: 42px; font-weight: 600;" onclick="window.sendTestWhatsAppMessage()">
+                <i class="fa-brands fa-whatsapp"></i> Send Test Message
             </button>
         </div>
     </div>

@@ -710,6 +710,116 @@ if ($action === 'load_api_configs') {
     exit;
 }
 
+if ($action === 'send_whatsapp') {
+    $inputJSON = file_get_contents('php://input');
+    $data = json_decode($inputJSON, true);
+    $phone = $data['phone'] ?? $data['to'] ?? $_POST['phone'] ?? '';
+    $message = $data['message'] ?? $data['body'] ?? $_POST['message'] ?? '';
+
+    if (empty($phone) || empty($message)) {
+        echo json_encode(["status" => "error", "message" => "Recipient phone number and message text are required"]);
+        exit;
+    }
+
+    // Clean phone number (remove non-digits except +)
+    $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
+
+    $url = '';
+    $token = '';
+    $instanceId = '';
+
+    try {
+        $stmt = $pdo->query("SELECT * FROM api_configs WHERE config_type = 'whatsapp' LIMIT 1");
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            $url = trim($row['provider'] ?? '');
+            $token = trim($row['api_key'] ?? '');
+            $instanceId = trim($row['extra'] ?? '');
+        }
+    } catch (Exception $e) {}
+
+    // Fallback to system_settings
+    if (empty($url)) {
+        try {
+            $stmt = $pdo->query("SELECT setting_value FROM system_settings WHERE setting_key = 'whatsappApi' LIMIT 1");
+            $sRow = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($sRow && !empty($sRow['setting_value'])) {
+                $waConf = json_decode($sRow['setting_value'], true);
+                if (is_array($waConf)) {
+                    $url = trim($waConf['url'] ?? '');
+                    $token = trim($waConf['token'] ?? '');
+                    $instanceId = trim($waConf['instanceId'] ?? $waConf['phoneId'] ?? '');
+                }
+            }
+        } catch (Exception $e) {}
+    }
+
+    if (empty($url)) {
+        echo json_encode(["status" => "error", "message" => "WhatsApp API URL is not configured in settings."]);
+        exit;
+    }
+
+    // Replace placeholders if URL contains them
+    if (strpos($url, '{instanceId}') !== false || strpos($url, '{instance_id}') !== false) {
+        $url = str_replace(['{instanceId}', '{instance_id}'], $instanceId, $url);
+    }
+
+    $payload = [
+        'token' => $token,
+        'access_token' => $token,
+        'instance_id' => $instanceId,
+        'instanceId' => $instanceId,
+        'to' => $cleanPhone,
+        'phone' => $cleanPhone,
+        'number' => $cleanPhone,
+        'body' => $message,
+        'message' => $message,
+        'text' => $message
+    ];
+
+    $ch = curl_init();
+    
+    // If URL contains ultramsg, WAPI, or standard form endpoints
+    if (stripos($url, 'ultramsg.com') !== false || stripos($url, 'chatapi') !== false) {
+        // UltraMsg typically prefers application/x-www-form-urlencoded
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+            'token' => $token,
+            'to' => $cleanPhone,
+            'body' => $message
+        ]));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
+    } else {
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $token,
+            'X-Access-Token: ' . $token
+        ]);
+    }
+
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlErr = curl_error($ch);
+    curl_close($ch);
+
+    if ($curlErr) {
+        echo json_encode(["status" => "error", "message" => "cURL Connection Error: " . $curlErr]);
+    } else if ($httpCode >= 200 && $httpCode < 300) {
+        echo json_encode(["status" => "success", "message" => "WhatsApp message dispatched successfully.", "response" => json_decode($response, true) ?: $response]);
+    } else {
+        echo json_encode(["status" => "error", "message" => "API returned HTTP " . $httpCode, "raw_response" => $response]);
+    }
+    exit;
+}
+
 if ($action === 'ping_biometric') {
     $ip = $_GET['ip'] ?? '';
     $port = (int)($_GET['port'] ?? 4370);
