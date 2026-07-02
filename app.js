@@ -696,6 +696,9 @@ function handleLogin(usernameOrEmail, password) {
             openOtpModal('login', user.email, user.id, (success) => {
                 if (success) completeLogin();
             });
+            setTimeout(() => {
+                if (typeof window.resendOtp === 'function') window.resendOtp();
+            }, 300);
         } else {
             completeLogin();
         }
@@ -6997,6 +7000,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (success) {
                     user.twoFactorEnabled = (purpose === 'enable');
                     currentUser.twoFactorEnabled = user.twoFactorEnabled;
+                    localStorage.setItem('current_user', JSON.stringify(currentUser));
                     saveDb(db);
                     
                     const badge2FA = document.getElementById('2fa-status-badge');
