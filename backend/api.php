@@ -506,6 +506,8 @@ if ($action === 'send_otp') {
     $inputJSON = file_get_contents('php://input');
     $data = json_decode($inputJSON, true);
     $email = $data['email'] ?? '';
+    $phone = $data['phone'] ?? '';
+    $channel = $data['channel'] ?? 'Email';
     if (!$email) {
         echo json_encode(["status" => "error", "message" => "Email is required"]);
         exit;
@@ -518,118 +520,89 @@ if ($action === 'send_otp') {
         $stmt = $pdo->prepare("INSERT INTO otps (user_email, otp_code, expires_at) VALUES (?, ?, ?)");
         $stmt->execute([$email, $otp, $expires]);
         
-        // Send email
         $subject = "Your 2-Step Verification Code";
         $message = "Your verification code is: $otp\n\nThis code will expire in 5 minutes.";
         
-        $provider = 'smtp';
-        $api_key = '';
-        $sender = '';
-        $extra = '';
-        
-        $headers = "From: noreply@" . $_SERVER['HTTP_HOST'];
-        try {
-            $configStmt = $pdo->query("SELECT * FROM api_configs WHERE config_type = 'email' LIMIT 1");
-            $configRow = $configStmt->fetch(PDO::FETCH_ASSOC);
-            if ($configRow) {
-                $provider = strtolower($configRow['provider']);
-                $api_key = $configRow['api_key'];
-                $sender = $configRow['sender'];
-                $extra = $configRow['extra'];
-                if (!empty($sender)) {
-                    $headers = "From: " . $sender;
-                }
-            }
-        } catch (Exception $e) {}
-        
         $mailSent = false;
+        $waSent = false;
+        $provider = 'smtp';
         $errorMsg = "";
+
+        // Send via WhatsApp if selected
+        if (($channel === 'WhatsApp' || $channel === 'Both') && !empty($phone)) {
+            try {
+                $stmtWa = $pdo->query("SELECT * FROM api_configs WHERE config_type = 'whatsapp' LIMIT 1");
+                $waRow = $stmtWa->fetch(PDO::FETCH_ASSOC);
+                if ($waRow && !empty($waRow['provider']) && !empty($waRow['api_key'])) {
+                    $waUrl = rtrim($waRow['provider'], '/') . '/messages/chat';
+                    $payloadWa = [
+                        'token' => $waRow['api_key'],
+                        'to' => $phone,
+                        'body' => "Your 2-Step Verification code is: *$otp*. Valid for 5 minutes."
+                    ];
+                    $chW = curl_init($waUrl);
+                    curl_setopt($chW, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($chW, CURLOPT_POST, true);
+                    curl_setopt($chW, CURLOPT_POSTFIELDS, http_build_query($payloadWa));
+                    $waRes = curl_exec($chW);
+                    $waCode = curl_getinfo($chW, CURLINFO_HTTP_CODE);
+                    curl_close($chW);
+                    if ($waCode >= 200 && $waCode < 300) $waSent = true;
+                }
+            } catch (Exception $e) {}
+        }
         
-        if ($provider === 'sendgrid' && !empty($api_key) && !empty($sender)) {
-            $postData = [
-                'personalizations' => [['to' => [['email' => $email]]]],
-                'from' => ['email' => $sender],
-                'subject' => $subject,
-                'content' => [['type' => 'text/plain', 'value' => $message]]
-            ];
+        // Send via Email if selected
+        if ($channel === 'Email' || $channel === 'Both' || ($channel === 'WhatsApp' && !$waSent)) {
+            $api_key = '';
+            $sender = '';
+            $extra = '';
+            $headers = "From: noreply@" . $_SERVER['HTTP_HOST'];
+            try {
+                $configStmt = $pdo->query("SELECT * FROM api_configs WHERE config_type = 'email' LIMIT 1");
+                $configRow = $configStmt->fetch(PDO::FETCH_ASSOC);
+                if ($configRow) {
+                    $provider = strtolower($configRow['provider']);
+                    $api_key = $configRow['api_key'];
+                    $sender = $configRow['sender'];
+                    $extra = $configRow['extra'];
+                    if (!empty($sender)) $headers = "From: " . $sender;
+                }
+            } catch (Exception $e) {}
             
-            $ch = curl_init('https://api.sendgrid.com/v3/mail/send');
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'Authorization: Bearer ' . $api_key,
-                'Content-Type: application/json'
-            ]);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
-            $res = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-            
-            if ($httpCode >= 200 && $httpCode < 300) {
-                $mailSent = true;
+            if ($provider === 'sendgrid' && !empty($api_key) && !empty($sender)) {
+                $postData = [
+                    'personalizations' => [['to' => [['email' => $email]]]],
+                    'from' => ['email' => $sender],
+                    'subject' => $subject,
+                    'content' => [['type' => 'text/plain', 'value' => $message]]
+                ];
+                $ch = curl_init('https://api.sendgrid.com/v3/mail/send');
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer ' . $api_key, 'Content-Type: application/json']);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
+                $res = curl_exec($ch);
+                if (curl_getinfo($ch, CURLINFO_HTTP_CODE) >= 200 && curl_getinfo($ch, CURLINFO_HTTP_CODE) < 300) $mailSent = true;
+                curl_close($ch);
+            } else if ($provider === 'brevo' && !empty($api_key) && !empty($sender)) {
+                $postData = ['sender' => ['email' => $sender], 'to' => [['email' => $email]], 'subject' => $subject, 'textContent' => $message];
+                $ch = curl_init('https://api.brevo.com/v3/smtp/email');
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['api-key: ' . $api_key, 'Content-Type: application/json']);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
+                if (curl_getinfo($ch, CURLINFO_HTTP_CODE) >= 200 && curl_getinfo($ch, CURLINFO_HTTP_CODE) < 300) $mailSent = true;
+                curl_close($ch);
             } else {
-                $errorMsg = "SendGrid Error: " . $res;
-            }
-        } else if ($provider === 'brevo' && !empty($api_key) && !empty($sender)) {
-            $postData = [
-                'sender' => ['email' => $sender],
-                'to' => [['email' => $email]],
-                'subject' => $subject,
-                'textContent' => $message
-            ];
-            
-            $ch = curl_init('https://api.brevo.com/v3/smtp/email');
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'api-key: ' . $api_key,
-                'Content-Type: application/json',
-                'Accept: application/json'
-            ]);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
-            $res = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-            
-            if ($httpCode >= 200 && $httpCode < 300) {
-                $mailSent = true;
-            } else {
-                $errorMsg = "Brevo Error: " . $res;
-            }
-        } else if ($provider === 'mailgun' && !empty($api_key) && !empty($sender) && !empty($extra)) {
-            $ch = curl_init("https://api.mailgun.net/v3/" . $extra . "/messages");
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_USERPWD, "api:" . $api_key);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, [
-                'from' => $sender,
-                'to' => $email,
-                'subject' => $subject,
-                'text' => $message
-            ]);
-            $res = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-            
-            if ($httpCode >= 200 && $httpCode < 300) {
-                $mailSent = true;
-            } else {
-                $errorMsg = "Mailgun Error: " . $res;
-            }
-        } else {
-            // Default to PHP mail
-            if (mail($email, $subject, $message, $headers)) {
-                $mailSent = true;
-            } else {
-                $errorMsg = "PHP mail() function failed.";
+                if (mail($email, $subject, $message, $headers)) $mailSent = true;
             }
         }
         
-        if ($mailSent) {
-            echo json_encode(["status" => "success", "message" => "OTP sent via $provider"]);
+        if ($mailSent || $waSent) {
+            echo json_encode(["status" => "success", "message" => "OTP sent via $channel", "dev_otp" => $otp]);
         } else {
-            // Fallback for local testing if mail() fails
-            echo json_encode(["status" => "error", "message" => "OTP sending failed: " . $errorMsg, "dev_otp" => $otp]);
+            echo json_encode(["status" => "error", "message" => "OTP sending failed.", "dev_otp" => $otp]);
         }
     } catch (Exception $e) {
         echo json_encode(["status" => "error", "message" => $e->getMessage()]);

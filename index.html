@@ -15,7 +15,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="styles.css?v=6.9.36">
+    <link rel="stylesheet" href="styles.css?v=6.9.37">
 </head>
 
 <body class="light-mode login-view">
@@ -6375,9 +6375,15 @@
                 <i class="fa-solid fa-envelope-circle-check"></i>
             </div>
             <h4 style="margin-bottom: 10px; color: var(--text-dark);">2-Step Verification</h4>
-            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;" id="otp-message">
-                Click the button below to send a 6-digit code to your registered email address.
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 15px;" id="otp-message">
+                Select your preferred delivery channel and click below to receive your 6-digit verification code.
             </p>
+
+            <div id="otp-channel-selector" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 18px;">
+                <button type="button" class="btn btn-sm btn-primary otp-channel-btn active" data-channel="Email" onclick="selectOtpChannel('Email')" style="flex: 1; border-radius: 20px; font-size: 12px; font-weight: 600;"><i class="fa-solid fa-envelope"></i> Email</button>
+                <button type="button" class="btn btn-sm btn-outline otp-channel-btn" data-channel="WhatsApp" onclick="selectOtpChannel('WhatsApp')" style="flex: 1; border-radius: 20px; font-size: 12px; font-weight: 600;"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
+                <button type="button" class="btn btn-sm btn-outline otp-channel-btn" data-channel="Both" onclick="selectOtpChannel('Both')" style="flex: 1; border-radius: 20px; font-size: 12px; font-weight: 600;"><i class="fa-solid fa-layer-group"></i> Both</button>
+            </div>
 
             <button id="btn-request-otp" class="btn btn-primary" style="width: 80%; margin-bottom: 15px;"
                 onclick="resendOtp()"><i class="fa-solid fa-paper-plane"></i> Send Code</button>

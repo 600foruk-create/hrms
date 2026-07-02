@@ -486,18 +486,38 @@ let otpState = {
     purpose: '',
     email: '',
     userId: '',
+    phone: '',
+    channel: 'Email',
     callback: null
 };
 
+window.selectOtpChannel = function(ch) {
+    otpState.channel = ch;
+    document.querySelectorAll('.otp-channel-btn').forEach(btn => {
+        if (btn.getAttribute('data-channel') === ch) {
+            btn.classList.remove('btn-outline');
+            btn.classList.add('btn-primary', 'active');
+        } else {
+            btn.classList.remove('btn-primary', 'active');
+            btn.classList.add('btn-outline');
+        }
+    });
+};
+
 async function openOtpModal(purpose, email, userId, callback) {
-    otpState = { purpose, email, userId, callback };
+    const db = typeof getDb === 'function' ? getDb() : { users: [] };
+    const userObj = (db.users || []).find(u => u.id === userId || u.email === email);
+    const phone = userObj?.phone || '';
+    
+    otpState = { purpose, email, userId, phone, channel: 'Email', callback };
     document.getElementById('otp-input').value = '';
     
     // Reset UI for manual send
     const msgEl = document.getElementById('otp-message');
-    msgEl.innerHTML = 'Click the button below to send a 6-digit code to your registered email address.';
+    msgEl.innerHTML = 'Select your preferred delivery channel and click below to receive your 6-digit verification code.';
     document.getElementById('btn-request-otp').classList.remove('hidden');
     document.getElementById('otp-entry-section').classList.add('hidden');
+    if (typeof selectOtpChannel === 'function') selectOtpChannel('Email');
     
     document.getElementById('modal-otp-verification').classList.remove('hidden');
     document.getElementById('modal-backdrop').classList.remove('hidden');
@@ -540,13 +560,17 @@ window.resendOtp = async function() {
     
     reqBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
     reqBtn.disabled = true;
-    msgEl.innerHTML = 'Sending code...';
+    msgEl.innerHTML = `Sending verification code via ${otpState.channel}...`;
     
     try {
         const response = await fetch('backend/api.php?action=send_otp', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: otpState.email })
+            body: JSON.stringify({
+                email: otpState.email,
+                phone: otpState.phone,
+                channel: otpState.channel
+            })
         });
         const res = await response.json();
         
@@ -556,9 +580,12 @@ window.resendOtp = async function() {
         reqBtn.disabled = false;
         
         if (res.status === 'success') {
-            msgEl.innerHTML = 'A 6-digit code has been sent to your email. Please enter it below to verify.';
-            showToast("Success", "OTP sent successfully", "success");
+            msgEl.innerHTML = `A 6-digit code has been dispatched via <strong>${otpState.channel}</strong>. Please enter it below to verify.`;
+            showToast("Success", res.message || `OTP sent via ${otpState.channel}`, "success");
             if (res.dev_otp) console.log("DEV OTP: " + res.dev_otp); // For testing if mail fails
+            if ((otpState.channel === 'WhatsApp' || otpState.channel === 'Both') && otpState.phone && typeof window.sendWhatsAppMessage === 'function' && res.dev_otp) {
+                window.sendWhatsAppMessage(otpState.phone, `Your 2-Step Verification code is: *${res.dev_otp}*. Valid for 5 minutes.`);
+            }
         } else {
             msgEl.innerHTML = '<span style="color:red;">Failed to send OTP.</span>';
             showToast("Error", res.message || "Failed to send OTP", "error");
