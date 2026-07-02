@@ -711,12 +711,14 @@ if ($action === 'load_api_configs') {
 }
 
 if ($action === 'send_whatsapp') {
+    ob_start();
     $inputJSON = file_get_contents('php://input');
     $data = json_decode($inputJSON, true);
     $phone = $data['phone'] ?? $data['to'] ?? $_POST['phone'] ?? '';
     $message = $data['message'] ?? $data['body'] ?? $_POST['message'] ?? '';
 
     if (empty($phone) || empty($message)) {
+        ob_clean();
         echo json_encode(["status" => "error", "message" => "Recipient phone number and message text are required"]);
         exit;
     }
@@ -758,6 +760,7 @@ if ($action === 'send_whatsapp') {
     }
 
     if (empty($url)) {
+        ob_clean();
         echo json_encode(["status" => "error", "message" => "WhatsApp API URL is not configured in settings."]);
         exit;
     }
@@ -830,6 +833,7 @@ if ($action === 'send_whatsapp') {
     $curlErr = curl_error($ch);
     curl_close($ch);
 
+    ob_clean();
     if ($curlErr) {
         echo json_encode(["status" => "error", "message" => "cURL Connection Error: " . $curlErr]);
     } else if ($httpCode >= 200 && $httpCode < 300) {
@@ -1257,6 +1261,29 @@ if ($action === 'load_all') {
             if (!isset($dbState['settings'])) $dbState['settings'] = [];
             $dbState['settings']['biometricMachines'] = $biometricList;
             $dbState['biometricMachines'] = $biometricList;
+        } catch (Exception $e) {}
+
+        // Fetch API Configs (Email & WhatsApp)
+        try {
+            $stmt = $pdo->query("SELECT * FROM api_configs");
+            $configs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if (!isset($dbState['settings'])) $dbState['settings'] = [];
+            foreach ($configs as $cfg) {
+                if ($cfg['config_type'] === 'email') {
+                    $dbState['settings']['emailApi'] = [
+                        'provider' => $cfg['provider'],
+                        'key' => $cfg['api_key'],
+                        'sender' => $cfg['sender'],
+                        'extra' => $cfg['extra']
+                    ];
+                } elseif ($cfg['config_type'] === 'whatsapp') {
+                    $dbState['settings']['whatsappApi'] = [
+                        'url' => $cfg['provider'],
+                        'token' => $cfg['api_key'],
+                        'instanceId' => $cfg['extra']
+                    ];
+                }
+            }
         } catch (Exception $e) {}
 
         echo json_encode(["status" => "success", "data" => $dbState]);
