@@ -568,21 +568,42 @@ window.toggleModal2faSwitch = function(checked, isInit) {
     }
 };
 
+// Dedicated function to toggle 2FA using the lightweight toggle_2fa API endpoint
+window.toggle2faOnServer = async function(userId, email, enabled) {
+    try {
+        const resp = await fetch('backend/api.php?action=toggle_2fa', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: String(userId), email: email, enabled: enabled })
+        });
+        const result = await resp.json();
+        return result.status === 'success';
+    } catch (e) {
+        console.error('toggle_2fa error:', e);
+        return false;
+    }
+};
+
 // Save 2FA status directly (for disable case — no OTP needed)
 window.save2faStatusDirectly = async function(enabled) {
-    const db = typeof getDb === 'function' ? getDb() : { users: [] };
-    const user = (db.users || []).find(u => String(u.id) === String(otpState.userId) || u.email === otpState.email) || currentUser;
-    if (!user) { showToast("Error", "User not found", "error"); return; }
+    const uid  = currentUser?.id || otpState?.userId;
+    const mail = currentUser?.email || otpState?.email;
+    if (!uid && !mail) { showToast("Error", "User not found", "error"); return; }
 
-    user.twoFactorEnabled = enabled;
+    // Update DB object and currentUser in memory
+    const db = typeof getDb === 'function' ? getDb() : { users: [] };
+    const user = (db.users || []).find(u => String(u.id) === String(uid) || u.email === mail) || currentUser;
+    if (user) user.twoFactorEnabled = enabled;
     if (currentUser) currentUser.twoFactorEnabled = enabled;
 
     // Persist to localStorage
     try { localStorage.setItem('current_user', JSON.stringify(currentUser)); } catch(e) {}
 
-    // Persist to db and server
+    // Persist to db (local)
     if (typeof saveDb === 'function') saveDb(db);
-    if (typeof saveUserOnServer === 'function') saveUserOnServer(user);
+
+    // Call dedicated lightweight API — no password needed
+    const ok = await window.toggle2faOnServer(uid, mail, enabled);
 
     // Update badge in dropdown
     const badge2FA = document.getElementById('2fa-status-badge');
@@ -597,8 +618,13 @@ window.save2faStatusDirectly = async function(enabled) {
     }
 
     closeOtpModal();
-    showToast("Success", `2-Step Verification turned ${enabled ? 'ON' : 'OFF'}`, "success");
+    if (ok) {
+        showToast("Success", `2-Step Verification turned ${enabled ? 'ON ✅' : 'OFF'}`, "success");
+    } else {
+        showToast("Warning", `UI updated but server sync failed. Refresh and try again.`, "warning");
+    }
 };
+
 
 
 window.closeOtpModal = function() {
@@ -636,6 +662,19 @@ window.submitOtp = async function() {
     }
 
     if (isSuccess) {
+        // Directly enable 2FA in database via dedicated endpoint
+        const uid  = otpState.userId || currentUser?.id;
+        const mail = otpState.email  || currentUser?.email;
+        if (uid || mail) {
+            await window.toggle2faOnServer(uid, mail, true);
+            // Also update local state
+            const db2 = typeof getDb === 'function' ? getDb() : { users: [] };
+            const usr2 = (db2.users || []).find(u => String(u.id) === String(uid) || u.email === mail) || currentUser;
+            if (usr2) usr2.twoFactorEnabled = true;
+            if (currentUser) currentUser.twoFactorEnabled = true;
+            try { localStorage.setItem('current_user', JSON.stringify(currentUser)); } catch(e) {}
+            if (typeof saveDb === 'function') saveDb(db2);
+        }
         closeOtpModal();
         if (otpState.callback) otpState.callback(true);
     }

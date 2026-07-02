@@ -1720,7 +1720,33 @@ elseif ($action === 'save_all') {
         $pdo->rollBack();
         echo json_encode(["status" => "error", "message" => "Transaction Failed: " . $e->getMessage()]);
     }
+} elseif ($action === 'toggle_2fa') {
+    $inputJSON = file_get_contents('php://input');
+    $data = json_decode($inputJSON, true);
+    $userId = $data['userId'] ?? '';
+    $enabled = isset($data['enabled']) ? (bool)$data['enabled'] : false;
+    if (!$userId) {
+        echo json_encode(["status" => "error", "message" => "userId is required"]);
+        exit;
+    }
+    try {
+        $stmt = $pdo->prepare("UPDATE users SET twoFactorEnabled = ? WHERE id = ?");
+        $stmt->execute([$enabled ? 1 : 0, $userId]);
+        if ($stmt->rowCount() === 0) {
+            // Try by email if no rows updated
+            $emailVal = $data['email'] ?? '';
+            if ($emailVal) {
+                $stmt2 = $pdo->prepare("UPDATE users SET twoFactorEnabled = ? WHERE email = ?");
+                $stmt2->execute([$enabled ? 1 : 0, $emailVal]);
+            }
+        }
+        echo json_encode(["status" => "success", "twoFactorEnabled" => $enabled]);
+    } catch (Exception $e) {
+        echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+    }
+    exit;
 } elseif ($action === 'save_user') {
+
     $inputJSON = file_get_contents('php://input');
     $data = json_decode($inputJSON, true);
     if (!$data || !isset($data['user'])) {
