@@ -7976,7 +7976,7 @@ window.renderAdminCategoriesConfig = function () {
                 const isLast = idx === settings.businessUnits.length - 1;
 
                 const practicesHtml = (bu.practices || []).map(p => `
-                    <div style="display:flex; align-items:center; justify-content:space-between; padding: 5px 12px 5px 28px; background: rgba(var(--primary-rgb,95,59,246),0.03);">
+                    <div style="display:flex; align-items:center; justify-content:space-between; padding: 3px 10px 3px 24px; background: rgba(var(--primary-rgb,95,59,246),0.03);">
                         <span style="font-size:12px; color:var(--primary);">• ${p.name}</span>
                         <div style="display:flex; gap:6px;">
                             <button onclick="event.stopPropagation(); window.selectedAdminBuId='${bu.id}'; window.selectedAdminPracticeId='${p.id}'; window.editSelectedPractice();" style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:11px; padding:0;"><i class="fa-solid fa-pen"></i></button>
@@ -7992,7 +7992,7 @@ window.renderAdminCategoriesConfig = function () {
                 buAccordion.innerHTML += `
                     <div style="${!isLast ? 'border-bottom: 1px solid var(--border-color);' : ''}">
                         <!-- Department row -->
-                        <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 14px; cursor:pointer; ${isOpen ? 'background:rgba(var(--primary-rgb,95,59,246),0.04);' : ''}"
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:5px 12px; cursor:pointer; ${isOpen ? 'background:rgba(var(--primary-rgb,95,59,246),0.04);' : ''}"
                              onclick="${toggleClick}">
                             <div style="display:flex; align-items:center; gap:8px;">
                                 <i class="fa-solid fa-chevron-${isOpen ? 'down' : 'right'}" style="font-size:9px; color:var(--text-muted); width:9px; transition:transform 0.2s;"></i>
@@ -8028,7 +8028,7 @@ window.renderAdminCategoriesConfig = function () {
                 const isLast = idx === settings.tesCategories.length - 1;
 
                 const tasksHtml = (tes.tasks || []).map(t => `
-                    <div style="display:flex; align-items:center; justify-content:space-between; padding: 5px 12px 5px 28px; background: rgba(var(--primary-rgb,95,59,246),0.03);">
+                    <div style="display:flex; align-items:center; justify-content:space-between; padding: 3px 10px 3px 24px; background: rgba(var(--primary-rgb,95,59,246),0.03);">
                         <span style="font-size:12px; color:var(--primary);">• ${t.name}</span>
                         <div style="display:flex; gap:6px;">
                             <button onclick="event.stopPropagation(); window.selectedAdminTesId='${tes.id}'; window.selectedAdminTaskId='${t.id}'; window.editSelectedTask();" style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:11px; padding:0;"><i class="fa-solid fa-pen"></i></button>
@@ -8044,7 +8044,7 @@ window.renderAdminCategoriesConfig = function () {
                 tesAccordion.innerHTML += `
                     <div style="${!isLast ? 'border-bottom: 1px solid var(--border-color);' : ''}">
                         <!-- Task Category row -->
-                        <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 14px; cursor:pointer; ${isOpen ? 'background:rgba(var(--primary-rgb,95,59,246),0.04);' : ''}"
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:5px 12px; cursor:pointer; ${isOpen ? 'background:rgba(var(--primary-rgb,95,59,246),0.04);' : ''}"
                              onclick="${toggleClick}">
                             <div style="display:flex; align-items:center; gap:8px;">
                                 <i class="fa-solid fa-chevron-${isOpen ? 'down' : 'right'}" style="font-size:9px; color:var(--text-muted); width:9px;"></i>
@@ -9272,4 +9272,6 @@ window.sendWhatsAppMessage = async function(phone, message) {
         return { status: 'error', message: err.message || 'Network error' };
     }
 };
+
+
 
