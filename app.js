@@ -2500,8 +2500,8 @@ window.saveShiftAssignments = function(shiftId) {
 
     const chks = document.querySelectorAll('.shift-emp-chk');
     chks.forEach(chk => {
-        const empId = Number(chk.getAttribute('data-emp-id'));
-        const user = (db.users || []).find(u => u.id === empId);
+        const empId = String(chk.getAttribute('data-emp-id'));
+        const user = (db.users || []).find(u => String(u.id) === empId);
         if (user) {
             if (chk.checked) {
                 user.shiftId = shift.id;
