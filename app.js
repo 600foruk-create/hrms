@@ -129,7 +129,7 @@ async function syncServer() {
                     const sessionUser = { ...updatedMe };
                     delete sessionUser.documents;
                     delete sessionUser.profileImageBase64;
-                    delete sessionUser.profilePic;
+                    // Keep profilePic for topbar display
                     localStorage.setItem('current_user', JSON.stringify(sessionUser));
                     if (typeof updateTopbar === 'function') updateTopbar();
                 }
@@ -146,7 +146,7 @@ async function syncServer() {
             // Deep clean localStorage of all legacy or unrecognized keys to absolutely prevent QuotaExceededError
             try {
                 Object.keys(localStorage).forEach(key => {
-                    if (!['current_user', 'active_tab', 'hrms_fallback_db'].includes(key)) {
+                    if (!['current_user', 'active_tab', 'hrms_fallback_db'].includes(key) && !key.startsWith('auto_logout_')) {
                         localStorage.removeItem(key);
                     }
                 });
@@ -807,10 +807,10 @@ function handleLogin(usernameOrEmail, password) {
         }
 
         const completeLogin = () => {
-            // Final quota sweep
+            // Final quota sweep — preserve auto_logout_ keys
             try {
                 Object.keys(localStorage).forEach(key => {
-                    if (!['current_user', 'active_tab', 'hrms_fallback_db'].includes(key)) localStorage.removeItem(key);
+                    if (!['current_user', 'active_tab', 'hrms_fallback_db'].includes(key) && !key.startsWith('auto_logout_')) localStorage.removeItem(key);
                 });
             } catch (e) { }
 
@@ -819,7 +819,7 @@ function handleLogin(usernameOrEmail, password) {
             const sessionUser = { ...user };
             delete sessionUser.documents; // Remove huge base64 arrays to save localStorage space
             delete sessionUser.profileImageBase64;
-            delete sessionUser.profilePic;
+            // Keep profilePic so topbar shows it after refresh
             localStorage.setItem('current_user', JSON.stringify(sessionUser));
 
             // Auto Mark Attendance for Employee on Login
@@ -7763,6 +7763,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         switchTab(savedTab);
         setupSessionTimer();
         showToast("Session Restored", `Welcome back, ${currentUser.name}.`);
+        
+        // Re-fetch fresh user profile pic from server after session restore
+        if (currentUser && currentUser.id) {
+            fetch(API_URL + '?action=get_db')
+                .then(r => r.json())
+                .then(result => {
+                    if (result && result.data && result.data.users) {
+                        const freshUser = result.data.users.find(u => String(u.id) === String(currentUser.id));
+                        if (freshUser && freshUser.profilePic) {
+                            currentUser.profilePic = freshUser.profilePic;
+                            const imgHTML = `<img src="${freshUser.profilePic}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="Profile">`;
+                            const topbarAv = document.getElementById('topbar-avatar');
+                            const sidebarAv = document.getElementById('sidebar-avatar');
+                            if (topbarAv) { topbarAv.innerHTML = imgHTML; topbarAv.style.background = 'transparent'; }
+                            if (sidebarAv) { sidebarAv.innerHTML = imgHTML; sidebarAv.style.background = 'transparent'; }
+                        }
+                    }
+                }).catch(() => {});
+        }
     }
 });
 
