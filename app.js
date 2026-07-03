@@ -7974,40 +7974,45 @@ window.renderAdminCategoriesConfig = function () {
                 const isOpen = bu.id === window.selectedAdminBuId;
                 const practiceCount = (bu.practices || []).length;
                 const practicesHtml = (bu.practices || []).map(p => `
-                    <div style="display:flex; align-items:center; justify-content:space-between; padding: 6px 12px 6px 28px; border-radius:6px; background: rgba(0,0,0,0.02); margin-bottom:3px;">
-                        <span style="font-size:13px; color:var(--primary);">• ${p.name}</span>
-                        <div style="display:flex; gap:4px;">
-                            <button onclick="event.stopPropagation(); window.selectedAdminBuId='${bu.id}'; window.selectedAdminPracticeId='${p.id}'; window.editSelectedPractice();" style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:12px; padding:2px 5px;"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="event.stopPropagation(); window.selectedAdminBuId='${bu.id}'; window.selectedAdminPracticeId='${p.id}'; window.deleteSelectedPractice();" style="background:none; border:none; cursor:pointer; color:#ef4444; font-size:12px; padding:2px 5px;"><i class="fa-solid fa-trash"></i></button>
+                    <div style="display:flex; align-items:center; justify-content:space-between; padding: 4px 10px 4px 24px; border-radius:5px; background: rgba(0,0,0,0.02); margin-bottom:2px;">
+                        <span style="font-size:12px; color:var(--primary);">• ${p.name}</span>
+                        <div style="display:flex; gap:3px;">
+                            <button onclick="event.stopPropagation(); window.selectedAdminBuId='${bu.id}'; window.selectedAdminPracticeId='${p.id}'; window.editSelectedPractice();" style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:11px; padding:1px 4px;"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="event.stopPropagation(); window.selectedAdminBuId='${bu.id}'; window.selectedAdminPracticeId='${p.id}'; window.deleteSelectedPractice();" style="background:none; border:none; cursor:pointer; color:#ef4444; font-size:11px; padding:1px 4px;"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>
                 `).join('');
 
+                // Toggle: click open row again = collapse it
+                const toggleClick = isOpen
+                    ? `window.selectedAdminBuId=null; window.renderAdminCategoriesConfig();`
+                    : `window.selectedAdminBuId='${bu.id}'; window.renderAdminCategoriesConfig();`;
+
                 buAccordion.innerHTML += `
-                    <div style="border:1px solid var(--border-color); border-radius:8px; overflow:hidden; background:var(--card-bg, #fff);">
+                    <div style="border:1px solid var(--border-color); border-radius:7px; overflow:hidden; background:var(--card-bg, #fff);">
                         <!-- Department row -->
-                        <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; cursor:pointer; background: ${isOpen ? 'rgba(var(--primary-rgb,95,59,246),0.05)' : 'transparent'};"
-                             onclick="window.selectedAdminBuId='${bu.id}'; window.renderAdminCategoriesConfig();">
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <i class="fa-solid fa-chevron-${isOpen ? 'down' : 'right'}" style="font-size:11px; color:var(--text-muted); width:12px;"></i>
-                                <span style="font-weight:600; font-size:14px; color:var(--text-dark);">${bu.name}</span>
-                                <span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:20px; background:var(--primary); color:#fff;">${practiceCount} PRACTICES</span>
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:7px 12px; cursor:pointer; background: ${isOpen ? 'rgba(var(--primary-rgb,95,59,246),0.05)' : 'transparent'};"
+                             onclick="${toggleClick}">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <i class="fa-solid fa-chevron-${isOpen ? 'down' : 'right'}" style="font-size:10px; color:var(--text-muted); width:10px;"></i>
+                                <span style="font-weight:600; font-size:13px; color:var(--text-dark);">${bu.name}</span>
+                                <span style="font-size:10px; font-weight:600; padding:1px 7px; border-radius:20px; background:var(--primary); color:#fff;">${practiceCount} PRACTICES</span>
                             </div>
-                            <div style="display:flex; gap:4px;" onclick="event.stopPropagation();">
-                                <button onclick="window.selectedAdminBuId='${bu.id}'; window.addBuPracticeModal('${bu.id}');" title="Add Practice" style="width:28px; height:28px; border-radius:50%; border:none; background:rgba(var(--primary-rgb,95,59,246),0.1); color:var(--primary); cursor:pointer; display:flex; align-items:center; justify-content:center;">
-                                    <i class="fa-solid fa-plus" style="font-size:11px;"></i>
+                            <div style="display:flex; gap:3px;" onclick="event.stopPropagation();">
+                                <button onclick="window.selectedAdminBuId='${bu.id}'; window.addBuPracticeModal('${bu.id}');" title="Add Practice" style="width:24px; height:24px; border-radius:50%; border:none; background:rgba(var(--primary-rgb,95,59,246),0.1); color:var(--primary); cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                                    <i class="fa-solid fa-plus" style="font-size:10px;"></i>
                                 </button>
-                                <button onclick="window.selectedAdminBuId='${bu.id}'; window.editSelectedBu();" title="Edit" style="width:28px; height:28px; border-radius:50%; border:none; background:rgba(var(--primary-rgb,95,59,246),0.1); color:var(--primary); cursor:pointer; display:flex; align-items:center; justify-content:center;">
-                                    <i class="fa-solid fa-pen" style="font-size:11px;"></i>
+                                <button onclick="window.selectedAdminBuId='${bu.id}'; window.editSelectedBu();" title="Edit" style="width:24px; height:24px; border-radius:50%; border:none; background:rgba(var(--primary-rgb,95,59,246),0.1); color:var(--primary); cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                                    <i class="fa-solid fa-pen" style="font-size:10px;"></i>
                                 </button>
-                                <button onclick="window.selectedAdminBuId='${bu.id}'; window.deleteSelectedBu();" title="Delete" style="width:28px; height:28px; border-radius:50%; border:none; background:rgba(239,68,68,0.1); color:#ef4444; cursor:pointer; display:flex; align-items:center; justify-content:center;">
-                                    <i class="fa-solid fa-trash" style="font-size:11px;"></i>
+                                <button onclick="window.selectedAdminBuId='${bu.id}'; window.deleteSelectedBu();" title="Delete" style="width:24px; height:24px; border-radius:50%; border:none; background:rgba(239,68,68,0.1); color:#ef4444; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                                    <i class="fa-solid fa-trash" style="font-size:10px;"></i>
                                 </button>
                             </div>
                         </div>
                         <!-- Practices sub-rows (shown when open) -->
-                        ${isOpen ? `<div style="padding: 6px 8px 8px; border-top: 1px solid var(--border-color); background: rgba(0,0,0,0.01);">
-                            ${practicesHtml || '<div class="text-secondary" style="font-size:12px; text-align:center; padding:8px;">No practices yet.</div>'}
+                        ${isOpen ? `<div style="padding: 4px 6px 6px; border-top: 1px solid var(--border-color); background: rgba(0,0,0,0.01);">
+                            ${practicesHtml || '<div class="text-secondary" style="font-size:11px; text-align:center; padding:6px;">No practices yet.</div>'}
                         </div>` : ''}
                     </div>
                 `;
@@ -8026,40 +8031,45 @@ window.renderAdminCategoriesConfig = function () {
                 const isOpen = tes.id === window.selectedAdminTesId;
                 const taskCount = (tes.tasks || []).length;
                 const tasksHtml = (tes.tasks || []).map(t => `
-                    <div style="display:flex; align-items:center; justify-content:space-between; padding: 6px 12px 6px 28px; border-radius:6px; background: rgba(0,0,0,0.02); margin-bottom:3px;">
-                        <span style="font-size:13px; color:var(--primary);">• ${t.name}</span>
-                        <div style="display:flex; gap:4px;">
-                            <button onclick="event.stopPropagation(); window.selectedAdminTesId='${tes.id}'; window.selectedAdminTaskId='${t.id}'; window.editSelectedTask();" style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:12px; padding:2px 5px;"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="event.stopPropagation(); window.selectedAdminTesId='${tes.id}'; window.selectedAdminTaskId='${t.id}'; window.deleteSelectedTask();" style="background:none; border:none; cursor:pointer; color:#ef4444; font-size:12px; padding:2px 5px;"><i class="fa-solid fa-trash"></i></button>
+                    <div style="display:flex; align-items:center; justify-content:space-between; padding: 4px 10px 4px 24px; border-radius:5px; background: rgba(0,0,0,0.02); margin-bottom:2px;">
+                        <span style="font-size:12px; color:var(--primary);">• ${t.name}</span>
+                        <div style="display:flex; gap:3px;">
+                            <button onclick="event.stopPropagation(); window.selectedAdminTesId='${tes.id}'; window.selectedAdminTaskId='${t.id}'; window.editSelectedTask();" style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:11px; padding:1px 4px;"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="event.stopPropagation(); window.selectedAdminTesId='${tes.id}'; window.selectedAdminTaskId='${t.id}'; window.deleteSelectedTask();" style="background:none; border:none; cursor:pointer; color:#ef4444; font-size:11px; padding:1px 4px;"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>
                 `).join('');
 
+                // Toggle: click open row again = collapse it
+                const toggleClick = isOpen
+                    ? `window.selectedAdminTesId=null; window.renderAdminCategoriesConfig();`
+                    : `window.selectedAdminTesId='${tes.id}'; window.renderAdminCategoriesConfig();`;
+
                 tesAccordion.innerHTML += `
-                    <div style="border:1px solid var(--border-color); border-radius:8px; overflow:hidden; background:var(--card-bg, #fff);">
+                    <div style="border:1px solid var(--border-color); border-radius:7px; overflow:hidden; background:var(--card-bg, #fff);">
                         <!-- Task Category row -->
-                        <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; cursor:pointer; background: ${isOpen ? 'rgba(var(--primary-rgb,95,59,246),0.05)' : 'transparent'};"
-                             onclick="window.selectedAdminTesId='${tes.id}'; window.renderAdminCategoriesConfig();">
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <i class="fa-solid fa-chevron-${isOpen ? 'down' : 'right'}" style="font-size:11px; color:var(--text-muted); width:12px;"></i>
-                                <span style="font-weight:600; font-size:14px; color:var(--text-dark);">${tes.name}</span>
-                                <span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:20px; background:var(--primary); color:#fff;">${taskCount} SUB-TASKS</span>
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:7px 12px; cursor:pointer; background: ${isOpen ? 'rgba(var(--primary-rgb,95,59,246),0.05)' : 'transparent'};"
+                             onclick="${toggleClick}">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <i class="fa-solid fa-chevron-${isOpen ? 'down' : 'right'}" style="font-size:10px; color:var(--text-muted); width:10px;"></i>
+                                <span style="font-weight:600; font-size:13px; color:var(--text-dark);">${tes.name}</span>
+                                <span style="font-size:10px; font-weight:600; padding:1px 7px; border-radius:20px; background:var(--primary); color:#fff;">${taskCount} SUB-TASKS</span>
                             </div>
-                            <div style="display:flex; gap:4px;" onclick="event.stopPropagation();">
-                                <button onclick="window.selectedAdminTesId='${tes.id}'; window.addTesTaskModal('${tes.id}');" title="Add Sub-Task" style="width:28px; height:28px; border-radius:50%; border:none; background:rgba(var(--primary-rgb,95,59,246),0.1); color:var(--primary); cursor:pointer; display:flex; align-items:center; justify-content:center;">
-                                    <i class="fa-solid fa-plus" style="font-size:11px;"></i>
+                            <div style="display:flex; gap:3px;" onclick="event.stopPropagation();">
+                                <button onclick="window.selectedAdminTesId='${tes.id}'; window.addTesTaskModal('${tes.id}');" title="Add Sub-Task" style="width:24px; height:24px; border-radius:50%; border:none; background:rgba(var(--primary-rgb,95,59,246),0.1); color:var(--primary); cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                                    <i class="fa-solid fa-plus" style="font-size:10px;"></i>
                                 </button>
-                                <button onclick="window.selectedAdminTesId='${tes.id}'; window.editSelectedTes();" title="Edit" style="width:28px; height:28px; border-radius:50%; border:none; background:rgba(var(--primary-rgb,95,59,246),0.1); color:var(--primary); cursor:pointer; display:flex; align-items:center; justify-content:center;">
-                                    <i class="fa-solid fa-pen" style="font-size:11px;"></i>
+                                <button onclick="window.selectedAdminTesId='${tes.id}'; window.editSelectedTes();" title="Edit" style="width:24px; height:24px; border-radius:50%; border:none; background:rgba(var(--primary-rgb,95,59,246),0.1); color:var(--primary); cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                                    <i class="fa-solid fa-pen" style="font-size:10px;"></i>
                                 </button>
-                                <button onclick="window.selectedAdminTesId='${tes.id}'; window.deleteSelectedTes();" title="Delete" style="width:28px; height:28px; border-radius:50%; border:none; background:rgba(239,68,68,0.1); color:#ef4444; cursor:pointer; display:flex; align-items:center; justify-content:center;">
-                                    <i class="fa-solid fa-trash" style="font-size:11px;"></i>
+                                <button onclick="window.selectedAdminTesId='${tes.id}'; window.deleteSelectedTes();" title="Delete" style="width:24px; height:24px; border-radius:50%; border:none; background:rgba(239,68,68,0.1); color:#ef4444; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                                    <i class="fa-solid fa-trash" style="font-size:10px;"></i>
                                 </button>
                             </div>
                         </div>
                         <!-- Sub-Task rows (shown when open) -->
-                        ${isOpen ? `<div style="padding: 6px 8px 8px; border-top: 1px solid var(--border-color); background: rgba(0,0,0,0.01);">
-                            ${tasksHtml || '<div class="text-secondary" style="font-size:12px; text-align:center; padding:8px;">No sub-tasks yet.</div>'}
+                        ${isOpen ? `<div style="padding: 4px 6px 6px; border-top: 1px solid var(--border-color); background: rgba(0,0,0,0.01);">
+                            ${tasksHtml || '<div class="text-secondary" style="font-size:11px; text-align:center; padding:6px;">No sub-tasks yet.</div>'}
                         </div>` : ''}
                     </div>
                 `;

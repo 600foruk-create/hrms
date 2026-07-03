@@ -1900,10 +1900,10 @@
                         <div>
                             <!-- Sub Tab 1: Categories Config (2x2 Grid) -->
                             <div id="subtab-content-admin-config" class="sub-tab-content active">
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: calc(100vh - 240px);">
 
                                     <!-- LEFT: Departments & Practices -->
-                                    <div class="section-card bg-glass p-0 overflow-hidden" style="border-radius: 12px;">
+                                    <div class="section-card bg-glass p-0 overflow-hidden" style="border-radius: 12px; display:flex; flex-direction:column; height:100%;">
                                         <!-- Panel Header -->
                                         <div style="display:flex; align-items:center; justify-content:space-between; padding: 12px 18px; border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.03);">
                                             <div style="display:flex; align-items:center; gap:10px;">
@@ -1916,13 +1916,13 @@
                                         </div>
 
                                         <!-- Accordion List -->
-                                        <div id="admin-accordion-bu-list" style="padding: 10px; display:flex; flex-direction:column; gap:6px; min-height:180px; max-height:420px; overflow-y:auto;">
+                                        <div id="admin-accordion-bu-list" style="padding: 8px; display:flex; flex-direction:column; gap:4px; flex:1; overflow-y:auto;">
                                             <div class="text-secondary text-center" style="margin-top:50px; font-size:13px;">No departments yet</div>
                                         </div>
                                     </div>
 
                                     <!-- RIGHT: Tasks & Sub-Tasks -->
-                                    <div class="section-card bg-glass p-0 overflow-hidden" style="border-radius: 12px;">
+                                    <div class="section-card bg-glass p-0 overflow-hidden" style="border-radius: 12px; display:flex; flex-direction:column; height:100%;">
                                         <!-- Panel Header -->
                                         <div style="display:flex; align-items:center; justify-content:space-between; padding: 12px 18px; border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.03);">
                                             <div style="display:flex; align-items:center; gap:10px;">
@@ -1935,7 +1935,7 @@
                                         </div>
 
                                         <!-- Accordion List -->
-                                        <div id="admin-accordion-tes-list" style="padding: 10px; display:flex; flex-direction:column; gap:6px; min-height:180px; max-height:420px; overflow-y:auto;">
+                                        <div id="admin-accordion-tes-list" style="padding: 8px; display:flex; flex-direction:column; gap:4px; flex:1; overflow-y:auto;">
                                             <div class="text-secondary text-center" style="margin-top:50px; font-size:13px;">No task categories yet</div>
                                         </div>
                                     </div>
