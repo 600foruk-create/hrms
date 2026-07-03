@@ -2350,7 +2350,7 @@ window.renderAdminShiftManagement = function() {
         gridEl.style.flexDirection = 'column';
         gridEl.style.gap = '20px';
 
-        const allUsers = (db.users || []).filter(u => u.role !== 'Admin' && u.status !== 'Inactive');
+        const allUsers = (db.users || []).filter(u => u.status !== 'Inactive');
 
         const renderCardHTML = (s) => {
             const isFlex = s.isFlexible || s.id === 'shift_flexible';
@@ -2750,7 +2750,7 @@ window.executeShiftRotationLogic = function(db, cycleType, strategy = 'employees
     // Snapshot user previous shift state before rotation
     const userOldStates = new Map();
     (db.users || []).forEach(u => {
-        if (u.role === 'Admin' || u.status === 'Inactive') return;
+        if (u.status === 'Inactive') return;
         const oldCard = (db.shifts || []).find(s => s.id === u.shiftId) || { name: 'General Shift', start: u.dutyFrom || '09:00', end: u.dutyTo || '17:00' };
         userOldStates.set(u.id, {
             oldShiftName: oldCard.name || 'General Shift',
@@ -2764,7 +2764,7 @@ window.executeShiftRotationLogic = function(db, cycleType, strategy = 'employees
         const shiftIndexMap = new Map(rotShifts.map((s, idx) => [s.id, idx]));
 
         (db.users || []).forEach(u => {
-            if (u.role === 'Admin' || u.status === 'Inactive') return;
+            if (u.status === 'Inactive') return;
             const origShiftId = origUserShifts.get(u.id);
 
             if (shiftIndexMap.has(origShiftId)) {
@@ -2804,7 +2804,7 @@ window.executeShiftRotationLogic = function(db, cycleType, strategy = 'employees
 
         // Sync all employee dutyFrom/dutyTo to match their assigned card's newly rotated timings
         (db.users || []).forEach(u => {
-            if (u.role === 'Admin' || u.status === 'Inactive') return;
+            if (u.status === 'Inactive') return;
             const card = rotShifts.find(s => s.id === u.shiftId);
             if (card) {
                 u.dutyFrom = card.start;
@@ -2826,7 +2826,7 @@ window.executeShiftRotationLogic = function(db, cycleType, strategy = 'employees
     let notifiedCount = 0;
 
     (db.users || []).forEach(u => {
-        if (u.role === 'Admin' || u.status === 'Inactive') return;
+        if (u.status === 'Inactive') return;
         const shiftCard = (db.shifts || []).find(s => s.id === u.shiftId) || { name: 'General Shift' };
         const oldInfo = userOldStates.get(u.id) || { oldShiftName: 'Previous Shift', oldFrom: 'N/A', oldTo: 'N/A' };
         
