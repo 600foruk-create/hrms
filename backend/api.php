@@ -516,6 +516,8 @@ if ($action === 'send_otp') {
         exit;
     }
     
+    $purpose = $data['purpose'] ?? 'login';
+    
     $otp = sprintf("%06d", mt_rand(1, 999999));
     $expires = time() + (5 * 60); // 5 minutes
     
@@ -531,7 +533,24 @@ if ($action === 'send_otp') {
         $stmt->execute([$email, $otp, $expires]);
         
         $subject = "Your 2-Step Verification Code";
-        $message = "Your verification code is: $otp\n\nThis code will expire in 5 minutes.";
+        $messagePrefix = "Your verification code is:";
+        $waPrefix = "Your 2-Step Verification code is:";
+        
+        if ($purpose === 'login') {
+            $subject = "Your Login Verification Code";
+            $messagePrefix = "Your secure code to login to your account is:";
+            $waPrefix = "Your secure login code is:";
+        } elseif ($purpose === 'enable') {
+            $subject = "Enable 2-Step Verification";
+            $messagePrefix = "Your code to enable 2-Step Verification is:";
+            $waPrefix = "Your code to enable 2-Step Verification is:";
+        } elseif ($purpose === 'disable') {
+            $subject = "Disable 2-Step Verification";
+            $messagePrefix = "Your code to disable 2-Step Verification is:";
+            $waPrefix = "Your code to disable 2-Step Verification is:";
+        }
+        
+        $message = "$messagePrefix $otp\n\nThis code will expire in 5 minutes.";
         
         $mailSent = false;
         $waSent = false;
@@ -548,7 +567,7 @@ if ($action === 'send_otp') {
                     $payloadWa = [
                         'token' => $waRow['api_key'],
                         'to' => $phone,
-                        'body' => "Your 2-Step Verification code is: *$otp*. Valid for 5 minutes."
+                        'body' => "$waPrefix *$otp*. Valid for 5 minutes."
                     ];
                     $chW = curl_init($waUrl);
                     curl_setopt($chW, CURLOPT_RETURNTRANSFER, true);

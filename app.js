@@ -742,7 +742,8 @@ window.resendOtp = async function() {
             body: JSON.stringify({
                 email: otpState.email,
                 phone: otpState.phone,
-                channel: otpState.channel
+                channel: otpState.channel,
+                purpose: otpState.purpose
             })
         });
         const res = await response.json();
