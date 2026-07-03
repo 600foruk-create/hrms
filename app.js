@@ -762,9 +762,6 @@ window.resendOtp = async function() {
             msgEl.innerHTML = `A 6-digit code has been dispatched via <strong>${channelText}</strong>. Please enter it below to verify.`;
             showToast("Success", res.message || `OTP sent via ${channelText}`, "success");
             if (res.dev_otp) console.log("DEV OTP: " + res.dev_otp); // For testing if mail fails
-            if ((otpState.channel === 'WhatsApp' || otpState.channel === 'Both') && otpState.phone && typeof window.sendWhatsAppMessage === 'function' && res.dev_otp) {
-                window.sendWhatsAppMessage(otpState.phone, `Your 2-Step Verification code is: *${res.dev_otp}*. Valid for 5 minutes.`);
-            }
         } else {
             msgEl.innerHTML = '<span style="color:red;">Failed to send OTP.</span>';
             showToast("Error", res.message || "Failed to send OTP", "error");
@@ -862,9 +859,6 @@ function handleLogin(usernameOrEmail, password) {
             openOtpModal('login', user.email, user.id, (success) => {
                 if (success) completeLogin();
             });
-            setTimeout(() => {
-                if (typeof window.resendOtp === 'function') window.resendOtp();
-            }, 300);
         } else {
             completeLogin();
         }
