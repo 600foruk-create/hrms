@@ -1967,10 +1967,10 @@ function renderAdminAttendanceTab() {
 }
 
 function renderAdminProductivityTab() {
+    if (window.renderProductivitySettings) window.renderProductivitySettings();
     if (window.renderAdminProductivityTab && window.renderAdminProductivityTab !== renderAdminProductivityTab) {
         return window.renderAdminProductivityTab();
     }
-    // Populated by productivity.js
 }
 
 
@@ -7978,9 +7978,10 @@ window.renderAdminCategoriesConfig = function () {
                 const practicesHtml = (bu.practices || []).map(p => `
                     <div style="display:flex; align-items:center; justify-content:space-between; padding: 3px 10px 3px 24px; background: rgba(var(--primary-rgb,95,59,246),0.03);">
                         <span style="font-size:12px; color:var(--primary);">• ${p.name}</span>
-                        <div style="display:flex; gap:6px;">
-                            <button onclick="event.stopPropagation(); window.selectedAdminBuId='${bu.id}'; window.selectedAdminPracticeId='${p.id}'; window.editSelectedPractice();" style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:11px; padding:0;"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="event.stopPropagation(); window.selectedAdminBuId='${bu.id}'; window.selectedAdminPracticeId='${p.id}'; window.deleteSelectedPractice();" style="background:none; border:none; cursor:pointer; color:#ef4444; font-size:11px; padding:0;"><i class="fa-solid fa-trash"></i></button>
+                        <div style="display:flex; gap:4px;">
+                            <button style="visibility:hidden; background:none; border:none; font-size:13px; padding:2px 4px;"><i class="fa-solid fa-circle-plus"></i></button>
+                            <button onclick="event.stopPropagation(); window.selectedAdminBuId='${bu.id}'; window.selectedAdminPracticeId='${p.id}'; window.editSelectedPractice();" style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:12px; padding:2px 4px;"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="event.stopPropagation(); window.selectedAdminBuId='${bu.id}'; window.selectedAdminPracticeId='${p.id}'; window.deleteSelectedPractice();" style="background:none; border:none; cursor:pointer; color:#ef4444; font-size:12px; padding:2px 4px;"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>
                 `).join('');
@@ -8030,9 +8031,10 @@ window.renderAdminCategoriesConfig = function () {
                 const tasksHtml = (tes.tasks || []).map(t => `
                     <div style="display:flex; align-items:center; justify-content:space-between; padding: 3px 10px 3px 24px; background: rgba(var(--primary-rgb,95,59,246),0.03);">
                         <span style="font-size:12px; color:var(--primary);">• ${t.name}</span>
-                        <div style="display:flex; gap:6px;">
-                            <button onclick="event.stopPropagation(); window.selectedAdminTesId='${tes.id}'; window.selectedAdminTaskId='${t.id}'; window.editSelectedTask();" style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:11px; padding:0;"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="event.stopPropagation(); window.selectedAdminTesId='${tes.id}'; window.selectedAdminTaskId='${t.id}'; window.deleteSelectedTask();" style="background:none; border:none; cursor:pointer; color:#ef4444; font-size:11px; padding:0;"><i class="fa-solid fa-trash"></i></button>
+                        <div style="display:flex; gap:4px;">
+                            <button style="visibility:hidden; background:none; border:none; font-size:13px; padding:2px 4px;"><i class="fa-solid fa-circle-plus"></i></button>
+                            <button onclick="event.stopPropagation(); window.selectedAdminTesId='${tes.id}'; window.selectedAdminTaskId='${t.id}'; window.editSelectedTask();" style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:12px; padding:2px 4px;"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="event.stopPropagation(); window.selectedAdminTesId='${tes.id}'; window.selectedAdminTaskId='${t.id}'; window.deleteSelectedTask();" style="background:none; border:none; cursor:pointer; color:#ef4444; font-size:12px; padding:2px 4px;"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>
                 `).join('');
