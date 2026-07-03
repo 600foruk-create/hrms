@@ -1900,129 +1900,66 @@
                         <div>
                             <!-- Sub Tab 1: Categories Config (2x2 Grid) -->
                             <div id="subtab-content-admin-config" class="sub-tab-content active">
-                                <div
-                                    style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 16px 0px;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
 
-                                    <!-- Row 1, Col 1: Business Units -->
-                                    <div class="section-card bg-glass p-0 overflow-hidden"
-                                        style="border-radius: 8px 0 0 8px; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; height: 210px;">
-                                        <div class="p-2 px-3 border-bottom"
-                                            style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05);">
-                                            <h3 class="mb-0" style="font-size: 16px; color: var(--primary-color);">
-                                                Departments</h3>
-                                            <div style="display: flex; gap: 4px;">
-                                                <button class="btn btn-sm btn-outline-primary" id="btn-edit-bu"
-                                                    style="padding: 2px 8px; font-size: 12px; border-radius: 4px; display: none;"
-                                                    onclick="window.editSelectedBu()"><i
-                                                        class="fa-solid fa-pen"></i></button>
-                                                <button class="btn btn-sm btn-outline-danger" id="btn-delete-bu"
-                                                    style="padding: 2px 8px; font-size: 12px; border-radius: 4px; display: none;"
-                                                    onclick="window.deleteSelectedBu()"><i
-                                                        class="fa-solid fa-trash"></i></button>
-                                                <button class="btn btn-sm btn-primary"
-                                                    style="padding: 2px 8px; font-size: 12px; border-radius: 4px;"
-                                                    onclick="window.addBuModal()"><i class="fa-solid fa-plus"></i>
-                                                    Add</button>
+                                    <!-- LEFT: Departments & Practices -->
+                                    <div class="section-card bg-glass p-0 overflow-hidden" style="border-radius: 12px;">
+                                        <!-- Panel Header -->
+                                        <div style="display:flex; align-items:center; justify-content:space-between; padding: 12px 18px; border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.03);">
+                                            <div style="display:flex; align-items:center; gap:10px;">
+                                                <i class="fa-solid fa-sitemap" style="color:var(--primary); font-size:15px;"></i>
+                                                <span style="font-weight:700; font-size:14px; color:var(--text-dark);">Departments &amp; Practices</span>
                                             </div>
+                                            <button class="btn btn-sm btn-primary" style="padding:4px 12px; font-size:12px; border-radius:6px;" onclick="window.addBuModal()">
+                                                <i class="fa-solid fa-plus"></i> Add Department
+                                            </button>
                                         </div>
-                                        <div class="p-2 px-3" id="admin-grid-bu-list"
-                                            style="flex: 1; overflow-y: auto;">
-                                            <!-- Dynamic BU List -->
+
+                                        <!-- Accordion List -->
+                                        <div id="admin-accordion-bu-list" style="padding: 10px; display:flex; flex-direction:column; gap:6px; min-height:180px; max-height:420px; overflow-y:auto;">
+                                            <div class="text-secondary text-center" style="margin-top:50px; font-size:13px;">No departments yet</div>
                                         </div>
                                     </div>
 
-                                    <!-- Row 1, Col 2: Practices -->
-                                    <div class="section-card bg-glass p-0 overflow-hidden"
-                                        style="border-radius: 0 8px 8px 0; display: flex; flex-direction: column; height: 210px;">
-                                        <div class="p-2 px-3 border-bottom"
-                                            style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05);">
-                                            <h3 class="mb-0" style="font-size: 16px; color: var(--primary-color);">
-                                                Practices <span id="grid-active-bu-name"
-                                                    style="font-size: 12px; color: var(--text-secondary); font-weight: normal; margin-left: 8px;"></span>
-                                            </h3>
-                                            <div style="display: flex; gap: 4px;" id="header-actions-practice">
-                                                <button class="btn btn-sm btn-outline-primary" id="btn-edit-practice"
-                                                    style="padding: 2px 8px; font-size: 12px; border-radius: 4px; display: none;"
-                                                    onclick="window.editSelectedPractice()"><i
-                                                        class="fa-solid fa-pen"></i></button>
-                                                <button class="btn btn-sm btn-outline-danger" id="btn-delete-practice"
-                                                    style="padding: 2px 8px; font-size: 12px; border-radius: 4px; display: none;"
-                                                    onclick="window.deleteSelectedPractice()"><i
-                                                        class="fa-solid fa-trash"></i></button>
-                                                <button class="btn btn-sm btn-primary" id="btn-add-practice"
-                                                    style="padding: 2px 8px; font-size: 12px; border-radius: 4px; display: none;"
-                                                    onclick="window.addBuPracticeModal(window.selectedAdminBuId)"><i
-                                                        class="fa-solid fa-plus"></i> Add</button>
+                                    <!-- RIGHT: Tasks & Sub-Tasks -->
+                                    <div class="section-card bg-glass p-0 overflow-hidden" style="border-radius: 12px;">
+                                        <!-- Panel Header -->
+                                        <div style="display:flex; align-items:center; justify-content:space-between; padding: 12px 18px; border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.03);">
+                                            <div style="display:flex; align-items:center; gap:10px;">
+                                                <i class="fa-solid fa-list-check" style="color:var(--primary); font-size:15px;"></i>
+                                                <span style="font-weight:700; font-size:14px; color:var(--text-dark);">Tasks &amp; Sub-Tasks</span>
                                             </div>
+                                            <button class="btn btn-sm btn-primary" style="padding:4px 12px; font-size:12px; border-radius:6px;" onclick="window.addTesModal()">
+                                                <i class="fa-solid fa-plus"></i> Add Task
+                                            </button>
                                         </div>
-                                        <div class="p-2 px-3" id="admin-grid-practices-list"
-                                            style="flex: 1; overflow-y: auto;">
-                                            <div class="text-secondary text-center"
-                                                style="margin-top: 40px; font-size: 13px;">Select a Department to
-                                                view practices</div>
+
+                                        <!-- Accordion List -->
+                                        <div id="admin-accordion-tes-list" style="padding: 10px; display:flex; flex-direction:column; gap:6px; min-height:180px; max-height:420px; overflow-y:auto;">
+                                            <div class="text-secondary text-center" style="margin-top:50px; font-size:13px;">No task categories yet</div>
                                         </div>
                                     </div>
 
-                                    <!-- Row 2, Col 1: TES Categories -->
-                                    <div class="section-card bg-glass p-0 overflow-hidden"
-                                        style="border-radius: 8px 0 0 8px; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; height: 210px;">
-                                        <div class="p-2 px-3 border-bottom"
-                                            style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05);">
-                                            <h3 class="mb-0" style="font-size: 16px; color: var(--success);">Task
-                                                Categories</h3>
-                                            <div style="display: flex; gap: 4px;">
-                                                <button class="btn btn-sm btn-outline-success" id="btn-edit-tes"
-                                                    style="padding: 2px 8px; font-size: 12px; border-radius: 4px; display: none;"
-                                                    onclick="window.editSelectedTes()"><i
-                                                        class="fa-solid fa-pen"></i></button>
-                                                <button class="btn btn-sm btn-outline-danger" id="btn-delete-tes"
-                                                    style="padding: 2px 8px; font-size: 12px; border-radius: 4px; display: none;"
-                                                    onclick="window.deleteSelectedTes()"><i
-                                                        class="fa-solid fa-trash"></i></button>
-                                                <button class="btn btn-sm btn-success"
-                                                    style="padding: 2px 8px; font-size: 12px; border-radius: 4px;"
-                                                    onclick="window.addTesModal()"><i class="fa-solid fa-plus"></i>
-                                                    Add</button>
-                                            </div>
-                                        </div>
-                                        <div class="p-2 px-3" id="admin-grid-tes-list"
-                                            style="flex: 1; overflow-y: auto;">
-                                            <!-- Dynamic TES List -->
-                                        </div>
-                                    </div>
+                                </div>
 
-                                    <!-- Row 2, Col 2: Tasks -->
-                                    <div class="section-card bg-glass p-0 overflow-hidden"
-                                        style="border-radius: 0 8px 8px 0; display: flex; flex-direction: column; height: 210px;">
-                                        <div class="p-2 px-3 border-bottom"
-                                            style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05);">
-                                            <h3 class="mb-0" style="font-size: 16px; color: var(--success);">Task Sub Category <span
-                                                    id="grid-active-tes-name"
-                                                    style="font-size: 12px; color: var(--text-secondary); font-weight: normal; margin-left: 8px;"></span>
-                                            </h3>
-                                            <div style="display: flex; gap: 4px;" id="header-actions-task">
-                                                <button class="btn btn-sm btn-outline-success" id="btn-edit-task"
-                                                    style="padding: 2px 8px; font-size: 12px; border-radius: 4px; display: none;"
-                                                    onclick="window.editSelectedTask()"><i
-                                                        class="fa-solid fa-pen"></i></button>
-                                                <button class="btn btn-sm btn-outline-danger" id="btn-delete-task"
-                                                    style="padding: 2px 8px; font-size: 12px; border-radius: 4px; display: none;"
-                                                    onclick="window.deleteSelectedTask()"><i
-                                                        class="fa-solid fa-trash"></i></button>
-                                                <button class="btn btn-sm btn-success" id="btn-add-task"
-                                                    style="padding: 2px 8px; font-size: 12px; border-radius: 4px; display: none;"
-                                                    onclick="window.addTesTaskModal(window.selectedAdminTesId)"><i
-                                                        class="fa-solid fa-plus"></i> Add</button>
-                                            </div>
-                                        </div>
-                                        <div class="p-2 px-3" id="admin-grid-tasks-list"
-                                            style="flex: 1; overflow-y: auto;">
-                                            <div class="text-secondary text-center"
-                                                style="margin-top: 40px; font-size: 13px;">Select a TES Category to view
-                                                tasks</div>
-                                        </div>
-                                    </div>
-
+                                <!-- Hidden legacy containers (kept for backward JS compatibility) -->
+                                <div style="display:none;">
+                                    <div id="admin-grid-bu-list"></div>
+                                    <div id="admin-grid-practices-list"></div>
+                                    <div id="admin-grid-tes-list"></div>
+                                    <div id="admin-grid-tasks-list"></div>
+                                    <span id="grid-active-bu-name"></span>
+                                    <span id="grid-active-tes-name"></span>
+                                    <button id="btn-edit-bu" onclick="window.editSelectedBu()"></button>
+                                    <button id="btn-delete-bu" onclick="window.deleteSelectedBu()"></button>
+                                    <button id="btn-add-practice" onclick="window.addBuPracticeModal(window.selectedAdminBuId)"></button>
+                                    <button id="btn-edit-practice" onclick="window.editSelectedPractice()"></button>
+                                    <button id="btn-delete-practice" onclick="window.deleteSelectedPractice()"></button>
+                                    <button id="btn-edit-tes" onclick="window.editSelectedTes()"></button>
+                                    <button id="btn-delete-tes" onclick="window.deleteSelectedTes()"></button>
+                                    <button id="btn-add-task" onclick="window.addTesTaskModal(window.selectedAdminTesId)"></button>
+                                    <button id="btn-edit-task" onclick="window.editSelectedTask()"></button>
+                                    <button id="btn-delete-task" onclick="window.deleteSelectedTask()"></button>
                                 </div>
                             </div>
 
