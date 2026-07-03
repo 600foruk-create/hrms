@@ -709,12 +709,16 @@ window.submitOtp = async function() {
             const db2 = typeof getDb === 'function' ? getDb() : { users: [] };
             const usr2 = (db2.users || []).find(u => String(u.id) === String(uid) || u.email === mail) || currentUser;
             if (usr2) usr2.twoFactorEnabled = true;
-            if (currentUser) currentUser.twoFactorEnabled = true;
-            try { localStorage.setItem('current_user', JSON.stringify(currentUser)); } catch(e) {}
+            if (currentUser) {
+                currentUser.twoFactorEnabled = true;
+                try { localStorage.setItem('current_user', JSON.stringify(currentUser)); } catch(e) {}
+            }
             if (typeof saveDb === 'function') saveDb(db2);
         }
+        
+        const cb = otpState.callback;
         closeOtpModal();
-        if (otpState.callback) otpState.callback(true);
+        if (cb) cb(true);
     }
 };
 
