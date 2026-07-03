@@ -527,6 +527,44 @@ async function openOtpModal(purpose, email, userId, callback) {
     const isCurrentlyEnabled = !!(userObj?.twoFactorEnabled || currentUser?.twoFactorEnabled);
     if (toggleSwitch) toggleSwitch.checked = isCurrentlyEnabled;
 
+    const settingsRow = document.getElementById('modal-2fa-settings-row');
+    const channelSelector = document.getElementById('otp-channel-selector');
+    const verifyBtn = document.getElementById('btn-verify-otp');
+    const modalHeader = document.querySelector('#modal-otp-verification .modal-header h3');
+    const modalInnerTitle = document.querySelector('#modal-2fa-enable-section .fa-envelope-circle-check')?.parentElement?.nextElementSibling;
+    
+    if (purpose === 'login') {
+        if (settingsRow) settingsRow.style.display = 'none';
+        if (channelSelector) channelSelector.style.display = 'none';
+        if (reqBtn) reqBtn.classList.add('hidden');
+        if (verifyBtn) verifyBtn.innerHTML = '<i class="fa-solid fa-shield-check"></i> Verify &amp; Login';
+        if (modalHeader) modalHeader.innerHTML = '<i class="fa-solid fa-shield-halved" style="margin-right:8px; color:var(--primary);"></i>Login Verification';
+        if (modalInnerTitle && modalInnerTitle.tagName === 'H4') modalInnerTitle.style.display = 'none';
+        
+        // Auto-trigger Both
+        otpState.channel = 'Both';
+        
+        document.getElementById('modal-otp-verification').classList.remove('hidden');
+        document.getElementById('modal-backdrop').classList.remove('hidden');
+        
+        // Show entry section and hide all other sections using toggle function
+        toggleModal2faSwitch(true, false);
+        const enableSection  = document.getElementById('modal-2fa-enable-section');
+        if (enableSection) enableSection.classList.remove('hidden');
+        if (entrySection) entrySection.classList.remove('hidden');
+        
+        // Trigger resend to auto-send
+        resendOtp();
+        return;
+    }
+
+    // Default flow (enable/disable settings)
+    if (settingsRow) settingsRow.style.display = 'flex';
+    if (channelSelector) channelSelector.style.display = 'flex';
+    if (verifyBtn) verifyBtn.innerHTML = '<i class="fa-solid fa-shield-check"></i> Verify &amp; Enable 2FA';
+    if (modalHeader) modalHeader.innerHTML = '<i class="fa-solid fa-shield-halved" style="margin-right:8px; color:var(--primary);"></i>2-Step Verification';
+    if (modalInnerTitle && modalInnerTitle.tagName === 'H4') modalInnerTitle.style.display = 'block';
+
     // Show appropriate section
     toggleModal2faSwitch(isCurrentlyEnabled, true); // true = init (no flip)
 
@@ -684,9 +722,14 @@ window.resendOtp = async function() {
     const msgEl = document.getElementById('otp-message');
     const reqBtn = document.getElementById('btn-request-otp');
     
-    reqBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
-    reqBtn.disabled = true;
-    msgEl.innerHTML = `Sending verification code via ${otpState.channel}...`;
+    if (reqBtn) {
+        reqBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+        reqBtn.disabled = true;
+    }
+    
+    let channelText = otpState.channel;
+    if (channelText === 'Both') channelText = 'Email and WhatsApp';
+    if (msgEl) msgEl.innerHTML = `Sending verification code to ${channelText}...`;
     
     try {
         const response = await fetch('backend/api.php?action=send_otp', {
@@ -710,8 +753,10 @@ window.resendOtp = async function() {
         }
 
         if (res.status === 'success' || res.dev_otp) {
-            msgEl.innerHTML = `A 6-digit code has been dispatched via <strong>${otpState.channel}</strong>. Please enter it below to verify.`;
-            showToast("Success", res.message || `OTP sent via ${otpState.channel}`, "success");
+            let channelText = otpState.channel;
+            if (channelText === 'Both') channelText = 'Email and WhatsApp';
+            msgEl.innerHTML = `A 6-digit code has been dispatched via <strong>${channelText}</strong>. Please enter it below to verify.`;
+            showToast("Success", res.message || `OTP sent via ${channelText}`, "success");
             if (res.dev_otp) console.log("DEV OTP: " + res.dev_otp); // For testing if mail fails
             if ((otpState.channel === 'WhatsApp' || otpState.channel === 'Both') && otpState.phone && typeof window.sendWhatsAppMessage === 'function' && res.dev_otp) {
                 window.sendWhatsAppMessage(otpState.phone, `Your 2-Step Verification code is: *${res.dev_otp}*. Valid for 5 minutes.`);
