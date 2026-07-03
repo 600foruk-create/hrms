@@ -276,6 +276,14 @@ async function saveDb(data) {
     }
 }
 
+// Global utility: close any modal by ID, also hides backdrop
+window.closeModal = function(modalId) {
+    const m = document.getElementById(modalId);
+    if (m) m.classList.add('hidden');
+    const bd = document.getElementById('modal-backdrop');
+    if (bd) bd.classList.add('hidden');
+};
+
 // RESTful API Endpoint for Independent Saves
 async function saveUserOnServer(userObj) {
     if (window.isDemoMode) return true;
@@ -7228,7 +7236,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             localStorage.setItem('auto_logout_' + currentUser.id, JSON.stringify({ enabled: isEnabled, minutes: mins }));
         }
 
-        closeModal('modal-auto-logout-config');
+        // Close the modal directly
+        const alModal = document.getElementById('modal-auto-logout-config');
+        if (alModal) alModal.classList.add('hidden');
+        const alBackdrop = document.getElementById('modal-backdrop');
+        if (alBackdrop) alBackdrop.classList.add('hidden');
         setupSessionTimer();
 
         // Refresh badge in dropdown
