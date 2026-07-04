@@ -3776,6 +3776,17 @@ window.saveLeaveType = function (id) {
             saveDb(db);
             logAudit("Updated leave type: " + name);
             showToast("Success", "Leave type saved.");
+            
+            // Switch back to view mode
+            nameEl.disabled = true;
+            nameEl.style.border = '1px solid transparent';
+            daysEl.disabled = true;
+            daysEl.style.border = '1px solid transparent';
+            
+            const btnEdit = document.getElementById(`btn-edit-${id}`);
+            const btnSave = document.getElementById(`btn-save-${id}`);
+            if (btnEdit) btnEdit.style.display = 'inline-block';
+            if (btnSave) btnSave.style.display = 'none';
         }
     }
 };

@@ -1496,7 +1496,7 @@ elseif ($action === 'save_all') {
                 if (!empty($cp['leaveTypes']) && is_array($cp['leaveTypes'])) {
                     $cltStmt = $pdo->prepare("INSERT INTO company_leave_types (type_id, name, allowance) VALUES (?, ?, ?)");
                     foreach ($cp['leaveTypes'] as $lt) {
-                        $cltStmt->execute([$lt['id'] ?? '', $lt['name'] ?? '', (int)($lt['allowance'] ?? $lt['days'] ?? 0)]);
+                        $cltStmt->execute([$lt['id'] ?? '', $lt['name'] ?? '', (int)($lt['days'] ?? $lt['allowance'] ?? 0)]);
                     }
                 }
             }
