@@ -4265,7 +4265,7 @@ function renderManagerLeaveTab() {
                         <td>${l.startDate} to ${l.endDate}</td>
                         <td class="italic">"${l.reason}"</td>
                         <td><span class="badge-status ${statusClass}">${l.status}</span></td>
-                        <td><span class="text-muted italic">${l.comments || 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â'}</span></td>
+                        <td><span class="text-muted italic">${l.comments || '-'}</span></td>
                         <td>${actionsHTML}</td>
                     </tr>
                 `;
@@ -4291,7 +4291,7 @@ function renderManagerLeaveTab() {
                         <td>${l.startDate} to ${l.endDate}</td>
                         <td class="italic">"${l.reason}"</td>
                         <td><span class="badge-status ${statusClass}">${l.status}</span></td>
-                        <td><span class="text-muted italic">${l.comments || 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â'}</span></td>
+                        <td><span class="text-muted italic">${l.comments || '-'}</span></td>
                     </tr>
                 `;
             });
@@ -4623,7 +4623,7 @@ function renderEmployeeLeaveTab() {
                     <td>${l.endDate}</td>
                     <td class="italic">"${l.reason}"</td>
                     <td><span class="badge-status ${statusClass}">${l.status}</span></td>
-                    <td><span class="text-muted italic">${l.comments || 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â'}</span></td>
+                    <td><span class="text-muted italic">${l.comments || '-'}</span></td>
                 </tr>
             `;
         });
@@ -5570,7 +5570,7 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
             else if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
         }
     } else {
-        // Create Mode ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â use the admin-entered Employee ID as the actual primary ID
+        // Create Mode - use the admin-entered Employee ID as the actual primary ID
         if (password.length < 6) {
             showToast("Password Error", "Password must be at least 6 characters.", "error");
             return;
@@ -5820,7 +5820,7 @@ document.getElementById('leave-request-form').addEventListener('submit', (e) => 
     refreshTabContent(activeTab);
 });
 
-// Old productivity review modal removed ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â now handled by productivity.js
+// Old productivity review modal removed - now handled by productivity.js
 
 
 // 6. Manual Attendance Logger Form
@@ -6687,7 +6687,7 @@ window.enableAddNewLeaveType = function () {
 
 
 
-// Old productivity multi-select form logic removed ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â now handled by productivity.js
+// Old productivity multi-select form logic removed - now handled by productivity.js
 
 
 // ==================== REPORTS & EXPORT SHEETS ====================
