@@ -3731,6 +3731,15 @@ window.deleteLeaveType = function (id) {
     if (confirm("Are you sure you want to delete this leave type?")) {
         const db = getDb();
         db.companyProfile.leaveTypes = db.companyProfile.leaveTypes.filter(lt => lt.id !== id);
+        
+        if (db.users) {
+            db.users.forEach(u => {
+                if (u.leaveBalances) {
+                    u.leaveBalances = u.leaveBalances.filter(b => b.id !== id);
+                }
+            });
+        }
+        
         saveDb(db);
         logAudit("Deleted a leave type policy.");
         renderLeaveTypes();
@@ -3754,6 +3763,16 @@ window.saveLeaveType = function (id) {
         if (lt) {
             lt.name = name;
             lt.days = days;
+            
+            if (db.users) {
+                db.users.forEach(u => {
+                    if (u.leaveBalances) {
+                        const ub = u.leaveBalances.find(b => b.id === id);
+                        if (ub) ub.name = name; // Only update name, preserve balance
+                    }
+                });
+            }
+            
             saveDb(db);
             logAudit("Updated leave type: " + name);
             showToast("Success", "Leave type saved.");
@@ -6525,11 +6544,23 @@ document.getElementById('settings-add-leave-type-form').addEventListener('submit
     if (!db.companyProfile) db.companyProfile = {};
     if (!db.companyProfile.leaveTypes) db.companyProfile.leaveTypes = [];
 
+    const newLtId = 'L' + Date.now();
     db.companyProfile.leaveTypes.push({
-        id: 'L' + Date.now(),
+        id: newLtId,
         name: name,
         days: days
     });
+
+    if (db.users) {
+        db.users.forEach(u => {
+            if (u.status !== 'Inactive') {
+                if (!u.leaveBalances) u.leaveBalances = [];
+                if (!u.leaveBalances.find(b => b.id === newLtId)) {
+                    u.leaveBalances.push({ id: newLtId, name: name, balance: days });
+                }
+            }
+        });
+    }
 
     saveDb(db);
     logAudit(`Added new leave type: ${name} (${days} days)`);
