@@ -6536,40 +6536,14 @@ document.getElementById('settings-add-leave-type-form').addEventListener('submit
     showToast("Success", "Leave type added.");
     e.target.reset();
 
-    // Reset UI to disabled state
+    // Reset UI to empty state
     const nameInput = document.getElementById('new-leave-type-name');
     const daysInput = document.getElementById('new-leave-type-days');
-    const btnEnable = document.getElementById('btn-enable-add-leave');
-    const btnSubmit = document.getElementById('btn-submit-add-leave');
-
-    if (nameInput && daysInput) {
-        nameInput.disabled = true;
-        nameInput.style.border = '';
-        daysInput.disabled = true;
-        daysInput.style.border = '';
-    }
-    if (btnEnable) btnEnable.style.display = 'inline-block';
-    if (btnSubmit) btnSubmit.style.display = 'none';
+    
+    if (nameInput) nameInput.focus();
 
     renderLeaveTypes();
 });
-
-window.enableAddNewLeaveType = function () {
-    const nameInput = document.getElementById('new-leave-type-name');
-    const daysInput = document.getElementById('new-leave-type-days');
-    const btnEnable = document.getElementById('btn-enable-add-leave');
-    const btnSubmit = document.getElementById('btn-submit-add-leave');
-
-    if (nameInput && daysInput) {
-        nameInput.disabled = false;
-        nameInput.style.border = '1px solid var(--primary)';
-        daysInput.disabled = false;
-        daysInput.style.border = '1px solid var(--primary)';
-        nameInput.focus();
-    }
-    if (btnEnable) btnEnable.style.display = 'none';
-    if (btnSubmit) btnSubmit.style.display = 'inline-block';
-};
 
 
 
