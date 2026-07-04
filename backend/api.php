@@ -118,6 +118,7 @@ try {
 
 // Ensure hasCustomLeaveBalances exists
 try { $pdo->exec("ALTER TABLE `users` ADD COLUMN `hasCustomLeaveBalances` TINYINT(1) DEFAULT 0"); } catch (Exception $ex) {}
+try { $pdo->exec("ALTER TABLE `employee_leave_balances` ADD COLUMN `total` int(11) DEFAULT NULL"); } catch (Exception $ex) {}
 
 // Ensure productivity_categories exists
 try {
@@ -910,7 +911,7 @@ if ($action === 'load_all') {
         $docStmt = $pdo->query("SELECT employee_id, doc_name as name, doc_url as url FROM employee_documents");
         $allDocs = $docStmt->fetchAll();
         
-        $balStmt = $pdo->query("SELECT employee_id, leave_type as id, balance FROM employee_leave_balances");
+        $balStmt = $pdo->query("SELECT employee_id, leave_type as id, balance, total FROM employee_leave_balances");
         $allBals = $balStmt->fetchAll();
 
         $shMap = [];
@@ -951,7 +952,10 @@ if ($action === 'load_all') {
             
             $u['leaveBalances'] = array_values(array_filter($allBals, function($b) use ($u) { return $b['employee_id'] === $u['id']; }));
             // Convert balance strings to integers
-            foreach ($u['leaveBalances'] as &$lb) { $lb['balance'] = (int)$lb['balance']; }
+            foreach ($u['leaveBalances'] as &$lb) { 
+                $lb['balance'] = (int)$lb['balance']; 
+                if (isset($lb['total'])) $lb['total'] = (int)$lb['total'];
+            }
             
             if (empty($u['leaveBalances']) && !empty($origBals)) {
                 $u['leaveBalances'] = json_decode($origBals, true) ?: [];
@@ -1331,7 +1335,7 @@ elseif ($action === 'save_all') {
             if (!empty($data['users'])) {
                 $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, bloodGroup, designation, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode, twoFactorEnabled, hasCustomLeaveBalances) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 $docStmt = $pdo->prepare("INSERT INTO employee_documents (employee_id, doc_name, doc_url) VALUES (?, ?, ?)");
-                $balStmt = $pdo->prepare("INSERT INTO employee_leave_balances (employee_id, leave_type, balance) VALUES (?, ?, ?)");
+                $balStmt = $pdo->prepare("INSERT INTO employee_leave_balances (employee_id, leave_type, balance, total) VALUES (?, ?, ?, ?)");
                 
                 foreach ($data['users'] as $u) {
                     $stmt->execute([
@@ -1356,7 +1360,7 @@ elseif ($action === 'save_all') {
                     
                     if (!empty($u['leaveBalances']) && is_array($u['leaveBalances'])) {
                         foreach ($u['leaveBalances'] as $bal) {
-                            $balStmt->execute([$u['id'], $bal['id'] ?? '', (int)($bal['balance'] ?? 0)]);
+                            $balStmt->execute([$u['id'], $bal['id'] ?? '', (int)($bal['balance'] ?? 0), isset($bal['total']) ? (int)$bal['total'] : null]);
                         }
                     }
                 }
@@ -1842,9 +1846,9 @@ elseif ($action === 'save_all') {
         }
         
         if (!empty($u['leaveBalances']) && is_array($u['leaveBalances'])) {
-            $balStmt = $pdo->prepare("INSERT INTO employee_leave_balances (employee_id, leave_type, balance) VALUES (?, ?, ?)");
+            $balStmt = $pdo->prepare("INSERT INTO employee_leave_balances (employee_id, leave_type, balance, total) VALUES (?, ?, ?, ?)");
             foreach ($u['leaveBalances'] as $bal) {
-                $balStmt->execute([$u['id'], $bal['id'] ?? '', (int)($bal['balance'] ?? 0)]);
+                $balStmt->execute([$u['id'], $bal['id'] ?? '', (int)($bal['balance'] ?? 0), isset($bal['total']) ? (int)$bal['total'] : null]);
             }
         }
         
