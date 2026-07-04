@@ -4653,13 +4653,23 @@ function renderEmployeeLeaveTab() {
                 if (globalType) bName = globalType.name;
                 bName = bName || 'Unknown';
 
-                let total = b.total !== undefined ? b.total : (globalType ? globalType.days : b.balance);
-                if (total === undefined || total < b.balance) total = b.balance;
+                let oldTotal = b.total !== undefined ? b.total : b.balance;
+                let taken = Math.max(0, oldTotal - (b.balance || 0));
+                
+                let total = oldTotal;
+                let displayBalance = b.balance;
+                
+                if (userRec.hasCustomLeaveBalances !== true && globalType) {
+                    total = globalType.days;
+                    displayBalance = Math.max(0, total - taken);
+                }
+
+                if (total === undefined || total < displayBalance) total = displayBalance;
                 balancesBody.innerHTML += `
                     <tr>
                         <td class="bold">${bName}</td>
                         <td style="text-align:right">${total}</td>
-                        <td style="text-align:right"><span class="badge-status" style="background:var(--bg-glass); color:var(--text-main); border:1px solid var(--border-color);">${b.balance}</span></td>
+                        <td style="text-align:right"><span class="badge-status" style="background:var(--bg-glass); color:var(--text-main); border:1px solid var(--border-color);">${displayBalance}</span></td>
                     </tr>
                 `;
             });
