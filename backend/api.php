@@ -1162,9 +1162,12 @@ if ($action === 'load_all') {
                 $origLeaveTypes = $cpRow['leaveTypes'] ?? '';
                 
                 try {
-                    $cltStmt = $pdo->query("SELECT type_id as id, name, allowance FROM company_leave_types");
+                    $cltStmt = $pdo->query("SELECT type_id as id, name, allowance, allowance as days FROM company_leave_types");
                     $cpRow['leaveTypes'] = $cltStmt->fetchAll();
-                    foreach ($cpRow['leaveTypes'] as &$lt) { $lt['allowance'] = (int)$lt['allowance']; }
+                    foreach ($cpRow['leaveTypes'] as &$lt) { 
+                        $lt['allowance'] = (int)$lt['allowance']; 
+                        $lt['days'] = (int)$lt['days']; 
+                    }
                 } catch (Exception $e) { $cpRow['leaveTypes'] = []; }
                 
                 if (empty($cpRow['leaveTypes']) && !empty($origLeaveTypes)) {
