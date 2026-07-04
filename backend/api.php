@@ -113,6 +113,7 @@ try {
             `status` TEXT DEFAULT 'Pending'
         )");
         try { $pdo->exec("ALTER TABLE `productivity` ADD COLUMN `status` TEXT DEFAULT 'Pending'"); } catch (Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE `users` ADD COLUMN `hasCustomLeaveBalances` TINYINT(1) DEFAULT 0"); } catch (Exception $ex) {}
     } catch (Exception $e2) {}
 }
 
@@ -966,6 +967,7 @@ if ($action === 'load_all') {
                 $u['breakMins'] = 60;
             }
             $u['twoFactorEnabled'] = !empty($u['twoFactorEnabled']);
+            $u['hasCustomLeaveBalances'] = !empty($u['hasCustomLeaveBalances']);
         }
         if (empty($usersRecords)) {
             // Re-inject default admin if table is empty to prevent lockout
@@ -1322,7 +1324,7 @@ elseif ($action === 'save_all') {
             $pdo->exec("DELETE FROM employee_documents");
             $pdo->exec("DELETE FROM employee_leave_balances");
             if (!empty($data['users'])) {
-                $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, bloodGroup, designation, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode, twoFactorEnabled) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, bloodGroup, designation, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode, twoFactorEnabled, hasCustomLeaveBalances) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 $docStmt = $pdo->prepare("INSERT INTO employee_documents (employee_id, doc_name, doc_url) VALUES (?, ?, ?)");
                 $balStmt = $pdo->prepare("INSERT INTO employee_leave_balances (employee_id, leave_type, balance) VALUES (?, ?, ?)");
                 
@@ -1337,7 +1339,8 @@ elseif ($action === 'save_all') {
                         $u['cnic'] ?? null, $u['maritalStatus'] ?? null, $u['phone'] ?? null, 
                         $u['emergencyContact'] ?? null, $u['bankName'] ?? null, $u['accountTitle'] ?? null,
                         $u['accountNumber'] ?? null, $u['iban'] ?? null, $u['branchCode'] ?? null,
-                        !empty($u['twoFactorEnabled']) ? 1 : 0
+                        !empty($u['twoFactorEnabled']) ? 1 : 0,
+                        !empty($u['hasCustomLeaveBalances']) ? 1 : 0
                     ]);
                     
                     if (!empty($u['documents']) && is_array($u['documents'])) {
