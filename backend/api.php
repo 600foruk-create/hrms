@@ -113,9 +113,11 @@ try {
             `status` TEXT DEFAULT 'Pending'
         )");
         try { $pdo->exec("ALTER TABLE `productivity` ADD COLUMN `status` TEXT DEFAULT 'Pending'"); } catch (Exception $ex) {}
-        try { $pdo->exec("ALTER TABLE `users` ADD COLUMN `hasCustomLeaveBalances` TINYINT(1) DEFAULT 0"); } catch (Exception $ex) {}
     } catch (Exception $e2) {}
 }
+
+// Ensure hasCustomLeaveBalances exists
+try { $pdo->exec("ALTER TABLE `users` ADD COLUMN `hasCustomLeaveBalances` TINYINT(1) DEFAULT 0"); } catch (Exception $ex) {}
 
 // Ensure productivity_categories exists
 try {
