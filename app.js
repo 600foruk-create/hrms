@@ -4331,7 +4331,7 @@ function renderManagerLeaveTab() {
                     if (globalType) bName = globalType.name;
                     bName = bName || 'Unknown';
                     
-                    let oldTotal = b.total !== undefined ? b.total : b.balance;
+                    let oldTotal = b.total !== undefined ? b.total : (globalType ? globalType.days : b.balance);
                     let taken = Math.max(0, oldTotal - (b.balance || 0));
                     
                     let total = oldTotal;
@@ -4663,7 +4663,7 @@ function renderEmployeeLeaveTab() {
                 if (globalType) bName = globalType.name;
                 bName = bName || 'Unknown';
 
-                let oldTotal = b.total !== undefined ? b.total : b.balance;
+                let oldTotal = b.total !== undefined ? b.total : (globalType ? globalType.days : b.balance);
                 let taken = Math.max(0, oldTotal - (b.balance || 0));
                 
                 let total = oldTotal;
