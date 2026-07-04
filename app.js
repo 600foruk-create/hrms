@@ -3632,6 +3632,12 @@ window.openEditLeaveBalancesModal = function (userId) {
     nameEl.textContent = `Employee: ${user.name} (${user.displayId || user.id})`;
     idEl.value = user.id;
     container.innerHTML = '';
+    
+    const toggleEl = document.getElementById('toggle-custom-leave-balances');
+    const hasCustom = user.hasCustomLeaveBalances === true;
+    if (toggleEl) {
+        toggleEl.checked = hasCustom;
+    }
 
     const leaveTypes = db.companyProfile?.leaveTypes || [];
 
@@ -3660,13 +3666,54 @@ window.openEditLeaveBalancesModal = function (userId) {
                 <label style="margin-bottom: 0;">${lt.name}</label>
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <span class="text-secondary" style="font-size: 12px;">Days/Year:</span>
-                    <input type="number" id="modal-leave-bal-${lt.id}" value="${balance}" class="form-control" style="width: 80px; text-align: center;">
+                    <input type="number" id="modal-leave-bal-${lt.id}" value="${balance}" class="form-control leave-bal-input" ${hasCustom ? '' : 'disabled style="background:transparent; border-color:transparent;"'} style="width: 80px; text-align: center;">
                 </div>
             </div>
         `;
     });
 
     modal.classList.remove('hidden');
+};
+
+window.toggleCustomLeaveBalancesInputs = function(isCustom) {
+    const container = document.getElementById('edit-leave-balances-inputs-container');
+    if (!container) return;
+    const inputs = container.querySelectorAll('.leave-bal-input');
+    
+    inputs.forEach(input => {
+        if (isCustom) {
+            input.disabled = false;
+            input.style.background = '';
+            input.style.borderColor = '';
+        } else {
+            input.disabled = true;
+            input.style.background = 'transparent';
+            input.style.borderColor = 'transparent';
+            
+            // Optionally, reset the input values to the global default here
+            const db = getDb();
+            const leaveTypes = db.companyProfile?.leaveTypes || [];
+            const ltId = input.id.replace('modal-leave-bal-', '');
+            const lt = leaveTypes.find(l => l.id === ltId);
+            if (lt) {
+                // Read current employee total/balance to estimate how many leaves they took
+                const userId = document.getElementById('edit-leave-balances-emp-id').value;
+                const user = db.users.find(u => u.id === userId);
+                if (user && user.leaveBalances) {
+                    const existing = user.leaveBalances.find(b => b.id === ltId || b.name === lt.name);
+                    if (existing) {
+                        const oldTotal = existing.total !== undefined ? existing.total : (existing.balance !== undefined ? existing.balance : 0);
+                        const taken = Math.max(0, oldTotal - (existing.balance || 0));
+                        input.value = Math.max(0, lt.days - taken);
+                    } else {
+                        input.value = lt.days;
+                    }
+                } else {
+                    input.value = lt.days;
+                }
+            }
+        }
+    });
 };
 
 window.saveIndividualLeaveBalances = function () {
@@ -3703,6 +3750,11 @@ window.saveIndividualLeaveBalances = function () {
             }
         }
     });
+
+    const toggleEl = document.getElementById('toggle-custom-leave-balances');
+    if (toggleEl) {
+        user.hasCustomLeaveBalances = toggleEl.checked;
+    }
 
     saveDb(db);
     showToast("Balances Updated", `Leave balances for ${user.name} saved successfully.`);

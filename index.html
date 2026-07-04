@@ -5906,6 +5906,18 @@
             <form id="edit-leave-balances-form"
                 onsubmit="event.preventDefault(); window.saveIndividualLeaveBalances();">
                 <input type="hidden" id="edit-leave-balances-emp-id">
+                
+                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.02); padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(0,0,0,0.05);">
+                    <div>
+                        <strong style="display: block; font-size: 14px; color: var(--text-primary);">Enable Custom Balances</strong>
+                        <span style="font-size: 11px; color: var(--text-secondary);">If OFF, the employee uses the default Company Leave Policy limits.</span>
+                    </div>
+                    <label class="switch" style="margin:0;">
+                        <input type="checkbox" id="toggle-custom-leave-balances" onchange="window.toggleCustomLeaveBalancesInputs(this.checked)">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
                 <div id="edit-leave-balances-inputs-container"
                     style="display: flex; flex-direction: column; gap: 15px;">
                     <!-- Dynamic Leave Type Inputs -->
