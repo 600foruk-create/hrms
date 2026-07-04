@@ -969,7 +969,7 @@ if ($action === 'load_all') {
                 $u['breakMins'] = 60;
             }
             $u['twoFactorEnabled'] = !empty($u['twoFactorEnabled']);
-            $u['hasCustomLeaveBalances'] = !empty($u['hasCustomLeaveBalances']);
+            $u['hasCustomLeaveBalances'] = !empty($u['hasCustomLeaveBalances']) || !empty($u['hascustomleavebalances']);
         }
         if (empty($usersRecords)) {
             // Re-inject default admin if table is empty to prevent lockout
