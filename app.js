@@ -4331,17 +4331,26 @@ function renderManagerLeaveTab() {
                     if (globalType) bName = globalType.name;
                     bName = bName || 'Unknown';
                     
-                    let oldTotal = b.total !== undefined ? b.total : (globalType ? globalType.days : b.balance);
-                    let taken = Math.max(0, oldTotal - (b.balance || 0));
-                    
-                    let total = oldTotal;
-                    let displayBalance = b.balance;
+                    let total = (typeof b.total === 'number' && !isNaN(b.total)) ? b.total : (globalType ? globalType.days : b.balance);
                     
                     if (userRec.hasCustomLeaveBalances !== true && globalType) {
                         total = globalType.days;
-                        displayBalance = Math.max(0, total - taken);
                     }
 
+                    let taken = 0;
+                    const currentYear = new Date().getFullYear();
+                    (db.leaves || []).forEach(l => {
+                        if (l.employeeId === userRec.id && l.status === 'Approved' && (l.type === bName || l.type === b.name || l.type === b.leaveType || l.type === b.id)) {
+                            const start = new Date(l.startDate);
+                            const end = new Date(l.endDate);
+                            if (start.getFullYear() === currentYear || end.getFullYear() === currentYear) {
+                                const days = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
+                                taken += days;
+                            }
+                        }
+                    });
+                    
+                    let displayBalance = Math.max(0, total - taken);
                     if (total === undefined || total < displayBalance) total = displayBalance;
                     balancesBody.innerHTML += `
                         <tr>
@@ -4663,17 +4672,26 @@ function renderEmployeeLeaveTab() {
                 if (globalType) bName = globalType.name;
                 bName = bName || 'Unknown';
 
-                let oldTotal = b.total !== undefined ? b.total : (globalType ? globalType.days : b.balance);
-                let taken = Math.max(0, oldTotal - (b.balance || 0));
-                
-                let total = oldTotal;
-                let displayBalance = b.balance;
+                let total = (typeof b.total === 'number' && !isNaN(b.total)) ? b.total : (globalType ? globalType.days : b.balance);
                 
                 if (userRec.hasCustomLeaveBalances !== true && globalType) {
                     total = globalType.days;
-                    displayBalance = Math.max(0, total - taken);
                 }
 
+                let taken = 0;
+                const currentYear = new Date().getFullYear();
+                (db.leaves || []).forEach(l => {
+                    if (l.employeeId === userRec.id && l.status === 'Approved' && (l.type === bName || l.type === b.name || l.type === b.leaveType || l.type === b.id)) {
+                        const start = new Date(l.startDate);
+                        const end = new Date(l.endDate);
+                        if (start.getFullYear() === currentYear || end.getFullYear() === currentYear) {
+                            const days = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
+                            taken += days;
+                        }
+                    }
+                });
+                
+                let displayBalance = Math.max(0, total - taken);
                 if (total === undefined || total < displayBalance) total = displayBalance;
                 balancesBody.innerHTML += `
                     <tr>
