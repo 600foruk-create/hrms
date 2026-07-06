@@ -5844,7 +5844,11 @@ window.checkLeaveBalance = function(userId, type, startStr, endStr) {
         let rawTotal = (typeof bal.total === 'number' && !isNaN(bal.total)) ? bal.total : (globalType ? globalType.days : bal.balance);
         total = parseFloat(rawTotal);
     } else if (globalType) {
-        total = parseFloat(globalType.days);
+        if (liveUser.hasCustomLeaveBalances === true) {
+            total = 0; // Strictly enforce custom balances: if not assigned, they don't get it.
+        } else {
+            total = parseFloat(globalType.days);
+        }
     }
     
     if (isNaN(total)) total = 0;
