@@ -211,6 +211,57 @@ function getInitials(name) {
     return name.trim().substring(0, 2).toUpperCase();
 }
 
+// Advanced Leave Cycle Calculators
+window.getLeaveCycle = function(startDateStr, refDateStr = null) {
+    const refDate = refDateStr ? new Date(refDateStr) : new Date();
+    const currentYear = refDate.getFullYear();
+    
+    if (!startDateStr) {
+        return {
+            start: new Date(currentYear, 0, 1),
+            end: new Date(currentYear, 11, 31, 23, 59, 59)
+        };
+    }
+    
+    const joinDate = new Date(startDateStr);
+    if (isNaN(joinDate.getTime())) {
+        return {
+            start: new Date(currentYear, 0, 1),
+            end: new Date(currentYear, 11, 31, 23, 59, 59)
+        };
+    }
+    
+    const anniversaryThisYear = new Date(currentYear, joinDate.getMonth(), joinDate.getDate());
+    let cycleStart, cycleEnd;
+    
+    if (refDate < anniversaryThisYear) {
+        cycleStart = new Date(currentYear - 1, joinDate.getMonth(), joinDate.getDate());
+        cycleEnd = new Date(currentYear, joinDate.getMonth(), joinDate.getDate() - 1, 23, 59, 59);
+    } else {
+        cycleStart = new Date(currentYear, joinDate.getMonth(), joinDate.getDate());
+        cycleEnd = new Date(currentYear + 1, joinDate.getMonth(), joinDate.getDate() - 1, 23, 59, 59);
+    }
+    
+    return { start: cycleStart, end: cycleEnd };
+};
+
+window.getLeaveDaysInCycle = function(leaveStartStr, leaveEndStr, cycleStart, cycleEnd) {
+    const lStart = new Date(leaveStartStr);
+    const lEnd = new Date(leaveEndStr);
+    // Standardize to start of day for accurate overlap calculation
+    lStart.setHours(0,0,0,0);
+    lEnd.setHours(23,59,59,999);
+    
+    if (isNaN(lStart.getTime()) || isNaN(lEnd.getTime())) return 0;
+    
+    const overlapStart = lStart > cycleStart ? lStart : cycleStart;
+    const overlapEnd = lEnd < cycleEnd ? lEnd : cycleEnd;
+    
+    if (overlapStart > overlapEnd) return 0;
+    
+    return Math.max(1, Math.round((overlapEnd - overlapStart) / (1000 * 60 * 60 * 24)));
+};
+
 let isSavingDb = false;
 let pendingSaveData = null;
 
@@ -4338,15 +4389,11 @@ function renderManagerLeaveTab() {
                     }
 
                     let taken = 0;
-                    const currentYear = new Date().getFullYear();
+                    const cycle = window.getLeaveCycle(userRec.startDate);
                     (db.leaves || []).forEach(l => {
                         if (l.employeeId === userRec.id && l.status === 'Approved' && (l.type === bName || l.type === b.name || l.type === b.leaveType || l.type === b.id)) {
-                            const start = new Date(l.startDate);
-                            const end = new Date(l.endDate);
-                            if (start.getFullYear() === currentYear || end.getFullYear() === currentYear) {
-                                const days = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
-                                taken += days;
-                            }
+                            const daysInCycle = window.getLeaveDaysInCycle(l.startDate, l.endDate, cycle.start, cycle.end);
+                            if (daysInCycle > 0) taken += daysInCycle;
                         }
                     });
                     
@@ -4698,15 +4745,11 @@ function renderEmployeeLeaveTab() {
                 }
 
                 let taken = 0;
-                const currentYear = new Date().getFullYear();
+                const cycle = window.getLeaveCycle(userRec.startDate);
                 (db.leaves || []).forEach(l => {
                     if (l.employeeId === userRec.id && l.status === 'Approved' && (l.type === bName || l.type === b.name || l.type === b.leaveType || l.type === b.id)) {
-                        const start = new Date(l.startDate);
-                        const end = new Date(l.endDate);
-                        if (start.getFullYear() === currentYear || end.getFullYear() === currentYear) {
-                            const days = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
-                            taken += days;
-                        }
+                        const daysInCycle = window.getLeaveDaysInCycle(l.startDate, l.endDate, cycle.start, cycle.end);
+                        if (daysInCycle > 0) taken += daysInCycle;
                     }
                 });
                 
@@ -5867,7 +5910,8 @@ window.checkLeaveBalance = function(userId, type, startStr, endStr) {
     }
 
     let taken = 0;
-    const currentYear = new Date().getFullYear();
+    const cycle = window.getLeaveCycle(liveUser.startDate, startStr);
+
     (db.leaves || []).forEach(l => {
         const lStatus = String(l.status || '').trim();
         const lType = String(l.type || '').trim();
@@ -5877,14 +5921,8 @@ window.checkLeaveBalance = function(userId, type, startStr, endStr) {
         if (globalType && (lType === String(globalType.name || '').trim() || lType === String(globalType.id || '').trim())) match = true;
 
         if (String(l.employeeId) === String(liveUser.id) && ['Approved', 'Pending', 'Waiting for Admin Approval'].includes(lStatus) && match) {
-            const lStart = new Date(l.startDate);
-            const lEnd = new Date(l.endDate);
-            if (!isNaN(lStart.getTime()) && !isNaN(lEnd.getTime())) {
-                if (lStart.getFullYear() === currentYear || lEnd.getFullYear() === currentYear) {
-                    const days = Math.round((lEnd - lStart) / (1000 * 60 * 60 * 24)) + 1;
-                    if (!isNaN(days) && days > 0) taken += days;
-                }
-            }
+            const daysInCycle = window.getLeaveDaysInCycle(l.startDate, l.endDate, cycle.start, cycle.end);
+            if (daysInCycle > 0) taken += daysInCycle;
         }
     });
 
