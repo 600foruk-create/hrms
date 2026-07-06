@@ -4548,6 +4548,14 @@ function renderEmployeeDashboard() {
             }
 
             const db = getDb();
+
+            // Validate Leave Balance before allowing submission
+            const validation = window.checkLeaveBalance(currentUser.id, type, start, end);
+            if (!validation.valid) {
+                alert(validation.message);
+                return;
+            }
+            
             const newLeave = {
                 id: generateId(),
                 employeeId: currentUser.id,
@@ -5782,32 +5790,16 @@ function logLeaveAttendance(leave) {
     saveDb(db);
 }
 
-// 4. Apply Leave Request Modal (Employee view)
-document.getElementById('leave-request-form').addEventListener('submit', (e) => {
-    e.preventDefault();
+// Helper to check leave balance logic centrally
+window.checkLeaveBalance = function(userId, type, startStr, endStr) {
     const db = getDb();
-
-    const type = document.getElementById('leave-type').value;
-    const startStr = document.getElementById('leave-start-date').value;
-    const endStr = document.getElementById('leave-end-date').value;
-    const reason = document.getElementById('leave-reason').value.trim();
-
-    if (!startStr || !endStr || !reason) {
-        showToast("Validation Error", "All fields are required.", "error");
-        return;
-    }
+    const liveUser = db.users.find(u => String(u.id) === String(userId));
+    if (!liveUser) return { valid: false, message: "User not found." };
 
     const start = new Date(startStr);
     const end = new Date(endStr);
-
-    if (end < start) {
-        showToast("Date Conflict", "End Date cannot be before Start Date.", "error");
-        return;
-    }
-
     const daysRequested = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1);
 
-    const liveUser = db.users.find(u => String(u.id) === String(currentUser.id)) || currentUser;
     const reqType = String(type).trim();
 
     let bal = liveUser.leaveBalances ? liveUser.leaveBalances.find(b => {
@@ -5863,7 +5855,38 @@ document.getElementById('leave-request-form').addEventListener('submit', (e) => 
     displayBalance = Math.max(0, displayBalance);
 
     if (displayBalance <= 0 || daysRequested > displayBalance) {
-        showToast("Insufficient Balance", `You do not have enough leave balance. Remaining: ${displayBalance} day(s).`, "error");
+        return { valid: false, message: `You do not have enough leave balance. Remaining: ${displayBalance} day(s).` };
+    }
+
+    return { valid: true };
+};
+
+// 4. Apply Leave Request Modal (Employee view)
+document.getElementById('leave-request-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const db = getDb();
+
+    const type = document.getElementById('leave-type').value;
+    const startStr = document.getElementById('leave-start-date').value;
+    const endStr = document.getElementById('leave-end-date').value;
+    const reason = document.getElementById('leave-reason').value.trim();
+
+    if (!startStr || !endStr || !reason) {
+        showToast("Validation Error", "All fields are required.", "error");
+        return;
+    }
+
+    const start = new Date(startStr);
+    const end = new Date(endStr);
+
+    if (end < start) {
+        showToast("Date Conflict", "End Date cannot be before Start Date.", "error");
+        return;
+    }
+
+    const validation = window.checkLeaveBalance(currentUser.id, type, startStr, endStr);
+    if (!validation.valid) {
+        showToast("Insufficient Balance", validation.message, "error");
         return;
     }
 
