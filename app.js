@@ -4527,9 +4527,20 @@ function renderEmployeeDashboard() {
     if (quickLeaveType) {
         quickLeaveType.innerHTML = '<option value="">Select Type...</option>';
         if (db.companyProfile && db.companyProfile.leaveTypes) {
+            const liveUser = db.users.find(u => String(u.id) === String(currentUser.id));
+            let optionsCount = 0;
             db.companyProfile.leaveTypes.forEach(lt => {
-                quickLeaveType.innerHTML += `<option value="${lt.name}">${lt.name}</option>`;
+                // Pass same day to evaluate balance
+                const dummyStart = new Date().toISOString().split('T')[0];
+                const balCheck = window.checkLeaveBalance(currentUser.id, lt.name, dummyStart, dummyStart);
+                if (balCheck.displayBalance > 0) {
+                    quickLeaveType.innerHTML += `<option value="${lt.name}">${lt.name} (Remaining: ${balCheck.displayBalance})</option>`;
+                    optionsCount++;
+                }
             });
+            if (optionsCount === 0) {
+                quickLeaveType.innerHTML = '<option value="" disabled>No leave balance available</option>';
+            }
         }
     }
 
@@ -5862,10 +5873,10 @@ window.checkLeaveBalance = function(userId, type, startStr, endStr) {
     displayBalance = Math.max(0, displayBalance);
 
     if (displayBalance <= 0 || daysRequested > displayBalance) {
-        return { valid: false, message: `You do not have enough leave balance. Remaining: ${displayBalance} day(s).` };
+        return { valid: false, message: `You do not have enough leave balance. Remaining: ${displayBalance} day(s).`, displayBalance: displayBalance };
     }
 
-    return { valid: true };
+    return { valid: true, displayBalance: displayBalance };
 };
 
 // 4. Apply Leave Request Modal (Employee view)
@@ -7341,9 +7352,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 { id: 'L2', name: 'Medical Leave' },
                 { id: 'L3', name: 'Annual Leave' }
             ];
+            let optionsCount = 0;
             leaveTypes.forEach(lt => {
-                typeSelect.innerHTML += `<option value="${lt.name}">${lt.name}</option>`;
+                const dummyStart = new Date().toISOString().split('T')[0];
+                const balCheck = window.checkLeaveBalance(currentUser.id, lt.name, dummyStart, dummyStart);
+                if (balCheck.displayBalance > 0) {
+                    typeSelect.innerHTML += `<option value="${lt.name}">${lt.name} (Remaining: ${balCheck.displayBalance})</option>`;
+                    optionsCount++;
+                }
             });
+            if (optionsCount === 0) {
+                typeSelect.innerHTML = '<option value="" disabled>No leave balance available</option>';
+            }
         }
 
         openModal('modal-leave-form');
