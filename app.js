@@ -5800,6 +5800,10 @@ window.checkLeaveBalance = function(userId, type, startStr, endStr) {
     const end = new Date(endStr);
     const daysRequested = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1);
 
+    if (isNaN(daysRequested)) {
+        return { valid: false, message: "Invalid date format." };
+    }
+
     const reqType = String(type).trim();
 
     let bal = liveUser.leaveBalances ? liveUser.leaveBalances.find(b => {
@@ -5818,11 +5822,15 @@ window.checkLeaveBalance = function(userId, type, startStr, endStr) {
     });
     
     let total = 0;
-    if (bal && bal.total != null && !isNaN(parseFloat(bal.total))) {
-        total = parseFloat(bal.total);
-    } else if (globalType && !isNaN(parseFloat(globalType.days))) {
+    if (bal) {
+        let bTotalRaw = parseFloat(bal.total);
+        let bBalRaw = parseFloat(bal.balance);
+        total = (!isNaN(bTotalRaw)) ? bTotalRaw : (globalType ? parseFloat(globalType.days) : (isNaN(bBalRaw) ? 0 : bBalRaw));
+    } else if (globalType) {
         total = parseFloat(globalType.days);
     }
+    
+    if (isNaN(total)) total = 0;
 
     if (liveUser.hasCustomLeaveBalances !== true && globalType && !isNaN(parseFloat(globalType.days))) {
         total = parseFloat(globalType.days);
