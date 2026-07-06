@@ -5805,6 +5805,50 @@ document.getElementById('leave-request-form').addEventListener('submit', (e) => 
         return;
     }
 
+    const daysRequested = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
+
+    let bal = currentUser.leaveBalances ? currentUser.leaveBalances.find(b => {
+        let bName = b.name || b.leaveType || b.type || b.leave_type || b.title;
+        if (!bName) {
+            const strVal = Object.values(b).find(v => typeof v === 'string' && isNaN(v) && v !== 'Unknown' && !v.startsWith('U_'));
+            if (strVal) bName = strVal;
+        }
+        return bName === type || b.id === type;
+    }) : null;
+
+    let globalType = (db.companyProfile?.leaveTypes || []).find(lt => lt.name === type || lt.id === type);
+    
+    let total = 0;
+    if (bal && (typeof bal.total === 'number' && !isNaN(bal.total))) {
+        total = bal.total;
+    } else if (globalType) {
+        total = globalType.days;
+    }
+
+    if (currentUser.hasCustomLeaveBalances !== true && globalType) {
+        total = globalType.days;
+    }
+
+    let taken = 0;
+    const currentYear = new Date().getFullYear();
+    (db.leaves || []).forEach(l => {
+        if (l.employeeId === currentUser.id && ['Approved', 'Pending', 'Waiting for Admin Approval'].includes(l.status) && (l.type === type)) {
+            const lStart = new Date(l.startDate);
+            const lEnd = new Date(l.endDate);
+            if (lStart.getFullYear() === currentYear || lEnd.getFullYear() === currentYear) {
+                const days = Math.round((lEnd - lStart) / (1000 * 60 * 60 * 24)) + 1;
+                taken += days;
+            }
+        }
+    });
+
+    let displayBalance = Math.max(0, total - taken);
+
+    if (displayBalance <= 0 || daysRequested > displayBalance) {
+        showToast("Insufficient Balance", `You do not have enough leave balance. Remaining: ${displayBalance} day(s).`, "error");
+        return;
+    }
+
     const newLeave = {
         id: "L_" + Date.now(),
         employeeId: currentUser.id,
