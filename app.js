@@ -5823,9 +5823,8 @@ window.checkLeaveBalance = function(userId, type, startStr, endStr) {
     
     let total = 0;
     if (bal) {
-        let bTotalRaw = parseFloat(bal.total);
-        let bBalRaw = parseFloat(bal.balance);
-        total = (!isNaN(bTotalRaw)) ? bTotalRaw : (globalType ? parseFloat(globalType.days) : (isNaN(bBalRaw) ? 0 : bBalRaw));
+        let rawTotal = (typeof bal.total === 'number' && !isNaN(bal.total)) ? bal.total : (globalType ? globalType.days : bal.balance);
+        total = parseFloat(rawTotal);
     } else if (globalType) {
         total = parseFloat(globalType.days);
     }
