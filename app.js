@@ -5805,46 +5805,62 @@ document.getElementById('leave-request-form').addEventListener('submit', (e) => 
         return;
     }
 
-    const daysRequested = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    const daysRequested = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1);
 
-    const liveUser = db.users.find(u => u.id === currentUser.id) || currentUser;
+    const liveUser = db.users.find(u => String(u.id) === String(currentUser.id)) || currentUser;
+    const reqType = String(type).trim();
 
     let bal = liveUser.leaveBalances ? liveUser.leaveBalances.find(b => {
         let bName = b.name || b.leaveType || b.type || b.leave_type || b.title;
         if (!bName) {
-            const strVal = Object.values(b).find(v => typeof v === 'string' && isNaN(v) && v !== 'Unknown' && !v.startsWith('U_'));
+            const strVal = Object.values(b).find(v => typeof v === 'string' && isNaN(v) && v !== 'Unknown' && !String(v).startsWith('U_'));
             if (strVal) bName = strVal;
         }
-        return bName === type || b.id === type;
+        bName = String(bName || '').trim();
+        const bId = String(b.id || '').trim();
+        return bName === reqType || bId === reqType;
     }) : null;
 
-    let globalType = (db.companyProfile?.leaveTypes || []).find(lt => lt.name === type || lt.id === type);
+    let globalType = (db.companyProfile?.leaveTypes || []).find(lt => {
+        return String(lt.name || '').trim() === reqType || String(lt.id || '').trim() === reqType;
+    });
     
     let total = 0;
-    if (bal && (typeof bal.total === 'number' && !isNaN(bal.total))) {
-        total = bal.total;
-    } else if (globalType) {
-        total = globalType.days;
+    if (bal && bal.total != null && !isNaN(parseFloat(bal.total))) {
+        total = parseFloat(bal.total);
+    } else if (globalType && !isNaN(parseFloat(globalType.days))) {
+        total = parseFloat(globalType.days);
     }
 
-    if (liveUser.hasCustomLeaveBalances !== true && globalType) {
-        total = globalType.days;
+    if (liveUser.hasCustomLeaveBalances !== true && globalType && !isNaN(parseFloat(globalType.days))) {
+        total = parseFloat(globalType.days);
     }
 
     let taken = 0;
     const currentYear = new Date().getFullYear();
     (db.leaves || []).forEach(l => {
-        if (l.employeeId === liveUser.id && ['Approved', 'Pending', 'Waiting for Admin Approval'].includes(l.status) && (l.type === type)) {
+        const lStatus = String(l.status || '').trim();
+        const lType = String(l.type || '').trim();
+        
+        let match = (lType === reqType);
+        if (bal && (lType === String(bal.name || '').trim() || lType === String(bal.id || '').trim())) match = true;
+        if (globalType && (lType === String(globalType.name || '').trim() || lType === String(globalType.id || '').trim())) match = true;
+
+        if (String(l.employeeId) === String(liveUser.id) && ['Approved', 'Pending', 'Waiting for Admin Approval'].includes(lStatus) && match) {
             const lStart = new Date(l.startDate);
             const lEnd = new Date(l.endDate);
-            if (lStart.getFullYear() === currentYear || lEnd.getFullYear() === currentYear) {
-                const days = Math.round((lEnd - lStart) / (1000 * 60 * 60 * 24)) + 1;
-                taken += days;
+            if (!isNaN(lStart.getTime()) && !isNaN(lEnd.getTime())) {
+                if (lStart.getFullYear() === currentYear || lEnd.getFullYear() === currentYear) {
+                    const days = Math.round((lEnd - lStart) / (1000 * 60 * 60 * 24)) + 1;
+                    if (!isNaN(days) && days > 0) taken += days;
+                }
             }
         }
     });
 
-    let displayBalance = Math.max(0, total - taken);
+    let displayBalance = total - taken;
+    if (isNaN(displayBalance)) displayBalance = 0;
+    displayBalance = Math.max(0, displayBalance);
 
     if (displayBalance <= 0 || daysRequested > displayBalance) {
         showToast("Insufficient Balance", `You do not have enough leave balance. Remaining: ${displayBalance} day(s).`, "error");
