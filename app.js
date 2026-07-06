@@ -5831,6 +5831,15 @@ window.checkLeaveBalance = function(userId, type, startStr, endStr) {
         return matched;
     }) : null;
 
+    let reqIndex = (db.companyProfile?.leaveTypes || []).findIndex(lt => {
+        return String(lt.name || '').trim() === reqType || String(lt.id || '').trim() === reqType;
+    });
+
+    if (!bal && reqIndex >= 0 && liveUser.leaveBalances && liveUser.leaveBalances[reqIndex]) {
+        bal = liveUser.leaveBalances[reqIndex];
+        balIndex = reqIndex;
+    }
+
     let globalType = (db.companyProfile?.leaveTypes || []).find(lt => {
         return String(lt.name || '').trim() === reqType || String(lt.id || '').trim() === reqType;
     });
