@@ -5817,7 +5817,8 @@ window.checkLeaveBalance = function(userId, type, startStr, endStr) {
 
     const reqType = String(type).trim();
 
-    let bal = liveUser.leaveBalances ? liveUser.leaveBalances.find(b => {
+    let balIndex = -1;
+    let bal = liveUser.leaveBalances ? liveUser.leaveBalances.find((b, idx) => {
         let bName = b.name || b.leaveType || b.type || b.leave_type || b.title;
         if (!bName) {
             const strVal = Object.values(b).find(v => typeof v === 'string' && isNaN(v) && v !== 'Unknown' && !String(v).startsWith('U_'));
@@ -5825,12 +5826,18 @@ window.checkLeaveBalance = function(userId, type, startStr, endStr) {
         }
         bName = String(bName || '').trim();
         const bId = String(b.id || '').trim();
-        return bName === reqType || bId === reqType;
+        let matched = (bName === reqType || bId === reqType);
+        if (matched) balIndex = idx;
+        return matched;
     }) : null;
 
     let globalType = (db.companyProfile?.leaveTypes || []).find(lt => {
         return String(lt.name || '').trim() === reqType || String(lt.id || '').trim() === reqType;
     });
+
+    if (!globalType && balIndex >= 0 && db.companyProfile?.leaveTypes && db.companyProfile.leaveTypes[balIndex]) {
+        globalType = db.companyProfile.leaveTypes[balIndex];
+    }
     
     let total = 0;
     if (bal) {
