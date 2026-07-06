@@ -5892,8 +5892,30 @@ document.getElementById('leave-request-form').addEventListener('submit', (e) => 
     }
 
     const validation = window.checkLeaveBalance(currentUser.id, type, startStr, endStr);
-    if (!validation.valid) {
-        showToast("Insufficient Balance", validation.message, "error");
+    
+    // Bulletproof UI validation fallback: Check exactly what the user sees in their balance table
+    let domBlocked = false;
+    let domRemaining = null;
+    const daysRequested = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1);
+    const leaveRows = document.querySelectorAll('#leave-balances-body tr');
+    if (leaveRows && leaveRows.length > 0) {
+        leaveRows.forEach(row => {
+            const typeCell = row.cells[0];
+            if (typeCell && typeCell.textContent.trim() === type) {
+                const remainingCell = row.cells[2];
+                if (remainingCell) {
+                    domRemaining = parseFloat(remainingCell.textContent.trim());
+                    if (!isNaN(domRemaining) && (domRemaining <= 0 || daysRequested > domRemaining)) {
+                        domBlocked = true;
+                    }
+                }
+            }
+        });
+    }
+
+    if (!validation.valid || domBlocked) {
+        const msg = domBlocked ? `You do not have enough leave balance. Remaining: ${domRemaining} day(s).` : validation.message;
+        showToast("Insufficient Balance", msg, "error");
         return;
     }
 
