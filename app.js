@@ -5807,7 +5807,9 @@ document.getElementById('leave-request-form').addEventListener('submit', (e) => 
 
     const daysRequested = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
-    let bal = currentUser.leaveBalances ? currentUser.leaveBalances.find(b => {
+    const liveUser = db.users.find(u => u.id === currentUser.id) || currentUser;
+
+    let bal = liveUser.leaveBalances ? liveUser.leaveBalances.find(b => {
         let bName = b.name || b.leaveType || b.type || b.leave_type || b.title;
         if (!bName) {
             const strVal = Object.values(b).find(v => typeof v === 'string' && isNaN(v) && v !== 'Unknown' && !v.startsWith('U_'));
@@ -5825,14 +5827,14 @@ document.getElementById('leave-request-form').addEventListener('submit', (e) => 
         total = globalType.days;
     }
 
-    if (currentUser.hasCustomLeaveBalances !== true && globalType) {
+    if (liveUser.hasCustomLeaveBalances !== true && globalType) {
         total = globalType.days;
     }
 
     let taken = 0;
     const currentYear = new Date().getFullYear();
     (db.leaves || []).forEach(l => {
-        if (l.employeeId === currentUser.id && ['Approved', 'Pending', 'Waiting for Admin Approval'].includes(l.status) && (l.type === type)) {
+        if (l.employeeId === liveUser.id && ['Approved', 'Pending', 'Waiting for Admin Approval'].includes(l.status) && (l.type === type)) {
             const lStart = new Date(l.startDate);
             const lEnd = new Date(l.endDate);
             if (lStart.getFullYear() === currentYear || lEnd.getFullYear() === currentYear) {
