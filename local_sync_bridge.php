@@ -37,10 +37,15 @@ if (empty($attendance)) {
 
 echo "Fetched " . count($attendance) . " logs. Sending to Hostinger...\n";
 
-$payload = json_encode(['logs' => $attendance]);
+$payload = json_encode([
+    'logs' => $attendance,
+    'machine_ip' => MACHINE_IP,
+    'machine_status' => 'Online'
+]);
 
-$ch = curl_init(LIVE_DOMAIN . '/HRMS/hrms/backend/api.php?action=upload_biometric_logs');
+$ch = curl_init(rtrim(LIVE_DOMAIN, '/') . '/HRMS/hrms/backend/api.php?action=upload_biometric_logs');
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
 curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
