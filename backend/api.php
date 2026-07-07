@@ -2070,3 +2070,4 @@ elseif ($action === 'save_all') {
     echo json_encode(["status" => "error", "message" => "Invalid action specified."]);
 }
 ?>
+
