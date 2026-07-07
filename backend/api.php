@@ -932,8 +932,8 @@ if ($action === 'sync_biometric') {
                 
                 foreach ($attendance as $log) {
                     // ZKLib returns: [0 => uid, 1 => id, 2 => state, 3 => timestamp, 4 => type]
-                    \ = isset($log['user_id']) ? strval($log['user_id']) : strval($log[1]);
-                    \ = isset($log['record_time']) ? $log['record_time'] : (isset($log[3]) ? $log[3] : '');
+                    $userIdStr = isset($log['user_id']) ? strval($log['user_id']) : strval($log[1]);
+                    $timestampStr = isset($log['record_time']) ? $log['record_time'] : (isset($log[3]) ? $log[3] : '');
                     
                     if (empty($timestampStr)) continue;
                     

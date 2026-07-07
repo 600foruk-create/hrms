@@ -43,7 +43,7 @@ $payload = json_encode([
     'machine_status' => 'Online'
 ]);
 
-$ch = curl_init(rtrim(LIVE_DOMAIN, '/') . '/HRMS/hrms/backend/api.php?action=upload_biometric_logs');
+$ch = curl_init(rtrim(LIVE_DOMAIN, '/') . '/backend/api.php?action=upload_biometric_logs');
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
 curl_setopt($ch, CURLOPT_POST, true);
