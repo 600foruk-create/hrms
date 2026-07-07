@@ -7,6 +7,14 @@ namespace Composer\Autoload;
 class ComposerStaticInit7d34c8de3daf7e9a7b862d0ae1c49ee1
 {
     public static $prefixLengthsPsr4 = array (
+        'R' =>
+        array (
+            'Rats\\Zkteco\\' => 12,
+        ),
+        'M' =>
+        array (
+            'Mithun\\PhpZkteco\\' => 17,
+        ),
         'L' =>
         array (
             'Laradevsbd\\Zkteco\\' => 18,
@@ -14,6 +22,14 @@ class ComposerStaticInit7d34c8de3daf7e9a7b862d0ae1c49ee1
     );
 
     public static $prefixDirsPsr4 = array (
+        'Rats\\Zkteco\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/rats/zkteco/src',
+        ),
+        'Mithun\\PhpZkteco\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/0mithun/php-zkteco/src',
+        ),
         'Laradevsbd\\Zkteco\\' =>
         array (
             0 => __DIR__ . '/..' . '/laradevsbd/zkteco-sdk/src',

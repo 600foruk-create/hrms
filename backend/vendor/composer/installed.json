@@ -1,6 +1,72 @@
 {
     "packages": [
         {
+            "name": "0mithun/php-zkteco",
+            "version": "v1.3.5",
+            "version_normalized": "1.3.5.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/0mithun/php-zkteco.git",
+                "reference": "c6305ec57d087dd6b5c50daea5c48f152a76f60c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/0mithun/php-zkteco/zipball/c6305ec57d087dd6b5c50daea5c48f152a76f60c",
+                "reference": "c6305ec57d087dd6b5c50daea5c48f152a76f60c",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^8.0|^9.3|^10.4"
+            },
+            "time": "2026-02-19T20:24:14+00:00",
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Mithun\\PhpZkteco\\ZktecoPhpServiceProvider"
+                    ]
+                },
+                "branch-alias": {
+                    "dev-master": "1.x-dev"
+                }
+            },
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "Mithun\\PhpZkteco\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Mithun",
+                    "email": "mithunrptc@gmail.com"
+                }
+            ],
+            "description": "A PHP package for managing ZKTeco biometric devices with TCP and UDP protocol support.",
+            "homepage": "https://github.com/0mithun/php-zkteco",
+            "keywords": [
+                "Fingerprint",
+                "attendances",
+                "biometric",
+                "laravel",
+                "tcp",
+                "udp",
+                "zkteco"
+            ],
+            "support": {
+                "issues": "https://github.com/0mithun/php-zkteco/issues",
+                "source": "https://github.com/0mithun/php-zkteco"
+            },
+            "install-path": "../0mithun/php-zkteco"
+        },
+        {
             "name": "laradevsbd/zkteco-sdk",
             "version": "v1.0.0",
             "version_normalized": "1.0.0.0",
@@ -46,6 +112,46 @@
                 "source": "https://github.com/laradevsbd/zkteco-sdk-laravel/tree/v1.0.0"
             },
             "install-path": "../laradevsbd/zkteco-sdk"
+        },
+        {
+            "name": "rats/zkteco",
+            "version": "V002",
+            "version_normalized": "002.0.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/raihanafroz/zkteco.git",
+                "reference": "6e17024370ec56c89d87c85a54a1c55079304834"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/raihanafroz/zkteco/zipball/6e17024370ec56c89d87c85a54a1c55079304834",
+                "reference": "6e17024370ec56c89d87c85a54a1c55079304834",
+                "shasum": ""
+            },
+            "time": "2021-11-21T17:53:28+00:00",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "Rats\\Zkteco\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Raihan Afroz",
+                    "email": "raihanafroz9@gmail.com"
+                }
+            ],
+            "description": "ZKTeco Laravel Library",
+            "support": {
+                "issues": "https://github.com/raihanafroz/zkteco/issues",
+                "source": "https://github.com/raihanafroz/zkteco/tree/V002"
+            },
+            "install-path": "../rats/zkteco"
         }
     ],
     "dev": true,

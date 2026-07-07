@@ -1,5 +1,7 @@
 {
     "require": {
-        "laradevsbd/zkteco-sdk": "^1.0"
+        "laradevsbd/zkteco-sdk": "^1.0",
+        "rats/zkteco": "^002.0",
+        "0mithun/php-zkteco": "^1.3"
     }
 }

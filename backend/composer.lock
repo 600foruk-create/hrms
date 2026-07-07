@@ -4,8 +4,71 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c7634f601368d9f164214f307b9b353f",
+    "content-hash": "4b3eb8c8c0de770c3b12a308e4ec68fe",
     "packages": [
+        {
+            "name": "0mithun/php-zkteco",
+            "version": "v1.3.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/0mithun/php-zkteco.git",
+                "reference": "c6305ec57d087dd6b5c50daea5c48f152a76f60c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/0mithun/php-zkteco/zipball/c6305ec57d087dd6b5c50daea5c48f152a76f60c",
+                "reference": "c6305ec57d087dd6b5c50daea5c48f152a76f60c",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^8.0|^9.3|^10.4"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Mithun\\PhpZkteco\\ZktecoPhpServiceProvider"
+                    ]
+                },
+                "branch-alias": {
+                    "dev-master": "1.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Mithun\\PhpZkteco\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Mithun",
+                    "email": "mithunrptc@gmail.com"
+                }
+            ],
+            "description": "A PHP package for managing ZKTeco biometric devices with TCP and UDP protocol support.",
+            "homepage": "https://github.com/0mithun/php-zkteco",
+            "keywords": [
+                "Fingerprint",
+                "attendances",
+                "biometric",
+                "laravel",
+                "tcp",
+                "udp",
+                "zkteco"
+            ],
+            "support": {
+                "issues": "https://github.com/0mithun/php-zkteco/issues",
+                "source": "https://github.com/0mithun/php-zkteco"
+            },
+            "time": "2026-02-19T20:24:14+00:00"
+        },
         {
             "name": "laradevsbd/zkteco-sdk",
             "version": "v1.0.0",
@@ -49,6 +112,43 @@
                 "source": "https://github.com/laradevsbd/zkteco-sdk-laravel/tree/v1.0.0"
             },
             "time": "2021-08-25T07:28:36+00:00"
+        },
+        {
+            "name": "rats/zkteco",
+            "version": "V002",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/raihanafroz/zkteco.git",
+                "reference": "6e17024370ec56c89d87c85a54a1c55079304834"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/raihanafroz/zkteco/zipball/6e17024370ec56c89d87c85a54a1c55079304834",
+                "reference": "6e17024370ec56c89d87c85a54a1c55079304834",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Rats\\Zkteco\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Raihan Afroz",
+                    "email": "raihanafroz9@gmail.com"
+                }
+            ],
+            "description": "ZKTeco Laravel Library",
+            "support": {
+                "issues": "https://github.com/raihanafroz/zkteco/issues",
+                "source": "https://github.com/raihanafroz/zkteco/tree/V002"
+            },
+            "time": "2021-11-21T17:53:28+00:00"
         }
     ],
     "packages-dev": [],

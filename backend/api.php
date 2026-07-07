@@ -932,8 +932,8 @@ if ($action === 'sync_biometric') {
                 
                 foreach ($attendance as $log) {
                     // ZKLib returns: [0 => uid, 1 => id, 2 => state, 3 => timestamp, 4 => type]
-                    $userIdStr = strval($log[1]);
-                    $timestampStr = $log[3];
+                    \ = isset($log['user_id']) ? strval($log['user_id']) : strval($log[1]);
+                    \ = isset($log['record_time']) ? $log['record_time'] : (isset($log[3]) ? $log[3] : '');
                     
                     if (empty($timestampStr)) continue;
                     
@@ -2070,5 +2070,6 @@ elseif ($action === 'save_all') {
     echo json_encode(["status" => "error", "message" => "Invalid action specified."]);
 }
 ?>
+
 
 

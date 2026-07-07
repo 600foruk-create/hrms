@@ -6,5 +6,7 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Rats\\Zkteco\\' => array($vendorDir . '/rats/zkteco/src'),
+    'Mithun\\PhpZkteco\\' => array($vendorDir . '/0mithun/php-zkteco/src'),
     'Laradevsbd\\Zkteco\\' => array($vendorDir . '/laradevsbd/zkteco-sdk/src'),
 );
