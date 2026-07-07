@@ -861,6 +861,7 @@ if ($action === 'send_whatsapp') {
 }
 
 if ($action === 'ping_biometric') {
+    error_reporting(0);
     $ip = $_GET['ip'] ?? '';
     $port = (int)($_GET['port'] ?? 4370);
     
