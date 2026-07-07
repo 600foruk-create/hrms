@@ -1813,9 +1813,14 @@ elseif ($action === 'save_all') {
         try {
             $pdo->exec("DELETE FROM biometric_machines");
             $bList = !empty($data['settings']) && !empty($data['settings']['biometricMachines']) ? $data['settings']['biometricMachines'] : (!empty($data['biometricMachines']) ? $data['biometricMachines'] : []);
-            file_put_contents(__DIR__ . '/debug_blist.txt', print_r($bList, true));
+            
+            $logContent = "Time: " . date('Y-m-d H:i:s') . "\n";
+            $logContent .= "bList count: " . count($bList) . "\n";
+            $logContent .= "bList data: " . json_encode($bList) . "\n";
+            
             if (!empty($bList) && is_array($bList)) {
                 $bmStmt = $pdo->prepare("INSERT INTO biometric_machines (id, name, ip, port, auto_sync, status) VALUES (?, ?, ?, ?, ?, ?)");
+                $inserted = 0;
                 foreach ($bList as $bm) {
                     $bmStmt->execute([
                         $bm['id'] ?? ('BIO_' . uniqid()),
@@ -1825,10 +1830,15 @@ elseif ($action === 'save_all') {
                         !empty($bm['autoSync']) ? 1 : 0,
                         $bm['status'] ?? 'Untested'
                     ]);
+                    $inserted++;
                 }
+                $logContent .= "Inserted successfully: " . $inserted . "\n";
+            } else {
+                $logContent .= "bList is empty! Nothing to insert.\n";
             }
+            file_put_contents(__DIR__ . '/debug_blist.txt', $logContent);
         } catch (Exception $e) {
-            file_put_contents(__DIR__ . '/debug_log.txt', date('Y-m-d H:i:s') . ' SYNC ERROR: ' . $e->getMessage() . "\n", FILE_APPEND);
+            file_put_contents(__DIR__ . '/debug_blist.txt', $logContent . "ERROR: " . $e->getMessage() . "\n");
             error_log("Biometric machines sync error: " . $e->getMessage());
         }
 
