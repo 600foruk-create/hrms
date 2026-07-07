@@ -1371,6 +1371,9 @@ if ($action === 'load_all') {
                     )");
                 } catch (Exception $ex) {}
             }
+            try { $pdo->exec("ALTER TABLE `biometric_machines` ADD COLUMN `port` int(11) DEFAULT 4370"); } catch (Exception $ex) {}
+            try { $pdo->exec("ALTER TABLE `biometric_machines` ADD COLUMN `auto_sync` tinyint(1) DEFAULT 0"); } catch (Exception $ex) {}
+            try { $pdo->exec("ALTER TABLE `biometric_machines` ADD COLUMN `status` varchar(30) DEFAULT 'Untested'"); } catch (Exception $ex) {}
             $stmt = $pdo->query("SELECT * FROM biometric_machines");
             $bms = $stmt->fetchAll(PDO::FETCH_ASSOC);
             $biometricList = [];
@@ -1829,6 +1832,9 @@ elseif ($action === 'save_all') {
                     )");
                 } catch (Exception $ex) {}
             }
+            try { $pdo->exec("ALTER TABLE `biometric_machines` ADD COLUMN `port` int(11) DEFAULT 4370"); } catch (Exception $ex) {}
+            try { $pdo->exec("ALTER TABLE `biometric_machines` ADD COLUMN `auto_sync` tinyint(1) DEFAULT 0"); } catch (Exception $ex) {}
+            try { $pdo->exec("ALTER TABLE `biometric_machines` ADD COLUMN `status` varchar(30) DEFAULT 'Untested'"); } catch (Exception $ex) {}
             $pdo->exec("DELETE FROM biometric_machines");
             $bList = !empty($data['settings']) && !empty($data['settings']['biometricMachines']) ? $data['settings']['biometricMachines'] : (!empty($data['biometricMachines']) ? $data['biometricMachines'] : []);
             if (!empty($bList) && is_array($bList)) {
