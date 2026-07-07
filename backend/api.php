@@ -966,8 +966,8 @@ if ($action === 'upload_biometric_logs') {
                     $updated++;
                 }
             } else {
-                $pdo->prepare("INSERT INTO attendance (id, employeeId, employeeName, date, timeIn, status, shiftId, breakMins) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")->execute([
-                    'ATT_' . uniqid(), $employeeId, $employeeName, $dateStr, $timeStr, 'Present', 'shift_general', 60
+                $pdo->prepare("INSERT INTO attendance (employeeId, employeeName, date, timeIn, status, markedBy) VALUES (?, ?, ?, ?, ?, ?)")->execute([
+                    $employeeId, $employeeName, $dateStr, $timeStr, 'Present', 'Biometric Machine'
                 ]);
                 $inserted++;
             }
