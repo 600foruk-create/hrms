@@ -900,6 +900,85 @@ if ($action === 'ping_biometric') {
     exit;
 }
 
+if ($action === 'upload_biometric_logs') {
+    $inputJSON = file_get_contents('php://input');
+    $data = json_decode($inputJSON, true);
+    if (!$data || empty($data['logs'])) {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid or empty logs provided']);
+        exit;
+    }
+    $attendance = $data['logs'];
+    
+    if (!empty($data['machine_ip']) && !empty($data['machine_status'])) {
+        try {
+            $pdo->prepare("UPDATE biometric_machines SET status = ? WHERE ip = ?")->execute([$data['machine_status'], $data['machine_ip']]);
+        } catch (Exception $ex) {}
+    }
+    
+    try {
+        $stmt = $pdo->query("SELECT id, displayId, name FROM users");
+        $employees = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $empMap = [];
+        foreach ($employees as $emp) {
+            $empMap[$emp['id']] = $emp;
+            if (!empty($emp['displayId'])) {
+                $empMap[$emp['displayId']] = $emp;
+            }
+        }
+        
+        $inserted = 0;
+        $updated = 0;
+        
+        foreach ($attendance as $log) {
+            $userIdStr = isset($log['user_id']) ? strval($log['user_id']) : strval($log[1]);
+            $timestampStr = isset($log['record_time']) ? $log['record_time'] : (isset($log[3]) ? $log[3] : '');
+            if (empty($timestampStr)) continue;
+            
+            $dt = new DateTime($timestampStr);
+            $dateStr = $dt->format('Y-m-d');
+            $timeStr = $dt->format('H:i');
+            
+            $empRecord = isset($empMap[$userIdStr]) ? $empMap[$userIdStr] : null;
+            $employeeId = $empRecord ? $empRecord['id'] : $userIdStr;
+            $employeeName = $empRecord ? $empRecord['name'] : 'Machine User ' . $userIdStr;
+            
+            $checkStmt = $pdo->prepare("SELECT * FROM attendance WHERE date = ? AND employeeId = ?");
+            $checkStmt->execute([$dateStr, $employeeId]);
+            $existing = $checkStmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($existing) {
+                $updates = [];
+                $params = [];
+                if (empty($existing['timeIn']) || $timeStr < $existing['timeIn']) {
+                    $updates[] = "timeIn = ?"; $params[] = $timeStr;
+                }
+                if (empty($existing['timeOut']) || $timeStr > $existing['timeOut']) {
+                    if (!empty($existing['timeIn']) && $timeStr > $existing['timeIn']) {
+                        $updates[] = "timeOut = ?"; $params[] = $timeStr;
+                    } else if (empty($existing['timeIn'])) {
+                        $updates[] = "timeOut = ?"; $params[] = $timeStr;
+                    }
+                }
+                if (!empty($updates)) {
+                    $updates[] = "status = 'Present'";
+                    $params[] = $existing['id'];
+                    $pdo->prepare("UPDATE attendance SET " . implode(", ", $updates) . " WHERE id = ?")->execute($params);
+                    $updated++;
+                }
+            } else {
+                $pdo->prepare("INSERT INTO attendance (id, employeeId, employeeName, date, timeIn, status, shiftId, breakMins) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")->execute([
+                    'ATT_' . uniqid(), $employeeId, $employeeName, $dateStr, $timeStr, 'Present', 'shift_general', 60
+                ]);
+                $inserted++;
+            }
+        }
+        echo json_encode(['status' => 'success', 'message' => "Synced " . count($attendance) . " logs. Inserted: $inserted, Updated: $updated"]);
+    } catch (Exception $e) {
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+    }
+    exit;
+}
+
 if ($action === 'sync_biometric') {
     $ip = $_GET['ip'] ?? '';
     $port = (int)($_GET['port'] ?? 4370);
