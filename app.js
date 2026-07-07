@@ -5641,7 +5641,11 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
             user.documents = window.tempDocuments;
 
             // RESTful API Sync
-            await saveUserOnServer(user);
+            if (typeof oldId !== 'undefined' && oldId !== newId) {
+                await saveDb(db);
+            } else {
+                await saveUserOnServer(user);
+            }
 
             showToast("Success", `Profile updated successfully for ${name}.`);
             logAudit(`Updated profile details for employee: ${name} (${role}).`);
