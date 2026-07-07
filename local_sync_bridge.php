@@ -8,7 +8,7 @@
  * 3. Run this file in your browser: http://localhost/HRMS/hrms/local_sync_bridge.php
  */
 
-define('LIVE_DOMAIN', 'https://yourdomain.com'); // IMPORTANT: Change this to your live website URL
+define('LIVE_DOMAIN', 'https://azure-quetzal-636989.hostingersite.com/'); // IMPORTANT: Change this to your live website URL
 define('MACHINE_IP', '192.168.1.201');           // Your biometric machine's local IP
 define('MACHINE_PORT', 4370);                    // Default ZKTeco port
 
