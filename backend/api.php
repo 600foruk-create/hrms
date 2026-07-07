@@ -355,7 +355,7 @@ try {
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
     
-    $pdo->exec("CREATE TABLE IF NOT EXISTS `biometric_devices` (
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `biometric_devices_v2` (
         `id` varchar(50) NOT NULL,
         `name` varchar(100) DEFAULT NULL,
         `ip` varchar(50) NOT NULL,
@@ -478,7 +478,7 @@ try {
             `extra` TEXT
         )");
         
-        $pdo->exec("CREATE TABLE IF NOT EXISTS `biometric_devices` (
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `biometric_devices_v2` (
             `id` TEXT PRIMARY KEY,
             `name` TEXT,
             `ip` TEXT,
@@ -874,7 +874,7 @@ if ($action === 'ping_biometric') {
         if ($zk->connect()) {
             $zk->disconnect();
             try {
-                $pdo->prepare("UPDATE biometric_devices SET status = 'Online' WHERE ip = ?")->execute([$ip]);
+                $pdo->prepare("UPDATE biometric_devices_v2 SET status = 'Online' WHERE ip = ?")->execute([$ip]);
             } catch (Exception $ex) {}
             echo json_encode(["status" => "success", "message" => "Connected successfully to biometric machine at $ip:$port"]);
         } else {
@@ -883,12 +883,12 @@ if ($action === 'ping_biometric') {
             if ($fp) {
                 fclose($fp);
                 try {
-                    $pdo->prepare("UPDATE biometric_devices SET status = 'Online' WHERE ip = ?")->execute([$ip]);
+                    $pdo->prepare("UPDATE biometric_devices_v2 SET status = 'Online' WHERE ip = ?")->execute([$ip]);
                 } catch (Exception $ex) {}
                 echo json_encode(["status" => "success", "message" => "Connected successfully via TCP to $ip:$port"]);
             } else {
                 try {
-                    $pdo->prepare("UPDATE biometric_devices SET status = 'Offline' WHERE ip = ?")->execute([$ip]);
+                    $pdo->prepare("UPDATE biometric_devices_v2 SET status = 'Offline' WHERE ip = ?")->execute([$ip]);
                 } catch (Exception $ex) {}
                 echo json_encode(["status" => "error", "message" => "Connection failed. Machine is Offline or Unreachable."]);
             }
@@ -1350,7 +1350,7 @@ if ($action === 'load_all') {
         } catch (Exception $e) { $dbState['payrollHistory'] = []; }
         try {
             try {
-                $pdo->exec("CREATE TABLE IF NOT EXISTS `biometric_devices` (
+                $pdo->exec("CREATE TABLE IF NOT EXISTS `biometric_devices_v2` (
                     `id` varchar(50) NOT NULL,
                     `name` varchar(100) DEFAULT NULL,
                     `ip` varchar(50) NOT NULL,
@@ -1361,7 +1361,7 @@ if ($action === 'load_all') {
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
             } catch (Exception $e) {
                 try {
-                    $pdo->exec("CREATE TABLE IF NOT EXISTS `biometric_devices` (
+                    $pdo->exec("CREATE TABLE IF NOT EXISTS `biometric_devices_v2` (
                         `id` TEXT PRIMARY KEY,
                         `name` TEXT,
                         `ip` TEXT,
@@ -1371,7 +1371,7 @@ if ($action === 'load_all') {
                     )");
                 } catch (Exception $ex) {}
             }
-            $stmt = $pdo->query("SELECT * FROM biometric_devices");
+            $stmt = $pdo->query("SELECT * FROM biometric_devices_v2");
             $bms = $stmt->fetchAll(PDO::FETCH_ASSOC);
             $biometricList = [];
             foreach ($bms as $bm) {
@@ -1808,7 +1808,7 @@ elseif ($action === 'save_all') {
         // 13. Sync Biometric Machines
         try {
             try {
-                $pdo->exec("CREATE TABLE IF NOT EXISTS `biometric_devices` (
+                $pdo->exec("CREATE TABLE IF NOT EXISTS `biometric_devices_v2` (
                     `id` varchar(50) NOT NULL,
                     `name` varchar(100) DEFAULT NULL,
                     `ip` varchar(50) NOT NULL,
@@ -1819,7 +1819,7 @@ elseif ($action === 'save_all') {
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
             } catch (Exception $e) {
                 try {
-                    $pdo->exec("CREATE TABLE IF NOT EXISTS `biometric_devices` (
+                    $pdo->exec("CREATE TABLE IF NOT EXISTS `biometric_devices_v2` (
                         `id` TEXT PRIMARY KEY,
                         `name` TEXT,
                         `ip` TEXT,
@@ -1829,10 +1829,9 @@ elseif ($action === 'save_all') {
                     )");
                 } catch (Exception $ex) {}
             }
-            // Drop and recreate the table to ensure the schema matches exactly, avoiding ALTER permissions issues
+            // Removed DROP TABLE to avoid any permission issues. CREATE TABLE IF NOT EXISTS handles it.
             try {
-                $pdo->exec("DROP TABLE IF EXISTS `biometric_devices`");
-                $pdo->exec("CREATE TABLE `biometric_devices` (
+                $pdo->exec("CREATE TABLE IF NOT EXISTS `biometric_devices_v2` (
                     `id` varchar(50) NOT NULL,
                     `name` varchar(100) DEFAULT NULL,
                     `ip` varchar(50) NOT NULL,
@@ -1841,11 +1840,13 @@ elseif ($action === 'save_all') {
                     `status` varchar(30) DEFAULT 'Untested',
                     PRIMARY KEY (`id`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-            } catch (Exception $ex) {}
-            $pdo->exec("DELETE FROM biometric_devices");
+            } catch (Exception $ex) {
+                file_put_contents(__DIR__ . '/debug_log.txt', date('Y-m-d H:i:s') . ' CREATE ERROR: ' . $ex->getMessage() . "\n", FILE_APPEND);
+            }
+            $pdo->exec("DELETE FROM biometric_devices_v2");
             $bList = !empty($data['settings']) && !empty($data['settings']['biometricMachines']) ? $data['settings']['biometricMachines'] : (!empty($data['biometricMachines']) ? $data['biometricMachines'] : []);
             if (!empty($bList) && is_array($bList)) {
-                $bmStmt = $pdo->prepare("INSERT INTO biometric_devices (id, name, ip, port, auto_sync, status) VALUES (?, ?, ?, ?, ?, ?)");
+                $bmStmt = $pdo->prepare("INSERT INTO biometric_devices_v2 (id, name, ip, port, auto_sync, status) VALUES (?, ?, ?, ?, ?, ?)");
                 foreach ($bList as $bm) {
                     $bmStmt->execute([
                         $bm['id'] ?? ('BIO_' . uniqid()),
@@ -1858,6 +1859,7 @@ elseif ($action === 'save_all') {
                 }
             }
         } catch (Exception $e) {
+            file_put_contents(__DIR__ . '/debug_log.txt', date('Y-m-d H:i:s') . ' SYNC ERROR: ' . $e->getMessage() . "\n", FILE_APPEND);
             error_log("Biometric machines sync error: " . $e->getMessage());
         }
 
