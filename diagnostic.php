@@ -18,3 +18,13 @@ try {
         "message" => $e->getMessage()
     ]);
 }
+
+
+try {
+    $pdo->exec("DELETE FROM biometric_machines");
+    $stmt = $pdo->prepare("INSERT INTO biometric_machines (id, name, ip, port, auto_sync, status) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->execute(['TEST_123', 'Test Device', '192.168.1.1', 4370, 1, 'Untested']);
+    echo "\nINSERT SUCCESS!";
+} catch (Exception $e) {
+    echo "\nINSERT FAILED: " . $e->getMessage();
+}
