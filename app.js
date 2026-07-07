@@ -6711,6 +6711,7 @@ document.addEventListener('click', async (e) => {
                     ${statusHtml}
                 </td>
                 <td style="padding: 10px 14px; text-align: right; white-space: nowrap;">
+                    <button type="button" onclick="window.syncBiometricMachine(${idx})" class="btn btn-primary btn-sm" style="padding: 4px 10px; font-size: 11px; font-weight: 600; background: var(--primary); border: none; color: #fff;" title="Sync Data"><i class="fa-solid fa-rotate"></i> Sync</button>
                     <button type="button" onclick="window.testBiometricMachine(${idx})" class="btn btn-outline btn-sm" style="padding: 4px 10px; font-size: 11px; font-weight: 600;" title="Test Connection"><i class="fa-solid fa-network-wired text-primary"></i> Ping</button>
                     <button type="button" onclick="window.deleteBiometricMachine(${idx})" class="btn btn-outline btn-sm" style="padding: 4px 10px; font-size: 11px; color: #dc2626; border-color: rgba(220,38,38,0.2);" title="Delete Device"><i class="fa-solid fa-trash"></i></button>
                 </td>
@@ -6789,6 +6790,41 @@ document.addEventListener('click', async (e) => {
             } else {
                 m.status = 'Offline';
                 showToast("Machine Offline", res.message, "error");
+            }
+        } catch (err) {
+            m.status = 'Offline';
+            showToast("Connection Error", `Could not reach server or machine offline (${err.message})`, "error");
+        }
+
+        window.renderBiometricMachinesList();
+        await saveDb(db);
+    };
+
+    window.syncBiometricMachine = async function(idx) {
+        const db = getDb();
+        if (!db.settings || !db.settings.biometricMachines || !db.settings.biometricMachines[idx]) return;
+        const m = db.settings.biometricMachines[idx];
+
+        showToast("Syncing Data...", `Connecting to ${m.ip} and downloading attendance logs. This may take a moment.`, "info");
+        
+        try {
+            const response = await fetch(`backend/api.php?action=sync_biometric&ip=${encodeURIComponent(m.ip)}&port=${encodeURIComponent(m.port || 4370)}`);
+            const res = await response.json();
+            
+            if (res.status === 'success') {
+                m.status = 'Online';
+                showToast("Sync Complete", res.message, "success");
+                // Reload DB to get fresh attendance in the UI immediately
+                window.hrmsDatabase = await window.fetchDb();
+                if (typeof renderAttendanceTab === 'function' && document.getElementById('attendance-tab') && !document.getElementById('attendance-tab').classList.contains('hidden')) {
+                    renderAttendanceTab();
+                }
+            } else if (res.status === 'info') {
+                m.status = 'Online';
+                showToast("Sync Notice", res.message, "info");
+            } else {
+                m.status = 'Offline';
+                showToast("Sync Failed", res.message, "error");
             }
         } catch (err) {
             m.status = 'Offline';

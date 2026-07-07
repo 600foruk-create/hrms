@@ -1,0 +1,5 @@
+{
+    "require": {
+        "laradevsbd/zkteco-sdk": "^1.0"
+    }
+}

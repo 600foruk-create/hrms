@@ -6,6 +6,7 @@ header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
 
 require_once 'config.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
 // Auto-initialize database if tables are missing
 try {
@@ -868,24 +869,126 @@ if ($action === 'ping_biometric') {
         exit;
     }
 
-    $errno = 0;
-    $errstr = '';
-    $timeout = 1.5; // 1.5s connection timeout
+    try {
+        $zk = new \Laradevsbd\Zkteco\Http\Library\ZKLib($ip, $port);
+        if ($zk->connect()) {
+            $zk->disconnect();
+            try {
+                $pdo->prepare("UPDATE biometric_machines SET status = 'Online' WHERE ip = ?")->execute([$ip]);
+            } catch (Exception $ex) {}
+            echo json_encode(["status" => "success", "message" => "Connected successfully to biometric machine at $ip:$port"]);
+        } else {
+            // Fallback to basic TCP ping if UDP/ZK Protocol fails or if the machine only supports raw TCP
+            $fp = @fsockopen($ip, $port, $errno, $errstr, 1.5);
+            if ($fp) {
+                fclose($fp);
+                try {
+                    $pdo->prepare("UPDATE biometric_machines SET status = 'Online' WHERE ip = ?")->execute([$ip]);
+                } catch (Exception $ex) {}
+                echo json_encode(["status" => "success", "message" => "Connected successfully via TCP to $ip:$port"]);
+            } else {
+                try {
+                    $pdo->prepare("UPDATE biometric_machines SET status = 'Offline' WHERE ip = ?")->execute([$ip]);
+                } catch (Exception $ex) {}
+                echo json_encode(["status" => "error", "message" => "Connection failed. Machine is Offline or Unreachable."]);
+            }
+        }
+    } catch (Exception $e) {
+        echo json_encode(["status" => "error", "message" => "Error: " . $e->getMessage()]);
+    }
+    exit;
+}
+
+if ($action === 'sync_biometric') {
+    $ip = $_GET['ip'] ?? '';
+    $port = (int)($_GET['port'] ?? 4370);
     
-    // Suppress warnings from fsockopen if connection fails
-    $fp = @fsockopen($ip, $port, $errno, $errstr, $timeout);
-    if ($fp) {
-        fclose($fp);
-        try {
-            $pdo->prepare("UPDATE biometric_machines SET status = 'Online' WHERE ip = ?")->execute([$ip]);
-        } catch (Exception $ex) {}
-        echo json_encode(["status" => "success", "message" => "Connected successfully to biometric machine at $ip:$port"]);
-    } else {
-        try {
-            $pdo->prepare("UPDATE biometric_machines SET status = 'Offline' WHERE ip = ?")->execute([$ip]);
-        } catch (Exception $ex) {}
-        $reason = !empty($errstr) ? $errstr : "Connection timed out or connection refused";
-        echo json_encode(["status" => "error", "message" => "Unable to connect to biometric machine at $ip:$port ($reason)"]);
+    if (empty($ip)) {
+        echo json_encode(["status" => "error", "message" => "IP address is required"]);
+        exit;
+    }
+
+    try {
+        $zk = new \Laradevsbd\Zkteco\Http\Library\ZKLib($ip, $port);
+        if ($zk->connect()) {
+            $attendance = $zk->getAttendance();
+            $zk->disconnect();
+            
+            if (is_array($attendance) && count($attendance) > 0) {
+                // Get all employees to map User IDs
+                $stmt = $pdo->query("SELECT id, displayId, name FROM users");
+                $employees = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $empMap = [];
+                foreach ($employees as $emp) {
+                    $empMap[$emp['id']] = $emp;
+                    if (!empty($emp['displayId'])) {
+                        $empMap[$emp['displayId']] = $emp;
+                    }
+                }
+                
+                $inserted = 0;
+                $updated = 0;
+                
+                foreach ($attendance as $log) {
+                    // ZKLib returns: [0 => uid, 1 => id, 2 => state, 3 => timestamp, 4 => type]
+                    $userIdStr = strval($log[1]);
+                    $timestampStr = $log[3];
+                    
+                    if (empty($timestampStr)) continue;
+                    
+                    $dt = new DateTime($timestampStr);
+                    $dateStr = $dt->format('Y-m-d');
+                    $timeStr = $dt->format('H:i');
+                    
+                    $empRecord = isset($empMap[$userIdStr]) ? $empMap[$userIdStr] : null;
+                    $employeeId = $empRecord ? $empRecord['id'] : $userIdStr;
+                    $employeeName = $empRecord ? $empRecord['name'] : 'Machine User ' . $userIdStr;
+                    
+                    $checkStmt = $pdo->prepare("SELECT * FROM attendance WHERE date = ? AND employeeId = ?");
+                    $checkStmt->execute([$dateStr, $employeeId]);
+                    $existing = $checkStmt->fetch(PDO::FETCH_ASSOC);
+                    
+                    if ($existing) {
+                        $updates = [];
+                        $params = [];
+                        
+                        if (empty($existing['timeIn']) || $timeStr < $existing['timeIn']) {
+                            $updates[] = "timeIn = ?";
+                            $params[] = $timeStr;
+                        }
+                        if (empty($existing['timeOut']) || $timeStr > $existing['timeOut']) {
+                            if (!empty($existing['timeIn']) && $timeStr > $existing['timeIn']) {
+                                $updates[] = "timeOut = ?";
+                                $params[] = $timeStr;
+                            } else if (empty($existing['timeIn'])) {
+                                $updates[] = "timeOut = ?";
+                                $params[] = $timeStr;
+                            }
+                        }
+                        
+                        if (!empty($updates)) {
+                            $updates[] = "status = 'Present'";
+                            $params[] = $existing['id'];
+                            $updateSql = "UPDATE attendance SET " . implode(", ", $updates) . " WHERE id = ?";
+                            $pdo->prepare($updateSql)->execute($params);
+                            $updated++;
+                        }
+                    } else {
+                        $insStmt = $pdo->prepare("INSERT INTO attendance (date, employeeId, employeeName, status, markedBy, timeIn) VALUES (?, ?, ?, 'Present', 'Biometric', ?)");
+                        $insStmt->execute([$dateStr, $employeeId, $employeeName, $timeStr]);
+                        $inserted++;
+                    }
+                }
+                
+                echo json_encode(["status" => "success", "message" => "Synced successfully. Added $inserted and updated $updated records.", "records" => count($attendance)]);
+            } else {
+                echo json_encode(["status" => "info", "message" => "Connected successfully, but no new attendance records found on the machine."]);
+            }
+        } else {
+            echo json_encode(["status" => "error", "message" => "Could not connect to biometric machine. Please check network and IP."]);
+        }
+    } catch (Exception $e) {
+        echo json_encode(["status" => "error", "message" => "Sync Error: " . $e->getMessage()]);
     }
     exit;
 }
