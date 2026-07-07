@@ -1811,44 +1811,9 @@ elseif ($action === 'save_all') {
 
         // 13. Sync Biometric Machines
         try {
-            try {
-                $pdo->exec("CREATE TABLE IF NOT EXISTS `biometric_machines` (
-                    `id` varchar(50) NOT NULL,
-                    `name` varchar(100) DEFAULT NULL,
-                    `ip` varchar(50) NOT NULL,
-                    `port` int(11) DEFAULT 4370,
-                    `auto_sync` tinyint(1) DEFAULT 0,
-                    `status` varchar(30) DEFAULT 'Untested',
-                    PRIMARY KEY (`id`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-            } catch (Exception $e) {
-                try {
-                    $pdo->exec("CREATE TABLE IF NOT EXISTS `biometric_machines` (
-                        `id` TEXT PRIMARY KEY,
-                        `name` TEXT,
-                        `ip` TEXT,
-                        `port` INTEGER,
-                        `auto_sync` INTEGER,
-                        `status` TEXT
-                    )");
-                } catch (Exception $ex) {}
-            }
-            // Removed DROP TABLE to avoid any permission issues. CREATE TABLE IF NOT EXISTS handles it.
-            try {
-                $pdo->exec("CREATE TABLE IF NOT EXISTS `biometric_machines` (
-                    `id` varchar(50) NOT NULL,
-                    `name` varchar(100) DEFAULT NULL,
-                    `ip` varchar(50) NOT NULL,
-                    `port` int(11) DEFAULT 4370,
-                    `auto_sync` tinyint(1) DEFAULT 0,
-                    `status` varchar(30) DEFAULT 'Untested',
-                    PRIMARY KEY (`id`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-            } catch (Exception $ex) {
-                file_put_contents(__DIR__ . '/debug_log.txt', date('Y-m-d H:i:s') . ' CREATE ERROR: ' . $ex->getMessage() . "\n", FILE_APPEND);
-            }
             $pdo->exec("DELETE FROM biometric_machines");
             $bList = !empty($data['settings']) && !empty($data['settings']['biometricMachines']) ? $data['settings']['biometricMachines'] : (!empty($data['biometricMachines']) ? $data['biometricMachines'] : []);
+            file_put_contents(__DIR__ . '/debug_blist.txt', print_r($bList, true));
             if (!empty($bList) && is_array($bList)) {
                 $bmStmt = $pdo->prepare("INSERT INTO biometric_machines (id, name, ip, port, auto_sync, status) VALUES (?, ?, ?, ?, ?, ?)");
                 foreach ($bList as $bm) {
