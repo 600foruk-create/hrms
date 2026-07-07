@@ -1543,12 +1543,7 @@ elseif ($action === 'save_all') {
 
         // 5. Sync Attendance
         try {
-            try {
-                $pdo->exec("ALTER TABLE attendance MODIFY COLUMN `status` varchar(100) NOT NULL");
-                $pdo->exec("ALTER TABLE attendance MODIFY COLUMN `employeeName` varchar(150) DEFAULT NULL");
-                $pdo->exec("ALTER TABLE attendance ADD COLUMN `timeIn` varchar(50) DEFAULT NULL");
-                $pdo->exec("ALTER TABLE attendance ADD COLUMN `timeOut` varchar(50) DEFAULT NULL");
-            } catch (Exception $colEx) {}
+            // Removed ALTER TABLE from save_all to preserve transaction integrity.
 
             $pdo->exec("DELETE FROM attendance");
             if (!empty($data['attendance'])) {
