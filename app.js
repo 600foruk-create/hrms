@@ -474,6 +474,27 @@ function getGreeting() {
     return "Good evening";
 }
 
+function isEmployeeOnRest(user, dateStr) {
+    if (!user || !dateStr) return false;
+    const dateObj = new Date(dateStr);
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const currentDay = days[dateObj.getDay()];
+    
+    // Check individual rest day first
+    if (user.restDay && user.restDay !== "") {
+        return user.restDay === currentDay;
+    }
+    
+    // Check shift rest day
+    const db = getDb();
+    const shift = (db.shifts || []).find(s => s.id === user.shiftId);
+    if (shift && shift.restDay && shift.restDay !== "") {
+        return shift.restDay === currentDay;
+    }
+    
+    return false;
+}
+
 function applyCompanyProfile(db) {
     if (!db) return;
 
@@ -1408,9 +1429,23 @@ function renderAdminDashboard() {
     const explicitAbsentCount = db.attendance.filter(a => a.date === today && a.status === 'Absent' && validEmpIds.includes(String(a.employeeId))).length;
     
     const accountedCount = presentTodayCount + lateTodayCount + leaveTodayCount + halfdayTodayCount + explicitAbsentCount;
-    const unmarkedAbsentCount = totalEmpCount > accountedCount ? (totalEmpCount - accountedCount) : 0;
+    
+    // Calculate On Rest Count dynamically
+    let onRestTodayCount = db.attendance.filter(a => a.date === today && a.status === 'On Rest' && validEmpIds.includes(String(a.employeeId))).length;
+    let unmarkedAbsentCount = totalEmpCount > accountedCount ? (totalEmpCount - accountedCount) : 0;
+    
+    // Check for implicitly On Rest employees
+    employees.forEach(emp => {
+        const hasRecord = db.attendance.some(a => a.date === today && String(a.employeeId) === String(emp.id));
+        if (!hasRecord && isEmployeeOnRest(emp, today)) {
+            onRestTodayCount++;
+            unmarkedAbsentCount--;
+        }
+    });
+    
+    if (unmarkedAbsentCount < 0) unmarkedAbsentCount = 0;
     const absentTodayCount = explicitAbsentCount + unmarkedAbsentCount;
-    const attendancePct = totalEmpCount > 0 ? Math.round((presentTodayCount / totalEmpCount) * 100) : 0;
+    const attendancePct = totalEmpCount > 0 ? Math.round(((presentTodayCount + onRestTodayCount) / totalEmpCount) * 100) : 0;
 
     // Tasks Submitted / Completed
     const tasksSubmitted = (db.productivity || []).length;
@@ -1419,6 +1454,10 @@ function renderAdminDashboard() {
 
     // Apply Metrics to Cards
     document.getElementById('admin-metric-total-emp').textContent = totalEmpCount;
+    document.getElementById('admin-metric-absent').textContent = absentTodayCount;
+    
+    const onRestEl = document.getElementById('admin-metric-on-rest');
+    if (onRestEl) onRestEl.textContent = onRestTodayCount;
     document.getElementById('admin-metric-attendance').textContent = presentTodayCount;
     document.getElementById('admin-metric-pending-leaves').textContent = pendingLeaves;
     
@@ -1974,7 +2013,7 @@ function renderAdminAttendanceTab() {
                 date: filterDate,
                 employeeId: user.id,
                 employeeName: user.name,
-                status: 'Absent',
+                status: isEmployeeOnRest(user, filterDate) ? 'On Rest' : 'Absent',
                 timeIn: '-',
                 timeOut: '-',
                 markedBy: '-'
@@ -2004,7 +2043,7 @@ function renderAdminAttendanceTab() {
                     <td class="text-secondary">${(db.users.find(u => u.id === log.employeeId) || {}).displayId || log.employeeId}</td><td class="bold">${log.employeeName}</td>
                     <td><span class="badge-role ${empRole.toLowerCase()}">${empRole}</span></td>
                     <td>${mgrName}</td>
-                    <td><span class="badge-status ${log.status === 'Present' ? 'approved' : 'rejected'}">${log.status}</span></td>
+                    <td><span class="badge-status ${log.status === 'Present' ? 'approved' : (log.status === 'On Rest' ? 'info' : 'rejected')}">${log.status}</span></td>
                     <td class="text-center">${cleanTimeIn}</td>
                     <td class="text-center">${cleanTimeOut}</td>
                     <td class="text-center">${cleanMarkedBy}</td>
@@ -2103,7 +2142,7 @@ window.renderAdminAttendanceSlab = function() {
     // Initialize stats for active users
     (db.users || []).forEach(u => {
         if(u.status !== 'Inactive') {
-            employeeStats[String(u.id)] = { id: u.id, name: u.name, displayId: u.displayId || `EMP-${u.id}`, designation: u.designation || 'Staff Member', present: 0, late: 0, leave: 0, absent: 0, percentage: 0 };
+            employeeStats[String(u.id)] = { id: u.id, name: u.name, displayId: u.displayId || `EMP-${u.id}`, designation: u.designation || 'Staff Member', present: 0, late: 0, leave: 0, absent: 0, onRest: 0, percentage: 0 };
             totalActiveEmployees++;
         }
     });
@@ -2114,16 +2153,17 @@ window.renderAdminAttendanceSlab = function() {
         if (log.status === 'Present') employeeStats[empId].present++;
         else if (log.status === 'Late') employeeStats[empId].late++;
         else if (log.status === 'On Leave') employeeStats[empId].leave++;
+        else if (log.status === 'On Rest') employeeStats[empId].onRest++;
     });
     
     let slabCounts = { A: 0, B: 0, C: 0, D: 0 };
     const statsArray = Object.values(employeeStats);
     
     statsArray.forEach(stat => {
-        const loggedDays = stat.present + stat.late + stat.leave;
-        const actualWorkingDays = Math.max(workingDays, loggedDays); 
+        const loggedDays = stat.present + stat.late + stat.leave + stat.onRest;
+        const actualWorkingDays = Math.max(workingDays, loggedDays) - stat.onRest; 
         
-        stat.absent = actualWorkingDays - loggedDays;
+        stat.absent = actualWorkingDays - (stat.present + stat.late + stat.leave);
         if (stat.absent < 0) stat.absent = 0;
         
         if (actualWorkingDays > 0) {
@@ -2428,6 +2468,7 @@ window.renderAdminShiftManagement = function() {
                         <div style="font-size: 11px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 4px;">
                             <div><i class="fa-regular fa-clock" style="width: 14px;"></i> Time: <strong style="color: var(--text-primary);">${isFlex ? 'Custom Set per User' : `${s.start} - ${s.end}`}</strong></div>
                             <div><i class="fa-solid fa-mug-hot" style="width: 14px;"></i> Break: <strong style="color: var(--text-primary);">${bText}</strong></div>
+                            <div><i class="fa-solid fa-calendar-day text-primary" style="width: 14px;"></i> Rest Day: <strong style="color: var(--primary);">${s.restDay || 'None'}</strong></div>
                             <div><i class="fa-solid fa-user-clock text-primary" style="width: 14px;"></i> Policy: <strong style="color: var(--primary); font-size: 10px;">${policyBadge}</strong></div>
                         </div>
                     </div>
@@ -2615,6 +2656,7 @@ window.openCreateShiftModal = function(editShiftId = null) {
     const lateGraceInput = document.getElementById('shift-config-late-grace');
     const halfDayInput = document.getElementById('shift-config-half-day');
     const earlyGraceInput = document.getElementById('shift-config-early-grace');
+    const restDayInput = document.getElementById('shift-config-rest-day');
 
     if (!modal) return;
 
@@ -2640,25 +2682,17 @@ window.openCreateShiftModal = function(editShiftId = null) {
             if (bStartInput) bStartInput.value = s.breakStart || '13:00';
             if (bEndInput) bEndInput.value = s.breakEnd || '14:00';
 
-            if (lateGraceInput) lateGraceInput.value = s.lateGraceMins ?? 20;
-            if (halfDayInput) halfDayInput.value = s.halfDayMins ?? 180;
-            if (earlyGraceInput) earlyGraceInput.value = s.earlyGraceMins ?? 15;
+            lateGraceInput.value = s.lateGraceMins ?? 20;
+            halfDayInput.value = s.halfDayMins ?? 180;
+            earlyGraceInput.value = s.earlyGraceMins ?? 15;
+            restDayInput.value = s.restDay || "";
         }
     } else {
         titleEl.textContent = "Create New Shift";
-        idInput.value = '';
-        nameInput.value = '';
-        startInput.value = '09:00';
-        endInput.value = '17:00';
-        const rYes = modal.querySelector('input[name="shift_has_break"][value="yes"]');
-        if (rYes) rYes.checked = true;
+        document.getElementById('form-shift-config').reset();
+        idInput.value = "";
+        restDayInput.value = "";
         toggleShiftBreakConfig(true);
-        if (bStartInput) bStartInput.value = '13:00';
-        if (bEndInput) bEndInput.value = '14:00';
-
-        if (lateGraceInput) lateGraceInput.value = 20;
-        if (halfDayInput) halfDayInput.value = 180;
-        if (earlyGraceInput) earlyGraceInput.value = 15;
     }
 
     modal.classList.remove('hidden');
@@ -2683,6 +2717,7 @@ window.handleShiftSubmit = function(e) {
     const lateGraceVal = Number(document.getElementById('shift-config-late-grace')?.value ?? 20);
     const halfDayVal = Number(document.getElementById('shift-config-half-day')?.value ?? 180);
     const earlyGraceVal = Number(document.getElementById('shift-config-early-grace')?.value ?? 15);
+    const restDayVal = document.getElementById('shift-config-rest-day')?.value || "";
 
     if (!nameVal || !startVal || !endVal) return;
 
@@ -2707,6 +2742,7 @@ window.handleShiftSubmit = function(e) {
             existing.lateGraceMins = lateGraceVal;
             existing.halfDayMins = halfDayVal;
             existing.earlyGraceMins = earlyGraceVal;
+            existing.restDay = restDayVal;
 
             // Also update any employees currently assigned to this standard shift
             (db.users || []).forEach(u => {
@@ -2731,7 +2767,8 @@ window.handleShiftSubmit = function(e) {
             isFlexible: false,
             lateGraceMins: lateGraceVal,
             halfDayMins: halfDayVal,
-            earlyGraceMins: earlyGraceVal
+            earlyGraceMins: earlyGraceVal,
+            restDay: restDayVal
         });
     }
 
@@ -3921,7 +3958,21 @@ function renderManagerDashboard() {
     const explicitAbsentCount = db.attendance.filter(a => a.date === today && a.status === 'Absent' && teamEmails.includes(String(a.employeeId))).length;
     
     const accountedCount = presentCount + lateCount + leaveCount + halfdayCount + explicitAbsentCount;
-    const absentCount = explicitAbsentCount + Math.max(0, teamSize - accountedCount);
+    
+    let onRestCount = db.attendance.filter(a => a.date === today && a.status === 'On Rest' && teamEmails.includes(String(a.employeeId))).length;
+    let unmarkedAbsentCount = Math.max(0, teamSize - accountedCount);
+    
+    // Check for implicitly On Rest employees in team
+    myTeam.forEach(emp => {
+        const hasRecord = db.attendance.some(a => a.date === today && String(a.employeeId) === String(emp.id));
+        if (!hasRecord && isEmployeeOnRest(emp, today)) {
+            onRestCount++;
+            unmarkedAbsentCount--;
+        }
+    });
+    
+    if (unmarkedAbsentCount < 0) unmarkedAbsentCount = 0;
+    const absentCount = explicitAbsentCount + unmarkedAbsentCount;
 
     // Pending Approvals
     const pendingLeaves = db.leaves.filter(l => teamEmails.includes(String(l.employeeId)) && l.status === 'Pending').length;
@@ -4033,7 +4084,7 @@ function renderManagerDashboard() {
 
     // Manager Personal Stats
     const myAttToday = db.attendance.find(a => String(a.employeeId) === String(currentUser.id) && a.date === today);
-    const myAttStatus = myAttToday ? myAttToday.status : 'Absent';
+    const myAttStatus = myAttToday ? myAttToday.status : (isEmployeeOnRest(currentUser, today) ? 'On Rest' : 'Absent');
     const myProdSubmissions = (db.productivity || []).filter(p => (p.employee_id || p.employeeId) === currentUser.id && p.status === 'Approved');
     const myTotalScore = myProdSubmissions.length > 0 ? Math.round(myProdSubmissions.reduce((sum, p) => sum + p.score, 0) / myProdSubmissions.length) : 0;
 
@@ -4199,7 +4250,7 @@ function renderManagerAttendanceTab() {
                 date: filterDate,
                 employeeId: user.id,
                 employeeName: user.name,
-                status: 'Absent',
+                status: isEmployeeOnRest(user, filterDate) ? 'On Rest' : 'Absent',
                 timeIn: '-',
                 timeOut: '-',
                 markedBy: '-'
@@ -4238,7 +4289,7 @@ function renderManagerAttendanceTab() {
                         <td class="bold">${empName}</td>
                         <td><span class="badge-role ${roleClass}">${displayRole}</span></td>
                         <td>${mgrName}</td>
-                        <td><span class="badge-status ${log.status === 'Present' ? 'approved' : 'rejected'}">${log.status}</span></td>
+                        <td><span class="badge-status ${log.status === 'Present' ? 'approved' : (log.status === 'On Rest' ? 'info' : 'rejected')}">${log.status}</span></td>
                         <td class="text-center">${cleanTimeIn}</td>
                         <td class="text-center">${cleanTimeOut}</td>
                         <td class="text-center">${cleanMarkedBy}</td>
@@ -4424,7 +4475,7 @@ function renderEmployeeDashboard() {
     // Top Metric Cards
     const today = new Date().toISOString().split('T')[0];
     const myAttToday = db.attendance.find(a => String(a.employeeId) === String(currentUser.id) && a.date === today);
-    const attStatus = myAttToday ? myAttToday.status : 'Absent';
+    const attStatus = myAttToday ? myAttToday.status : (isEmployeeOnRest(currentUser, today) ? 'On Rest' : 'Absent');
 
     const attEl = document.getElementById('employee-metric-attendance');
     const iconContainer = document.getElementById('employee-attendance-icon');
@@ -4456,10 +4507,11 @@ function renderEmployeeDashboard() {
     let leave = monthlyLogs.filter(a => a.status === 'On Leave').length;
     let halfday = monthlyLogs.filter(a => a.status === 'Half Day').length;
     let absent = monthlyLogs.filter(a => a.status === 'Absent').length;
+    let onRest = monthlyLogs.filter(a => a.status === 'On Rest').length;
 
-    let total = present + absent + late + leave + halfday;
+    let total = present + absent + late + leave + halfday + onRest;
     if (total === 0) {
-        total = 1; present = 0; absent = 0; late = 0; leave = 0; halfday = 0;
+        total = 1; present = 0; absent = 0; late = 0; leave = 0; halfday = 0; onRest = 0;
     }
 
     let presentPct = Math.round((present / total) * 100);
@@ -5342,6 +5394,7 @@ window.openEditEmployeeModal = function (userId, isViewOnly = false) {
 
         document.getElementById('emp-role').value = user ? user.role : "User";
         document.getElementById('emp-status').value = user ? user.status : "Active";
+        document.getElementById('emp-rest-day').value = user && user.restDay ? user.restDay : "";
 
         // Fill reporting managers dropdown
         const managerSelect = document.getElementById('emp-manager');
@@ -5505,6 +5558,7 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
     const role = document.getElementById('emp-role').value;
     const managerId = document.getElementById('emp-manager').value;
     const status = document.getElementById('emp-status').value;
+    const restDay = document.getElementById('emp-rest-day').value;
     const startDate = document.getElementById('emp-start-date').value;
     const endDate = document.getElementById('emp-end-date').value;
     const salary = document.getElementById('emp-salary').value;
@@ -5595,6 +5649,7 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
             user.role = role;
             user.managerId = managerId;
             user.status = status;
+            user.restDay = restDay;
             user.fatherName = fatherName;
             user.gender = gender;
             user.dob = dob;
@@ -5665,13 +5720,14 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
             id: actualId,
             displayId: actualId,
             name,
-            email,
-            password,
-            role,
-            managerId,
-            status,
-            fatherName,
-            gender,
+            email: email,
+            password: password,
+            role: role,
+            managerId: managerId,
+            status: status,
+            restDay: restDay,
+            fatherName: fatherName,
+            gender: gender,
             dob,
             cnic,
             maritalStatus,
@@ -6082,6 +6138,9 @@ window.openManualAttendanceModal = function () {
 
                             <input type="radio" name="att_status_${emp.id}" id="att_leave_${emp.id}" value="On Leave" ${status === 'On Leave' ? 'checked' : ''}>
                             <label for="att_leave_${emp.id}" style="color: var(--warning-color);">On Leave</label>
+                            
+                            <input type="radio" name="att_status_${emp.id}" id="att_rest_${emp.id}" value="On Rest" ${status === 'On Rest' ? 'checked' : ''}>
+                            <label for="att_rest_${emp.id}" style="color: var(--primary);">On Rest</label>
                         </div>
                     </td>
                 </tr>
@@ -7091,6 +7150,7 @@ function generateReport(roleContext) {
 
         const presentCount = logs.filter(l => l.status === 'Present').length;
         const absentCount = logs.filter(l => l.status === 'Absent').length;
+        const onRestCount = logs.filter(l => l.status === 'On Rest').length;
 
         html = `
             <div class="report-print-sheet">
@@ -7100,7 +7160,7 @@ function generateReport(roleContext) {
                 </div>
                 <div class="report-print-meta">
                     <div>Date Range: <strong>${activeRangeDesc}</strong></div>
-                    <div>Present Days: <strong class="text-success">${presentCount}</strong> | Absent Days: <strong class="text-danger">${absentCount}</strong></div>
+                    <div>Present Days: <strong class="text-success">${presentCount}</strong> | Absent Days: <strong class="text-danger">${absentCount}</strong> | On Rest: <strong class="text-primary">${onRestCount}</strong></div>
                 </div>
                 <table class="data-table">
                     <thead>

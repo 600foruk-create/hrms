@@ -1347,9 +1347,24 @@
                         <form id="form-shift-config" onsubmit="handleShiftSubmit(event)" style="display: flex; flex-direction: column;">
                             <input type="hidden" id="shift-config-id">
                             <div class="modal-body" style="padding: 14px 18px;">
-                                <div class="form-group mb-2">
-                                    <label class="form-label font-weight-bold" style="font-size: 12.5px;">Shift Name</label>
-                                    <input type="text" id="shift-config-name" class="form-control btn-sm" placeholder="e.g. Morning Shift" required>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;" class="mb-2">
+                                    <div class="form-group mb-0">
+                                        <label class="form-label font-weight-bold" style="font-size: 12.5px;">Shift Name <span class="text-danger">*</span></label>
+                                        <input type="text" id="shift-config-name" class="form-control btn-sm" placeholder="e.g. Morning Shift" required>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="form-label font-weight-bold" style="font-size: 12.5px;">Rest Day</label>
+                                        <select id="shift-config-rest-day" class="form-control btn-sm">
+                                            <option value="">None</option>
+                                            <option value="Monday">Monday</option>
+                                            <option value="Tuesday">Tuesday</option>
+                                            <option value="Wednesday">Wednesday</option>
+                                            <option value="Thursday">Thursday</option>
+                                            <option value="Friday">Friday</option>
+                                            <option value="Saturday">Saturday</option>
+                                            <option value="Sunday">Sunday</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;" class="mb-2">
                                     <div class="form-group mb-0">
@@ -5539,6 +5554,19 @@
                         <select id="emp-status" class="form-control" required>
                             <option value="Active">Active</option>
                             <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="emp-rest-day">Individual Rest Day</label>
+                        <select id="emp-rest-day" class="form-control">
+                            <option value="">Use Shift Default</option>
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                            <option value="Saturday">Saturday</option>
+                            <option value="Sunday">Sunday</option>
                         </select>
                     </div>
                 </div>
