@@ -2265,14 +2265,29 @@ window.updateOvertimeStatus = function(id, newStatus) {
 
 window.openManagerOvertimeModal = function() {
     const db = getDb();
-    const select = document.getElementById('mgr-ot-employee');
-    select.innerHTML = '<option value="">Select an employee</option>';
-    
     const myTeam = db.users.filter(u => String(u.managerId) === String(currentUser.id));
-    myTeam.forEach(u => {
-        select.innerHTML += `<option value="${u.id}">${u.name} (${u.displayId})</option>`;
-    });
     
+    // Render checkbox list
+    const list = document.getElementById('mgr-ot-employee-list');
+    if (list) {
+        list.innerHTML = myTeam.length === 0
+            ? `<div style="padding:10px; text-align:center; color:var(--text-muted); font-size:13px;">No team members found.</div>`
+            : myTeam.map(u => `
+                <label class="mgr-ot-emp-row" data-name="${(u.name||'').toLowerCase()}" style="display:flex; align-items:center; gap:10px; padding:6px 12px; cursor:pointer; transition:background 0.15s; font-size:13px;" onmouseover="this.style.background='var(--surface-color)'" onmouseout="this.style.background='transparent'">
+                    <input type="checkbox" class="mgr-ot-emp-cb" value="${u.id}" onchange="updateMgrOtCount()" style="width:15px;height:15px;cursor:pointer;">
+                    <span style="flex:1;"><strong>${u.name}</strong> <span style="color:var(--text-muted);font-size:11px;">(${u.displayId || u.id})</span></span>
+                    <span style="font-size:11px; color:var(--text-muted);">${u.designation || u.role || ''}</span>
+                </label>`
+            ).join('');
+    }
+    
+    // Reset UI state
+    const searchBox = document.getElementById('mgr-ot-search');
+    if (searchBox) searchBox.value = '';
+    const selectAll = document.getElementById('mgr-ot-select-all');
+    if (selectAll) selectAll.checked = false;
+    const countEl = document.getElementById('mgr-ot-selected-count');
+    if (countEl) countEl.textContent = '0 selected';
     document.getElementById('mgr-ot-date').value = new Date().toISOString().split('T')[0];
     document.getElementById('mgr-ot-hours').value = '';
     document.getElementById('mgr-ot-reason').value = '';
@@ -2280,36 +2295,74 @@ window.openManagerOvertimeModal = function() {
     openModal('modal-manager-log-overtime');
 };
 
+window.updateMgrOtCount = function() {
+    const checked = document.querySelectorAll('.mgr-ot-emp-cb:checked').length;
+    const total = document.querySelectorAll('.mgr-ot-emp-cb').length;
+    const countEl = document.getElementById('mgr-ot-selected-count');
+    if (countEl) countEl.textContent = `${checked} selected`;
+    const selectAll = document.getElementById('mgr-ot-select-all');
+    if (selectAll) selectAll.checked = checked === total && total > 0;
+};
+
+window.toggleAllMgrOtEmployees = function(checked) {
+    // Only toggle visible (not hidden) checkboxes
+    document.querySelectorAll('.mgr-ot-emp-row').forEach(row => {
+        if (row.style.display !== 'none') {
+            const cb = row.querySelector('.mgr-ot-emp-cb');
+            if (cb) cb.checked = checked;
+        }
+    });
+    window.updateMgrOtCount();
+};
+
+window.filterMgrOtEmployees = function(query) {
+    const q = query.toLowerCase().trim();
+    document.querySelectorAll('.mgr-ot-emp-row').forEach(row => {
+        const name = row.dataset.name || '';
+        row.style.display = (!q || name.includes(q)) ? 'flex' : 'none';
+    });
+    // Uncheck Select All when filtering
+    const selectAll = document.getElementById('mgr-ot-select-all');
+    if (selectAll) selectAll.checked = false;
+    window.updateMgrOtCount();
+};
+
 window.submitManagerOvertime = function(e) {
     e.preventDefault();
     const db = getDb();
     if (!db.overtimeLogs) db.overtimeLogs = [];
     
-    const empId = document.getElementById('mgr-ot-employee').value;
+    // Collect all checked employee IDs
+    const checkedBoxes = document.querySelectorAll('.mgr-ot-emp-cb:checked');
+    const selectedIds = Array.from(checkedBoxes).map(cb => cb.value);
+    
+    if (selectedIds.length === 0) return showToast("Error", "Please select at least one employee.", "error");
+    
     const date = document.getElementById('mgr-ot-date').value;
     const hours = parseFloat(document.getElementById('mgr-ot-hours').value);
     const type = document.getElementById('mgr-ot-type').value;
     const reason = document.getElementById('mgr-ot-reason').value;
     
-    if (hours <= 0) return showToast("Error", "Hours must be greater than 0.", "error");
-    if (!empId) return showToast("Error", "Please select an employee.", "error");
+    if (!date) return showToast("Error", "Please select a date.", "error");
+    if (!hours || hours <= 0) return showToast("Error", "Hours must be greater than 0.", "error");
     
-    const otLog = {
-        id: 'ot_' + Date.now() + '_' + Math.floor(Math.random()*1000),
-        employeeId: empId,
-        date: date,
-        hours: hours,
-        type: type,
-        reason: reason,
-        status: 'Approved',
-        approvedBy: currentUser.id
-    };
+    // Create one log entry per selected employee
+    selectedIds.forEach(empId => {
+        db.overtimeLogs.push({
+            id: 'ot_' + Date.now() + '_' + empId + '_' + Math.floor(Math.random()*1000),
+            employeeId: empId,
+            date: date,
+            hours: hours,
+            type: type,
+            reason: reason,
+            status: 'Approved',
+            approvedBy: currentUser.id
+        });
+    });
     
-    db.overtimeLogs.push(otLog);
     saveDb(db);
-    
     closeModal('modal-manager-log-overtime');
-    showToast("Overtime Logged", "Team member's overtime has been logged and approved.", "success");
+    showToast("Overtime Logged", `Overtime successfully logged for ${selectedIds.length} employee(s).`, "success");
     if (typeof window.renderManagerOvertimeTab === 'function') window.renderManagerOvertimeTab();
 };
 

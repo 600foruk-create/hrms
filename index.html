@@ -5839,11 +5839,19 @@
         <form onsubmit="submitManagerOvertime(event)" style="display: flex; flex-direction: column;">
             <div class="modal-body" style="padding: 14px 18px;">
                 <div class="form-group mb-2">
-                    <label>Team Member <span class="text-danger">*</span></label>
-                    <select id="mgr-ot-employee" class="form-control" required>
-                        <option value="">Select an employee</option>
+                    <label>Select Team Members <span class="text-danger">*</span></label>
+                    <!-- Search box -->
+                    <input type="text" id="mgr-ot-search" class="form-control mb-1" placeholder="🔍 Search employee..." oninput="filterMgrOtEmployees(this.value)" style="font-size:13px;">
+                    <!-- Select All row -->
+                    <div style="padding: 6px 10px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 6px 6px 0 0; border-bottom: none; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600;">
+                        <input type="checkbox" id="mgr-ot-select-all" onchange="toggleAllMgrOtEmployees(this.checked)" style="width:15px;height:15px;cursor:pointer;">
+                        <label for="mgr-ot-select-all" style="cursor:pointer; margin:0;">Select All Team Members</label>
+                        <span id="mgr-ot-selected-count" style="margin-left:auto; color: var(--primary); font-size:12px;">0 selected</span>
+                    </div>
+                    <!-- Scrollable employee list -->
+                    <div id="mgr-ot-employee-list" style="max-height: 160px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 0 0 6px 6px; padding: 4px 0; background: var(--card-bg);">
                         <!-- populated via JS -->
-                    </select>
+                    </div>
                 </div>
                 <div class="form-group mb-2">
                     <label>Date <span class="text-danger">*</span></label>
