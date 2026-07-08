@@ -3867,8 +3867,10 @@
                                 <p class="text-secondary">Track who's present, absent, or on leave</p>
                             </div>
                             <div class="actions">
-                                <button class="btn btn-primary" id="btn-manager-log-attendance"><i
-                                        class="fa-solid fa-user-check"></i> Manual Log Attendance</button>
+                                <!-- Shown only on Attendance Log subtab -->
+                                <button class="btn btn-primary" id="btn-manager-log-attendance"><i class="fa-solid fa-user-check"></i> Manual Log Attendance</button>
+                                <!-- Shown only on Overtime subtab -->
+                                <button class="btn btn-primary hidden" id="btn-manager-log-overtime-header" onclick="if(window.openManagerOvertimeModal) window.openManagerOvertimeModal();"><i class="fa-solid fa-plus"></i> Log Overtime for Team</button>
                             </div>
                         </div>
 
@@ -3940,9 +3942,6 @@
 
                         <!-- Manager Overtime Sub-tab Content -->
                         <div class="sub-tab-content hidden" id="subtab-content-manager-attendance-overtime">
-                            <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 15px;">
-                                <button class="btn btn-primary" onclick="if(window.openManagerOvertimeModal) window.openManagerOvertimeModal();"><i class="fa-solid fa-plus"></i> Log Overtime for Team</button>
-                            </div>
                             <div class="section-card bg-glass flex-table-card">
                                 <div class="table-container">
                                     <table class="data-table">

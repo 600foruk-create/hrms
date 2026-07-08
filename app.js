@@ -8437,6 +8437,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 }
             } else if (parent.id === 'manager-tab-attendance') {
+                // Toggle header action buttons based on active subtab
+                const btnAtt = document.getElementById('btn-manager-log-attendance');
+                const btnOt = document.getElementById('btn-manager-log-overtime-header');
+                if (btnAtt && btnOt) {
+                    if (subtab === 'manager-attendance-overtime') {
+                        btnAtt.classList.add('hidden');
+                        btnOt.classList.remove('hidden');
+                    } else {
+                        btnAtt.classList.remove('hidden');
+                        btnOt.classList.add('hidden');
+                    }
+                }
                 if (subtab === 'manager-attendance-overtime' && typeof renderManagerOvertimeTab === 'function') {
                     renderManagerOvertimeTab();
                 }
