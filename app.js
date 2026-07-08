@@ -4685,11 +4685,6 @@ function renderManagerDashboard() {
     const pendingProd = (db.productivity || []).filter(p => teamEmails.includes(String(p.employee_id || p.employeeId)) && p.status === 'Pending').length;
     const totalPending = pendingLeaves + pendingProd;
 
-    document.getElementById('manager-metric-team-size').textContent = teamSize;
-    document.getElementById('manager-metric-today-present').textContent = presentCount;
-    document.getElementById('manager-metric-today-absent').textContent = absentCount;
-    document.getElementById('manager-metric-pending-approvals').textContent = totalPending;
-
     // 1. Manager Team Daily Attendance Doughnut Chart
     let present = presentCount;
     let absent = absentCount;
@@ -4700,6 +4695,11 @@ function renderManagerDashboard() {
     if (total === 0) {
         present = 0; absent = teamSize; late = 0; leave = 0; halfday = 0; total = teamSize;
     }
+
+    document.getElementById('manager-metric-team-size').textContent = teamSize;
+    document.getElementById('manager-metric-today-present').textContent = present;
+    document.getElementById('manager-metric-today-absent').textContent = absent;
+    document.getElementById('manager-metric-pending-approvals').textContent = totalPending;
 
     let presentPct = total > 0 ? Math.round((present / total) * 100) : 0;
     let absentPct = total > 0 ? Math.round((absent / total) * 100) : 0;
