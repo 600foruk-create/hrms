@@ -2009,7 +2009,10 @@ function renderAdminHolidaysTab() {
     if (!tbody) return;
     
     tbody.innerHTML = '';
-    const holidays = (db.systemSettings && db.systemSettings.publicHolidays) ? db.systemSettings.publicHolidays : [];
+    let holidays = (db.systemSettings && db.systemSettings.publicHolidays) ? db.systemSettings.publicHolidays : [];
+    
+    // Filter out hidden history
+    holidays = holidays.filter(h => !h.isHiddenFromUI);
     
     // Sort descending by date
     const sorted = [...holidays].sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
@@ -2029,10 +2032,10 @@ function renderAdminHolidaysTab() {
         
         tbody.innerHTML += `
             <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                <td style="font-weight: 600; color: var(--primary);">${h.name}</td>
-                <td><i class="fa-regular fa-calendar text-muted mr-1"></i> ${dateStr}</td>
-                <td><span class="badge-role" style="background: rgba(45, 212, 191, 0.15); color: #0d9488;">${typeStr}</span></td>
-                <td style="text-align: center;">
+                <td style="font-weight: 600; color: var(--primary); padding: 8px 12px;">${h.name}</td>
+                <td style="padding: 8px 12px;"><i class="fa-regular fa-calendar text-muted mr-1"></i> ${dateStr}</td>
+                <td style="padding: 8px 12px;"><span class="badge-role" style="background: rgba(45, 212, 191, 0.15); color: #0d9488;">${typeStr}</span></td>
+                <td style="text-align: center; padding: 8px 12px;">
                     <button class="btn-action-circle" onclick="deletePublicHoliday('${h.id}')" title="Delete Holiday" style="color: var(--danger);"><i class="fa-solid fa-trash-can"></i></button>
                 </td>
             </tr>
@@ -2096,6 +2099,36 @@ window.deletePublicHoliday = function(id) {
     
     if (typeof renderAdminAttendanceTab === 'function') renderAdminAttendanceTab();
     if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
+};
+
+window.clearPublicHolidaysHistory = function() {
+    if (!confirm("Are you sure you want to clear past holidays from the view? They will remain active in the system calculations.")) return;
+    
+    const db = getDb();
+    if (!db.systemSettings || !db.systemSettings.publicHolidays) return;
+    
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    let clearedCount = 0;
+    db.systemSettings.publicHolidays.forEach(h => {
+        const end = h.endDate ? new Date(h.endDate) : new Date(h.startDate);
+        end.setHours(0,0,0,0);
+        
+        // Hide if the holiday has already passed
+        if (end < today && !h.isHiddenFromUI) {
+            h.isHiddenFromUI = true;
+            clearedCount++;
+        }
+    });
+    
+    if (clearedCount > 0) {
+        saveDb(db);
+        renderAdminHolidaysTab();
+        showToast("History Cleared", `${clearedCount} past holidays hidden from view.`, "success");
+    } else {
+        showToast("No History", "There are no past holidays to clear.", "info");
+    }
 };
 
 function renderAdminAttendanceTab() {

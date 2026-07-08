@@ -1346,7 +1346,10 @@
                                         <h3 style="margin: 0; font-size: 18px; color: var(--text-primary);"><i class="fa-solid fa-umbrella-beach" style="color: var(--primary);"></i> Public Holidays</h3>
                                         <p class="text-secondary" style="font-size: 12px; margin: 4px 0 0 0;">Manage official holidays. Employees will be marked as 'Holiday' instead of 'Absent' on these dates and will not face salary deductions.</p>
                                     </div>
-                                    <button class="btn btn-primary btn-sm" onclick="openAddHolidayModal()"><i class="fa-solid fa-plus"></i> Add Holiday</button>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button class="btn btn-outline btn-sm" onclick="clearPublicHolidaysHistory()" style="color: var(--text-secondary); border-color: var(--border-color);"><i class="fa-solid fa-eraser"></i> Clear History</button>
+                                        <button class="btn btn-primary btn-sm" onclick="openAddHolidayModal()"><i class="fa-solid fa-plus"></i> Add Holiday</button>
+                                    </div>
                                 </div>
                                 <div class="table-container" style="flex: 1; border: 1px solid var(--border-color); border-radius: 8px;">
                                     <table class="data-table">
