@@ -8302,7 +8302,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     renderEmployeeOvertimeTab();
                 }
             }
-            }
         });
     });
 
