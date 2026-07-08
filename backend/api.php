@@ -145,6 +145,28 @@ try {
     } catch (Exception $e2) {}
 }
 
+// Ensure public_holidays exists
+try {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `public_holidays` (
+        `id` varchar(50) NOT NULL,
+        `name` varchar(150) NOT NULL,
+        `start_date` varchar(20) NOT NULL,
+        `end_date` varchar(20) NOT NULL,
+        `is_hidden` tinyint(1) DEFAULT 0,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+} catch (Exception $e) {
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `public_holidays` (
+            `id` TEXT PRIMARY KEY,
+            `name` TEXT,
+            `start_date` TEXT,
+            `end_date` TEXT,
+            `is_hidden` INTEGER DEFAULT 0
+        )");
+    } catch (Exception $e2) {}
+}
+
 // Auto-add new columns if they are missing
 $new_columns = [
     "ADD COLUMN `bloodGroup` varchar(10) DEFAULT NULL",
@@ -1185,7 +1207,7 @@ if ($action === 'load_all') {
             $sysSettings = $stmt->fetchAll(PDO::FETCH_ASSOC);
             $dbState['systemSettings'] = (object)[];
             foreach ($sysSettings as $row) {
-                if (in_array($row['setting_key'], ['assetCategories', 'productivityCategories', 'shifts', 'shiftRotationPolicy'])) continue;
+                if (in_array($row['setting_key'], ['assetCategories', 'productivityCategories', 'shifts', 'shiftRotationPolicy', 'publicHolidays'])) continue;
                 $val = json_decode($row['setting_value'], true);
                 if (json_last_error() === JSON_ERROR_NONE && !is_numeric($row['setting_value'])) {
                     $dbState['systemSettings']->{$row['setting_key']} = $val;
@@ -1196,6 +1218,22 @@ if ($action === 'load_all') {
         } catch (Exception $e) {
             $dbState['systemSettings'] = (object)[];
         }
+
+        // Fetch Public Holidays
+        try {
+            $stmt = $pdo->query("SELECT * FROM public_holidays");
+            $holidays = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $dbState['systemSettings']->publicHolidays = [];
+            foreach ($holidays as $h) {
+                $dbState['systemSettings']->publicHolidays[] = [
+                    'id' => $h['id'],
+                    'name' => $h['name'],
+                    'startDate' => $h['start_date'],
+                    'endDate' => $h['end_date'],
+                    'isHiddenFromUI' => (bool)$h['is_hidden']
+                ];
+            }
+        } catch (Exception $e) {}
 
         // Fetch Leaves
         try {
@@ -1837,7 +1875,7 @@ elseif ($action === 'save_all') {
             if (isset($data['systemSettings']) && (is_array($data['systemSettings']) || is_object($data['systemSettings']))) {
                 $stmt = $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?)");
                 foreach ($data['systemSettings'] as $k => $v) {
-                    if (in_array($k, ['assetCategories', 'productivityCategories', 'shifts', 'shiftRotationPolicy'])) continue;
+                    if (in_array($k, ['assetCategories', 'productivityCategories', 'shifts', 'shiftRotationPolicy', 'publicHolidays'])) continue;
                     if (is_bool($v)) {
                         $v = $v ? 'true' : 'false';
                     } elseif (is_array($v) || is_object($v)) {
@@ -1848,6 +1886,25 @@ elseif ($action === 'save_all') {
             }
         } catch (Exception $e) {
             error_log("System settings sync error: " . $e->getMessage());
+        }
+
+        // 11.5. Sync Public Holidays
+        try {
+            $pdo->exec("DELETE FROM public_holidays");
+            if (isset($data['systemSettings']['publicHolidays']) && is_array($data['systemSettings']['publicHolidays'])) {
+                $stmt = $pdo->prepare("INSERT INTO public_holidays (id, name, start_date, end_date, is_hidden) VALUES (?, ?, ?, ?, ?)");
+                foreach ($data['systemSettings']['publicHolidays'] as $h) {
+                    $stmt->execute([
+                        $h['id'] ?? uniqid(),
+                        $h['name'] ?? 'Holiday',
+                        $h['startDate'] ?? '',
+                        $h['endDate'] ?? '',
+                        !empty($h['isHiddenFromUI']) ? 1 : 0
+                    ]);
+                }
+            }
+        } catch (Exception $e) {
+            error_log("Public holidays sync error: " . $e->getMessage());
         }
 
         // 12. Sync Shift Management (Cards, Policy, Assignments)

@@ -3881,12 +3881,13 @@ function renderAdminSettingsTab() {
         document.getElementById('setting-shift-notif-enabled').checked = sysSettings.shiftNotificationsEnabled !== false;
     }
     if (document.getElementById('ot-enabled-switch')) {
-        const otEnabled = sysSettings.overtimeEnabled !== false; // default true
+        const otEnabled = sysSettings.overtimeEnabled !== false && sysSettings.overtimeEnabled !== 'false';
         document.getElementById('ot-enabled-switch').checked = otEnabled;
         document.getElementById('ot-rate-container').style.display = otEnabled ? 'flex' : 'none';
     }
     if (document.getElementById('ot-rate-multiplier')) {
-        document.getElementById('ot-rate-multiplier').value = sysSettings.overtimeRate || 1.0;
+        let rateVal = parseFloat(sysSettings.overtimeRate) || 1.0;
+        document.getElementById('ot-rate-multiplier').value = rateVal.toFixed(1);
     }
     const notifDb = document.getElementById('shift-notif-db');
     const notifWa = document.getElementById('shift-notif-whatsapp');
