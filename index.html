@@ -387,6 +387,10 @@
         td.bg-rest { background-color: rgba(59, 130, 246, 0.1); color: #1d4ed8 !important; }
         td.bg-holiday { background-color: rgba(168, 85, 247, 0.1); color: #7e22ce !important; }
         td.bg-halfday { background-color: rgba(234, 179, 8, 0.1); color: #a16207 !important; }
+
+        /* Register Table Borders */
+        .register-table { border-collapse: collapse; }
+        .register-table th, .register-table td { border: 1px solid rgba(0,0,0,0.05); }
     </style>
 
     <!-- Overlay -->
@@ -2476,10 +2480,6 @@
                                 onclick="window.renderAdminReportsTab('attendance')">
                                 <i class="fa-solid fa-calendar-days"></i> Attendance
                             </button>
-                            <button class="btn-sub-tab" data-subtab="admin-report-attendance-register"
-                                onclick="window.renderAdminReportsTab('attendance-register')">
-                                <i class="fa-solid fa-table"></i> Attendance Register
-                            </button>
                             <button class="btn-sub-tab" data-subtab="admin-report-leave"
                                 onclick="window.renderAdminReportsTab('leave')">
                                 <i class="fa-solid fa-umbrella-beach"></i> Leave
@@ -2589,7 +2589,12 @@
 
                         <!-- Sub Tab 3: Attendance Report -->
                         <div id="subtab-content-admin-report-attendance" class="sub-tab-content hidden">
-                            <div class="section-card bg-glass flex-table-card">
+                            <div class="mb-3" style="margin-top: -5px;">
+                                <button class="btn btn-primary btn-sm loan-inner-tab active" id="btn-admin-att-log" onclick="window.switchAttTab('admin', 'log')">Daily Log</button>
+                                <button class="btn btn-outline btn-sm loan-inner-tab" id="btn-admin-att-register" onclick="window.switchAttTab('admin', 'register')">Attendance Register</button>
+                            </div>
+                            <div id="admin-att-content-log">
+                                <div class="section-card bg-glass flex-table-card">
                                 <div class="section-card-header report-filters-header"
                                     style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 15px;">
                                     <div style="display: flex; gap: 15px; flex-wrap: wrap; flex: 1;">
@@ -2653,11 +2658,12 @@
                                         </tbody>
                                     </table>
                                 </div>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Sub Tab 3B: Attendance Register Report -->
-                        <div id="subtab-content-admin-report-attendance-register" class="sub-tab-content hidden">
+                        <div id="admin-att-content-register" class="hidden">
                             <div class="section-card bg-glass flex-table-card">
                                 <div class="section-card-header report-filters-header"
                                     style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 15px;">
@@ -2683,7 +2689,7 @@
                                         <h2>Company Attendance Register</h2>
                                         <p id="print-subtitle-admin-attendance-register"></p>
                                     </div>
-                                    <table class="data-table">
+                                    <table class="data-table register-table">
                                         <thead id="admin-rep-head-attendance-register">
                                             <tr>
                                                 <th>Employee</th>
@@ -2699,6 +2705,7 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
 
                         <!-- Sub Tab 4: Leave Report -->
                         <div id="subtab-content-admin-report-leave" class="sub-tab-content hidden">
@@ -4388,10 +4395,6 @@
                                 onclick="window.renderManagerReportsTab('attendance')">
                                 <i class="fa-solid fa-calendar-days"></i> Attendance
                             </button>
-                            <button class="btn-sub-tab" data-subtab="manager-report-attendance-register"
-                                onclick="window.renderManagerReportsTab('attendance-register')">
-                                <i class="fa-solid fa-table"></i> Attendance Register
-                            </button>
                             <button class="btn-sub-tab" data-subtab="manager-report-leave"
                                 onclick="window.renderManagerReportsTab('leave')">
                                 <i class="fa-solid fa-umbrella-beach"></i> Leave
@@ -4464,7 +4467,12 @@
 
                         <!-- Sub Tab 2: Attendance Report -->
                         <div id="subtab-content-manager-report-attendance" class="sub-tab-content hidden">
-                            <div class="section-card bg-glass flex-table-card">
+                            <div class="mb-3" style="margin-top: -5px;">
+                                <button class="btn btn-primary btn-sm loan-inner-tab active" id="btn-manager-att-log" onclick="window.switchAttTab('manager', 'log')">Daily Log</button>
+                                <button class="btn btn-outline btn-sm loan-inner-tab" id="btn-manager-att-register" onclick="window.switchAttTab('manager', 'register')">Attendance Register</button>
+                            </div>
+                            <div id="manager-att-content-log">
+                                <div class="section-card bg-glass flex-table-card">
                                 <div class="section-card-header report-filters-header"
                                     style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 15px;">
                                     <div style="display: flex; gap: 15px; flex-wrap: wrap; flex: 1;">
@@ -4531,7 +4539,7 @@
                         </div>
 
                         <!-- Sub Tab 2B: Attendance Register Report -->
-                        <div id="subtab-content-manager-report-attendance-register" class="sub-tab-content hidden">
+                        <div id="manager-att-content-register" class="hidden">
                             <div class="section-card bg-glass flex-table-card">
                                 <div class="section-card-header report-filters-header"
                                     style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 15px;">
@@ -4557,7 +4565,7 @@
                                         <h2>Team Attendance Register</h2>
                                         <p id="print-subtitle-manager-attendance-register"></p>
                                     </div>
-                                    <table class="data-table">
+                                    <table class="data-table register-table">
                                         <thead id="mgr-rep-head-attendance-register">
                                             <tr>
                                                 <th>Employee</th>
@@ -4573,6 +4581,7 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
 
                         <!-- Sub Tab 3: Leave Report -->
                         <div id="subtab-content-manager-report-leave" class="sub-tab-content hidden">
@@ -5419,10 +5428,6 @@
                             onclick="if(window.renderEmployeeReportsTab) window.renderEmployeeReportsTab('attendance')">
                             <i class="fa-solid fa-calendar-days"></i> Attendance
                         </button>
-                        <button class="btn-sub-tab" data-subtab="employee-report-attendance-register"
-                            onclick="if(window.renderEmployeeReportsTab) window.renderEmployeeReportsTab('attendance-register')">
-                            <i class="fa-solid fa-table"></i> Attendance Register
-                        </button>
                         <button class="btn-sub-tab" data-subtab="employee-report-leave"
                             onclick="if(window.renderEmployeeReportsTab) window.renderEmployeeReportsTab('leave')">
                             <i class="fa-solid fa-umbrella-beach"></i> Leave
@@ -5443,7 +5448,12 @@
 
                     <!-- Sub Tab 1: Attendance Report -->
                     <div id="subtab-content-employee-report-attendance" class="sub-tab-content active">
-                        <div class="section-card bg-glass flex-table-card">
+                        <div class="mb-3" style="margin-top: -5px;">
+                            <button class="btn btn-primary btn-sm loan-inner-tab active" id="btn-employee-att-log" onclick="window.switchAttTab('employee', 'log')">Daily Log</button>
+                            <button class="btn btn-outline btn-sm loan-inner-tab" id="btn-employee-att-register" onclick="window.switchAttTab('employee', 'register')">Attendance Register</button>
+                        </div>
+                        <div id="employee-att-content-log">
+                            <div class="section-card bg-glass flex-table-card">
                             <div class="section-card-header report-filters-header"
                                 style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 15px;">
                                 <div style="display: flex; gap: 15px; flex-wrap: wrap; flex: 1;">
@@ -5503,7 +5513,7 @@
                     </div>
 
                     <!-- Sub Tab 1B: Attendance Register Report -->
-                    <div id="subtab-content-employee-report-attendance-register" class="sub-tab-content hidden">
+                    <div id="employee-att-content-register" class="hidden">
                         <div class="section-card bg-glass flex-table-card">
                             <div class="section-card-header report-filters-header"
                                 style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 15px;">
@@ -5529,7 +5539,7 @@
                                     <h2>My Attendance Register</h2>
                                     <p id="print-subtitle-employee-attendance-register"></p>
                                 </div>
-                                <table class="data-table">
+                                <table class="data-table register-table">
                                     <thead id="emp-rep-head-attendance-register">
                                         <tr>
                                             <th>Employee</th>
@@ -5545,6 +5555,7 @@
                             </div>
                         </div>
                     </div>
+                </div>
 
                     <!-- Sub Tab 2: Leave Report -->
                     <div id="subtab-content-employee-report-leave" class="sub-tab-content hidden">

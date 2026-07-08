@@ -57,6 +57,30 @@ window.switchLoanInnerTab = function(role, status) {
     else if (role === 'emp' && window.generateEmployeeReport) window.generateEmployeeReport('loans');
 };
 
+// Attendance Inner Tab Switcher
+window.switchAttTab = function(role, view) {
+    const tabs = ['log', 'register'];
+    tabs.forEach(t => {
+        const btn = document.getElementById(`btn-${role}-att-${t}`);
+        if (btn) {
+            if (t === view) {
+                btn.className = 'btn btn-primary btn-sm loan-inner-tab active';
+            } else {
+                btn.className = 'btn btn-outline btn-sm loan-inner-tab';
+            }
+        }
+        
+        const content = document.getElementById(`${role}-att-content-${t}`);
+        if (content) {
+            if (t === view) {
+                content.classList.remove('hidden');
+            } else {
+                content.classList.add('hidden');
+            }
+        }
+    });
+};
+
 // Unified Print Function
 window.printReport = function(reportId) {
     const printAreas = document.querySelectorAll('.printable-area');
@@ -867,14 +891,20 @@ window.generateAttendanceRegister = function(role) {
     const year = parseInt(yearStr);
     const month = parseInt(monthStr) - 1; // 0-indexed month
     const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    const todayObj = new Date();
+    // Adjust for local timezone if needed, or simply use local date parts
+    const todayYear = todayObj.getFullYear();
+    const todayMonth = todayObj.getMonth();
+    const todayDate = todayObj.getDate();
 
     // Rebuild Table Header
     const thead = document.getElementById(theadId);
-    let headHTML = '<tr><th>Employee</th>';
+    let headHTML = '<tr><th style="min-width: 150px;">Employee</th>';
     for (let d = 1; d <= daysInMonth; d++) {
-        headHTML += `<th style="text-align:center; min-width:30px; padding: 4px;">${d}</th>`;
+        headHTML += `<th style="text-align:center; min-width:25px; padding: 4px;">${d}</th>`;
     }
-    headHTML += '<th>Total Present</th><th>Total Absent</th><th>Total Leave</th><th>Total Rest</th><th>Total Holiday</th><th>Paid Days</th></tr>';
+    headHTML += '<th style="font-size: 10px; padding: 4px; width: 45px; text-align:center;">Total Present</th><th style="font-size: 10px; padding: 4px; width: 45px; text-align:center;">Total Absent</th><th style="font-size: 10px; padding: 4px; width: 45px; text-align:center;">Total Leave</th><th style="font-size: 10px; padding: 4px; width: 45px; text-align:center;">Total Rest</th><th style="font-size: 10px; padding: 4px; width: 45px; text-align:center;">Total Holiday</th><th style="font-size: 10px; padding: 4px; width: 45px; text-align:center;">Paid Days</th></tr>';
     thead.innerHTML = headHTML;
 
     const tbody = document.getElementById(tbodyId);
@@ -914,7 +944,7 @@ window.generateAttendanceRegister = function(role) {
             });
         }
 
-        let rowHTML = `<tr><td><strong>${user.name}</strong><br><small class="text-secondary">${user.designation || ''}</small></td>`;
+        let rowHTML = `<tr><td style="white-space: nowrap;"><strong>${user.name}</strong> <small class="text-secondary">(${user.designation || 'Emp'})</small></td>`;
         
         let tPresent = 0, tAbsent = 0, tLeave = 0, tRest = 0, tHoliday = 0, tHalfDay = 0;
 
@@ -933,23 +963,29 @@ window.generateAttendanceRegister = function(role) {
 
             let cellClass = '';
             let cellText = '';
-
-            if (onLeave) {
-                cellClass = 'bg-leave'; cellText = 'L'; tLeave++;
-            } else if (isHoliday) {
-                cellClass = 'bg-holiday'; cellText = 'H'; tHoliday++;
-            } else if (isRest) {
-                cellClass = 'bg-rest'; cellText = 'R'; tRest++;
-            } else if (attStatus === 'Absent') {
-                cellClass = 'bg-absent'; cellText = 'A'; tAbsent++;
-            } else if (attStatus === 'Half Day') {
-                cellClass = 'bg-halfday'; cellText = 'HD'; tHalfDay++;
-            } else if (attStatus === 'Present' || attStatus === 'Late') {
-                cellClass = 'bg-present'; cellText = 'P'; tPresent++;
+            
+            // Future dates are skipped
+            if (year > todayYear || (year === todayYear && month > todayMonth) || (year === todayYear && month === todayMonth && d > todayDate)) {
+                // Do not mark absent or anything for future dates
+                cellClass = ''; cellText = '';
             } else {
-                // No record found, not a leave, not a holiday, not a rest day.
-                // It means absent.
-                cellClass = 'bg-absent'; cellText = 'A'; tAbsent++;
+                if (onLeave) {
+                    cellClass = 'bg-leave'; cellText = 'L'; tLeave++;
+                } else if (isHoliday) {
+                    cellClass = 'bg-holiday'; cellText = 'H'; tHoliday++;
+                } else if (isRest) {
+                    cellClass = 'bg-rest'; cellText = 'R'; tRest++;
+                } else if (attStatus === 'Absent') {
+                    cellClass = 'bg-absent'; cellText = 'A'; tAbsent++;
+                } else if (attStatus === 'Half Day') {
+                    cellClass = 'bg-halfday'; cellText = 'HD'; tHalfDay++;
+                } else if (attStatus === 'Present' || attStatus === 'Late') {
+                    cellClass = 'bg-present'; cellText = 'P'; tPresent++;
+                } else {
+                    // No record found, not a leave, not a holiday, not a rest day.
+                    // It means absent.
+                    cellClass = 'bg-absent'; cellText = 'A'; tAbsent++;
+                }
             }
 
             rowHTML += `<td class="${cellClass}" style="text-align:center; font-weight:bold; font-size:12px; padding:4px; vertical-align:middle;">${cellText}</td>`;
