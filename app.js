@@ -1639,7 +1639,7 @@ function renderAdminDashboard() {
                             <div class="avatar-small" style="background: var(--primary); color: #fff; width: 32px; height: 32px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center;">${initials}</div>
                             <div style="display: flex; flex-direction: column;">
                                 <span style="font-size: 13px; font-weight: 700; color: #fff;">${task.employeeName || 'Employee'}</span>
-                                <span style="font-size: 11px; color: var(--text-secondary);">${(task.tasks || []).join(', ') || 'Productivity Log'} ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ Score: <strong>${task.score || 'N/A'}</strong></span>
+                                <span style="font-size: 11px; color: var(--text-secondary);">${task.sub_category || task.category || 'Productivity Log'} &bull; Score: <strong>${task.score || 'N/A'}</strong></span>
                             </div>
                         </div>
                         ${actionButtons}
@@ -1685,7 +1685,7 @@ function renderAdminDashboard() {
 
                 recentTasksTableBody.innerHTML += `
                     <tr>
-                        <td class="bold">${(task.tasks || []).join(', ') || 'Productivity Log'}</td>
+                        <td class="bold">${task.sub_category || task.category || 'Productivity Log'}</td>
                         <td>
                             <div style="display: flex; flex-direction: column;">
                                 <span style="font-weight: 600; color: var(--text-primary);">${task.employeeName || (emp ? emp.name : 'Unknown')}</span>
@@ -4159,7 +4159,7 @@ function renderManagerDashboard() {
 
                 managerRecentTasksBody.innerHTML += `
                     <tr>
-                        <td class="bold">${(task.tasks || []).join(', ') || task.category || 'Productivity Log'}</td>
+                        <td class="bold">${task.sub_category || task.category || 'Productivity Log'}</td>
                         <td>
                             <div style="display: flex; flex-direction: column;">
                                 <span style="font-weight: 600; color: var(--text-primary);">${task.employeeName || (emp ? emp.name : 'Unknown')}</span>
