@@ -167,6 +167,34 @@ try {
     } catch (Exception $e2) {}
 }
 
+// Ensure overtime_logs exists
+try {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `overtime_logs` (
+        `id` varchar(100) NOT NULL,
+        `employee_id` varchar(50) NOT NULL,
+        `date` varchar(20) NOT NULL,
+        `hours` decimal(5,2) NOT NULL DEFAULT '0.00',
+        `type` varchar(100) DEFAULT NULL,
+        `reason` text DEFAULT NULL,
+        `status` varchar(50) DEFAULT 'Pending',
+        `approved_by` varchar(50) DEFAULT NULL,
+        PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+} catch (Exception $e) {
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `overtime_logs` (
+            `id` TEXT PRIMARY KEY,
+            `employee_id` TEXT,
+            `date` TEXT,
+            `hours` REAL,
+            `type` TEXT,
+            `reason` TEXT,
+            `status` TEXT DEFAULT 'Pending',
+            `approved_by` TEXT
+        )");
+    } catch (Exception $e2) {}
+}
+
 // Auto-add new columns if they are missing
 $new_columns = [
     "ADD COLUMN `bloodGroup` varchar(10) DEFAULT NULL",
@@ -1235,6 +1263,27 @@ if ($action === 'load_all') {
             }
         } catch (Exception $e) {}
 
+        // Fetch Overtime Logs
+        try {
+            $stmt = $pdo->query("SELECT * FROM overtime_logs");
+            $ots = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $dbState['overtimeLogs'] = [];
+            foreach ($ots as $o) {
+                $dbState['overtimeLogs'][] = [
+                    'id' => $o['id'],
+                    'employeeId' => $o['employee_id'],
+                    'date' => $o['date'],
+                    'hours' => (float)$o['hours'],
+                    'type' => $o['type'],
+                    'reason' => $o['reason'],
+                    'status' => $o['status'],
+                    'approvedBy' => $o['approved_by']
+                ];
+            }
+        } catch (Exception $e) {
+            $dbState['overtimeLogs'] = [];
+        }
+
         // Fetch Leaves
         try {
             $stmt = $pdo->query("SELECT * FROM leaves");
@@ -1905,6 +1954,28 @@ elseif ($action === 'save_all') {
             }
         } catch (Exception $e) {
             error_log("Public holidays sync error: " . $e->getMessage());
+        }
+
+        // 11.6. Sync Overtime Logs
+        try {
+            $pdo->exec("DELETE FROM overtime_logs");
+            if (isset($data['overtimeLogs']) && is_array($data['overtimeLogs'])) {
+                $stmt = $pdo->prepare("INSERT INTO overtime_logs (id, employee_id, date, hours, type, reason, status, approved_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                foreach ($data['overtimeLogs'] as $o) {
+                    $stmt->execute([
+                        $o['id'] ?? uniqid(),
+                        $o['employeeId'] ?? '',
+                        $o['date'] ?? '',
+                        (float)($o['hours'] ?? 0),
+                        $o['type'] ?? 'General',
+                        $o['reason'] ?? '',
+                        $o['status'] ?? 'Pending',
+                        $o['approvedBy'] ?? null
+                    ]);
+                }
+            }
+        } catch (Exception $e) {
+            error_log("Overtime logs sync error: " . $e->getMessage());
         }
 
         // 12. Sync Shift Management (Cards, Policy, Assignments)
