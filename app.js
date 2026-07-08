@@ -2146,6 +2146,16 @@ function handleOvertimeSubmit(e) {
     
     if (hours <= 0) return showToast("Error", "Hours must be greater than 0.", "error");
     
+    let status = "Pending";
+    let approvedBy = null;
+    let successMsg = "Your overtime request has been sent to your manager.";
+
+    if (currentUser.role === 'Admin') {
+        status = "Approved";
+        approvedBy = currentUser.id;
+        successMsg = "Your overtime has been automatically approved.";
+    }
+
     const otLog = {
         id: 'ot_' + Date.now() + '_' + Math.floor(Math.random()*1000),
         employeeId: currentUser.id,
@@ -2153,7 +2163,8 @@ function handleOvertimeSubmit(e) {
         hours: hours,
         type: type,
         reason: reason,
-        status: "Pending",
+        status: status,
+        approvedBy: approvedBy,
         createdAt: new Date().toISOString()
     };
     
@@ -2161,8 +2172,16 @@ function handleOvertimeSubmit(e) {
     saveDb(db);
     
     closeModal('modal-emp-overtime');
-    showToast("Request Submitted", "Your overtime request has been sent to your manager.", "success");
-    if (typeof window.renderEmployeeOvertimeTab === 'function') window.renderEmployeeOvertimeTab();
+    showToast(status === "Approved" ? "Overtime Approved" : "Request Submitted", successMsg, "success");
+    
+    if (currentUser.role === 'Admin') {
+        if (typeof window.renderAdminMyOvertimeTab === 'function') window.renderAdminMyOvertimeTab();
+        if (typeof window.renderAdminOvertimeTab === 'function') window.renderAdminOvertimeTab();
+    } else if (currentUser.role === 'Manager') {
+        if (typeof window.renderManagerMyOvertimeTab === 'function') window.renderManagerMyOvertimeTab();
+    } else {
+        if (typeof window.renderEmployeeOvertimeTab === 'function') window.renderEmployeeOvertimeTab();
+    }
 }
 
 window.renderEmployeeOvertimeTab = function() {
@@ -2260,7 +2279,11 @@ window.updateOvertimeStatus = function(id, newStatus) {
         ot.approvedBy = currentUser.id;
         saveDb(db);
         showToast("Status Updated", `Overtime request has been ${newStatus.toLowerCase()}.`, newStatus === 'Approved' ? 'success' : 'info');
-        if (typeof window.renderManagerOvertimeTab === 'function') window.renderManagerOvertimeTab();
+        if (currentUser.role === 'Admin' && typeof window.renderAdminOvertimeTab === 'function') {
+            window.renderAdminOvertimeTab();
+        } else if (currentUser.role === 'Manager' && typeof window.renderManagerOvertimeTab === 'function') {
+            window.renderManagerOvertimeTab();
+        }
     }
 };
 
@@ -2502,7 +2525,8 @@ window.renderAdminOvertimeTab = function() {
     
     const filterMonth = document.getElementById('admin-overtime-filter-month')?.value;
     
-    let ots = (db.overtimeLogs || []).filter(o => o.status === 'Approved');
+    // Show all overtime requests
+    let ots = db.overtimeLogs || [];
     
     if (filterMonth) {
         ots = ots.filter(o => o.date.startsWith(filterMonth));
@@ -2511,13 +2535,28 @@ window.renderAdminOvertimeTab = function() {
     ots.sort((a, b) => new Date(b.date) - new Date(a.date));
     
     if (ots.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No approved overtime records found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">No overtime records found.</td></tr>`;
         return;
     }
     
     ots.forEach(ot => {
         const emp = db.users.find(u => String(u.id) === String(ot.employeeId));
         const approver = db.users.find(u => String(u.id) === String(ot.approvedBy));
+        
+        let statusBadge = '';
+        if (ot.status === 'Pending') statusBadge = '<span class="status-badge pending">Pending</span>';
+        else if (ot.status === 'Approved') statusBadge = '<span class="status-badge present">Approved</span>';
+        else if (ot.status === 'Rejected') statusBadge = '<span class="status-badge absent">Rejected</span>';
+
+        let actionButtons = '-';
+        if (ot.status === 'Pending') {
+            actionButtons = `
+                <div style="display: flex; gap: 8px; justify-content: center;">
+                    <button class="btn-action-circle" onclick="updateOvertimeStatus('${ot.id}', 'Approved')" style="color: var(--success);" title="Approve"><i class="fa-solid fa-check"></i></button>
+                    <button class="btn-action-circle" onclick="updateOvertimeStatus('${ot.id}', 'Rejected')" style="color: var(--danger);" title="Reject"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            `;
+        }
         
         tbody.innerHTML += `
             <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
@@ -2526,7 +2565,9 @@ window.renderAdminOvertimeTab = function() {
                 <td><span style="font-weight: 600; color: var(--primary);">${ot.hours} hrs</span></td>
                 <td>${ot.type}</td>
                 <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${ot.reason}">${ot.reason}</td>
+                <td>${statusBadge}</td>
                 <td>${approver ? approver.name : '-'}</td>
+                <td style="text-align: center;">${actionButtons}</td>
             </tr>
         `;
     });
@@ -2600,7 +2641,7 @@ window.renderAdminMyOvertimeTab = function() {
 
 window.applyAdminManagerOvertimeVisibility = function() {
     const db = getDb();
-    const isEnabled = !!(db.systemSettings && db.systemSettings.adminManagerOvertime);
+    const isEnabled = db.systemSettings && (db.systemSettings.adminManagerOvertime === true || db.systemSettings.adminManagerOvertime === 'true');
     
     const btnAdminMyOvertime = document.getElementById('btn-subtab-admin-my-overtime');
     const btnManagerMyOvertime = document.getElementById('btn-subtab-manager-my-overtime');
@@ -4201,7 +4242,7 @@ function renderAdminSettingsTab() {
         document.getElementById('leave-approval-by-admin').checked = !!sysSettings.leaveApprovedByAdmin;
     }
     if (document.getElementById('setting-admin-manager-overtime')) {
-        document.getElementById('setting-admin-manager-overtime').checked = !!sysSettings.adminManagerOvertime;
+        document.getElementById('setting-admin-manager-overtime').checked = sysSettings.adminManagerOvertime === true || sysSettings.adminManagerOvertime === 'true';
     }
     if (document.getElementById('prod-show-emp-admin')) {
         document.getElementById('prod-show-emp-admin').checked = sysSettings.showEmployeeLogsToAdmin === 'true' || sysSettings.showEmployeeLogsToAdmin === true;
