@@ -2993,23 +2993,23 @@
 
                         <!-- Sub Tab 9: Overtime Report (Admin) -->
                         <div id="subtab-content-admin-report-overtime" class="sub-tab-content hidden">
-                            <!-- Summary Cards -->
-                            <div class="metrics-grid mb-4" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
-                                <div class="metric-card bg-glass" style="padding: 15px;">
-                                    <div class="text-secondary" style="font-size: 13px;">Total OT Records</div>
-                                    <div class="metric-value text-primary" id="admin-rep-ot-count" style="font-size: 20px;">0</div>
+                            <!-- Compact Summary Strip -->
+                            <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+                                <div style="display: flex; align-items: center; gap: 8px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 14px; font-size: 12px;">
+                                    <span style="color: var(--text-muted);">Total Records</span>
+                                    <span style="font-weight: 700; font-size: 14px; color: var(--primary);" id="admin-rep-ot-count">0</span>
                                 </div>
-                                <div class="metric-card bg-glass" style="padding: 15px;">
-                                    <div class="text-secondary" style="font-size: 13px;">Total OT Hours</div>
-                                    <div class="metric-value text-success" id="admin-rep-ot-hours" style="font-size: 20px;">0 hrs</div>
+                                <div style="display: flex; align-items: center; gap: 8px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 14px; font-size: 12px;">
+                                    <span style="color: var(--text-muted);">Total OT Hours</span>
+                                    <span style="font-weight: 700; font-size: 14px; color: var(--success);" id="admin-rep-ot-hours">0 hrs</span>
                                 </div>
-                                <div class="metric-card bg-glass" style="padding: 15px;">
-                                    <div class="text-secondary" style="font-size: 13px;">Pending Requests</div>
-                                    <div class="metric-value text-warning" id="admin-rep-ot-pending" style="font-size: 20px;">0</div>
+                                <div style="display: flex; align-items: center; gap: 8px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 14px; font-size: 12px;">
+                                    <span style="color: var(--text-muted);">Pending</span>
+                                    <span style="font-weight: 700; font-size: 14px; color: var(--warning);" id="admin-rep-ot-pending">0</span>
                                 </div>
-                                <div class="metric-card bg-glass" style="padding: 15px;">
-                                    <div class="text-secondary" style="font-size: 13px;">Approved Records</div>
-                                    <div class="metric-value text-info" id="admin-rep-ot-approved" style="font-size: 20px;">0</div>
+                                <div style="display: flex; align-items: center; gap: 8px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 14px; font-size: 12px;">
+                                    <span style="color: var(--text-muted);">Approved</span>
+                                    <span style="font-weight: 700; font-size: 14px; color: var(--info);" id="admin-rep-ot-approved">0</span>
                                 </div>
                             </div>
                             <div class="section-card bg-glass flex-table-card">
@@ -4614,18 +4614,19 @@
 
                         <!-- Sub Tab 6: Overtime Report (Manager) -->
                         <div id="subtab-content-manager-report-overtime" class="sub-tab-content hidden">
-                            <div class="metrics-grid mb-4" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
-                                <div class="metric-card bg-glass" style="padding: 15px;">
-                                    <div class="text-secondary" style="font-size: 13px;">Team Total OT Hours</div>
-                                    <div class="metric-value text-primary" id="mgr-rep-ot-hours" style="font-size: 20px;">0 hrs</div>
+                            <!-- Compact Summary Strip -->
+                            <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+                                <div style="display: flex; align-items: center; gap: 8px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 14px; font-size: 12px;">
+                                    <span style="color: var(--text-muted);">Team Total OT Hours</span>
+                                    <span style="font-weight: 700; font-size: 14px; color: var(--primary);" id="mgr-rep-ot-hours">0 hrs</span>
                                 </div>
-                                <div class="metric-card bg-glass" style="padding: 15px;">
-                                    <div class="text-secondary" style="font-size: 13px;">Approved Records</div>
-                                    <div class="metric-value text-success" id="mgr-rep-ot-approved" style="font-size: 20px;">0</div>
+                                <div style="display: flex; align-items: center; gap: 8px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 14px; font-size: 12px;">
+                                    <span style="color: var(--text-muted);">Approved</span>
+                                    <span style="font-weight: 700; font-size: 14px; color: var(--success);" id="mgr-rep-ot-approved">0</span>
                                 </div>
-                                <div class="metric-card bg-glass" style="padding: 15px;">
-                                    <div class="text-secondary" style="font-size: 13px;">Pending Requests</div>
-                                    <div class="metric-value text-warning" id="mgr-rep-ot-pending" style="font-size: 20px;">0</div>
+                                <div style="display: flex; align-items: center; gap: 8px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 14px; font-size: 12px;">
+                                    <span style="color: var(--text-muted);">Pending</span>
+                                    <span style="font-weight: 700; font-size: 14px; color: var(--warning);" id="mgr-rep-ot-pending">0</span>
                                 </div>
                             </div>
                             <div class="section-card bg-glass flex-table-card">
@@ -5516,18 +5517,19 @@
 
                         <!-- Sub Tab 5: Overtime Report (Employee) -->
                         <div id="subtab-content-employee-report-overtime" class="sub-tab-content hidden">
-                            <div class="metrics-grid mb-4" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
-                                <div class="metric-card bg-glass" style="padding: 15px;">
-                                    <div class="text-secondary" style="font-size: 13px;">My Total OT Hours</div>
-                                    <div class="metric-value text-primary" id="emp-rep-ot-hours" style="font-size: 20px;">0 hrs</div>
+                            <!-- Compact Summary Strip -->
+                            <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+                                <div style="display: flex; align-items: center; gap: 8px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 14px; font-size: 12px;">
+                                    <span style="color: var(--text-muted);">My Total OT Hours</span>
+                                    <span style="font-weight: 700; font-size: 14px; color: var(--primary);" id="emp-rep-ot-hours">0 hrs</span>
                                 </div>
-                                <div class="metric-card bg-glass" style="padding: 15px;">
-                                    <div class="text-secondary" style="font-size: 13px;">Approved</div>
-                                    <div class="metric-value text-success" id="emp-rep-ot-approved" style="font-size: 20px;">0</div>
+                                <div style="display: flex; align-items: center; gap: 8px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 14px; font-size: 12px;">
+                                    <span style="color: var(--text-muted);">Approved</span>
+                                    <span style="font-weight: 700; font-size: 14px; color: var(--success);" id="emp-rep-ot-approved">0</span>
                                 </div>
-                                <div class="metric-card bg-glass" style="padding: 15px;">
-                                    <div class="text-secondary" style="font-size: 13px;">Pending</div>
-                                    <div class="metric-value text-warning" id="emp-rep-ot-pending" style="font-size: 20px;">0</div>
+                                <div style="display: flex; align-items: center; gap: 8px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 14px; font-size: 12px;">
+                                    <span style="color: var(--text-muted);">Pending</span>
+                                    <span style="font-weight: 700; font-size: 14px; color: var(--warning);" id="emp-rep-ot-pending">0</span>
                                 </div>
                             </div>
                             <div class="section-card bg-glass flex-table-card">
