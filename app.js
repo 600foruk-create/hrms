@@ -1437,7 +1437,7 @@ function renderAdminDashboard() {
     // Check for implicitly On Rest employees
     employees.forEach(emp => {
         const hasRecord = db.attendance.some(a => a.date === today && String(a.employeeId) === String(emp.id));
-        if (!hasRecord && isEmployeeOnRest(emp, today)) {
+        if (!hasRecord && (isPublicHoliday(today) || isEmployeeOnRest(emp, today))) {
             onRestTodayCount++;
             unmarkedAbsentCount--;
         }
@@ -1979,6 +1979,125 @@ window.reactivateEmployee = async function (userId) {
     }
 };
 
+// --- Public Holidays Management ---
+
+function isPublicHoliday(dateStr) {
+    const db = getDb();
+    if (!db || !db.systemSettings || !db.systemSettings.publicHolidays) return false;
+    
+    const targetDate = new Date(dateStr);
+    targetDate.setHours(0,0,0,0);
+    
+    for (let h of db.systemSettings.publicHolidays) {
+        if (!h.startDate) continue;
+        const start = new Date(h.startDate);
+        start.setHours(0,0,0,0);
+        
+        const end = h.endDate ? new Date(h.endDate) : new Date(h.startDate);
+        end.setHours(0,0,0,0);
+        
+        if (targetDate >= start && targetDate <= end) {
+            return h;
+        }
+    }
+    return false;
+}
+
+function renderAdminHolidaysTab() {
+    const db = getDb();
+    const tbody = document.getElementById('admin-holidays-table-body');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    const holidays = (db.systemSettings && db.systemSettings.publicHolidays) ? db.systemSettings.publicHolidays : [];
+    
+    // Sort descending by date
+    const sorted = [...holidays].sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+    
+    if (sorted.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted" style="padding: 20px;">No public holidays configured.</td></tr>`;
+        return;
+    }
+    
+    sorted.forEach(h => {
+        let dateStr = new Date(h.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        let typeStr = "Single Day";
+        if (h.endDate && h.endDate !== h.startDate) {
+            dateStr += " to " + new Date(h.endDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+            typeStr = "Multi-Day";
+        }
+        
+        tbody.innerHTML += `
+            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <td style="font-weight: 600; color: var(--primary);">${h.name}</td>
+                <td><i class="fa-regular fa-calendar text-muted mr-1"></i> ${dateStr}</td>
+                <td><span class="badge-role" style="background: rgba(45, 212, 191, 0.15); color: #0d9488;">${typeStr}</span></td>
+                <td style="text-align: center;">
+                    <button class="btn-action-circle" onclick="deletePublicHoliday('${h.id}')" title="Delete Holiday" style="color: var(--danger);"><i class="fa-solid fa-trash-can"></i></button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+function openAddHolidayModal() {
+    document.getElementById('form-holiday-config').reset();
+    document.getElementById('holiday-config-id').value = 'hol_' + Date.now();
+    document.getElementById('modal-admin-holiday-config').classList.remove('hidden');
+    document.getElementById('modal-overlay').classList.remove('hidden');
+}
+
+function closeAddHolidayModal() {
+    document.getElementById('modal-admin-holiday-config').classList.add('hidden');
+    document.getElementById('modal-overlay').classList.add('hidden');
+}
+
+function handleHolidaySubmit(e) {
+    e.preventDefault();
+    const db = getDb();
+    if (!db.systemSettings) db.systemSettings = {};
+    if (!db.systemSettings.publicHolidays) db.systemSettings.publicHolidays = [];
+    
+    const id = document.getElementById('holiday-config-id').value;
+    const name = document.getElementById('holiday-config-name').value;
+    const start = document.getElementById('holiday-config-start').value;
+    const end = document.getElementById('holiday-config-end').value;
+    
+    if (end && new Date(end) < new Date(start)) {
+        showToast("Error", "End date cannot be earlier than start date.", "error");
+        return;
+    }
+    
+    db.systemSettings.publicHolidays.push({
+        id: id,
+        name: name,
+        startDate: start,
+        endDate: end || start
+    });
+    
+    saveDb(db);
+    closeAddHolidayModal();
+    renderAdminHolidaysTab();
+    showToast("Holiday Added", `${name} has been configured.`, "success");
+    
+    if (typeof renderAdminAttendanceTab === 'function') renderAdminAttendanceTab();
+    if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
+}
+
+window.deletePublicHoliday = function(id) {
+    if (!confirm("Are you sure you want to delete this public holiday?")) return;
+    const db = getDb();
+    if (!db.systemSettings || !db.systemSettings.publicHolidays) return;
+    
+    db.systemSettings.publicHolidays = db.systemSettings.publicHolidays.filter(h => h.id !== id);
+    saveDb(db);
+    renderAdminHolidaysTab();
+    showToast("Deleted", "Holiday has been removed.", "success");
+    
+    if (typeof renderAdminAttendanceTab === 'function') renderAdminAttendanceTab();
+    if (typeof renderAdminDashboard === 'function') renderAdminDashboard();
+};
+
 function renderAdminAttendanceTab() {
     const db = getDb();
 
@@ -2014,7 +2133,7 @@ function renderAdminAttendanceTab() {
                 date: filterDate,
                 employeeId: user.id,
                 employeeName: user.name,
-                status: isEmployeeOnRest(user, filterDate) ? 'On Rest' : 'Absent',
+                status: isPublicHoliday(filterDate) ? 'Holiday' : (isEmployeeOnRest(user, filterDate) ? 'On Rest' : 'Absent'),
                 timeIn: '-',
                 timeOut: '-',
                 markedBy: '-'
@@ -3966,7 +4085,7 @@ function renderManagerDashboard() {
     // Check for implicitly On Rest employees in team
     myTeam.forEach(emp => {
         const hasRecord = db.attendance.some(a => a.date === today && String(a.employeeId) === String(emp.id));
-        if (!hasRecord && isEmployeeOnRest(emp, today)) {
+        if (!hasRecord && (isPublicHoliday(today) || isEmployeeOnRest(emp, today))) {
             onRestCount++;
             unmarkedAbsentCount--;
         }
@@ -4085,7 +4204,7 @@ function renderManagerDashboard() {
 
     // Manager Personal Stats
     const myAttToday = db.attendance.find(a => String(a.employeeId) === String(currentUser.id) && a.date === today);
-    const myAttStatus = myAttToday ? myAttToday.status : (isEmployeeOnRest(currentUser, today) ? 'On Rest' : 'Absent');
+    const myAttStatus = myAttToday ? myAttToday.status : (isPublicHoliday(today) ? 'Holiday' : (isEmployeeOnRest(currentUser, today) ? 'On Rest' : 'Absent'));
     const myProdSubmissions = (db.productivity || []).filter(p => (p.employee_id || p.employeeId) === currentUser.id && p.status === 'Approved');
     const myTotalScore = myProdSubmissions.length > 0 ? Math.round(myProdSubmissions.reduce((sum, p) => sum + p.score, 0) / myProdSubmissions.length) : 0;
 
@@ -4476,7 +4595,7 @@ function renderEmployeeDashboard() {
     // Top Metric Cards
     const today = new Date().toISOString().split('T')[0];
     const myAttToday = db.attendance.find(a => String(a.employeeId) === String(currentUser.id) && a.date === today);
-    const attStatus = myAttToday ? myAttToday.status : (isEmployeeOnRest(currentUser, today) ? 'On Rest' : 'Absent');
+    const attStatus = myAttToday ? myAttToday.status : (isPublicHoliday(today) ? 'Holiday' : (isEmployeeOnRest(currentUser, today) ? 'On Rest' : 'Absent'));
 
     const attEl = document.getElementById('employee-metric-attendance');
     const iconContainer = document.getElementById('employee-attendance-icon');
@@ -7965,12 +8084,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                         if (window.renderAdminShiftManagement) window.renderAdminShiftManagement();
                     } else if (subtab === 'attendance-log') {
                         markAttBtn.classList.remove('hidden');
+                    } else if (subtab === 'attendance-holidays') {
+                        markAttBtn.classList.add('hidden');
+                        if (typeof renderAdminHolidaysTab === 'function') renderAdminHolidaysTab();
                     } else {
                         markAttBtn.classList.add('hidden');
                     }
                 } else {
                     if (subtab === 'attendance-shift' && window.renderAdminShiftManagement) {
                         window.renderAdminShiftManagement();
+                    } else if (subtab === 'attendance-holidays' && typeof renderAdminHolidaysTab === 'function') {
+                        renderAdminHolidaysTab();
                     }
                 }
             }

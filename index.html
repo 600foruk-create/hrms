@@ -1090,6 +1090,9 @@
                             <button class="btn-sub-tab" data-subtab="attendance-shift">
                                 <i class="fa-solid fa-clock-rotate-left"></i> Shift Management
                             </button>
+                            <button class="btn-sub-tab" data-subtab="attendance-holidays">
+                                <i class="fa-solid fa-umbrella-beach"></i> Public Holidays
+                            </button>
                         </div>
 
                         <!-- Sub-tab Content: Attendance Log -->
@@ -1334,6 +1337,34 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Sub-tab Content: Public Holidays -->
+                        <div class="sub-tab-content hidden" id="subtab-content-attendance-holidays">
+                            <div class="section-card bg-glass" style="margin-bottom: 20px; padding: 20px; min-height: calc(100vh - 220px); display: flex; flex-direction: column;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <div>
+                                        <h3 style="margin: 0; font-size: 18px; color: var(--text-primary);"><i class="fa-solid fa-umbrella-beach" style="color: var(--primary);"></i> Public Holidays</h3>
+                                        <p class="text-secondary" style="font-size: 12px; margin: 4px 0 0 0;">Manage official holidays. Employees will be marked as 'Holiday' instead of 'Absent' on these dates and will not face salary deductions.</p>
+                                    </div>
+                                    <button class="btn btn-primary btn-sm" onclick="openAddHolidayModal()"><i class="fa-solid fa-plus"></i> Add Holiday</button>
+                                </div>
+                                <div class="table-container" style="flex: 1; border: 1px solid var(--border-color); border-radius: 8px;">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Holiday Name</th>
+                                                <th>Date</th>
+                                                <th>Type</th>
+                                                <th style="text-align: center;">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-holidays-table-body">
+                                            <!-- Dynamic Rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Admin Add/Edit Shift Modal -->
@@ -1450,6 +1481,39 @@
                             <button type="button" class="btn btn-outline btn-sm" onclick="closeShiftAssignModal()">Cancel</button>
                             <button type="button" class="btn btn-primary btn-sm" id="btn-save-shift-assign">Save Assignments</button>
                         </div>
+                    </div>
+
+                    <!-- Admin Add Holiday Modal -->
+                    <div id="modal-admin-holiday-config" class="modal hidden" style="max-width: 460px; z-index: 10000;">
+                        <div class="modal-header">
+                            <h3 id="holiday-modal-title">Add Public Holiday</h3>
+                            <div class="modal-header-controls">
+                                <button type="button" class="modal-close" onclick="closeAddHolidayModal()"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                        </div>
+                        <form id="form-holiday-config" onsubmit="handleHolidaySubmit(event)" style="display: flex; flex-direction: column;">
+                            <input type="hidden" id="holiday-config-id">
+                            <div class="modal-body" style="padding: 14px 18px;">
+                                <div class="form-group mb-3">
+                                    <label class="form-label font-weight-bold" style="font-size: 12.5px;">Holiday Name <span class="text-danger">*</span></label>
+                                    <input type="text" id="holiday-config-name" class="form-control btn-sm" placeholder="e.g. Eid-ul-Fitr" required>
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;" class="mb-3">
+                                    <div class="form-group mb-0">
+                                        <label class="form-label font-weight-bold" style="font-size: 12px;">Start Date <span class="text-danger">*</span></label>
+                                        <input type="date" id="holiday-config-start" class="form-control btn-sm" required>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label class="form-label font-weight-bold" style="font-size: 12px;">End Date</label>
+                                        <input type="date" id="holiday-config-end" class="form-control btn-sm" title="Leave empty for single-day holiday">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer" style="padding: 8px 18px;">
+                                <button type="button" class="btn btn-outline btn-sm" onclick="closeAddHolidayModal()">Cancel</button>
+                                <button type="submit" class="btn btn-primary btn-sm">Save Holiday</button>
+                            </div>
+                        </form>
                     </div>
 
                     <!-- Admin Leave Tab -->
