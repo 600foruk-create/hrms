@@ -930,6 +930,7 @@ function handleLogin(usernameOrEmail, password) {
             activeTab = 'dashboard';
             renderSidebar();
             applyCompanyProfile(db);
+            if (window.applyAdminManagerOvertimeVisibility) window.applyAdminManagerOvertimeVisibility();
             switchTab('dashboard');
             setupSessionTimer();
 
@@ -2531,6 +2532,102 @@ window.renderAdminOvertimeTab = function() {
     });
 };
 
+window.renderManagerMyOvertimeTab = function() {
+    const db = getDb();
+    const tbody = document.getElementById('manager-my-overtime-table-body');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    const myOts = (db.overtimeLogs || []).filter(o => String(o.employeeId) === String(currentUser.id));
+    myOts.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    if (myOts.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No personal overtime records found.</td></tr>`;
+        return;
+    }
+    
+    myOts.forEach(ot => {
+        let statusBadge = '';
+        if (ot.status === 'Pending') statusBadge = '<span class="status-badge pending">Pending</span>';
+        else if (ot.status === 'Approved') statusBadge = '<span class="status-badge present">Approved</span>';
+        else if (ot.status === 'Rejected') statusBadge = '<span class="status-badge absent">Rejected</span>';
+        
+        tbody.innerHTML += `
+            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <td>${ot.date}</td>
+                <td><span style="font-weight: 600; color: var(--primary);">${ot.hours} hrs</span></td>
+                <td>${ot.type}</td>
+                <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${ot.reason}">${ot.reason}</td>
+                <td>${statusBadge}</td>
+            </tr>
+        `;
+    });
+};
+
+window.renderAdminMyOvertimeTab = function() {
+    const db = getDb();
+    const tbody = document.getElementById('admin-my-overtime-table-body');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    const myOts = (db.overtimeLogs || []).filter(o => String(o.employeeId) === String(currentUser.id));
+    myOts.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    if (myOts.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No personal overtime records found.</td></tr>`;
+        return;
+    }
+    
+    myOts.forEach(ot => {
+        let statusBadge = '';
+        if (ot.status === 'Pending') statusBadge = '<span class="status-badge pending">Pending</span>';
+        else if (ot.status === 'Approved') statusBadge = '<span class="status-badge present">Approved</span>';
+        else if (ot.status === 'Rejected') statusBadge = '<span class="status-badge absent">Rejected</span>';
+        
+        tbody.innerHTML += `
+            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <td>${ot.date}</td>
+                <td><span style="font-weight: 600; color: var(--primary);">${ot.hours} hrs</span></td>
+                <td>${ot.type}</td>
+                <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${ot.reason}">${ot.reason}</td>
+                <td>${statusBadge}</td>
+            </tr>
+        `;
+    });
+};
+
+window.applyAdminManagerOvertimeVisibility = function() {
+    const db = getDb();
+    const isEnabled = !!(db.systemSettings && db.systemSettings.adminManagerOvertime);
+    
+    const btnAdminMyOvertime = document.getElementById('btn-subtab-admin-my-overtime');
+    const btnManagerMyOvertime = document.getElementById('btn-subtab-manager-my-overtime');
+    
+    if (btnAdminMyOvertime) {
+        if (isEnabled) btnAdminMyOvertime.classList.remove('hidden');
+        else btnAdminMyOvertime.classList.add('hidden');
+    }
+    
+    if (btnManagerMyOvertime) {
+        if (isEnabled) btnManagerMyOvertime.classList.remove('hidden');
+        else btnManagerMyOvertime.classList.add('hidden');
+    }
+    
+    // Switch away from the tab if it's currently active and getting hidden
+    if (!isEnabled) {
+        if (btnAdminMyOvertime && btnAdminMyOvertime.classList.contains('active')) {
+            const adminLogBtn = document.querySelector('[data-subtab="attendance-log"]');
+            if (adminLogBtn) adminLogBtn.click();
+        }
+        if (btnManagerMyOvertime && btnManagerMyOvertime.classList.contains('active')) {
+            const mgrLogBtn = document.querySelector('[data-subtab="manager-attendance-log"]');
+            if (mgrLogBtn) mgrLogBtn.click();
+        }
+    }
+};
+
 function renderAdminAttendanceTab() {
     const db = getDb();
 
@@ -4102,6 +4199,9 @@ function renderAdminSettingsTab() {
     }
     if (document.getElementById('leave-approval-by-admin')) {
         document.getElementById('leave-approval-by-admin').checked = !!sysSettings.leaveApprovedByAdmin;
+    }
+    if (document.getElementById('setting-admin-manager-overtime')) {
+        document.getElementById('setting-admin-manager-overtime').checked = !!sysSettings.adminManagerOvertime;
     }
     if (document.getElementById('prod-show-emp-admin')) {
         document.getElementById('prod-show-emp-admin').checked = sysSettings.showEmployeeLogsToAdmin === 'true' || sysSettings.showEmployeeLogsToAdmin === true;
@@ -7253,6 +7353,26 @@ window.saveOvertimeSettings = async function () {
     saveDb(db);
 };
 
+window.saveSystemSettings = async function () {
+    const db = getDb();
+    if (!db) return;
+
+    if (!db.systemSettings) {
+        db.systemSettings = {};
+    }
+    
+    const adminMgrOtEnabled = document.getElementById('setting-admin-manager-overtime').checked;
+    db.systemSettings.adminManagerOvertime = adminMgrOtEnabled;
+
+    showToast("System Settings", "Admin/Manager overtime setting saved.");
+    saveDb(db);
+    
+    // Apply UI visibility instantly
+    if (window.applyAdminManagerOvertimeVisibility) {
+        window.applyAdminManagerOvertimeVisibility();
+    }
+};
+
 window.saveShiftNotificationSettings = function () {
     const db = getDb();
     if (!db) return;
@@ -8550,6 +8670,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     } else if (subtab === 'attendance-overtime') {
                         markAttBtn.classList.add('hidden');
                         if (typeof renderAdminOvertimeTab === 'function') renderAdminOvertimeTab();
+                    } else if (subtab === 'admin-my-overtime') {
+                        markAttBtn.classList.add('hidden');
+                        if (typeof renderAdminMyOvertimeTab === 'function') renderAdminMyOvertimeTab();
                     } else {
                         markAttBtn.classList.add('hidden');
                     }
@@ -8560,6 +8683,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                         renderAdminHolidaysTab();
                     } else if (subtab === 'attendance-overtime' && typeof renderAdminOvertimeTab === 'function') {
                         renderAdminOvertimeTab();
+                    } else if (subtab === 'admin-my-overtime' && typeof renderAdminMyOvertimeTab === 'function') {
+                        renderAdminMyOvertimeTab();
                     }
                 }
             } else if (parent.id === 'manager-tab-attendance') {
@@ -8577,6 +8702,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 if (subtab === 'manager-attendance-overtime' && typeof renderManagerOvertimeTab === 'function') {
                     renderManagerOvertimeTab();
+                } else if (subtab === 'manager-my-overtime' && typeof renderManagerMyOvertimeTab === 'function') {
+                    renderManagerMyOvertimeTab();
                 }
             } else if (parent.id === 'employee-tab-attendance') {
                 if (subtab === 'emp-attendance-overtime' && typeof renderEmployeeOvertimeTab === 'function') {
@@ -8793,6 +8920,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         document.body.classList.remove('login-view');
         renderSidebar();
+        if (window.applyAdminManagerOvertimeVisibility) window.applyAdminManagerOvertimeVisibility();
         const savedTab = localStorage.getItem('active_tab') || 'dashboard';
         switchTab(savedTab);
         setupSessionTimer();
