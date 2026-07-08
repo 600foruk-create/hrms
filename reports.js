@@ -180,6 +180,7 @@ window.generateAdminReport = function(type) {
     const db = getDb();
     if (type === 'employees') generateAdminEmployeesReport(db);
     else if (type === 'attendance') generateAdminAttendanceReport(db);
+    else if (type === 'attendance-register') generateAttendanceRegister('admin');
     else if (type === 'leave') generateAdminLeaveReport(db);
     else if (type === 'payroll') generateAdminPayrollReport(db);
     else if (type === 'productivity') generateAdminProductivityReport(db);
@@ -197,6 +198,7 @@ window.generateManagerReport = function(type) {
     
     if (type === 'employees') generateMgrEmployeesReport(db, teamIds);
     else if (type === 'attendance') generateMgrAttendanceReport(db, teamIds);
+    else if (type === 'attendance-register') generateAttendanceRegister('manager');
     else if (type === 'leave') generateMgrLeaveReport(db, teamIds);
     else if (type === 'productivity') generateMgrProductivityReport(db, teamIds);
     else if (type === 'loans') generateMgrLoansReport(db, teamIds);
@@ -684,6 +686,7 @@ window.generateEmployeeReport = function(type) {
     const empId = currentUser.id;
 
     if (type === 'attendance') generateEmpAttendanceReport(db, empId);
+    else if (type === 'attendance-register') generateAttendanceRegister('employee');
     else if (type === 'leave') generateEmpLeaveReport(db, empId);
     else if (type === 'productivity') generateEmpProductivityReport(db, empId);
     else if (type === 'loans') generateEmpLoansReport(db, empId);
@@ -823,3 +826,156 @@ function generateEmpLoansReport(db, empId) {
 
     document.getElementById('print-subtitle-employee-loans').innerText = 'Status: ' + status + ' | Records: ' + filtered.length;
 }
+
+window.generateAttendanceRegister = function(role) {
+    const db = window.getDb ? window.getDb() : {};
+    let monthInput;
+    let tbodyId;
+    let theadId;
+    let subtitleId;
+    let usersToProcess = [];
+
+    const activeUser = window.currentUser || JSON.parse(localStorage.getItem('current_user'));
+
+    if (role === 'admin') {
+        monthInput = document.getElementById('admin-rep-att-reg-month').value;
+        tbodyId = 'admin-rep-body-attendance-register';
+        theadId = 'admin-rep-head-attendance-register';
+        subtitleId = 'print-subtitle-admin-attendance-register';
+        usersToProcess = db.users.filter(u => u.status === 'Active');
+    } else if (role === 'manager') {
+        monthInput = document.getElementById('mgr-rep-att-reg-month').value;
+        tbodyId = 'mgr-rep-body-attendance-register';
+        theadId = 'mgr-rep-head-attendance-register';
+        subtitleId = 'print-subtitle-manager-attendance-register';
+        const teamMembers = db.users.filter(u => u.managerId === activeUser.id || u.managerId === activeUser.name || u.managerId === activeUser.email);
+        usersToProcess = [activeUser, ...teamMembers].filter(u => u.status === 'Active');
+    } else if (role === 'employee') {
+        monthInput = document.getElementById('emp-rep-att-reg-month').value;
+        tbodyId = 'emp-rep-body-attendance-register';
+        theadId = 'emp-rep-head-attendance-register';
+        subtitleId = 'print-subtitle-employee-attendance-register';
+        usersToProcess = [activeUser];
+    }
+
+    if (!monthInput) {
+        if (window.showToast) window.showToast('Notice', 'Please select a month first.', 'info');
+        return;
+    }
+
+    const [yearStr, monthStr] = monthInput.split('-');
+    const year = parseInt(yearStr);
+    const month = parseInt(monthStr) - 1; // 0-indexed month
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    // Rebuild Table Header
+    const thead = document.getElementById(theadId);
+    let headHTML = '<tr><th>Employee</th>';
+    for (let d = 1; d <= daysInMonth; d++) {
+        headHTML += `<th style="text-align:center; min-width:30px; padding: 4px;">${d}</th>`;
+    }
+    headHTML += '<th>Total Present</th><th>Total Absent</th><th>Total Leave</th><th>Total Rest</th><th>Total Holiday</th><th>Paid Days</th></tr>';
+    thead.innerHTML = headHTML;
+
+    const tbody = document.getElementById(tbodyId);
+    tbody.innerHTML = '';
+
+    if (usersToProcess.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${daysInMonth + 7}" class="text-center text-muted">No employees found.</td></tr>`;
+        return;
+    }
+
+    const sysSettings = db.systemSettings || {};
+    const paidRestDays = sysSettings.paidRestDays !== false && sysSettings.paidRestDays !== 'false';
+
+    usersToProcess.forEach(user => {
+        // Fast lookup maps for user specific data in the selected month
+        const myAtts = {};
+        if (db.attendance) {
+            db.attendance.forEach(att => {
+                if (String(att.userId || att.employeeId) === String(user.id)) {
+                    myAtts[att.date] = att.status;
+                }
+            });
+        }
+
+        const myLeaves = [];
+        if (db.leaves) {
+            db.leaves.forEach(l => {
+                if (String(l.employeeId) === String(user.id) && l.status === 'Approved') {
+                    // Pre-generate all dates within the leave period for easy lookup
+                    let curr = new Date(l.startDate);
+                    const end = new Date(l.endDate);
+                    while (curr <= end) {
+                        myLeaves.push(curr.toISOString().split('T')[0]);
+                        curr.setDate(curr.getDate() + 1);
+                    }
+                }
+            });
+        }
+
+        let rowHTML = `<tr><td><strong>${user.name}</strong><br><small class="text-secondary">${user.designation || ''}</small></td>`;
+        
+        let tPresent = 0, tAbsent = 0, tLeave = 0, tRest = 0, tHoliday = 0, tHalfDay = 0;
+
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dateCursor = new Date(year, month, d);
+            const dateStr = dateCursor.toISOString().split('T')[0];
+            
+            // Priority 1: Leave
+            const onLeave = myLeaves.includes(dateStr);
+            // Priority 2: Holiday
+            const isHoliday = window.isPublicHoliday && window.isPublicHoliday(dateStr);
+            // Priority 3: Rest Day
+            const isRest = window.isEmployeeOnRest && window.isEmployeeOnRest(user, dateStr);
+            // Priority 4: Attendance Log
+            const attStatus = myAtts[dateStr];
+
+            let cellClass = '';
+            let cellText = '';
+
+            if (onLeave) {
+                cellClass = 'bg-leave'; cellText = 'L'; tLeave++;
+            } else if (isHoliday) {
+                cellClass = 'bg-holiday'; cellText = 'H'; tHoliday++;
+            } else if (isRest) {
+                cellClass = 'bg-rest'; cellText = 'R'; tRest++;
+            } else if (attStatus === 'Absent') {
+                cellClass = 'bg-absent'; cellText = 'A'; tAbsent++;
+            } else if (attStatus === 'Half Day') {
+                cellClass = 'bg-halfday'; cellText = 'HD'; tHalfDay++;
+            } else if (attStatus === 'Present' || attStatus === 'Late') {
+                cellClass = 'bg-present'; cellText = 'P'; tPresent++;
+            } else {
+                // No record found, not a leave, not a holiday, not a rest day.
+                // It means absent.
+                cellClass = 'bg-absent'; cellText = 'A'; tAbsent++;
+            }
+
+            rowHTML += `<td class="${cellClass}" style="text-align:center; font-weight:bold; font-size:12px; padding:4px; vertical-align:middle;">${cellText}</td>`;
+        }
+
+        const totalAbsentEquivalent = tAbsent + (tHalfDay * 0.5);
+        let paidDays = tPresent + tHoliday + tLeave + (tHalfDay * 0.5);
+        if (paidRestDays) {
+            paidDays += tRest;
+        } else {
+            // If rest days are not paid, they deduct from total salary similar to absent
+            // The display logic can just omit them from paidDays
+        }
+
+        rowHTML += `<td style="text-align:center; font-weight:600;">${tPresent + tHalfDay}</td>`;
+        rowHTML += `<td style="text-align:center; font-weight:600; color:var(--danger);">${tAbsent}</td>`;
+        rowHTML += `<td style="text-align:center; font-weight:600; color:var(--warning);">${tLeave}</td>`;
+        rowHTML += `<td style="text-align:center; font-weight:600; color:var(--info);">${tRest}</td>`;
+        rowHTML += `<td style="text-align:center; font-weight:600; color:purple;">${tHoliday}</td>`;
+        rowHTML += `<td style="text-align:center; font-weight:bold; color:var(--primary);">${paidDays}</td>`;
+
+        rowHTML += '</tr>';
+        tbody.innerHTML += rowHTML;
+    });
+
+    const monthName = new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' });
+    document.getElementById(subtitleId).innerText = `Month: ${monthName} | Employees: ${usersToProcess.length}`;
+};
+
