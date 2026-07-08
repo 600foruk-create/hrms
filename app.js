@@ -4669,7 +4669,7 @@ function renderManagerDashboard() {
     let unmarkedAbsentCount = Math.max(0, teamSize - accountedCount);
     
     // Check for implicitly On Rest employees in team
-    myTeam.forEach(emp => {
+    teamMembers.forEach(emp => {
         const hasRecord = db.attendance.some(a => a.date === today && String(a.employeeId) === String(emp.id));
         if (!hasRecord && (isPublicHoliday(today) || window.isEmployeeOnRest(emp, today))) {
             onRestCount++;
