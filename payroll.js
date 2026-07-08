@@ -1453,8 +1453,9 @@ window.generatePayrollPreview = function() {
                 }
             });
         }
+        const otMultiplier = parseFloat(sysSettings.overtimeRate) || 1.0;
         const hourlyRate = dailyWage / 8; // Assuming 8-hour shift
-        const otPay = otHours * hourlyRate;
+        const otPay = otHours * hourlyRate * otMultiplier;
 
         // 4. Initial Net Payable
         const netPayable = netFixed - absencyDeduction - loanEMI + otPay;

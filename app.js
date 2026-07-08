@@ -3867,6 +3867,9 @@ function renderAdminSettingsTab() {
     if (document.getElementById('setting-shift-notif-enabled')) {
         document.getElementById('setting-shift-notif-enabled').checked = sysSettings.shiftNotificationsEnabled !== false;
     }
+    if (document.getElementById('ot-rate-multiplier')) {
+        document.getElementById('ot-rate-multiplier').value = sysSettings.overtimeRate || 1.0;
+    }
     const notifDb = document.getElementById('shift-notif-db');
     const notifWa = document.getElementById('shift-notif-whatsapp');
     const notifEmail = document.getElementById('shift-notif-email');
@@ -6981,6 +6984,21 @@ window.saveProductivitySettings = async function () {
     sysSettings.showEmployeeLogsToAdmin = document.getElementById('prod-show-emp-admin').checked;
 
     showToast("Productivity Settings", "Settings saved successfully.");
+    saveDb(db);
+};
+
+window.saveOvertimeSettings = async function () {
+    const db = getDb();
+    if (!db) return;
+
+    if (!db.systemSettings) {
+        db.systemSettings = {};
+    }
+    
+    const rate = parseFloat(document.getElementById('ot-rate-multiplier').value) || 1.0;
+    db.systemSettings.overtimeRate = rate;
+
+    showToast("Overtime Settings", "Overtime multiplier saved successfully.");
     saveDb(db);
 };
 
