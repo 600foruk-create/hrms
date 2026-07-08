@@ -474,7 +474,7 @@ function getGreeting() {
     return "Good evening";
 }
 
-function isEmployeeOnRest(user, dateStr) {
+window.isEmployeeOnRest = function(user, dateStr) {
     if (!user || !dateStr) return false;
     const dateObj = new Date(dateStr);
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -1438,7 +1438,7 @@ function renderAdminDashboard() {
     // Check for implicitly On Rest employees
     employees.forEach(emp => {
         const hasRecord = db.attendance.some(a => a.date === today && String(a.employeeId) === String(emp.id));
-        if (!hasRecord && (isPublicHoliday(today) || isEmployeeOnRest(emp, today))) {
+        if (!hasRecord && (isPublicHoliday(today) || window.isEmployeeOnRest(emp, today))) {
             onRestTodayCount++;
             unmarkedAbsentCount--;
         }
@@ -2704,7 +2704,7 @@ function renderAdminAttendanceTab() {
                 date: filterDate,
                 employeeId: user.id,
                 employeeName: user.name,
-                status: isPublicHoliday(filterDate) ? 'Holiday' : (isEmployeeOnRest(user, filterDate) ? 'On Rest' : 'Absent'),
+                status: isPublicHoliday(filterDate) ? 'Holiday' : (window.isEmployeeOnRest(user, filterDate) ? 'On Rest' : 'Absent'),
                 timeIn: '-',
                 timeOut: '-',
                 markedBy: '-'
@@ -4244,6 +4244,9 @@ function renderAdminSettingsTab() {
     if (document.getElementById('setting-admin-manager-overtime')) {
         document.getElementById('setting-admin-manager-overtime').checked = sysSettings.adminManagerOvertime === true || sysSettings.adminManagerOvertime === 'true';
     }
+    if (document.getElementById('setting-paid-rest-days')) {
+        document.getElementById('setting-paid-rest-days').checked = sysSettings.paidRestDays !== false && sysSettings.paidRestDays !== 'false';
+    }
     if (document.getElementById('prod-show-emp-admin')) {
         document.getElementById('prod-show-emp-admin').checked = sysSettings.showEmployeeLogsToAdmin === 'true' || sysSettings.showEmployeeLogsToAdmin === true;
     }
@@ -4668,7 +4671,7 @@ function renderManagerDashboard() {
     // Check for implicitly On Rest employees in team
     myTeam.forEach(emp => {
         const hasRecord = db.attendance.some(a => a.date === today && String(a.employeeId) === String(emp.id));
-        if (!hasRecord && (isPublicHoliday(today) || isEmployeeOnRest(emp, today))) {
+        if (!hasRecord && (isPublicHoliday(today) || window.isEmployeeOnRest(emp, today))) {
             onRestCount++;
             unmarkedAbsentCount--;
         }
@@ -4787,7 +4790,7 @@ function renderManagerDashboard() {
 
     // Manager Personal Stats
     const myAttToday = db.attendance.find(a => String(a.employeeId) === String(currentUser.id) && a.date === today);
-    const myAttStatus = myAttToday ? myAttToday.status : (isPublicHoliday(today) ? 'Holiday' : (isEmployeeOnRest(currentUser, today) ? 'On Rest' : 'Absent'));
+    const myAttStatus = myAttToday ? myAttToday.status : (isPublicHoliday(today) ? 'Holiday' : (window.isEmployeeOnRest(currentUser, today) ? 'On Rest' : 'Absent'));
     const myProdSubmissions = (db.productivity || []).filter(p => (p.employee_id || p.employeeId) === currentUser.id && p.status === 'Approved');
     const myTotalScore = myProdSubmissions.length > 0 ? Math.round(myProdSubmissions.reduce((sum, p) => sum + p.score, 0) / myProdSubmissions.length) : 0;
 
@@ -4953,7 +4956,7 @@ function renderManagerAttendanceTab() {
                 date: filterDate,
                 employeeId: user.id,
                 employeeName: user.name,
-                status: isEmployeeOnRest(user, filterDate) ? 'On Rest' : 'Absent',
+                status: window.isEmployeeOnRest(user, filterDate) ? 'On Rest' : 'Absent',
                 timeIn: '-',
                 timeOut: '-',
                 markedBy: '-'
@@ -5178,7 +5181,7 @@ function renderEmployeeDashboard() {
     // Top Metric Cards
     const today = new Date().toISOString().split('T')[0];
     const myAttToday = db.attendance.find(a => String(a.employeeId) === String(currentUser.id) && a.date === today);
-    const attStatus = myAttToday ? myAttToday.status : (isPublicHoliday(today) ? 'Holiday' : (isEmployeeOnRest(currentUser, today) ? 'On Rest' : 'Absent'));
+    const attStatus = myAttToday ? myAttToday.status : (isPublicHoliday(today) ? 'Holiday' : (window.isEmployeeOnRest(currentUser, today) ? 'On Rest' : 'Absent'));
 
     const attEl = document.getElementById('employee-metric-attendance');
     const iconContainer = document.getElementById('employee-attendance-icon');
@@ -7404,8 +7407,12 @@ window.saveSystemSettings = async function () {
     
     const adminMgrOtEnabled = document.getElementById('setting-admin-manager-overtime').checked;
     db.systemSettings.adminManagerOvertime = adminMgrOtEnabled;
+    
+    if (document.getElementById('setting-paid-rest-days')) {
+        db.systemSettings.paidRestDays = document.getElementById('setting-paid-rest-days').checked;
+    }
 
-    showToast("System Settings", "Admin/Manager overtime setting saved.");
+    showToast("System Settings", "Settings saved successfully.");
     saveDb(db);
     
     // Apply UI visibility instantly

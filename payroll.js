@@ -1411,16 +1411,47 @@ window.generatePayrollPreview = function() {
         // 2. Fetch Attendance (Absents & Half Days)
         let absentCount = 0;
         let halfDayCount = 0;
+        const paidRestDays = sysSettings.paidRestDays !== false && sysSettings.paidRestDays !== 'false';
+        
+        // Use a Set or map to efficiently lookup attendance by date string (YYYY-MM-DD)
+        const myAtts = {};
         if (db.attendance) {
             db.attendance.forEach(att => {
                 if (String(att.userId || att.employeeId) === String(user.id)) {
-                    const attDate = new Date(att.date);
-                    if (attDate >= startDate && attDate <= endDate) {
-                        if (att.status === 'Absent') absentCount += 1;
-                        if (att.status === 'Half Day') halfDayCount += 1;
-                    }
+                    myAtts[att.date] = att.status;
                 }
             });
+        }
+
+        let dateCursor = new Date(startDate);
+        const endCursor = new Date(endDate);
+        
+        while (dateCursor <= endCursor) {
+            const dateStr = dateCursor.toISOString().split('T')[0];
+            const status = myAtts[dateStr];
+            
+            let isRest = false;
+            if (window.isEmployeeOnRest && window.isEmployeeOnRest(user, dateStr)) {
+                isRest = true;
+            }
+
+            if (status === 'Absent') {
+                absentCount += 1;
+            } else if (status === 'Half Day') {
+                halfDayCount += 1;
+            } else if (status === 'On Rest') {
+                if (!paidRestDays) {
+                    absentCount += 1;
+                }
+            } else if (!status) {
+                // No record found.
+                // If it is a rest day and rest days are NOT paid, it counts as absent
+                if (isRest && !paidRestDays) {
+                    absentCount += 1;
+                }
+            }
+
+            dateCursor.setDate(dateCursor.getDate() + 1);
         }
         
         // 2 Half days = 1 Absent
