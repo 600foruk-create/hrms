@@ -2131,6 +2131,164 @@ window.clearPublicHolidaysHistory = function() {
     }
 };
 
+// --- Overtime Management ---
+
+function handleOvertimeSubmit(e) {
+    e.preventDefault();
+    const db = getDb();
+    if (!db.overtimeLogs) db.overtimeLogs = [];
+    
+    const date = document.getElementById('ot-request-date').value;
+    const hours = parseFloat(document.getElementById('ot-request-hours').value);
+    const type = document.getElementById('ot-request-type').value;
+    const reason = document.getElementById('ot-request-reason').value;
+    
+    if (hours <= 0) return showToast("Error", "Hours must be greater than 0.", "error");
+    
+    const otLog = {
+        id: 'ot_' + Date.now() + '_' + Math.floor(Math.random()*1000),
+        employeeId: currentUser.id,
+        date: date,
+        hours: hours,
+        type: type,
+        reason: reason,
+        status: "Pending",
+        createdAt: new Date().toISOString()
+    };
+    
+    db.overtimeLogs.push(otLog);
+    saveDb(db);
+    
+    closeModal('modal-emp-overtime');
+    showToast("Request Submitted", "Your overtime request has been sent to your manager.", "success");
+    if (typeof window.renderEmployeeOvertimeTab === 'function') window.renderEmployeeOvertimeTab();
+}
+
+window.renderEmployeeOvertimeTab = function() {
+    const db = getDb();
+    const tbody = document.getElementById('employee-overtime-table-body');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    let myOts = (db.overtimeLogs || []).filter(o => String(o.employeeId) === String(currentUser.id));
+    myOts.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    if (myOts.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No overtime requests found.</td></tr>`;
+        return;
+    }
+    
+    myOts.forEach(ot => {
+        let statusClass = ot.status === 'Approved' ? 'approved' : (ot.status === 'Rejected' ? 'rejected' : 'pending');
+        tbody.innerHTML += `
+            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <td>${ot.date}</td>
+                <td><span style="font-weight: 600; color: var(--primary);">${ot.hours} hrs</span></td>
+                <td>${ot.type}</td>
+                <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${ot.reason}">${ot.reason}</td>
+                <td><span class="badge-status ${statusClass}">${ot.status}</span></td>
+            </tr>
+        `;
+    });
+};
+
+window.renderManagerOvertimeTab = function() {
+    const db = getDb();
+    const tbody = document.getElementById('manager-overtime-table-body');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    const myTeamIds = db.users.filter(u => String(u.managerId) === String(currentUser.id)).map(u => String(u.id));
+    
+    let teamOts = (db.overtimeLogs || []).filter(o => myTeamIds.includes(String(o.employeeId)));
+    teamOts.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    if (teamOts.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No team overtime requests found.</td></tr>`;
+        return;
+    }
+    
+    teamOts.forEach(ot => {
+        const emp = db.users.find(u => String(u.id) === String(ot.employeeId));
+        let statusClass = ot.status === 'Approved' ? 'approved' : (ot.status === 'Rejected' ? 'rejected' : 'pending');
+        
+        let actionButtons = '';
+        if (ot.status === 'Pending') {
+            actionButtons = `
+                <button class="btn-action-circle" onclick="updateOvertimeStatus('${ot.id}', 'Approved')" style="color: var(--success);" title="Approve"><i class="fa-solid fa-check"></i></button>
+                <button class="btn-action-circle" onclick="updateOvertimeStatus('${ot.id}', 'Rejected')" style="color: var(--danger);" title="Reject"><i class="fa-solid fa-xmark"></i></button>
+            `;
+        }
+        
+        tbody.innerHTML += `
+            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <td>${ot.date}</td>
+                <td><span style="font-weight: 600;">${emp ? emp.name : 'Unknown'}</span></td>
+                <td><span style="font-weight: 600; color: var(--primary);">${ot.hours} hrs</span></td>
+                <td>${ot.type}</td>
+                <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${ot.reason}">${ot.reason}</td>
+                <td><span class="badge-status ${statusClass}">${ot.status}</span></td>
+                <td style="text-align: center;">${actionButtons}</td>
+            </tr>
+        `;
+    });
+};
+
+window.updateOvertimeStatus = function(id, newStatus) {
+    if (!confirm(`Are you sure you want to mark this overtime as ${newStatus}?`)) return;
+    const db = getDb();
+    if (!db.overtimeLogs) return;
+    
+    const ot = db.overtimeLogs.find(o => o.id === id);
+    if (ot) {
+        ot.status = newStatus;
+        ot.approvedBy = currentUser.id;
+        saveDb(db);
+        showToast("Status Updated", `Overtime request has been ${newStatus.toLowerCase()}.`, newStatus === 'Approved' ? 'success' : 'info');
+        if (typeof window.renderManagerOvertimeTab === 'function') window.renderManagerOvertimeTab();
+    }
+};
+
+window.renderAdminOvertimeTab = function() {
+    const db = getDb();
+    const tbody = document.getElementById('admin-overtime-table-body');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    const filterMonth = document.getElementById('admin-overtime-filter-month')?.value;
+    
+    let ots = (db.overtimeLogs || []).filter(o => o.status === 'Approved');
+    
+    if (filterMonth) {
+        ots = ots.filter(o => o.date.startsWith(filterMonth));
+    }
+    
+    ots.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    if (ots.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No approved overtime records found.</td></tr>`;
+        return;
+    }
+    
+    ots.forEach(ot => {
+        const emp = db.users.find(u => String(u.id) === String(ot.employeeId));
+        const approver = db.users.find(u => String(u.id) === String(ot.approvedBy));
+        
+        tbody.innerHTML += `
+            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <td>${ot.date}</td>
+                <td><span style="font-weight: 600;">${emp ? emp.name : 'Unknown'}</span></td>
+                <td><span style="font-weight: 600; color: var(--primary);">${ot.hours} hrs</span></td>
+                <td>${ot.type}</td>
+                <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${ot.reason}">${ot.reason}</td>
+                <td>${approver ? approver.name : '-'}</td>
+            </tr>
+        `;
+    });
+};
+
 function renderAdminAttendanceTab() {
     const db = getDb();
 
@@ -8120,6 +8278,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                     } else if (subtab === 'attendance-holidays') {
                         markAttBtn.classList.add('hidden');
                         if (typeof renderAdminHolidaysTab === 'function') renderAdminHolidaysTab();
+                    } else if (subtab === 'attendance-overtime') {
+                        markAttBtn.classList.add('hidden');
+                        if (typeof renderAdminOvertimeTab === 'function') renderAdminOvertimeTab();
                     } else {
                         markAttBtn.classList.add('hidden');
                     }
@@ -8128,8 +8289,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                         window.renderAdminShiftManagement();
                     } else if (subtab === 'attendance-holidays' && typeof renderAdminHolidaysTab === 'function') {
                         renderAdminHolidaysTab();
+                    } else if (subtab === 'attendance-overtime' && typeof renderAdminOvertimeTab === 'function') {
+                        renderAdminOvertimeTab();
                     }
                 }
+            } else if (parent.id === 'manager-tab-attendance') {
+                if (subtab === 'manager-attendance-overtime' && typeof renderManagerOvertimeTab === 'function') {
+                    renderManagerOvertimeTab();
+                }
+            } else if (parent.id === 'employee-tab-attendance') {
+                if (subtab === 'emp-attendance-overtime' && typeof renderEmployeeOvertimeTab === 'function') {
+                    renderEmployeeOvertimeTab();
+                }
+            }
             }
         });
     });

@@ -1093,6 +1093,9 @@
                             <button class="btn-sub-tab" data-subtab="attendance-holidays">
                                 <i class="fa-solid fa-umbrella-beach"></i> Public Holidays
                             </button>
+                            <button class="btn-sub-tab" data-subtab="attendance-overtime">
+                                <i class="fa-solid fa-clock"></i> Overtime History
+                            </button>
                         </div>
 
                         <!-- Sub-tab Content: Attendance Log -->
@@ -1362,6 +1365,34 @@
                                             </tr>
                                         </thead>
                                         <tbody id="admin-holidays-table-body">
+                                            <!-- Dynamic Rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                        </div>
+
+                        <!-- Sub-tab Content: Overtime History -->
+                        <div class="sub-tab-content hidden" id="subtab-content-attendance-overtime">
+                            <div class="section-card bg-glass flex-table-card">
+                                <div class="section-card-header">
+                                    <h3>Approved Overtime History</h3>
+                                    <div class="header-filters">
+                                        <input type="month" id="admin-overtime-filter-month" class="form-control" onchange="if(window.renderAdminOvertimeTab) window.renderAdminOvertimeTab()">
+                                    </div>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Employee</th>
+                                                <th>OT Hours</th>
+                                                <th>Type</th>
+                                                <th>Reason</th>
+                                                <th>Approved By</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-overtime-table-body">
                                             <!-- Dynamic Rows -->
                                         </tbody>
                                     </table>
@@ -1835,6 +1866,7 @@
                                                     <th>Absents</th>
                                                     <th>Abs. Deduct</th>
                                                     <th>Loan EMI</th>
+                                                    <th>OT Pay</th>
                                                     <th style="width: 100px;">Bonus (Rs)</th>
                                                     <th style="width: 100px;">Other Ded (Rs)</th>
                                                     <th class="text-primary bold">Net Payable</th>
@@ -3825,6 +3857,9 @@
                             <button class="btn-sub-tab" data-subtab="manager-personal-attendance">
                                 <i class="fa-solid fa-user-clock"></i> My Personal Attendance
                             </button>
+                            <button class="btn-sub-tab" data-subtab="manager-attendance-overtime">
+                                <i class="fa-solid fa-clock"></i> Overtime Approvals
+                            </button>
                         </div>
 
                         <!-- Sub-tab Content: Attendance Log -->
@@ -3873,6 +3908,30 @@
                                             </tr>
                                         </thead>
                                         <tbody id="manager-personal-attendance-table-body">
+                                            <!-- Dynamic Rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Manager Overtime Sub-tab Content -->
+                        <div class="sub-tab-content hidden" id="subtab-content-manager-attendance-overtime">
+                            <div class="section-card bg-glass flex-table-card">
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Employee</th>
+                                                <th>OT Hours</th>
+                                                <th>Type</th>
+                                                <th>Reason</th>
+                                                <th>Status</th>
+                                                <th style="text-align: center;">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="manager-overtime-table-body">
                                             <!-- Dynamic Rows -->
                                         </tbody>
                                     </table>
@@ -4810,24 +4869,61 @@
                     <div id="employee-tab-attendance" class="tab-view">
                         <div class="view-header">
                             <div>
-                                <h1>My Attendance Log</h1>
-                                <p class="text-secondary">Calendar register of your marked attendance</p>
+                                <h1>My Attendance & Overtime</h1>
+                                <p class="text-secondary">Calendar register and overtime logs</p>
                             </div>
                         </div>
-                        <div class="section-card bg-glass flex-table-card">
-                            <div class="table-container">
-                                <table class="data-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Status</th>
-                                            <th>Marked By</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="employee-tab-attendance-table">
-                                        <!-- Dynamic rows -->
-                                    </tbody>
-                                </table>
+                        
+                        <div class="sub-tab-nav mb-4 mt-4">
+                            <button class="btn-sub-tab active" data-subtab="emp-attendance-log">
+                                <i class="fa-solid fa-calendar-days"></i> Attendance Log
+                            </button>
+                            <button class="btn-sub-tab" data-subtab="emp-attendance-overtime">
+                                <i class="fa-solid fa-clock"></i> My Overtime
+                            </button>
+                        </div>
+
+                        <div class="sub-tab-content" id="subtab-content-emp-attendance-log">
+                            <div class="section-card bg-glass flex-table-card">
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Status</th>
+                                                <th>Marked By</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="employee-tab-attendance-table">
+                                            <!-- Dynamic rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sub-tab-content hidden" id="subtab-content-emp-attendance-overtime">
+                            <div class="section-card bg-glass flex-table-card" style="margin-bottom: 20px;">
+                                <div class="section-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                                    <h3>My Overtime Logs</h3>
+                                    <button class="btn btn-primary btn-sm" onclick="openModal('modal-emp-overtime')"><i class="fa-solid fa-plus"></i> Request Overtime</button>
+                                </div>
+                                <div class="table-container">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Hours</th>
+                                                <th>Type</th>
+                                                <th>Reason</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="employee-overtime-table-body">
+                                            <!-- Dynamic rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -5662,6 +5758,47 @@
                 <button type="button" class="btn btn-outline modal-close">Cancel</button>
                 <button type="submit" class="btn btn-primary" id="btn-save-employee"><i
                         class="fa-solid fa-floppy-disk"></i> Save Employee</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Employee Overtime Request Modal -->
+    <div id="modal-emp-overtime" class="modal hidden" style="max-width: 500px; z-index: 10000;">
+        <div class="modal-header">
+            <h3>Request Overtime</h3>
+            <div class="modal-header-controls">
+                <button type="button" class="modal-close" onclick="closeModal('modal-emp-overtime')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        <form id="form-emp-overtime" onsubmit="handleOvertimeSubmit(event)" style="display: flex; flex-direction: column;">
+            <div class="modal-body" style="padding: 14px 18px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;" class="mb-3">
+                    <div class="form-group mb-0">
+                        <label class="form-label font-weight-bold" style="font-size: 12px;">Date <span class="text-danger">*</span></label>
+                        <input type="date" id="ot-request-date" class="form-control btn-sm" required>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="form-label font-weight-bold" style="font-size: 12px;">Hours <span class="text-danger">*</span></label>
+                        <input type="number" step="0.5" min="0.5" max="24" id="ot-request-hours" class="form-control btn-sm" placeholder="e.g. 2.5" required>
+                    </div>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label font-weight-bold" style="font-size: 12px;">Overtime Type <span class="text-danger">*</span></label>
+                    <select id="ot-request-type" class="form-control btn-sm" required>
+                        <option value="Extra Hours">Extra Hours (After Shift)</option>
+                        <option value="Rest Day Duty">Rest Day Duty</option>
+                        <option value="Public Holiday Duty">Public Holiday Duty</option>
+                        <option value="Double Shift">Double Shift</option>
+                    </select>
+                </div>
+                <div class="form-group mb-0">
+                    <label class="form-label font-weight-bold" style="font-size: 12px;">Reason / Description <span class="text-danger">*</span></label>
+                    <textarea id="ot-request-reason" class="form-control" rows="3" placeholder="Briefly describe why this overtime was necessary..." required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 8px 18px;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('modal-emp-overtime')">Cancel</button>
+                <button type="submit" class="btn btn-primary btn-sm">Submit Request</button>
             </div>
         </form>
     </div>

@@ -367,6 +367,14 @@ window.openPayslipModal = function(recordId) {
         totalAllow += (parseFloat(record.bonus) || 0);
     }
     
+    if ((parseFloat(record.otPay) || 0) > 0) {
+        allowHtml += `<tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 5px 15px; border-right: 1px solid #e2e8f0;">Overtime Pay</td>
+            <td style="padding: 5px 15px; font-weight: 600; text-align: right; width: 130px;">Rs ${Math.round(parseFloat(record.otPay) || 0).toLocaleString()}</td>
+        </tr>`;
+        totalAllow += (parseFloat(record.otPay) || 0);
+    }
+    
     // Days Calculation
     const startDateObj = new Date(record.startDate);
     const endDateObj = new Date(record.endDate);
@@ -1433,18 +1441,34 @@ window.generatePayrollPreview = function() {
             }
         }
 
+        // 3.5 Calculate Approved Overtime Pay
+        let otHours = 0;
+        if (db.overtimeLogs) {
+            db.overtimeLogs.forEach(ot => {
+                if (String(ot.employeeId) === String(user.id) && ot.status === 'Approved') {
+                    const otDate = new Date(ot.date);
+                    if (otDate >= startDate && otDate <= endDate) {
+                        otHours += parseFloat(ot.hours) || 0;
+                    }
+                }
+            });
+        }
+        const hourlyRate = dailyWage / 8; // Assuming 8-hour shift
+        const otPay = otHours * hourlyRate;
+
         // 4. Initial Net Payable
-        const netPayable = netFixed - absencyDeduction - loanEMI;
+        const netPayable = netFixed - absencyDeduction - loanEMI + otPay;
         grandTotal += netPayable;
 
         tbody.innerHTML += `
-            <tr class="payroll-preview-row" data-user-id="${user.id}" data-net-fixed="${netFixed}" data-absent-deduct="${absencyDeduction}" data-loan-emi="${loanEMI}" data-loan-id="${activeLoanId || ''}" data-fixed-allow="${totalAllowances}" data-fixed-deduct="${totalDeductions}">
+            <tr class="payroll-preview-row" data-user-id="${user.id}" data-net-fixed="${netFixed}" data-absent-deduct="${absencyDeduction}" data-loan-emi="${loanEMI}" data-loan-id="${activeLoanId || ''}" data-fixed-allow="${totalAllowances}" data-fixed-deduct="${totalDeductions}" data-ot-pay="${otPay}">
                 <td class="text-secondary">${user.id}</td>
                 <td class="bold">${user.name}</td>
                 <td>Rs ${Math.round(netFixed).toLocaleString()}</td>
                 <td>${totalAbsentEquivalent}</td>
                 <td class="text-danger">-Rs ${Math.round(absencyDeduction).toLocaleString()}</td>
                 <td class="text-warning">-Rs ${Math.round(loanEMI).toLocaleString()}</td>
+                <td class="text-success">+Rs ${Math.round(otPay).toLocaleString()}</td>
                 <td>
                     <input type="number" class="form-control bonus-input" style="width: 80px; padding: 4px; font-size: 12px; height: 28px;" value="0" min="0" onchange="window.recalculatePayrollRow(this)">
                 </td>
@@ -1468,11 +1492,12 @@ window.recalculatePayrollRow = function(inputElem) {
     const netFixed = parseFloat(row.dataset.netFixed) || 0;
     const absDeduct = parseFloat(row.dataset.absentDeduct) || 0;
     const loanEmi = parseFloat(row.dataset.loanEmi) || 0;
+    const otPay = parseFloat(row.dataset.otPay) || 0;
     
     const bonus = parseFloat(row.querySelector('.bonus-input').value) || 0;
     const otherDed = parseFloat(row.querySelector('.ded-input').value) || 0;
     
-    const newNetPayable = netFixed - absDeduct - loanEmi + bonus - otherDed;
+    const newNetPayable = netFixed - absDeduct - loanEmi + otPay + bonus - otherDed;
     
     row.querySelector('.net-payable-cell').textContent = `Rs ${Math.round(newNetPayable).toLocaleString()}`;
     
@@ -1512,10 +1537,11 @@ window.confirmAndProcessPayroll = function() {
         const loanId = row.dataset.loanId;
         const fixedAllow = parseFloat(row.dataset.fixedAllow) || 0;
         const fixedDeduct = parseFloat(row.dataset.fixedDeduct) || 0;
+        const otPay = parseFloat(row.dataset.otPay) || 0;
         const bonus = parseFloat(row.querySelector('.bonus-input').value) || 0;
         const otherDed = parseFloat(row.querySelector('.ded-input').value) || 0;
         
-        const finalNetPay = netFixed - absDeduct - loanEmi + bonus - otherDed;
+        const finalNetPay = netFixed - absDeduct - loanEmi + otPay + bonus - otherDed;
 
         // Deduct EMI from active loan
         if (loanId && loanEmi > 0 && db.loans) {
@@ -1537,6 +1563,7 @@ window.confirmAndProcessPayroll = function() {
             fixedDeductions: fixedDeduct,
             absencyDeduction: absDeduct,
             loanDeduction: loanEmi,
+            otPay: otPay,
             bonus: bonus,
             otherDeduction: otherDed,
             netPay: finalNetPay,
