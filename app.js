@@ -2263,6 +2263,56 @@ window.updateOvertimeStatus = function(id, newStatus) {
     }
 };
 
+window.openManagerOvertimeModal = function() {
+    const db = getDb();
+    const select = document.getElementById('mgr-ot-employee');
+    select.innerHTML = '<option value="">Select an employee</option>';
+    
+    const myTeam = db.users.filter(u => String(u.managerId) === String(currentUser.id));
+    myTeam.forEach(u => {
+        select.innerHTML += `<option value="${u.id}">${u.name} (${u.displayId})</option>`;
+    });
+    
+    document.getElementById('mgr-ot-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('mgr-ot-hours').value = '';
+    document.getElementById('mgr-ot-reason').value = '';
+    
+    openModal('modal-manager-log-overtime');
+};
+
+window.submitManagerOvertime = function(e) {
+    e.preventDefault();
+    const db = getDb();
+    if (!db.overtimeLogs) db.overtimeLogs = [];
+    
+    const empId = document.getElementById('mgr-ot-employee').value;
+    const date = document.getElementById('mgr-ot-date').value;
+    const hours = parseFloat(document.getElementById('mgr-ot-hours').value);
+    const type = document.getElementById('mgr-ot-type').value;
+    const reason = document.getElementById('mgr-ot-reason').value;
+    
+    if (hours <= 0) return showToast("Error", "Hours must be greater than 0.", "error");
+    if (!empId) return showToast("Error", "Please select an employee.", "error");
+    
+    const otLog = {
+        id: 'ot_' + Date.now() + '_' + Math.floor(Math.random()*1000),
+        employeeId: empId,
+        date: date,
+        hours: hours,
+        type: type,
+        reason: reason,
+        status: 'Approved',
+        approvedBy: currentUser.id
+    };
+    
+    db.overtimeLogs.push(otLog);
+    saveDb(db);
+    
+    closeModal('modal-manager-log-overtime');
+    showToast("Overtime Logged", "Team member's overtime has been logged and approved.", "success");
+    if (typeof window.renderManagerOvertimeTab === 'function') window.renderManagerOvertimeTab();
+};
+
 window.renderAdminOvertimeTab = function() {
     const db = getDb();
     const tbody = document.getElementById('admin-overtime-table-body');
