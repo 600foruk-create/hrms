@@ -1454,7 +1454,8 @@ function renderAdminDashboard() {
 
     // Apply Metrics to Cards
     document.getElementById('admin-metric-total-emp').textContent = totalEmpCount;
-    document.getElementById('admin-metric-absent').textContent = absentTodayCount;
+    const adminAbsentEl = document.getElementById('admin-metric-absent');
+    if (adminAbsentEl) adminAbsentEl.textContent = absentTodayCount;
     
     const onRestEl = document.getElementById('admin-metric-on-rest');
     if (onRestEl) onRestEl.textContent = onRestTodayCount;
