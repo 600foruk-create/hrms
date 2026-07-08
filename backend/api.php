@@ -43,7 +43,7 @@ try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS `salary_profiles` (`userId` varchar(50) NOT NULL, `isCustomSlab` tinyint(1), `allowances` longtext, `deductions` longtext, PRIMARY KEY (`userId`))");
     $pdo->exec("CREATE TABLE IF NOT EXISTS `loans` (`id` varchar(50) NOT NULL, `userId` varchar(50), `type` varchar(50), `totalAmount` decimal(10,2), `monthlyInstallment` decimal(10,2), `remainingAmount` decimal(10,2), `issuedAt` varchar(50), PRIMARY KEY (`id`))");
     $pdo->exec("CREATE TABLE IF NOT EXISTS `payroll_history` (`id` varchar(50) NOT NULL, `batchId` varchar(50), `userId` varchar(50), `startDate` varchar(50), `endDate` varchar(50), `netFixed` decimal(10,2), `absencyDeduction` decimal(10,2), `loanDeduction` decimal(10,2), `bonus` decimal(10,2), `otherDeduction` decimal(10,2), `netPay` decimal(10,2), `processedAt` varchar(50), PRIMARY KEY (`id`))");
-    $pdo->exec("CREATE TABLE IF NOT EXISTS `shift_management` (`id` int(11) NOT NULL AUTO_INCREMENT, `record_type` varchar(30) NOT NULL, `shift_id` varchar(50) DEFAULT NULL, `shift_name` varchar(100) DEFAULT NULL, `duty_from` varchar(20) DEFAULT NULL, `duty_to` varchar(20) DEFAULT NULL, `break_mins` int(11) DEFAULT 60, `is_flexible` tinyint(1) DEFAULT 0, `employee_id` varchar(50) DEFAULT NULL, `policy_json` text DEFAULT NULL, PRIMARY KEY (`id`))");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `shift_management` (`id` int(11) NOT NULL AUTO_INCREMENT, `record_type` varchar(30) NOT NULL, `shift_id` varchar(50) DEFAULT NULL, `shift_name` varchar(100) DEFAULT NULL, `duty_from` varchar(20) DEFAULT NULL, `duty_to` varchar(20) DEFAULT NULL, `break_mins` int(11) DEFAULT 60, `is_flexible` tinyint(1) DEFAULT 0, `employee_id` varchar(50) DEFAULT NULL, `policy_json` text DEFAULT NULL, `rest_day` varchar(20) DEFAULT NULL, PRIMARY KEY (`id`))");
     $pdo->exec("CREATE TABLE IF NOT EXISTS `otps` (`id` int(11) NOT NULL AUTO_INCREMENT, `user_email` varchar(150) NOT NULL, `otp_code` varchar(10) NOT NULL, `expires_at` int(11) NOT NULL, PRIMARY KEY (`id`))");
 } catch (Exception $e) {
     try {
@@ -51,7 +51,7 @@ try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS `salary_profiles` (`userId` TEXT PRIMARY KEY, `isCustomSlab` INTEGER, `allowances` TEXT, `deductions` TEXT)");
         $pdo->exec("CREATE TABLE IF NOT EXISTS `loans` (`id` TEXT PRIMARY KEY, `userId` TEXT, `type` TEXT, `totalAmount` REAL, `monthlyInstallment` REAL, `remainingAmount` REAL, `issuedAt` TEXT)");
         $pdo->exec("CREATE TABLE IF NOT EXISTS `payroll_history` (`id` TEXT PRIMARY KEY, `batchId` TEXT, `userId` TEXT, `startDate` TEXT, `endDate` TEXT, `netFixed` REAL, `absencyDeduction` REAL, `loanDeduction` REAL, `bonus` REAL, `otherDeduction` REAL, `netPay` REAL, `processedAt` TEXT)");
-        $pdo->exec("CREATE TABLE IF NOT EXISTS `shift_management` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `record_type` TEXT, `shift_id` TEXT, `shift_name` TEXT, `duty_from` TEXT, `duty_to` TEXT, `break_mins` INTEGER, `is_flexible` INTEGER, `employee_id` TEXT, `policy_json` TEXT)");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `shift_management` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `record_type` TEXT, `shift_id` TEXT, `shift_name` TEXT, `duty_from` TEXT, `duty_to` TEXT, `break_mins` INTEGER, `is_flexible` INTEGER, `employee_id` TEXT, `policy_json` TEXT, `rest_day` TEXT)");
         $pdo->exec("CREATE TABLE IF NOT EXISTS `otps` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `user_email` TEXT, `otp_code` TEXT, `expires_at` INTEGER)");
     } catch (Exception $e2) {}
 }
@@ -179,6 +179,9 @@ foreach ($new_columns as $col) {
         // Column likely already exists
     }
 }
+
+// Add rest_day to shift_management if missing
+try { $pdo->exec("ALTER TABLE shift_management ADD COLUMN `rest_day` varchar(20) DEFAULT NULL"); } catch (Exception $e) {}
 
 // Clean up normalized columns if they exist (MySQL only)
 try { $pdo->exec("ALTER TABLE users DROP COLUMN `documents`"); } catch (Exception $e) {}
@@ -1119,7 +1122,8 @@ if ($action === 'load_all') {
                         'isFlexible' => !empty($shRow['is_flexible']),
                         'lateGraceMins' => isset($pol['lateGraceMins']) ? (int)$pol['lateGraceMins'] : 20,
                         'halfDayMins' => isset($pol['halfDayMins']) ? (int)$pol['halfDayMins'] : 180,
-                        'earlyGraceMins' => isset($pol['earlyGraceMins']) ? (int)$pol['earlyGraceMins'] : 15
+                        'earlyGraceMins' => isset($pol['earlyGraceMins']) ? (int)$pol['earlyGraceMins'] : 15,
+                        'restDay' => $shRow['rest_day'] ?? ''
                     ];
                 } elseif ($shRow['record_type'] === 'assignment') {
                     $shMap[$shRow['employee_id']] = $shRow;
@@ -1849,7 +1853,7 @@ elseif ($action === 'save_all') {
         // 12. Sync Shift Management (Cards, Policy, Assignments)
         try {
             $pdo->exec("DELETE FROM shift_management");
-            $smStmt = $pdo->prepare("INSERT INTO shift_management (record_type, shift_id, shift_name, duty_from, duty_to, break_mins, is_flexible, employee_id, policy_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $smStmt = $pdo->prepare("INSERT INTO shift_management (record_type, shift_id, shift_name, duty_from, duty_to, break_mins, is_flexible, employee_id, policy_json, rest_day) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             
             // Cards
             if (!empty($data['shifts']) && is_array($data['shifts'])) {
@@ -1861,7 +1865,7 @@ elseif ($action === 'save_all') {
                     ]);
                     $smStmt->execute([
                         'card', $sc['id'] ?? null, $sc['name'] ?? null, $sc['start'] ?? '09:00', $sc['end'] ?? '17:00',
-                        (int)($sc['breakMins'] ?? 60), !empty($sc['isFlexible']) ? 1 : 0, null, $cardPol
+                        (int)($sc['breakMins'] ?? 60), !empty($sc['isFlexible']) ? 1 : 0, null, $cardPol, $sc['restDay'] ?? null
                     ]);
                 }
             }
@@ -1870,7 +1874,7 @@ elseif ($action === 'save_all') {
                 foreach ($data['users'] as $su) {
                     $smStmt->execute([
                         'assignment', $su['shiftId'] ?? 'shift_general', null, $su['dutyFrom'] ?? '09:00', $su['dutyTo'] ?? '17:00',
-                        (int)($su['breakMins'] ?? 60), 0, $su['id'] ?? null, null
+                        (int)($su['breakMins'] ?? 60), 0, $su['id'] ?? null, null, null
                     ]);
                 }
             }
@@ -1878,7 +1882,7 @@ elseif ($action === 'save_all') {
             if (isset($data['shiftRotationPolicy'])) {
                 $smStmt->execute([
                     'policy', null, null, null, null, 60, 0, null,
-                    is_string($data['shiftRotationPolicy']) ? $data['shiftRotationPolicy'] : json_encode($data['shiftRotationPolicy'])
+                    is_string($data['shiftRotationPolicy']) ? $data['shiftRotationPolicy'] : json_encode($data['shiftRotationPolicy']), null
                 ]);
             }
         } catch (Exception $e) {
