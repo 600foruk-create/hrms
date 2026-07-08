@@ -1443,7 +1443,10 @@ window.generatePayrollPreview = function() {
 
         // 3.5 Calculate Approved Overtime Pay
         let otHours = 0;
-        if (db.overtimeLogs) {
+        let otPay = 0;
+        const otEnabled = sysSettings.overtimeEnabled !== false;
+        
+        if (otEnabled && db.overtimeLogs) {
             db.overtimeLogs.forEach(ot => {
                 if (String(ot.employeeId) === String(user.id) && ot.status === 'Approved') {
                     const otDate = new Date(ot.date);
@@ -1452,10 +1455,10 @@ window.generatePayrollPreview = function() {
                     }
                 }
             });
+            const otMultiplier = parseFloat(sysSettings.overtimeRate) || 1.0;
+            const hourlyRate = dailyWage / 8; // Assuming 8-hour shift
+            otPay = otHours * hourlyRate * otMultiplier;
         }
-        const otMultiplier = parseFloat(sysSettings.overtimeRate) || 1.0;
-        const hourlyRate = dailyWage / 8; // Assuming 8-hour shift
-        const otPay = otHours * hourlyRate * otMultiplier;
 
         // 4. Initial Net Payable
         const netPayable = netFixed - absencyDeduction - loanEMI + otPay;

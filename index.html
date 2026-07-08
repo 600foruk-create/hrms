@@ -3472,8 +3472,20 @@
                                         <i class="fa-solid fa-clock text-primary"></i> Overtime Settings
                                     </h3>
                                     <div style="display: flex; align-items: center; gap: 15px;">
-                                        <label for="ot-rate-multiplier" style="margin: 0; font-weight: 500;">OT Pay Multiplier (e.g. 1.5):</label>
-                                        <input type="number" id="ot-rate-multiplier" class="form-control" step="0.1" min="0.1" value="1.0" style="width: 80px; height: 35px; padding: 5px;">
+                                        <span style="font-weight: 500;">Enable Overtime</span>
+                                        <label class="switch" style="margin: 0;">
+                                            <input type="checkbox" id="ot-enabled-switch" onchange="document.getElementById('ot-rate-container').style.display = this.checked ? 'flex' : 'none';">
+                                            <span class="slider round"></span>
+                                        </label>
+                                        
+                                        <div id="ot-rate-container" style="display: flex; align-items: center; gap: 10px; margin-left: 15px;">
+                                            <label for="ot-rate-multiplier" style="margin: 0; font-weight: 500;">Rate:</label>
+                                            <select id="ot-rate-multiplier" class="form-control" style="height: 35px; padding: 5px; width: 140px;">
+                                                <option value="1.0">Standard Rate (1.0x)</option>
+                                                <option value="1.5">1.5x Rate</option>
+                                                <option value="2.0">Double Rate (2.0x)</option>
+                                            </select>
+                                        </div>
                                         <button class="btn btn-primary" onclick="if(window.saveOvertimeSettings) window.saveOvertimeSettings();" style="height: 35px; padding: 0 15px;"><i class="fa-solid fa-check"></i> Save</button>
                                     </div>
                                 </div>
@@ -4919,7 +4931,7 @@
                             <div class="section-card bg-glass flex-table-card" style="margin-bottom: 20px;">
                                 <div class="section-card-header" style="display: flex; justify-content: space-between; align-items: center;">
                                     <h3>My Overtime Logs</h3>
-                                    <button class="btn btn-primary btn-sm" onclick="openModal('modal-emp-overtime')"><i class="fa-solid fa-plus"></i> Request Overtime</button>
+                                    <button id="btn-request-overtime" class="btn btn-primary btn-sm" onclick="openModal('modal-emp-overtime')"><i class="fa-solid fa-plus"></i> Request Overtime</button>
                                 </div>
                                 <div class="table-container">
                                     <table class="data-table">

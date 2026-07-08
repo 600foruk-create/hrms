@@ -2170,6 +2170,19 @@ window.renderEmployeeOvertimeTab = function() {
     if (!tbody) return;
     
     tbody.innerHTML = '';
+    
+    const reqBtn = document.getElementById('btn-request-overtime');
+    const otEnabled = db.systemSettings && db.systemSettings.overtimeEnabled !== false;
+    
+    if (reqBtn) {
+        reqBtn.style.display = otEnabled ? 'inline-block' : 'none';
+    }
+    
+    if (!otEnabled) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger" style="font-weight: 600; padding: 20px;">Overtime feature is currently disabled by the Administrator.</td></tr>`;
+        return;
+    }
+    
     let myOts = (db.overtimeLogs || []).filter(o => String(o.employeeId) === String(currentUser.id));
     myOts.sort((a, b) => new Date(b.date) - new Date(a.date));
     
@@ -3866,6 +3879,11 @@ function renderAdminSettingsTab() {
     }
     if (document.getElementById('setting-shift-notif-enabled')) {
         document.getElementById('setting-shift-notif-enabled').checked = sysSettings.shiftNotificationsEnabled !== false;
+    }
+    if (document.getElementById('ot-enabled-switch')) {
+        const otEnabled = sysSettings.overtimeEnabled !== false; // default true
+        document.getElementById('ot-enabled-switch').checked = otEnabled;
+        document.getElementById('ot-rate-container').style.display = otEnabled ? 'flex' : 'none';
     }
     if (document.getElementById('ot-rate-multiplier')) {
         document.getElementById('ot-rate-multiplier').value = sysSettings.overtimeRate || 1.0;
@@ -6995,10 +7013,13 @@ window.saveOvertimeSettings = async function () {
         db.systemSettings = {};
     }
     
+    const isEnabled = document.getElementById('ot-enabled-switch').checked;
     const rate = parseFloat(document.getElementById('ot-rate-multiplier').value) || 1.0;
+    
+    db.systemSettings.overtimeEnabled = isEnabled;
     db.systemSettings.overtimeRate = rate;
 
-    showToast("Overtime Settings", "Overtime multiplier saved successfully.");
+    showToast("Overtime Settings", "Overtime settings saved successfully.");
     saveDb(db);
 };
 
