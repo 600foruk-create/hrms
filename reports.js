@@ -111,7 +111,7 @@ window.initAdminReportsTab = function() {
     const activeUser = window.currentUser || JSON.parse(localStorage.getItem('current_user'));
     
     // Fill Employee Selects (for Admin)
-    const empSelectsAdmin = ['admin-rep-att-emp', 'admin-rep-leave-emp', 'admin-rep-pay-emp', 'admin-rep-prod-emp', 'admin-rep-loan-emp'];
+    const empSelectsAdmin = ['admin-rep-att-emp', 'admin-rep-att-reg-emp', 'admin-rep-leave-emp', 'admin-rep-pay-emp', 'admin-rep-prod-emp', 'admin-rep-loan-emp'];
     const employees = db.users; // Show all users including managers and admins
     empSelectsAdmin.forEach(id => {
         const el = document.getElementById(id);
@@ -145,6 +145,10 @@ window.initAdminReportsTab = function() {
         const el = document.getElementById(id);
         if(el) el.value = endStr;
     });
+
+    const currentMonthStr = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}`;
+    const adminRegMonthEl = document.getElementById('admin-rep-att-reg-month');
+    if (adminRegMonthEl) adminRegMonthEl.value = currentMonthStr;
 
     const assetCategories = [...new Set(db.assets.map(a => a.category))];
     const catSelect = document.getElementById('admin-rep-assets-cat');
@@ -180,7 +184,7 @@ window.initManagerReportsTab = function() {
     if (activeUser && activeUser.role === 'Manager') {
         const teamMembers = db.users.filter(u => u.managerId === activeUser.id || u.managerId === activeUser.name || u.managerId === activeUser.email);
         const team = [activeUser, ...teamMembers];
-        const mgrSelects = ['mgr-rep-att-emp', 'mgr-rep-leave-emp', 'mgr-rep-prod-emp', 'mgr-rep-loan-emp'];
+        const mgrSelects = ['mgr-rep-att-emp', 'mgr-rep-att-reg-emp', 'mgr-rep-leave-emp', 'mgr-rep-prod-emp', 'mgr-rep-loan-emp'];
         mgrSelects.forEach(id => {
             const el = document.getElementById(id);
             if(el) {
@@ -197,6 +201,10 @@ window.initManagerReportsTab = function() {
             const el = document.getElementById(id);
             if(el) el.value = endStr;
         });
+
+        const currentMonthStr = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}`;
+        const mgrRegMonthEl = document.getElementById('mgr-rep-att-reg-month');
+        if (mgrRegMonthEl) mgrRegMonthEl.value = currentMonthStr;
     }
 }
 
@@ -690,6 +698,10 @@ window.initEmployeeReportsTab = function() {
         if(el) el.value = endStr;
     });
 
+    const currentMonthStr = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}`;
+    const empRegMonthEl = document.getElementById('emp-rep-att-reg-month');
+    if (empRegMonthEl) empRegMonthEl.value = currentMonthStr;
+
     // Default load attendance
     window.renderEmployeeReportsTab('attendance');
 };
@@ -867,6 +879,11 @@ window.generateAttendanceRegister = function(role) {
         theadId = 'admin-rep-head-attendance-register';
         subtitleId = 'print-subtitle-admin-attendance-register';
         usersToProcess = db.users.filter(u => u.status === 'Active');
+        
+        const empFilter = document.getElementById('admin-rep-att-reg-emp').value;
+        if (empFilter !== 'All') {
+            usersToProcess = usersToProcess.filter(u => String(u.id) === String(empFilter));
+        }
     } else if (role === 'manager') {
         monthInput = document.getElementById('mgr-rep-att-reg-month').value;
         tbodyId = 'mgr-rep-body-attendance-register';
@@ -874,6 +891,11 @@ window.generateAttendanceRegister = function(role) {
         subtitleId = 'print-subtitle-manager-attendance-register';
         const teamMembers = db.users.filter(u => u.managerId === activeUser.id || u.managerId === activeUser.name || u.managerId === activeUser.email);
         usersToProcess = [activeUser, ...teamMembers].filter(u => u.status === 'Active');
+        
+        const empFilter = document.getElementById('mgr-rep-att-reg-emp').value;
+        if (empFilter !== 'All') {
+            usersToProcess = usersToProcess.filter(u => String(u.id) === String(empFilter));
+        }
     } else if (role === 'employee') {
         monthInput = document.getElementById('emp-rep-att-reg-month').value;
         tbodyId = 'emp-rep-body-attendance-register';
