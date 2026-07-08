@@ -2366,6 +2366,132 @@ window.submitManagerOvertime = function(e) {
     if (typeof window.renderManagerOvertimeTab === 'function') window.renderManagerOvertimeTab();
 };
 
+window.generateOvertimeReport = function(role) {
+    const db = getDb();
+    const allLogs = db.overtimeLogs || [];
+
+    let logs, empPrefix, bodyId, hoursId, approvedId, pendingId, countId;
+
+    if (role === 'admin') {
+        // Populate employee dropdown once
+        const empSel = document.getElementById('admin-rep-ot-emp');
+        if (empSel && empSel.options.length <= 1) {
+            (db.users || []).forEach(u => {
+                empSel.innerHTML += `<option value="${u.id}">${u.name}</option>`;
+            });
+        }
+        const empFilter  = document.getElementById('admin-rep-ot-emp')?.value || 'All';
+        const statFilter = document.getElementById('admin-rep-ot-status')?.value || 'All';
+        const fromDate   = document.getElementById('admin-rep-ot-from')?.value || '';
+        const toDate     = document.getElementById('admin-rep-ot-to')?.value || '';
+        logs = allLogs.filter(o => {
+            const matchEmp  = empFilter  === 'All' || String(o.employeeId) === String(empFilter);
+            const matchStat = statFilter === 'All' || o.status === statFilter;
+            const matchFrom = !fromDate || o.date >= fromDate;
+            const matchTo   = !toDate   || o.date <= toDate;
+            return matchEmp && matchStat && matchFrom && matchTo;
+        });
+        const tbody = document.getElementById('admin-rep-body-overtime');
+        if (!tbody) return;
+        tbody.innerHTML = logs.length === 0 ? `<tr><td colspan="7" class="text-center text-muted">No overtime records found.</td></tr>` : '';
+        logs.sort((a,b) => b.date.localeCompare(a.date)).forEach(o => {
+            const emp     = (db.users||[]).find(u => String(u.id) === String(o.employeeId));
+            const approver= (db.users||[]).find(u => String(u.id) === String(o.approvedBy));
+            const sc = o.status === 'Approved' ? 'approved' : (o.status === 'Rejected' ? 'rejected' : 'pending');
+            tbody.innerHTML += `<tr>
+                <td>${o.date}</td>
+                <td>${emp?.name || o.employeeId}</td>
+                <td style="font-weight:600;color:var(--primary);">${o.hours} hrs</td>
+                <td>${o.type || ''}</td>
+                <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${o.reason||''}">${o.reason||''}</td>
+                <td><span class="status-badge ${sc}">${o.status}</span></td>
+                <td>${approver?.name || (o.approvedBy ? o.approvedBy : '—')}</td>
+            </tr>`;
+        });
+        const totalHrs = logs.filter(o => o.status === 'Approved').reduce((s,o) => s + (parseFloat(o.hours)||0), 0);
+        const el = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+        el('admin-rep-ot-count',    logs.length);
+        el('admin-rep-ot-hours',    totalHrs.toFixed(1) + ' hrs');
+        el('admin-rep-ot-pending',  logs.filter(o => o.status === 'Pending').length);
+        el('admin-rep-ot-approved', logs.filter(o => o.status === 'Approved').length);
+
+    } else if (role === 'manager') {
+        const myTeamIds = (db.users||[]).filter(u => String(u.managerId) === String(currentUser.id)).map(u => String(u.id));
+        myTeamIds.push(String(currentUser.id)); // include manager's own OT
+        // Populate employee dropdown once
+        const empSel = document.getElementById('mgr-rep-ot-emp');
+        if (empSel && empSel.options.length <= 1) {
+            (db.users||[]).filter(u => myTeamIds.includes(String(u.id))).forEach(u => {
+                empSel.innerHTML += `<option value="${u.id}">${u.name}</option>`;
+            });
+        }
+        const empFilter  = document.getElementById('mgr-rep-ot-emp')?.value || 'All';
+        const statFilter = document.getElementById('mgr-rep-ot-status')?.value || 'All';
+        const fromDate   = document.getElementById('mgr-rep-ot-from')?.value || '';
+        const toDate     = document.getElementById('mgr-rep-ot-to')?.value || '';
+        logs = allLogs.filter(o => {
+            const matchTeam = myTeamIds.includes(String(o.employeeId));
+            const matchEmp  = empFilter === 'All' || String(o.employeeId) === String(empFilter);
+            const matchStat = statFilter === 'All' || o.status === statFilter;
+            const matchFrom = !fromDate || o.date >= fromDate;
+            const matchTo   = !toDate   || o.date <= toDate;
+            return matchTeam && matchEmp && matchStat && matchFrom && matchTo;
+        });
+        const tbody = document.getElementById('mgr-rep-body-overtime');
+        if (!tbody) return;
+        tbody.innerHTML = logs.length === 0 ? `<tr><td colspan="6" class="text-center text-muted">No overtime records found.</td></tr>` : '';
+        logs.sort((a,b) => b.date.localeCompare(a.date)).forEach(o => {
+            const emp = (db.users||[]).find(u => String(u.id) === String(o.employeeId));
+            const sc  = o.status === 'Approved' ? 'approved' : (o.status === 'Rejected' ? 'rejected' : 'pending');
+            tbody.innerHTML += `<tr>
+                <td>${o.date}</td>
+                <td>${emp?.name || o.employeeId}</td>
+                <td style="font-weight:600;color:var(--primary);">${o.hours} hrs</td>
+                <td>${o.type || ''}</td>
+                <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${o.reason||''}">${o.reason||''}</td>
+                <td><span class="status-badge ${sc}">${o.status}</span></td>
+            </tr>`;
+        });
+        const approvedLogs = logs.filter(o => o.status === 'Approved');
+        const totalHrs = approvedLogs.reduce((s,o) => s + (parseFloat(o.hours)||0), 0);
+        const el = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+        el('mgr-rep-ot-hours',    totalHrs.toFixed(1) + ' hrs');
+        el('mgr-rep-ot-approved', approvedLogs.length);
+        el('mgr-rep-ot-pending',  logs.filter(o => o.status === 'Pending').length);
+
+    } else if (role === 'employee') {
+        const statFilter = document.getElementById('emp-rep-ot-status')?.value || 'All';
+        const fromDate   = document.getElementById('emp-rep-ot-from')?.value || '';
+        const toDate     = document.getElementById('emp-rep-ot-to')?.value || '';
+        logs = allLogs.filter(o => {
+            const matchMe   = String(o.employeeId) === String(currentUser.id);
+            const matchStat = statFilter === 'All' || o.status === statFilter;
+            const matchFrom = !fromDate || o.date >= fromDate;
+            const matchTo   = !toDate   || o.date <= toDate;
+            return matchMe && matchStat && matchFrom && matchTo;
+        });
+        const tbody = document.getElementById('emp-rep-body-overtime');
+        if (!tbody) return;
+        tbody.innerHTML = logs.length === 0 ? `<tr><td colspan="5" class="text-center text-muted">No overtime records found.</td></tr>` : '';
+        logs.sort((a,b) => b.date.localeCompare(a.date)).forEach(o => {
+            const sc = o.status === 'Approved' ? 'approved' : (o.status === 'Rejected' ? 'rejected' : 'pending');
+            tbody.innerHTML += `<tr>
+                <td>${o.date}</td>
+                <td style="font-weight:600;color:var(--primary);">${o.hours} hrs</td>
+                <td>${o.type || ''}</td>
+                <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${o.reason||''}">${o.reason||''}</td>
+                <td><span class="status-badge ${sc}">${o.status}</span></td>
+            </tr>`;
+        });
+        const approvedLogs = logs.filter(o => o.status === 'Approved');
+        const totalHrs = approvedLogs.reduce((s,o) => s + (parseFloat(o.hours)||0), 0);
+        const el = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+        el('emp-rep-ot-hours',    totalHrs.toFixed(1) + ' hrs');
+        el('emp-rep-ot-approved', approvedLogs.length);
+        el('emp-rep-ot-pending',  logs.filter(o => o.status === 'Pending').length);
+    }
+};
+
 window.renderAdminOvertimeTab = function() {
     const db = getDb();
     const tbody = document.getElementById('admin-overtime-table-body');
