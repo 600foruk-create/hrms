@@ -3924,7 +3924,9 @@ function renderAdminAnnouncementsTab() {
     
     tbody.innerHTML = '';
     
-    const visibleAnnouncements = (db.announcements || []).filter(a => !(a.hidden_by && a.hidden_by.includes(currentUser.id)));
+    let visibleAnnouncements = (db.announcements || []).filter(a => !(a.hidden_by && a.hidden_by.includes(currentUser.id)));
+    // Hide birthdays from the tab unless it's the current user's birthday
+    visibleAnnouncements = visibleAnnouncements.filter(a => !(a.isBirthday && !a.id.includes('-' + currentUser.id + '-')));
     const sortedAnnouncements = [...visibleAnnouncements].sort((a, b) => {
         const timeA = new Date(a.created_at || a.date || 0).getTime();
         const timeB = new Date(b.created_at || b.date || 0).getTime();
@@ -3991,6 +3993,8 @@ window.renderUserAnnouncementsTab = function(subtab = 'today') {
     let relevantAnns = (db.announcements || []).filter(a => a.target_audience === 'All' || a.target_audience === currentUser.role || a.target_audience === `User: ${currentUser.id}`);
     // Filter out announcements hidden by this user
     relevantAnns = relevantAnns.filter(a => !(a.hidden_by && a.hidden_by.includes(currentUser.id)));
+    // Hide birthdays from the tab unless it's the current user's birthday
+    relevantAnns = relevantAnns.filter(a => !(a.isBirthday && !a.id.includes('-' + currentUser.id + '-')));
     
     // Apply subtab filtering
     const todayStr = new Date().toISOString().split('T')[0];
