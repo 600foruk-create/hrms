@@ -10624,3 +10624,93 @@ function initShiftProgress() {
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(initShiftProgress, 1000);
 });
+// ==================== MY TEAM WIDGET LOGIC ====================
+function calculateExactAgeAndExp(startDate, endDate = new Date()) {
+    if (!startDate) return 'N/A';
+    const start = new Date(startDate);
+    if (isNaN(start.getTime())) return 'N/A';
+    
+    let end = new Date(endDate);
+    
+    let years = end.getFullYear() - start.getFullYear();
+    let months = end.getMonth() - start.getMonth();
+    let days = end.getDate() - start.getDate();
+    
+    if (days < 0) {
+        months--;
+        let prevMonth = new Date(end.getFullYear(), end.getMonth(), 0);
+        days += prevMonth.getDate();
+    }
+    if (months < 0) {
+        years--;
+        months += 12;
+    }
+    
+    return `${years}y ${months}m ${days}d`;
+}
+
+function renderMyTeamWidget() {
+    const container = document.getElementById('employee-my-team-container');
+    if (!container) return;
+    
+    if (!currentUser || !currentUser.managerId) {
+        container.innerHTML = '<div class="empty-state" style="width: 100%;">No team assigned.</div>';
+        return;
+    }
+
+    const db = getDb();
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Find Manager
+    const manager = db.users.find(u => String(u.id) === String(currentUser.managerId));
+    
+    // Find Teammates (everyone with same managerId)
+    const teammates = db.users.filter(u => String(u.managerId) === String(currentUser.managerId));
+    
+    let html = '';
+    
+    const renderCard = (user, isManager = false) => {
+        // Check presence
+        const attRecord = (db.attendance || []).find(a => String(a.employeeId) === String(user.id) && a.date === today);
+        const presenceClass = (attRecord && attRecord.timeIn) ? 'present' : 'absent';
+        
+        // Tooltip stats
+        const ageStr = calculateExactAgeAndExp(user.dob);
+        const expStr = calculateExactAgeAndExp(user.startDate || user.doj);
+        
+        const tooltipHtml = `Age: ${ageStr}&#10;Experience: ${expStr}`;
+        
+        let avatarHtml = '';
+        if (user.profilePic) {
+            avatarHtml = `<img src="${user.profilePic}" class="team-member-avatar ${presenceClass}" alt="${user.name}">`;
+        } else {
+            avatarHtml = `<div class="team-member-avatar ${presenceClass}">${user.name.charAt(0).toUpperCase()}</div>`;
+        }
+        
+        const badgeHtml = isManager ? '<span class="team-member-badge">Team Lead</span>' : '';
+        
+        return `
+            <div class="team-member-card">
+                ${badgeHtml}
+                ${avatarHtml}
+                <div class="team-member-name" title="${user.name}">${user.name}</div>
+                <div class="team-member-role">${user.designation || user.role || 'Staff'}</div>
+                <div class="team-member-tooltip">${tooltipHtml}</div>
+            </div>
+        `;
+    };
+    
+    if (manager) {
+        html += renderCard(manager, true);
+    }
+    
+    teammates.forEach(tm => {
+        // Don't render the manager twice if they are accidentally in the teammates array
+        if (!manager || String(tm.id) !== String(manager.id)) {
+            html += renderCard(tm, false);
+        }
+    });
+    
+    container.innerHTML = html;
+}
+
