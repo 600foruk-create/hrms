@@ -10941,9 +10941,17 @@ window.renderNewsInteractions = function(announcement) {
         comments.forEach(c => {
             const bubble = document.createElement('div');
             bubble.className = 'news-comment-bubble';
-            const initial = (c.authorName || 'U').charAt(0).toUpperCase();
+            
+            const commentUser = db.users.find(u => u.id === c.authorId);
+            let avatarHtml = '';
+            if (commentUser && commentUser.profile_pic) {
+                avatarHtml = `<img src="${commentUser.profile_pic}" alt="${c.authorName}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+            } else {
+                avatarHtml = (c.authorName || 'U').charAt(0).toUpperCase();
+            }
+
             bubble.innerHTML = `
-                <div class="news-comment-avatar">${initial}</div>
+                <div class="news-comment-avatar">${avatarHtml}</div>
                 <div class="news-comment-content-wrapper">
                     <div class="news-comment-content">
                         <span class="news-comment-header">${c.authorName}</span>
