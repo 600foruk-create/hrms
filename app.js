@@ -10508,21 +10508,18 @@ function updateDropdownShiftProgress() {
     const progressBar = document.getElementById('dropdown-shift-progress-bar');
     const progressText = document.getElementById('dropdown-shift-progress-text');
     const statusText = document.getElementById('dropdown-shift-status-text');
+    const shiftTimeText = document.getElementById('dropdown-shift-time');
+    const shiftInText = document.getElementById('dropdown-shift-in-time');
     
     if (!container || !progressBar || !progressText || !statusText) return;
 
     container.style.display = 'block';
-
-    if (!attRecord || !attRecord.timeIn) {
-        progressBar.style.width = '0%';
-        progressText.textContent = '0%';
-        statusText.textContent = 'Not checked in today';
-        return;
-    }
-
+    
     let shiftDurationHours = 8;
+    let shiftTimeStr = '09:00 - 18:00';
     const shift = (db.shifts || []).find(s => s.id === currentUser.shiftId);
     if (shift && shift.startTime && shift.endTime) {
+        shiftTimeStr = `${shift.startTime} - ${shift.endTime}`;
         const parseTime = (t) => {
             let parts = t.split(':').map(Number);
             return parts[0] * 60 + (parts[1] || 0);
@@ -10532,6 +10529,19 @@ function updateDropdownShiftProgress() {
         if (endMins < startMins) endMins += 24 * 60;
         shiftDurationHours = (endMins - startMins) / 60;
     }
+    if(shiftDurationHours <= 0) shiftDurationHours = 8;
+
+    if (shiftTimeText) shiftTimeText.textContent = shiftTimeStr;
+
+    if (!attRecord || !attRecord.timeIn) {
+        progressBar.style.width = '0%';
+        progressText.textContent = '0%';
+        statusText.textContent = 'Not checked in today';
+        if (shiftInText) shiftInText.textContent = '--:--';
+        return;
+    }
+    
+    if (shiftInText) shiftInText.textContent = attRecord.timeIn;
     
     if(shiftDurationHours <= 0) shiftDurationHours = 8;
 
@@ -10579,19 +10589,27 @@ function updateDropdownShiftProgress() {
     progressBar.style.width = `${displayPct}%`;
     progressText.textContent = `${displayPct}%`;
     
+    let color = 'var(--primary)';
+    if (elapsedHours <= 2) {
+        color = 'var(--danger)';
+    } else if (elapsedHours <= (shiftDurationHours / 2)) {
+        color = 'var(--warning)';
+    } else {
+        color = 'var(--success)';
+    }
+    
+    progressBar.style.backgroundColor = color;
+    
     if (attRecord.timeOut) {
         statusText.textContent = `Shift completed (${elapsedHours.toFixed(1)}h logged)`;
-        progressBar.style.backgroundColor = 'var(--success)';
     } else {
         const remainingHours = shiftDurationHours - elapsedHours;
         if (remainingHours > 0) {
             const rH = Math.floor(remainingHours);
             const rM = Math.floor((remainingHours - rH) * 60);
             statusText.textContent = `${rH}h ${rM}m remaining in shift`;
-            progressBar.style.backgroundColor = 'var(--primary)';
         } else {
             statusText.textContent = `Overtime (${(elapsedHours - shiftDurationHours).toFixed(1)}h extra)`;
-            progressBar.style.backgroundColor = 'var(--warning)';
         }
     }
 }
