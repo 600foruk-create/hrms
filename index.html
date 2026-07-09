@@ -7429,11 +7429,11 @@
             
             <!-- Reactions -->
             <div style="display: flex; gap: 10px; margin-bottom: 20px;" id="news-reaction-toolbar">
-                <button class="btn btn-outline news-react-btn" data-reaction="??" style="flex: 1; display: flex; justify-content: center; gap: 5px;"><span style="font-size: 18px;">??</span> <span class="react-count"></span></button>
-                <button class="btn btn-outline news-react-btn" data-reaction="??" style="flex: 1; display: flex; justify-content: center; gap: 5px;"><span style="font-size: 18px;">??</span> <span class="react-count"></span></button>
-                <button class="btn btn-outline news-react-btn" data-reaction="??" style="flex: 1; display: flex; justify-content: center; gap: 5px;"><span style="font-size: 18px;">??</span> <span class="react-count"></span></button>
-                <button class="btn btn-outline news-react-btn" data-reaction="??" style="flex: 1; display: flex; justify-content: center; gap: 5px;"><span style="font-size: 18px;">??</span> <span class="react-count"></span></button>
-            </div>
+    <button class="btn btn-outline news-react-btn" data-reaction="like" style="flex: 1; display: flex; justify-content: center; gap: 5px;"><span style="font-size: 18px;">👍</span> <span class="react-count"></span></button>
+    <button class="btn btn-outline news-react-btn" data-reaction="heart" style="flex: 1; display: flex; justify-content: center; gap: 5px;"><span style="font-size: 18px;">❤️</span> <span class="react-count"></span></button>
+    <button class="btn btn-outline news-react-btn" data-reaction="clap" style="flex: 1; display: flex; justify-content: center; gap: 5px;"><span style="font-size: 18px;">👏</span> <span class="react-count"></span></button>
+    <button class="btn btn-outline news-react-btn" data-reaction="celebrate" style="flex: 1; display: flex; justify-content: center; gap: 5px;"><span style="font-size: 18px;">🎉</span> <span class="react-count"></span></button>
+</div>
 
             <hr style="border: 0; border-top: 1px solid var(--border-color); margin-bottom: 15px;">
 
@@ -7444,8 +7444,8 @@
 
             <!-- Comment Input -->
             <div style="display: flex; gap: 10px;">
-                <input type="text" id="news-comment-input" class="form-control" placeholder="Write a comment..." style="flex-grow: 1;">
-                <button class="btn btn-primary" id="btn-post-news-comment" style="padding: 0 15px;"><i class="fa-solid fa-paper-plane"></i></button>
+                <input type="text" id="news-comment-input" class="form-control" placeholder="Write a comment..." onkeypress="if(event.key === 'Enter') window.postNewsComment()" style="flex-grow: 1;">
+                <button class="btn btn-primary" id="btn-post-news-comment" onclick="window.postNewsComment()" style="padding: 0 15px;"><i class="fa-solid fa-paper-plane"></i></button>
             </div>
         </div>
     </div>
@@ -7453,6 +7453,7 @@
 </body>
 
 </html>
+
 
 
 

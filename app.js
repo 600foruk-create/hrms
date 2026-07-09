@@ -3932,7 +3932,7 @@ function renderAdminAnnouncementsTab() {
     
     let visibleAnnouncements = (db.announcements || []).filter(a => !(a.hidden_by && a.hidden_by.includes(currentUser.id)));
     // Hide birthdays from the tab unless it's the current user's birthday
-    visibleAnnouncements = visibleAnnouncements.filter(a => !(a.isBirthday && !(a.id && a.id.includes('-' + currentUser.id + '-'))));
+    visibleAnnouncements = visibleAnnouncements.filter(a => !((a.isBirthday || (a.id && a.id.startsWith('BTH-'))) && !(a.id && a.id.includes('-' + currentUser.id + '-'))));
     const sortedAnnouncements = [...visibleAnnouncements].sort((a, b) => {
         const timeA = new Date(a.created_at || a.date || 0).getTime();
         const timeB = new Date(b.created_at || b.date || 0).getTime();
@@ -4000,7 +4000,7 @@ window.renderUserAnnouncementsTab = function(subtab = 'today') {
     // Filter out announcements hidden by this user
     relevantAnns = relevantAnns.filter(a => !(a.hidden_by && a.hidden_by.includes(currentUser.id)));
     // Hide birthdays from the tab unless it's the current user's birthday
-    relevantAnns = relevantAnns.filter(a => !(a.isBirthday && !(a.id && a.id.includes('-' + currentUser.id + '-'))));
+    relevantAnns = relevantAnns.filter(a => !((a.isBirthday || (a.id && a.id.startsWith('BTH-'))) && !(a.id && a.id.includes('-' + currentUser.id + '-'))));
     
     // Apply subtab filtering
     const todayStr = new Date().toISOString().split('T')[0];
@@ -4159,7 +4159,7 @@ window.viewAnnouncementReactions = function(id) {
     }
 
     const counts = { like: 0, heart: 0, dislike: 0 };
-    const emojiMap = { like: '👍', heart: '❤️', dislike: '👎' };
+    const emojiMap = { like: '👍', heart: '❤️', clap: '👏', celebrate: '🎉' };
     const usersReactions = [];
 
     Object.entries(ann.reactions).forEach(([userId, reaction]) => {
@@ -10947,40 +10947,35 @@ window.toggleNewsReaction = function(announcementId, reactionType) {
     }
 };
 
-const postCommentBtn = document.getElementById('btn-post-news-comment');
-if (postCommentBtn) {
-    postCommentBtn.addEventListener('click', () => {
-        const input = document.getElementById('news-comment-input');
-        const text = input.value.trim();
-        if (!text) return;
 
-        const db = getDb();
-        const announcement = (db.announcements || []).find(a => a.id === window.currentNewsId);
-        if (!announcement) return;
 
-        if (!announcement.comments) announcement.comments = [];
-        
-        announcement.comments.push({
-            authorId: currentUser.id,
-            authorName: currentUser.name,
-            text: text,
-            timestamp: new Date().toISOString()
-        });
+window.postNewsComment = function() {
+    const input = document.getElementById('news-comment-input');
+    const text = input.value.trim();
+    if (!text) return;
 
-        saveDb(db);
-        input.value = '';
-        window.renderNewsInteractions(announcement);
-        
-        // Refresh Admin View if active
-        if (activeTab === 'announcements' && typeof renderAdminAnnouncementsTab === 'function') {
-            renderAdminAnnouncementsTab();
-        }
+    const db = getDb();
+    const announcement = (db.announcements || []).find(a => a.id === window.currentNewsId);
+    if (!announcement) {
+        console.error("Announcement not found");
+        return;
+    }
+
+    if (!announcement.comments) announcement.comments = [];
+    
+    announcement.comments.push({
+        authorId: currentUser.id,
+        authorName: currentUser.name,
+        text: text,
+        timestamp: new Date().toISOString()
     });
-}
-const commentInputEl = document.getElementById('news-comment-input');
-if (commentInputEl) {
-    commentInputEl.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') document.getElementById('btn-post-news-comment').click();
-    });
-}
 
+    saveDb(db);
+    input.value = '';
+    window.renderNewsInteractions(announcement);
+    
+    // Refresh Admin View if active
+    if (typeof activeTab !== 'undefined' && activeTab === 'announcements' && typeof renderAdminAnnouncementsTab === 'function') {
+        renderAdminAnnouncementsTab();
+    }
+};
