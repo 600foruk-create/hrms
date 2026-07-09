@@ -10605,7 +10605,7 @@ function updateDropdownShiftProgress() {
     
     progressBar.style.backgroundColor = color;
     
-    if (attRecord.timeOut) {
+    if (attRecord.timeOut && attRecord.timeOut !== '-') {
         statusText.textContent = `Shift completed (${elapsedHours.toFixed(1)}h logged)`;
     } else {
         const remainingHours = shiftDurationHours - elapsedHours;
