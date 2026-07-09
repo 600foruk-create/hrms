@@ -10537,7 +10537,7 @@ function updateDropdownShiftProgress() {
 
     if (shiftTimeText) shiftTimeText.textContent = shiftTimeStr;
 
-    if (!attRecord || !attRecord.timeIn) {
+    if (!attRecord || !attRecord.timeIn || attRecord.timeIn === '-') {
         progressBar.style.width = '0%';
         progressText.textContent = '0%';
         statusText.textContent = 'Not checked in today';
@@ -10576,8 +10576,9 @@ function updateDropdownShiftProgress() {
     }
 
     let timeOutDate = new Date();
-    if (attRecord.timeOut) {
+    if (attRecord.timeOut && attRecord.timeOut !== '-') {
         timeOutDate = parseDbTime(attRecord.timeOut);
+        if (isNaN(timeOutDate.getTime())) timeOutDate = new Date();
     }
 
     let elapsedMs = timeOutDate - timeInDate;
