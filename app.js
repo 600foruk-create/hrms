@@ -5407,6 +5407,10 @@ function renderEmployeeDashboard() {
             renderEmployeeDashboard(); // refresh
         };
     }
+
+    if (typeof renderMyTeamWidget === 'function') {
+        renderMyTeamWidget();
+    }
 }
 
 function renderEmployeeAttendanceTab() {
