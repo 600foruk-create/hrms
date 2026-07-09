@@ -1204,7 +1204,7 @@ function renderSidebar() {
     const topbarNameLabel = document.getElementById('topbar-user-name-label');
     const topbarRoleLabel = document.getElementById('topbar-user-role-label');
     if (topbarNameLabel) topbarNameLabel.textContent = currentUser.name;
-    if (topbarRoleLabel) topbarRoleLabel.textContent = currentUser.role === 'Admin' ? 'HR Admin' : currentUser.role;
+    if (topbarRoleLabel) topbarRoleLabel.textContent = currentUser.designation || (currentUser.role === 'Admin' ? 'HR Admin' : currentUser.role);
 
     const quickActionsEl = document.getElementById('sidebar-quick-actions');
     if (quickActionsEl) {
