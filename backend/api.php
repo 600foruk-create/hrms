@@ -1919,18 +1919,22 @@ elseif ($action === 'save_all') {
                     } else {
                         $created_at = date('Y-m-d H:i:s');
                     }
-                    $stmt->execute([
-                        $a['id'],
-                        $a['title'] ?? '',
-                        $a['message'] ?? '',
-                        $a['target_audience'] ?? '',
-                        $a['created_by'] ?? '',
-                        $created_at,
-                        isset($a['read_by']) ? json_encode($a['read_by']) : '[]',
-                        isset($a['hidden_by']) ? json_encode($a['hidden_by']) : '[]',
-                        isset($a['reactions']) ? json_encode($a['reactions']) : '{}',
-                        isset($a['comments']) ? json_encode($a['comments']) : '[]'
-                    ]);
+                    try {
+                        $stmt->execute([
+                            $a['id'],
+                            $a['title'] ?? '',
+                            $a['message'] ?? '',
+                            $a['target_audience'] ?? '',
+                            $a['created_by'] ?? '',
+                            $created_at,
+                            isset($a['read_by']) ? json_encode($a['read_by']) : '[]',
+                            isset($a['hidden_by']) ? json_encode($a['hidden_by']) : '[]',
+                            isset($a['reactions']) ? json_encode($a['reactions']) : '{}',
+                            isset($a['comments']) ? json_encode($a['comments']) : '[]'
+                        ]);
+                    } catch (Exception $rowEx) {
+                        error_log("Announcement row insert error: " . $rowEx->getMessage());
+                    }
                 }
             }
         } catch (Exception $e) {
