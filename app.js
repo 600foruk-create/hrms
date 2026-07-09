@@ -10830,7 +10830,8 @@ window.renderNewsTicker = function() {
              icon = '<i class="fa-solid fa-cake-candles" style="color: #ff9f43;"></i>';
         }
 
-        item.innerHTML = " + '$' + "{icon} <span style="margin-left: 5px;"><strong> + '$' + "{a.title}</strong>: " + '$' + "{a.message.substring(0, 50)} + '$' + "{a.message.length > 50 ? '...' : ''}</span>;
+        const msg = a.message || a.content || '';
+        item.innerHTML = `${icon} <span style="margin-left: 5px;"><strong>${a.title}</strong>: ${msg.substring(0, 50)}${msg.length > 50 ? '...' : ''}</span>`;
         item.onclick = () => openNewsInteractionModal(a.id);
         
         item.onmouseover = () => item.style.textDecoration = 'underline';
@@ -10847,8 +10848,9 @@ window.openNewsInteractionModal = function(announcementId) {
 
     window.currentNewsId = announcementId;
 
-    document.getElementById('news-interaction-title').innerHTML = announcement.id.startsWith('BTH-') ? '?? Birthday Celebration' : '?? Announcement';
-    document.getElementById('news-interaction-content').innerHTML = <strong> + '$' + "{announcement.title}</strong><br><br> + '$' + "{announcement.message};
+    document.getElementById('news-interaction-title').innerHTML = announcement.id.startsWith('BTH-') ? '🎂 Birthday Celebration' : '📢 Announcement';
+    const msg = announcement.message || announcement.content || '';
+    document.getElementById('news-interaction-content').innerHTML = `<strong>${announcement.title}</strong><br><br>${msg}`;
 
     window.renderNewsInteractions(announcement);
     openModal('modal-news-interaction');
@@ -10890,13 +10892,13 @@ window.renderNewsInteractions = function(announcement) {
         comments.forEach(c => {
             const bubble = document.createElement('div');
             bubble.className = 'news-comment-bubble';
-            bubble.innerHTML = 
+            bubble.innerHTML = `
                 <div class="news-comment-header">
-                    <span> + '$' + "{c.authorName}</span>
-                    <span> + '$' + "{new Date(c.timestamp).toLocaleString()}</span>
+                    <span>${c.authorName}</span>
+                    <span>${new Date(c.timestamp).toLocaleString()}</span>
                 </div>
-                <div> + '$' + "{c.text}</div>
-            ;
+                <div>${c.text}</div>
+            `;
             commentsList.appendChild(bubble);
         });
         setTimeout(() => commentsList.scrollTop = commentsList.scrollHeight, 10);
