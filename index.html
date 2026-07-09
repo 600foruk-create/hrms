@@ -809,6 +809,15 @@
         <!-- Main Content Area -->
         <div class="main-layout" style="margin-top: 70px;">
             <main class="content-body">
+                <!-- News & Birthday Ticker -->
+                <div id="news-ticker-container" style="display: none; background: linear-gradient(90deg, var(--bg-surface) 0%, rgba(14, 158, 181, 0.05) 50%, var(--bg-surface) 100%); border-bottom: 1px solid var(--border-color); padding: 8px 1.5rem; overflow: hidden; align-items: center; gap: 15px; position: sticky; top: 0; z-index: 99; margin: -1.5rem -1.5rem 1.5rem -1.5rem;">
+                    <div style="background: var(--danger); color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; box-shadow: 0 2px 8px rgba(244,63,94,0.3); display: flex; align-items: center; gap: 5px;">
+                        <i class="fa-solid fa-bolt" style="animation: pulse 2s infinite;"></i> Live
+                    </div>
+                    <div style="flex-grow: 1; overflow: hidden; position: relative; margin-left: 10px;">
+                        <marquee id="news-ticker-marquee" scrollamount="5" scrolldelay="0" style="color: var(--text-primary); font-size: 13px; font-weight: 500; display: flex; align-items: center; cursor: pointer;" onmouseover="this.stop();" onmouseout="this.start();"></marquee>
+                    </div>
+                </div>
                 <!-- ==================== ADMIN VIEW ==================== -->
                 <div id="admin-view" class="role-view">
                     <!-- Admin Dashboard Tab -->
