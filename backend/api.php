@@ -429,8 +429,13 @@ try {
         `read_by` text DEFAULT NULL,
         `hidden_by` text DEFAULT NULL,
         `reactions` text DEFAULT NULL,
+        `comments` text DEFAULT NULL,
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    
+    // Safety ALTERS in case columns are missing
+    $pdo->exec("ALTER TABLE announcements ADD COLUMN `reactions` text DEFAULT NULL");
+    $pdo->exec("ALTER TABLE announcements ADD COLUMN `comments` text DEFAULT NULL");
 
 } catch (Exception $e) {
     // Ignore if unsupported (e.g. SQLite doesn't support ENGINE=InnoDB)
@@ -550,8 +555,12 @@ try {
             `created_at` TEXT,
             `read_by` TEXT,
             `hidden_by` TEXT,
-            `reactions` TEXT
+            `reactions` TEXT,
+            `comments` TEXT
         )");
+        // Safety ALTERS for SQLite
+        try { $pdo->exec("ALTER TABLE announcements ADD COLUMN `reactions` TEXT"); } catch(Exception $e) {}
+        try { $pdo->exec("ALTER TABLE announcements ADD COLUMN `comments` TEXT"); } catch(Exception $e) {}
     } catch (Exception $e2) {
         error_log("Failed to create company_profile table: " . $e2->getMessage());
     }
@@ -1392,6 +1401,7 @@ if ($action === 'load_all') {
                 if (isset($a['read_by'])) $a['read_by'] = json_decode($a['read_by'], true) ?: [];
                 if (isset($a['hidden_by'])) $a['hidden_by'] = json_decode($a['hidden_by'], true) ?: [];
                 if (isset($a['reactions'])) $a['reactions'] = json_decode($a['reactions'], true) ?: [];
+                if (isset($a['comments'])) $a['comments'] = json_decode($a['comments'], true) ?: [];
             }
             $dbState['announcements'] = $anns;
         } catch (Exception $e) { $dbState['announcements'] = []; }
@@ -1901,7 +1911,7 @@ elseif ($action === 'save_all') {
         try {
             $pdo->exec("DELETE FROM announcements");
             if (!empty($data['announcements'])) {
-                $stmt = $pdo->prepare("INSERT INTO announcements (id, title, message, target_audience, created_by, created_at, read_by, hidden_by, reactions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO announcements (id, title, message, target_audience, created_by, created_at, read_by, hidden_by, reactions, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 foreach ($data['announcements'] as $a) {
                     $stmt->execute([
                         $a['id'],
@@ -1912,7 +1922,8 @@ elseif ($action === 'save_all') {
                         $a['created_at'] ?? '',
                         isset($a['read_by']) ? json_encode($a['read_by']) : '[]',
                         isset($a['hidden_by']) ? json_encode($a['hidden_by']) : '[]',
-                        isset($a['reactions']) ? json_encode($a['reactions']) : '{}'
+                        isset($a['reactions']) ? json_encode($a['reactions']) : '{}',
+                        isset($a['comments']) ? json_encode($a['comments']) : '[]'
                     ]);
                 }
             }

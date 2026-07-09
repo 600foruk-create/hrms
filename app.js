@@ -10736,3 +10736,230 @@ function renderMyTeamWidget() {
     container.innerHTML = html;
 }
 
+
+// --- NEWS TICKER & BIRTHDAYS ---
+window.generateDailyBirthdays = function(db) {
+    const today = new Date();
+    const currentMonth = today.getMonth() + 1;
+    const currentDay = today.getDate();
+
+    let birthdayAnns = [];
+    
+    (db.users || []).forEach(u => {
+        if (u.dob && u.status === 'Active') {
+            const parts = u.dob.split('-');
+            if (parts.length === 3) {
+                const bMonth = parseInt(parts[1], 10);
+                const bDay = parseInt(parts[2], 10);
+                if (bMonth === currentMonth && bDay === currentDay) {
+                    birthdayAnns.push({
+                        id: 'BTH-' + u.id + '-' + today.getFullYear(),
+                        title: ?? Happy Birthday " + '$' + "{u.name}! ??,
+                        message: Wishing you a fantastic birthday, " + '$' + "{u.name}! Hope you have a wonderful day!,
+                        target_audience: 'All',
+                        created_by: 'System',
+                        created_at: today.toISOString(),
+                        isBirthday: true,
+                        reactions: {},
+                        comments: []
+                    });
+                }
+            }
+        }
+    });
+    return birthdayAnns;
+};
+
+window.renderNewsTicker = function() {
+    const db = getDb();
+    const container = document.getElementById('news-ticker-container');
+    const marquee = document.getElementById('news-ticker-marquee');
+    if (!container || !marquee) return;
+
+    if (!currentUser) {
+        container.style.display = 'none';
+        return;
+    }
+
+    const todayDateStr = new Date().toISOString().split('T')[0];
+    
+    let activeAnnouncements = (db.announcements || []).filter(a => {
+        if (a.created_at && a.created_at.startsWith(todayDateStr)) {
+             if (a.target_audience === 'All') return true;
+             if (a.target_audience === currentUser.role) return true;
+             return false;
+        }
+        return false;
+    });
+
+    const birthdays = window.generateDailyBirthdays(db);
+    
+    let dbUpdated = false;
+    birthdays.forEach(b => {
+        const existing = (db.announcements || []).find(a => a.id === b.id);
+        if (!existing) {
+            if(!db.announcements) db.announcements = [];
+            db.announcements.push(b);
+            activeAnnouncements.push(b);
+            dbUpdated = true;
+        } else {
+            if(!activeAnnouncements.find(a => a.id === b.id)) {
+                 activeAnnouncements.push(existing);
+            }
+        }
+    });
+
+    if (dbUpdated) {
+        saveDb(db);
+    }
+
+    if (activeAnnouncements.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.style.display = 'flex';
+    marquee.innerHTML = '';
+
+    activeAnnouncements.forEach((a) => {
+        const item = document.createElement('span');
+        item.style.marginRight = '50px';
+        
+        let icon = '<i class="fa-solid fa-bullhorn" style="color: var(--primary);"></i>';
+        if (a.id && a.id.startsWith('BTH-')) {
+             icon = '<i class="fa-solid fa-cake-candles" style="color: #ff9f43;"></i>';
+        }
+
+        item.innerHTML = " + '$' + "{icon} <span style="margin-left: 5px;"><strong> + '$' + "{a.title}</strong>: " + '$' + "{a.message.substring(0, 50)} + '$' + "{a.message.length > 50 ? '...' : ''}</span>;
+        item.onclick = () => openNewsInteractionModal(a.id);
+        
+        item.onmouseover = () => item.style.textDecoration = 'underline';
+        item.onmouseout = () => item.style.textDecoration = 'none';
+
+        marquee.appendChild(item);
+    });
+};
+
+window.openNewsInteractionModal = function(announcementId) {
+    const db = getDb();
+    const announcement = (db.announcements || []).find(a => a.id === announcementId);
+    if (!announcement) return;
+
+    window.currentNewsId = announcementId;
+
+    document.getElementById('news-interaction-title').innerHTML = announcement.id.startsWith('BTH-') ? '?? Birthday Celebration' : '?? Announcement';
+    document.getElementById('news-interaction-content').innerHTML = <strong> + '$' + "{announcement.title}</strong><br><br> + '$' + "{announcement.message};
+
+    window.renderNewsInteractions(announcement);
+    openModal('modal-news-interaction');
+};
+
+window.renderNewsInteractions = function(announcement) {
+    const reactions = announcement.reactions || {};
+    document.querySelectorAll('.news-react-btn').forEach(btn => {
+        const reactionType = btn.getAttribute('data-reaction');
+        const countSpan = btn.querySelector('.react-count');
+        
+        let totalCount = 0;
+        let userReacted = false;
+        
+        if (reactions[reactionType]) {
+             totalCount = reactions[reactionType].length;
+             if (reactions[reactionType].includes(currentUser.id)) {
+                 userReacted = true;
+             }
+        }
+        
+        countSpan.textContent = totalCount > 0 ? totalCount : '';
+        if (userReacted) {
+             btn.classList.add('active');
+        } else {
+             btn.classList.remove('active');
+        }
+
+        btn.onclick = () => toggleNewsReaction(announcement.id, reactionType);
+    });
+
+    const commentsList = document.getElementById('news-comments-list');
+    commentsList.innerHTML = '';
+    
+    const comments = announcement.comments || [];
+    if (comments.length === 0) {
+        commentsList.innerHTML = '<div style="color: var(--text-muted); font-size: 12px; text-align: center; padding: 10px;">No comments yet. Be the first!</div>';
+    } else {
+        comments.forEach(c => {
+            const bubble = document.createElement('div');
+            bubble.className = 'news-comment-bubble';
+            bubble.innerHTML = 
+                <div class="news-comment-header">
+                    <span> + '$' + "{c.authorName}</span>
+                    <span> + '$' + "{new Date(c.timestamp).toLocaleString()}</span>
+                </div>
+                <div> + '$' + "{c.text}</div>
+            ;
+            commentsList.appendChild(bubble);
+        });
+        setTimeout(() => commentsList.scrollTop = commentsList.scrollHeight, 10);
+    }
+};
+
+window.toggleNewsReaction = function(announcementId, reactionType) {
+    const db = getDb();
+    const announcement = (db.announcements || []).find(a => a.id === announcementId);
+    if (!announcement) return;
+
+    if (!announcement.reactions) announcement.reactions = {};
+    if (!announcement.reactions[reactionType]) announcement.reactions[reactionType] = [];
+
+    const userIndex = announcement.reactions[reactionType].indexOf(currentUser.id);
+    if (userIndex > -1) {
+        announcement.reactions[reactionType].splice(userIndex, 1);
+    } else {
+        announcement.reactions[reactionType].push(currentUser.id);
+    }
+
+    saveDb(db);
+    window.renderNewsInteractions(announcement);
+    // Refresh Admin View if active
+    if (activeTab === 'announcements' && typeof renderAdminAnnouncementsTab === 'function') {
+        renderAdminAnnouncementsTab();
+    }
+};
+
+const postCommentBtn = document.getElementById('btn-post-news-comment');
+if (postCommentBtn) {
+    postCommentBtn.addEventListener('click', () => {
+        const input = document.getElementById('news-comment-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        const db = getDb();
+        const announcement = (db.announcements || []).find(a => a.id === window.currentNewsId);
+        if (!announcement) return;
+
+        if (!announcement.comments) announcement.comments = [];
+        
+        announcement.comments.push({
+            authorId: currentUser.id,
+            authorName: currentUser.name,
+            text: text,
+            timestamp: new Date().toISOString()
+        });
+
+        saveDb(db);
+        input.value = '';
+        window.renderNewsInteractions(announcement);
+        
+        // Refresh Admin View if active
+        if (activeTab === 'announcements' && typeof renderAdminAnnouncementsTab === 'function') {
+            renderAdminAnnouncementsTab();
+        }
+    });
+}
+const commentInputEl = document.getElementById('news-comment-input');
+if (commentInputEl) {
+    commentInputEl.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') document.getElementById('btn-post-news-comment').click();
+    });
+}
+

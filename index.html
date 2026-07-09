@@ -7408,6 +7408,38 @@
         </div>
     </div>
 
+    <!-- News Interaction Modal -->
+    <div id="modal-news-interaction" class="modal hidden" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3 id="news-interaction-title">Announcement</h3>
+            <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body" style="padding-top: 5px;">
+            <div id="news-interaction-content" style="padding: 15px; background: var(--bg-surface); border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px; font-size: 14px; line-height: 1.5; color: var(--text-primary); white-space: pre-wrap;"></div>
+            
+            <!-- Reactions -->
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;" id="news-reaction-toolbar">
+                <button class="btn btn-outline news-react-btn" data-reaction="??" style="flex: 1; display: flex; justify-content: center; gap: 5px;"><span style="font-size: 18px;">??</span> <span class="react-count"></span></button>
+                <button class="btn btn-outline news-react-btn" data-reaction="??" style="flex: 1; display: flex; justify-content: center; gap: 5px;"><span style="font-size: 18px;">??</span> <span class="react-count"></span></button>
+                <button class="btn btn-outline news-react-btn" data-reaction="??" style="flex: 1; display: flex; justify-content: center; gap: 5px;"><span style="font-size: 18px;">??</span> <span class="react-count"></span></button>
+                <button class="btn btn-outline news-react-btn" data-reaction="??" style="flex: 1; display: flex; justify-content: center; gap: 5px;"><span style="font-size: 18px;">??</span> <span class="react-count"></span></button>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin-bottom: 15px;">
+
+            <!-- Comments List -->
+            <div id="news-comments-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; padding-right: 5px;">
+                <!-- Comments injected dynamically -->
+            </div>
+
+            <!-- Comment Input -->
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="news-comment-input" class="form-control" placeholder="Write a comment..." style="flex-grow: 1;">
+                <button class="btn btn-primary" id="btn-post-news-comment" style="padding: 0 15px;"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
 </body>
 
 </html>
