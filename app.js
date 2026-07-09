@@ -10519,7 +10519,7 @@ function updateDropdownShiftProgress() {
 
     container.style.display = 'block';
     
-    let shiftDurationHours = 8;
+    let shiftDurationHours = 9;
     let shiftTimeStr = '09:00 - 18:00';
     const shift = (db.shifts || []).find(s => s.id === currentUser.shiftId);
     if (shift && shift.startTime && shift.endTime) {
@@ -10533,7 +10533,7 @@ function updateDropdownShiftProgress() {
         if (endMins < startMins) endMins += 24 * 60;
         shiftDurationHours = (endMins - startMins) / 60;
     }
-    if(shiftDurationHours <= 0) shiftDurationHours = 8;
+    if(shiftDurationHours <= 0) shiftDurationHours = 9;
 
     if (shiftTimeText) shiftTimeText.textContent = shiftTimeStr;
 
@@ -10547,7 +10547,7 @@ function updateDropdownShiftProgress() {
     
     if (shiftInText) shiftInText.textContent = attRecord.timeIn;
     
-    if(shiftDurationHours <= 0) shiftDurationHours = 8;
+    if(shiftDurationHours <= 0) shiftDurationHours = 9;
 
     const parseDbTime = (tStr) => {
         let d = new Date(`${today} ${tStr}`);
@@ -10608,13 +10608,28 @@ function updateDropdownShiftProgress() {
     if (attRecord.timeOut && attRecord.timeOut !== '-') {
         statusText.textContent = `Shift completed (${elapsedHours.toFixed(1)}h logged)`;
     } else {
-        const remainingHours = shiftDurationHours - elapsedHours;
+        let endH = 18, endM = 0, startH = 9;
+        if (shift && shift.startTime && shift.endTime) {
+            let parts = shift.endTime.split(':').map(Number);
+            endH = parts[0]; endM = parts[1] || 0;
+            startH = parseInt(shift.startTime.split(':')[0]);
+        }
+        let endMins = endH * 60 + endM;
+        let curMins = timeOutDate.getHours() * 60 + timeOutDate.getMinutes();
+        
+        if (endH < startH) {
+            endMins += 24 * 60;
+            if (curMins < startH) curMins += 24 * 60;
+        }
+        
+        const remainingHours = (endMins - curMins) / 60;
+        
         if (remainingHours > 0) {
             const rH = Math.floor(remainingHours);
             const rM = Math.floor((remainingHours - rH) * 60);
             statusText.textContent = `${rH}h ${rM}m remaining in shift`;
         } else {
-            statusText.textContent = `Overtime (${(elapsedHours - shiftDurationHours).toFixed(1)}h extra)`;
+            statusText.textContent = `Overtime (${Math.abs(remainingHours).toFixed(1)}h extra)`;
         }
     }
 }
