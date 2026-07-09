@@ -1196,6 +1196,11 @@ function renderSidebar() {
     dropdownNameEl.textContent = currentUser.name;
     dropdownEmailEl.textContent = currentUser.email;
 
+    // Update the dropdown progress bar explicitly when rendering sidebar
+    if (typeof updateDropdownShiftProgress === 'function') {
+        updateDropdownShiftProgress();
+    }
+
     const topbarNameLabel = document.getElementById('topbar-user-name-label');
     const topbarRoleLabel = document.getElementById('topbar-user-role-label');
     if (topbarNameLabel) topbarNameLabel.textContent = currentUser.name;
@@ -10487,3 +10492,117 @@ window.sendWhatsAppMessage = async function(phone, message) {
 
 
 
+
+// ==================== SHIFT PROGRESS BAR LOGIC ====================
+window.shiftProgressInterval = null;
+
+function updateDropdownShiftProgress() {
+    if (!currentUser) return;
+    const db = getDb();
+    
+    // Find today's attendance record
+    const today = new Date().toISOString().split('T')[0];
+    const attRecord = (db.attendance || []).find(a => String(a.employeeId) === String(currentUser.id) && a.date === today);
+    
+    const container = document.getElementById('dropdown-shift-progress-container');
+    const progressBar = document.getElementById('dropdown-shift-progress-bar');
+    const progressText = document.getElementById('dropdown-shift-progress-text');
+    const statusText = document.getElementById('dropdown-shift-status-text');
+    
+    if (!container || !progressBar || !progressText || !statusText) return;
+
+    container.style.display = 'block';
+
+    if (!attRecord || !attRecord.timeIn) {
+        progressBar.style.width = '0%';
+        progressText.textContent = '0%';
+        statusText.textContent = 'Not checked in today';
+        return;
+    }
+
+    let shiftDurationHours = 8;
+    const shift = (db.shifts || []).find(s => s.id === currentUser.shiftId);
+    if (shift && shift.startTime && shift.endTime) {
+        const parseTime = (t) => {
+            let parts = t.split(':').map(Number);
+            return parts[0] * 60 + (parts[1] || 0);
+        };
+        const startMins = parseTime(shift.startTime);
+        let endMins = parseTime(shift.endTime);
+        if (endMins < startMins) endMins += 24 * 60;
+        shiftDurationHours = (endMins - startMins) / 60;
+    }
+    
+    if(shiftDurationHours <= 0) shiftDurationHours = 8;
+
+    const parseDbTime = (tStr) => {
+        let d = new Date(${today} );
+        if (isNaN(d.getTime())) {
+            const match = tStr.match(/(\d+):(\d+)(?::\d+)?\s*(AM|PM)?/i);
+            if (match) {
+                let h = parseInt(match[1]);
+                let m = parseInt(match[2]);
+                const ampm = match[3] ? match[3].toUpperCase() : null;
+                if (ampm === 'PM' && h < 12) h += 12;
+                if (ampm === 'AM' && h === 12) h = 0;
+                d = new Date(today);
+                d.setHours(h, m, 0, 0);
+            }
+        }
+        return d;
+    };
+
+    const timeInDate = parseDbTime(attRecord.timeIn);
+    
+    if (isNaN(timeInDate.getTime())) {
+        progressBar.style.width = '0%';
+        progressText.textContent = '0%';
+        statusText.textContent = 'Invalid Check-in Time';
+        return;
+    }
+
+    let timeOutDate = new Date();
+    if (attRecord.timeOut) {
+        timeOutDate = parseDbTime(attRecord.timeOut);
+    }
+
+    let elapsedMs = timeOutDate - timeInDate;
+    if (elapsedMs < 0) elapsedMs = 0;
+    
+    let elapsedHours = elapsedMs / (1000 * 60 * 60);
+    let progressPct = (elapsedHours / shiftDurationHours) * 100;
+    
+    if (progressPct > 100) progressPct = 100;
+    
+    const displayPct = Math.floor(progressPct);
+    
+    progressBar.style.width = ${displayPct}%;
+    progressText.textContent = ${displayPct}%;
+    
+    if (attRecord.timeOut) {
+        statusText.textContent = Shift completed (h logged);
+        progressBar.style.backgroundColor = 'var(--success)';
+    } else {
+        const remainingHours = shiftDurationHours - elapsedHours;
+        if (remainingHours > 0) {
+            const rH = Math.floor(remainingHours);
+            const rM = Math.floor((remainingHours - rH) * 60);
+            statusText.textContent = ${rH}h m remaining in shift;
+            progressBar.style.backgroundColor = 'var(--primary)';
+        } else {
+            statusText.textContent = Overtime (h extra);
+            progressBar.style.backgroundColor = 'var(--warning)';
+        }
+    }
+}
+
+function initShiftProgress() {
+    updateDropdownShiftProgress();
+    if (!window.shiftProgressInterval) {
+        window.shiftProgressInterval = setInterval(updateDropdownShiftProgress, 60000);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initShiftProgress, 1000);
+});

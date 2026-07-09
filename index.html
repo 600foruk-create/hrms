@@ -630,6 +630,16 @@
                         <div class="dropdown-header">
                             <h5 id="dropdown-user-name">User Name</h5>
                             <p id="dropdown-user-email">email@company.com</p>
+                            <div class="shift-progress-container" style="margin-top: 10px; display: none;" id="dropdown-shift-progress-container">
+                                <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-secondary); margin-bottom: 4px;">
+                                    <span>Shift Progress</span>
+                                    <span id="dropdown-shift-progress-text">0%</span>
+                                </div>
+                                <div class="progress" style="height: 6px; background-color: var(--border-color); border-radius: 3px; overflow: hidden;">
+                                    <div class="progress-bar" id="dropdown-shift-progress-bar" role="progressbar" style="width: 0%; background-color: var(--primary); transition: width 1s linear;"></div>
+                                </div>
+                                <div id="dropdown-shift-status-text" style="font-size: 9px; color: var(--text-muted); margin-top: 4px; text-align: center;">Not checked in</div>
+                            </div>
                         </div>
                         <hr>
                         <button class="dropdown-item" id="btn-view-profile"><i class="fa-regular fa-user"></i> My
