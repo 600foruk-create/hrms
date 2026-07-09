@@ -10774,7 +10774,7 @@ window.generateDailyBirthdays = function(db) {
                 if (bMonth === currentMonth && bDay === currentDay) {
                     birthdayAnns.push({
                         id: 'BTH-' + u.id + '-' + today.getFullYear(),
-                        title: `🎉 Happy Birthday ${u.name}! 🎂`,
+                        title: `&#127881; Happy Birthday ${u.name}! &#127874;`,
                         message: `Wishing you a fantastic birthday, ${u.name}! Hope you have a wonderful day!`,
                         target_audience: 'All',
                         created_by: 'System',
