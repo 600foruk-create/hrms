@@ -1151,7 +1151,7 @@ function handlePunchInOut() {
     if (activeTab === 'attendance') {
         if (currentUser.role === 'Admin') renderAdminAttendanceTab(db);
         if (currentUser.role === 'Manager') renderManagerAttendanceTab(db);
-        if (currentUser.role === 'User') renderEmployeeAttendanceTab(db);
+        else if (currentUser.role !== 'Admin' && currentUser.role !== 'Manager') renderEmployeeAttendanceTab(db);
     }
 }
 
@@ -1208,7 +1208,7 @@ function renderSidebar() {
 
     const quickActionsEl = document.getElementById('sidebar-quick-actions');
     if (quickActionsEl) {
-        if (currentUser.role === 'User') {
+        if (currentUser.role !== 'Admin' && currentUser.role !== 'Manager') {
             quickActionsEl.style.display = 'none';
         } else {
             quickActionsEl.style.display = 'grid';
@@ -1313,7 +1313,13 @@ function switchTab(tabId) {
     // Toggle role outer views
     const views = ['admin-view', 'manager-view', 'employee-view'];
     let roleStr = String(currentUser.role).trim().toLowerCase();
-    if (roleStr === 'user') roleStr = 'employee';
+    if (roleStr === 'admin') {
+        roleStr = 'admin';
+    } else if (roleStr === 'manager') {
+        roleStr = 'manager';
+    } else {
+        roleStr = 'employee';
+    }
 
     views.forEach(v => {
         if (v === `${roleStr}-view`) {
