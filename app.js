@@ -10882,26 +10882,50 @@ window.openNewsInteractionModal = function(announcementId) {
 };
 
 window.renderNewsInteractions = function(announcement) {
-    const reactions = announcement.reactions || {};
+    const db = getDb();
+    let rawReactions = announcement.reactions || {};
+    let reactions = {};
+    // Normalize reactions to { "userId": "type" }
+    for (let key in rawReactions) {
+        if (Array.isArray(rawReactions[key])) {
+            rawReactions[key].forEach(uid => reactions[uid] = key);
+        } else {
+            reactions[key] = rawReactions[key];
+        }
+    }
+    announcement.reactions = reactions;
+
+    // Group by type for tooltips
+    let grouped = { like: [], heart: [], clap: [], celebrate: [], dislike: [] };
+    for (let uid in reactions) {
+        let type = reactions[uid];
+        let user = db.users.find(u => u.id === uid);
+        if (user && grouped[type] !== undefined) {
+            grouped[type].push(user.name);
+        }
+    }
+
     document.querySelectorAll('.news-react-btn').forEach(btn => {
         const reactionType = btn.getAttribute('data-reaction');
         const countSpan = btn.querySelector('.react-count');
         
-        let totalCount = 0;
-        let userReacted = false;
-        
-        if (reactions[reactionType]) {
-             totalCount = reactions[reactionType].length;
-             if (reactions[reactionType].includes(currentUser.id)) {
-                 userReacted = true;
-             }
-        }
+        let reactors = grouped[reactionType] || [];
+        let totalCount = reactors.length;
+        let userReacted = reactions[currentUser.id] === reactionType;
         
         countSpan.textContent = totalCount > 0 ? totalCount : '';
         if (userReacted) {
              btn.classList.add('active');
         } else {
              btn.classList.remove('active');
+        }
+
+        if (totalCount > 0) {
+            btn.setAttribute('title', reactors.join(', '));
+            btn.classList.add('reaction-has-users');
+        } else {
+            btn.removeAttribute('title');
+            btn.classList.remove('reaction-has-users');
         }
 
         btn.onclick = () => toggleNewsReaction(announcement.id, reactionType);
@@ -10917,12 +10941,16 @@ window.renderNewsInteractions = function(announcement) {
         comments.forEach(c => {
             const bubble = document.createElement('div');
             bubble.className = 'news-comment-bubble';
+            const initial = (c.authorName || 'U').charAt(0).toUpperCase();
             bubble.innerHTML = `
-                <div class="news-comment-header">
-                    <span>${c.authorName}</span>
-                    <span>${new Date(c.timestamp).toLocaleString()}</span>
+                <div class="news-comment-avatar">${initial}</div>
+                <div class="news-comment-content-wrapper">
+                    <div class="news-comment-content">
+                        <div class="news-comment-header">${c.authorName}</div>
+                        <div class="news-comment-text">${c.text}</div>
+                    </div>
+                    <div class="news-comment-time">${new Date(c.timestamp).toLocaleString([], {hour: '2-digit', minute:'2-digit', month:'short', day:'numeric'})}</div>
                 </div>
-                <div>${c.text}</div>
             `;
             commentsList.appendChild(bubble);
         });
@@ -10935,21 +10963,20 @@ window.toggleNewsReaction = function(announcementId, reactionType) {
     const announcement = (db.announcements || []).find(a => a.id === announcementId);
     if (!announcement) return;
 
-    if (!announcement.reactions) announcement.reactions = {};
-    if (!announcement.reactions[reactionType]) announcement.reactions[reactionType] = [];
+    if (!announcement.reactions || Array.isArray(announcement.reactions)) announcement.reactions = {};
 
-    const userIndex = announcement.reactions[reactionType].indexOf(currentUser.id);
-    if (userIndex > -1) {
-        announcement.reactions[reactionType].splice(userIndex, 1);
+    if (announcement.reactions[currentUser.id] === reactionType) {
+        delete announcement.reactions[currentUser.id];
     } else {
-        announcement.reactions[reactionType].push(currentUser.id);
+        announcement.reactions[currentUser.id] = reactionType;
     }
 
     saveDb(db);
     window.renderNewsInteractions(announcement);
     // Refresh Admin View if active
-    if (activeTab === 'announcements' && typeof renderAdminAnnouncementsTab === 'function') {
-        renderAdminAnnouncementsTab();
+    if (activeTab === 'announcements') {
+        if (typeof renderUserAnnouncementsTab === 'function') renderUserAnnouncementsTab();
+        if (typeof renderAdminAnnouncementsTab === 'function') renderAdminAnnouncementsTab();
     }
 };
 
