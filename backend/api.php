@@ -434,8 +434,8 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
     
     // Safety ALTERS in case columns are missing
-    $pdo->exec("ALTER TABLE announcements ADD COLUMN `reactions` text DEFAULT NULL");
-    $pdo->exec("ALTER TABLE announcements ADD COLUMN `comments` text DEFAULT NULL");
+    try { $pdo->exec("ALTER TABLE announcements ADD COLUMN `reactions` text DEFAULT NULL"); } catch (Exception $e) {}
+    try { $pdo->exec("ALTER TABLE announcements ADD COLUMN `comments` text DEFAULT NULL"); } catch (Exception $e) {}
 
 } catch (Exception $e) {
     // Ignore if unsupported (e.g. SQLite doesn't support ENGINE=InnoDB)
@@ -1916,6 +1916,8 @@ elseif ($action === 'save_all') {
                     $created_at = $a['created_at'] ?? '';
                     if ($created_at) {
                         $created_at = str_replace(['T', 'Z'], [' ', ''], explode('.', $created_at)[0]);
+                    } else {
+                        $created_at = date('Y-m-d H:i:s');
                     }
                     $stmt->execute([
                         $a['id'],
@@ -1931,7 +1933,10 @@ elseif ($action === 'save_all') {
                     ]);
                 }
             }
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+            error_log("Announcements sync error: " . $e->getMessage());
+            throw new Exception("Announcements sync error: " . $e->getMessage());
+        }
 
         // 11. Sync System Settings
         try {
