@@ -10944,8 +10944,8 @@ window.renderNewsInteractions = function(announcement) {
             
             const commentUser = db.users.find(u => u.id === c.authorId);
             let avatarHtml = '';
-            if (commentUser && commentUser.profile_pic) {
-                avatarHtml = `<img src="${commentUser.profile_pic}" alt="${c.authorName}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+            if (commentUser && commentUser.profilePic) {
+                avatarHtml = `<img src="${commentUser.profilePic}" alt="${c.authorName}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
             } else {
                 avatarHtml = (c.authorName || 'U').charAt(0).toUpperCase();
             }
