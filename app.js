@@ -1089,7 +1089,7 @@ function updatePunchButtonState() {
     const btnText = document.getElementById('punch-btn-text');
     const btnIcon = document.querySelector('#btn-punch-attendance i');
 
-    if (record && record.timeIn && !record.timeOut) {
+    if (record && record.timeIn && (!record.timeOut || record.timeOut === '-')) {
         btnText.textContent = "Punch Out";
         btnIcon.className = "fa-solid fa-person-walking-arrow-right";
         btn.style.background = "rgba(244, 63, 94, 0.1)";
@@ -1129,10 +1129,10 @@ function handlePunchInOut() {
             status: calcStatus,
             markedBy: currentUser.name,
             timeIn: now,
-            timeOut: null
+            timeOut: "-"
         });
         showToast("Punched In", `You successfully punched in at ${now} (${calcStatus}).`, calcStatus === 'Late' ? 'warning' : 'success');
-    } else if (record.timeIn && !record.timeOut) {
+    } else if (record.timeIn && (!record.timeOut || record.timeOut === '-')) {
         // Punch Out
         record.timeOut = now;
         const newStatus = evaluateAttendanceThresholds(currentUser, record.timeIn, now, db);
