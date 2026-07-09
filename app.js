@@ -10966,7 +10966,7 @@ window.renderNewsInteractions = function(announcement) {
     }
 };
 
-window.toggleNewsReaction = function(announcementId, reactionType) {
+window.toggleNewsReaction = async function(announcementId, reactionType) {
     const db = getDb();
     const announcement = (db.announcements || []).find(a => a.id === announcementId);
     if (!announcement) return;
@@ -10979,18 +10979,31 @@ window.toggleNewsReaction = function(announcementId, reactionType) {
         announcement.reactions[currentUser.id] = reactionType;
     }
 
-    saveDb(db);
     window.renderNewsInteractions(announcement);
-    // Refresh Admin View if active
+    
+    try {
+        await fetch(API_URL + '?action=toggle_news_reaction', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                announcement_id: announcement.id,
+                user_id: currentUser.id,
+                reaction_type: reactionType
+            })
+        });
+    } catch (e) {
+        console.error("Failed to toggle reaction remotely", e);
+    }
+    
+    saveDb(db);
+    
     if (activeTab === 'announcements') {
         if (typeof renderUserAnnouncementsTab === 'function') renderUserAnnouncementsTab();
         if (typeof renderAdminAnnouncementsTab === 'function') renderAdminAnnouncementsTab();
     }
 };
 
-
-
-window.postNewsComment = function() {
+window.postNewsComment = async function() {
     const input = document.getElementById('news-comment-input');
     const text = input.value.trim();
     if (!text) return;
@@ -11004,18 +11017,38 @@ window.postNewsComment = function() {
 
     if (!announcement.comments) announcement.comments = [];
     
-    announcement.comments.push({
+    const newComment = {
         authorId: currentUser.id,
         authorName: currentUser.name,
         text: text,
         timestamp: new Date().toISOString()
-    });
-
-    saveDb(db);
+    };
+    
+    announcement.comments.push(newComment);
     input.value = '';
     window.renderNewsInteractions(announcement);
     
-    // Refresh Admin View if active
+    try {
+        await fetch(API_URL + '?action=add_news_comment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                announcement_id: announcement.id,
+                authorId: newComment.authorId,
+                authorName: newComment.authorName,
+                text: newComment.text,
+                timestamp: newComment.timestamp
+            })
+        });
+    } catch (e) {
+        console.error("Failed to save comment remotely", e);
+    }
+    
+    saveDb(db);
+    
+    if (activeTab === 'announcements' && typeof renderUserAnnouncementsTab === 'function') {
+        renderUserAnnouncementsTab(document.getElementById('user-announcements-list').getAttribute('data-active-subtab') || 'today');
+    }
     if (typeof activeTab !== 'undefined' && activeTab === 'announcements' && typeof renderAdminAnnouncementsTab === 'function') {
         renderAdminAnnouncementsTab();
     }
