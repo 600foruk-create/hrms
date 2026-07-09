@@ -10946,8 +10946,8 @@ window.renderNewsInteractions = function(announcement) {
                 <div class="news-comment-avatar">${initial}</div>
                 <div class="news-comment-content-wrapper">
                     <div class="news-comment-content">
-                        <div class="news-comment-header">${c.authorName}</div>
-                        <div class="news-comment-text">${c.text}</div>
+                        <span class="news-comment-header">${c.authorName}</span>
+                        <span class="news-comment-text">${c.text}</span>
                     </div>
                     <div class="news-comment-time">${new Date(c.timestamp).toLocaleString([], {hour: '2-digit', minute:'2-digit', month:'short', day:'numeric'})}</div>
                 </div>
