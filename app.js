@@ -10818,8 +10818,13 @@ window.renderNewsTicker = function() {
     }
 
     if (activeAnnouncements.length === 0) {
-        container.style.display = 'none';
-        return;
+        activeAnnouncements = [{
+            id: 'SYS-MSG-1',
+            title: 'System',
+            message: 'No new announcements for today.',
+            target_audience: 'All',
+            created_by: 'System'
+        }];
     }
 
     container.style.display = 'flex';
