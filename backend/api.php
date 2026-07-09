@@ -433,23 +433,17 @@ try {
         PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-    $pdo->exec("CREATE TABLE IF NOT EXISTS `news_comments` (
-        `id` varchar(100) NOT NULL,
-        `announcement_id` varchar(100) NOT NULL,
-        `authorId` varchar(100) NOT NULL,
-        `authorName` varchar(255) DEFAULT NULL,
-        `text` text,
-        `timestamp` varchar(100) DEFAULT NULL,
-        PRIMARY KEY (`id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-
-    $pdo->exec("CREATE TABLE IF NOT EXISTS `news_reactions` (
+    $pdo->exec("DROP TABLE IF EXISTS `news_comments`");
+    $pdo->exec("DROP TABLE IF EXISTS `news_reactions`");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `news_interactions` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
         `announcement_id` varchar(100) NOT NULL,
         `user_id` varchar(100) NOT NULL,
-        `reaction_type` varchar(50) NOT NULL,
-        PRIMARY KEY (`id`),
-        UNIQUE KEY `unique_reaction` (`announcement_id`, `user_id`)
+        `user_name` varchar(255) DEFAULT NULL,
+        `type` ENUM('comment', 'reaction') NOT NULL,
+        `value` text,
+        `timestamp` varchar(100) DEFAULT NULL,
+        PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
     
     // Safety ALTERS in case columns are missing
@@ -578,21 +572,16 @@ try {
             `comments` TEXT
         )");
 
-        $pdo->exec("CREATE TABLE IF NOT EXISTS `news_comments` (
-            `id` TEXT PRIMARY KEY,
-            `announcement_id` TEXT,
-            `authorId` TEXT,
-            `authorName` TEXT,
-            `text` TEXT,
-            `timestamp` TEXT
-        )");
-
-        $pdo->exec("CREATE TABLE IF NOT EXISTS `news_reactions` (
+        $pdo->exec("DROP TABLE IF EXISTS `news_comments`");
+        $pdo->exec("DROP TABLE IF EXISTS `news_reactions`");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `news_interactions` (
             `id` INTEGER PRIMARY KEY AUTOINCREMENT,
             `announcement_id` TEXT,
             `user_id` TEXT,
-            `reaction_type` TEXT,
-            UNIQUE(`announcement_id`, `user_id`)
+            `user_name` TEXT,
+            `type` TEXT,
+            `value` TEXT,
+            `timestamp` TEXT
         )");
         // Safety ALTERS for SQLite
         try { $pdo->exec("ALTER TABLE announcements ADD COLUMN `reactions` TEXT"); } catch(Exception $e) {}
@@ -823,20 +812,18 @@ if ($action === 'add_news_comment') {
         exit;
     }
     
-    $id = "COM_" . time() . "_" . substr(md5(uniqid()), 0, 5);
     $timestamp = $data['timestamp'] ?? date('Y-m-d\TH:i:s.000\Z');
     
     try {
-        $stmt = $pdo->prepare("INSERT INTO news_comments (id, announcement_id, authorId, authorName, text, timestamp) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO news_interactions (announcement_id, user_id, user_name, type, value, timestamp) VALUES (?, ?, ?, 'comment', ?, ?)");
         $stmt->execute([
-            $id, 
             $data['announcement_id'], 
             $data['authorId'], 
             $data['authorName'] ?? '', 
             $data['text'] ?? '', 
             $timestamp
         ]);
-        echo json_encode(["status" => "success", "message" => "Comment added", "id" => $id]);
+        echo json_encode(["status" => "success", "message" => "Comment added"]);
     } catch (Exception $e) {
         echo json_encode(["status" => "error", "message" => $e->getMessage()]);
     }
@@ -853,25 +840,23 @@ if ($action === 'toggle_news_reaction') {
     }
     
     try {
-        // Check if exists
-        $stmt = $pdo->prepare("SELECT id, reaction_type FROM news_reactions WHERE announcement_id = ? AND user_id = ?");
+        $stmt = $pdo->prepare("SELECT id, value FROM news_interactions WHERE announcement_id = ? AND user_id = ? AND type = 'reaction'");
         $stmt->execute([$data['announcement_id'], $data['user_id']]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         
+        $timestamp = date('Y-m-d\TH:i:s.000\Z');
+        
         if ($row) {
-            if ($row['reaction_type'] === $data['reaction_type']) {
-                // Delete if same
-                $del = $pdo->prepare("DELETE FROM news_reactions WHERE id = ?");
+            if ($row['value'] === $data['reaction_type']) {
+                $del = $pdo->prepare("DELETE FROM news_interactions WHERE id = ?");
                 $del->execute([$row['id']]);
             } else {
-                // Update if different
-                $upd = $pdo->prepare("UPDATE news_reactions SET reaction_type = ? WHERE id = ?");
-                $upd->execute([$data['reaction_type'], $row['id']]);
+                $upd = $pdo->prepare("UPDATE news_interactions SET value = ?, timestamp = ? WHERE id = ?");
+                $upd->execute([$data['reaction_type'], $timestamp, $row['id']]);
             }
         } else {
-            // Insert new
-            $ins = $pdo->prepare("INSERT INTO news_reactions (announcement_id, user_id, reaction_type) VALUES (?, ?, ?)");
-            $ins->execute([$data['announcement_id'], $data['user_id'], $data['reaction_type']]);
+            $ins = $pdo->prepare("INSERT INTO news_interactions (announcement_id, user_id, type, value, timestamp) VALUES (?, ?, 'reaction', ?, ?)");
+            $ins->execute([$data['announcement_id'], $data['user_id'], $data['reaction_type'], $timestamp]);
         }
         
         echo json_encode(["status" => "success", "message" => "Reaction toggled"]);
@@ -1502,31 +1487,33 @@ if ($action === 'load_all') {
             $anns = $stmt->fetchAll();
             
             // Fetch interactions
-            $commentsStmt = $pdo->query("SELECT * FROM news_comments");
-            $allComments = $commentsStmt->fetchAll(PDO::FETCH_ASSOC);
-            
-            $reactionsStmt = $pdo->query("SELECT * FROM news_reactions");
-            $allReactions = $reactionsStmt->fetchAll(PDO::FETCH_ASSOC);
+            $interactionsStmt = $pdo->query("SELECT * FROM news_interactions");
+            $allInteractions = $interactionsStmt->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($anns as &$a) {
                 if (isset($a['read_by'])) $a['read_by'] = json_decode($a['read_by'], true) ?: [];
                 if (isset($a['hidden_by'])) $a['hidden_by'] = json_decode($a['hidden_by'], true) ?: [];
                 
-                // Attach reactions from table or fallback to old json
-                $a['reactions'] = json_decode($a['reactions'] ?? '{}', true) ?: [];
-                foreach ($allReactions as $r) {
-                    if ($r['announcement_id'] === $a['id']) {
-                        $a['reactions'][$r['user_id']] = $r['reaction_type'];
+                // Clear any legacy duplicates
+                $a['reactions'] = [];
+                $a['comments'] = [];
+                
+                foreach ($allInteractions as $int) {
+                    if ($int['announcement_id'] === $a['id']) {
+                        if ($int['type'] === 'reaction') {
+                            $a['reactions'][$int['user_id']] = $int['value'];
+                        } elseif ($int['type'] === 'comment') {
+                            $a['comments'][] = [
+                                'id' => $int['id'],
+                                'authorId' => $int['user_id'],
+                                'authorName' => $int['user_name'],
+                                'text' => $int['value'],
+                                'timestamp' => $int['timestamp']
+                            ];
+                        }
                     }
                 }
                 
-                // Attach comments from table or fallback to old json
-                $a['comments'] = json_decode($a['comments'] ?? '[]', true) ?: [];
-                foreach ($allComments as $c) {
-                    if ($c['announcement_id'] === $a['id']) {
-                        $a['comments'][] = $c;
-                    }
-                }
                 // Sort comments by timestamp
                 usort($a['comments'], function($x, $y) {
                     return strtotime($x['timestamp'] ?? '0') - strtotime($y['timestamp'] ?? '0');
