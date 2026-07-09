@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -648,7 +648,7 @@
             <div style="display:flex; align-items:center; margin-bottom:10px; gap:8px;">
                 <span
                     style="width:85px; min-width:85px; font-size:0.85em; font-weight:700; color:#3A5E77; flex-shrink:0;">Password</span>
-                <input type="password" id="login-password" autocomplete="new-password" placeholder="••••••••"
+                <input type="password" id="login-password" autocomplete="new-password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                     style="flex:1; height:32px; padding:0 8px; border:1px solid #ced4da; border-radius:4px; font-size:0.85em; color:#495057; background:#f8f9fa; outline:none; min-width:0; box-sizing:border-box;">
             </div>
 
@@ -827,7 +827,7 @@
                             <div>
                                 <h1 id="admin-welcome-title"
                                     style="font-size: 24px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-                                    Welcome back, Admin! 👋</h1>
+                                    Welcome back, Admin! ðŸ‘‹</h1>
                                 <p class="text-secondary" style="font-size: 13px;">Here's what's happening with your
                                     team today.</p>
                             </div>
@@ -1433,8 +1433,8 @@
                                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; background: rgba(0,0,0,0.03); padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.08); width: 100%;">
                                             <label style="font-size: 12px; font-weight: 700; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 6px; white-space: nowrap;"><i class="fa-solid fa-gear text-primary"></i> Rotation Strategy:</label>
                                             <select id="shift-rot-strategy" class="form-control btn-sm" style="font-size: 12px; font-weight: 700; border: none; background: transparent; cursor: pointer; color: var(--primary); padding: 2px 4px; text-align: right;" onchange="if(window.saveShiftRotationPolicy) window.saveShiftRotationPolicy(true)">
-                                                <option value="employees">👥 Move Employees (Roster Rotation)</option>
-                                                <option value="timings">🕒 Rotate Timings (Schedule Rotation)</option>
+                                                <option value="employees">ðŸ‘¥ Move Employees (Roster Rotation)</option>
+                                                <option value="timings">ðŸ•’ Rotate Timings (Schedule Rotation)</option>
                                             </select>
                                         </div>
                                         <div></div>
@@ -5413,6 +5413,7 @@
                         </div>
                     </div>
 
+                    </div>
                     <!-- Employee Attendance Tab -->
                     <div id="employee-tab-attendance" class="tab-view">
                         <div class="view-header">
@@ -6481,7 +6482,7 @@
                 <div class="form-group mb-2">
                     <label>Select Team Members <span class="text-danger">*</span></label>
                     <!-- Search box -->
-                    <input type="text" id="mgr-ot-search" class="form-control mb-1" placeholder="🔍 Search employee..." oninput="filterMgrOtEmployees(this.value)" style="font-size:13px;">
+                    <input type="text" id="mgr-ot-search" class="form-control mb-1" placeholder="ðŸ” Search employee..." oninput="filterMgrOtEmployees(this.value)" style="font-size:13px;">
                     <!-- Select All row -->
                     <div style="padding: 6px 10px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 6px 6px 0 0; border-bottom: none; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600;">
                         <input type="checkbox" id="mgr-ot-select-all" onchange="toggleAllMgrOtEmployees(this.checked)" style="width:15px;height:15px;cursor:pointer;">
