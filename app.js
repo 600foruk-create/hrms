@@ -385,7 +385,7 @@ function addNotification(userId, message, autoSave = true) {
     if (autoSave) saveDb(db);
 
     // If the active user matches, refresh notifications
-    if (currentUser && currentUser.id === userId) {
+    if (currentUser && currentUser.id == userId) {
         renderNotifications();
     }
 }
@@ -2769,7 +2769,7 @@ function renderAdminMyAttendance() {
     const tableBody = document.getElementById('admin-my-attendance-table-body');
     tableBody.innerHTML = '';
 
-    let logs = db.attendance.filter(l => l.employeeId === currentUser.id);
+    let logs = db.attendance.filter(l => l.employeeId == currentUser.id);
     logs.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     if (logs.length === 0) {
@@ -3926,7 +3926,7 @@ function renderAdminAnnouncementsTab() {
     
     let visibleAnnouncements = (db.announcements || []).filter(a => !(a.hidden_by && a.hidden_by.includes(currentUser.id)));
     // Hide birthdays from the tab unless it's the current user's birthday
-    visibleAnnouncements = visibleAnnouncements.filter(a => !(a.isBirthday && !a.id.includes('-' + currentUser.id + '-')));
+    visibleAnnouncements = visibleAnnouncements.filter(a => !(a.isBirthday && !(a.id && a.id.includes('-' + currentUser.id + '-'))));
     const sortedAnnouncements = [...visibleAnnouncements].sort((a, b) => {
         const timeA = new Date(a.created_at || a.date || 0).getTime();
         const timeB = new Date(b.created_at || b.date || 0).getTime();
@@ -3994,7 +3994,7 @@ window.renderUserAnnouncementsTab = function(subtab = 'today') {
     // Filter out announcements hidden by this user
     relevantAnns = relevantAnns.filter(a => !(a.hidden_by && a.hidden_by.includes(currentUser.id)));
     // Hide birthdays from the tab unless it's the current user's birthday
-    relevantAnns = relevantAnns.filter(a => !(a.isBirthday && !a.id.includes('-' + currentUser.id + '-')));
+    relevantAnns = relevantAnns.filter(a => !(a.isBirthday && !(a.id && a.id.includes('-' + currentUser.id + '-'))));
     
     // Apply subtab filtering
     const todayStr = new Date().toISOString().split('T')[0];
@@ -4661,7 +4661,7 @@ function renderManagerDashboard() {
         managerTitle.innerHTML = `${getGreeting()}, ${currentUser.name}!`;
     }
 
-    const teamMembers = db.users.filter(u => (u.role !== 'Admin') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
+    const teamMembers = db.users.filter(u => (u.role !== 'Admin') && (u.managerId == currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
     const teamSize = teamMembers.length;
 
     document.getElementById('manager-team-name-sub').textContent = `${currentUser.name}'s Reporting Team`;
@@ -4804,7 +4804,7 @@ function renderManagerDashboard() {
     // Manager Personal Stats
     const myAttToday = db.attendance.find(a => String(a.employeeId) === String(currentUser.id) && a.date === today);
     const myAttStatus = myAttToday ? myAttToday.status : (isPublicHoliday(today) ? 'Holiday' : (window.isEmployeeOnRest(currentUser, today) ? 'On Rest' : 'Absent'));
-    const myProdSubmissions = (db.productivity || []).filter(p => (p.employee_id || p.employeeId) === currentUser.id && p.status === 'Approved');
+    const myProdSubmissions = (db.productivity || []).filter(p => (p.employee_id || p.employeeId) == currentUser.id && p.status === 'Approved');
     const myTotalScore = myProdSubmissions.length > 0 ? Math.round(myProdSubmissions.reduce((sum, p) => sum + p.score, 0) / myProdSubmissions.length) : 0;
 
     const elAtt = document.getElementById('manager-personal-attendance');
@@ -4897,7 +4897,7 @@ function renderManagerDashboard() {
 
 function renderManagerTeamTab() {
     const db = getDb();
-    const teamMembers = db.users.filter(u => (u.role !== 'Admin') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
+    const teamMembers = db.users.filter(u => (u.role !== 'Admin') && (u.managerId == currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
 
     // Include manager at the top
     const allMembers = [currentUser, ...teamMembers];
@@ -4920,8 +4920,8 @@ function renderManagerTeamTab() {
                 else mgrName = emp.managerId; // fallback
             }
 
-            let displayRole = (emp.id === currentUser.id) ? 'Team Leader' : 'Team Member';
-            let roleClass = (emp.id === currentUser.id) ? 'manager' : 'user';
+            let displayRole = (emp.id == currentUser.id) ? 'Team Leader' : 'Team Member';
+            let roleClass = (emp.id == currentUser.id) ? 'manager' : 'user';
 
             tableBody.innerHTML += `
                 <tr>
@@ -4944,7 +4944,7 @@ function renderManagerTeamTab() {
 
 function renderManagerAttendanceTab() {
     const db = getDb();
-    const team = db.users.filter(u => (u.role !== 'Admin') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
+    const team = db.users.filter(u => (u.role !== 'Admin') && (u.managerId == currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
 
     // Include manager themselves
     const teamEmails = [currentUser.id, ...team.map(t => t.id)];
@@ -4988,11 +4988,11 @@ function renderManagerAttendanceTab() {
                 const cleanTimeOut = (log.timeOut && log.timeOut.includes(':')) ? log.timeOut : '-';
                 const cleanMarkedBy = (log.markedBy && log.markedBy.trim() !== '') ? log.markedBy : 'System';
                 let empName = log.employeeName;
-                if (log.employeeId === currentUser.id) empName += " (Me)";
+                if (log.employeeId == currentUser.id) empName += " (Me)";
 
                 const empUser = db.users.find(u => u.id === log.employeeId) || {};
-                let displayRole = (empUser.id === currentUser.id) ? 'Team Leader' : 'Team Member';
-                let roleClass = (empUser.id === currentUser.id) ? 'manager' : 'user';
+                let displayRole = (empUser.id == currentUser.id) ? 'Team Leader' : 'Team Member';
+                let roleClass = (empUser.id == currentUser.id) ? 'manager' : 'user';
 
                 let mgrName = 'N/A';
                 if (empUser.managerId) {
@@ -5022,7 +5022,7 @@ function renderManagerAttendanceTab() {
     const personalTableBody = document.getElementById('manager-personal-attendance-table-body');
     if (personalTableBody) {
         personalTableBody.innerHTML = '';
-        let myLogs = db.attendance.filter(a => a.employeeId === currentUser.id);
+        let myLogs = db.attendance.filter(a => a.employeeId == currentUser.id);
         myLogs.sort((a, b) => new Date(b.date) - new Date(a.date));
 
         if (myLogs.length === 0) {
@@ -5053,7 +5053,7 @@ function renderManagerLeaveTab() {
     const db = getDb();
 
     // 1. Render Team Leaves
-    const team = db.users.filter(u => (u.role !== 'Admin') && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
+    const team = db.users.filter(u => (u.role !== 'Admin') && (u.managerId == currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
     const teamEmails = team.map(t => t.id);
 
     const teamTableBody = document.getElementById('manager-leave-table-body');
@@ -5098,7 +5098,7 @@ function renderManagerLeaveTab() {
     const myTableBody = document.getElementById('manager-my-leave-table-body');
     if (myTableBody) {
         myTableBody.innerHTML = '';
-        const myLeaves = db.leaves.filter(l => l.employeeId === currentUser.id);
+        const myLeaves = db.leaves.filter(l => l.employeeId == currentUser.id);
         myLeaves.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
 
         if (myLeaves.length === 0) {
@@ -5122,7 +5122,7 @@ function renderManagerLeaveTab() {
         const balancesBody = document.getElementById('manager-my-leave-balances-body');
         if (balancesBody) {
             balancesBody.innerHTML = '';
-            const userRec = db.users.find(u => u.id === currentUser.id);
+            const userRec = db.users.find(u => u.id == currentUser.id);
 
             let balances = userRec?.leaveBalances || [];
             if (balances.length === 0 && db.companyProfile?.leaveTypes) {
@@ -5209,17 +5209,17 @@ function renderEmployeeDashboard() {
     }
 
     // Avg Productivity
-    const myProdSubmissions = (db.productivity || []).filter(p => (p.employee_id || p.employeeId) === currentUser.id && p.status === 'Approved');
+    const myProdSubmissions = (db.productivity || []).filter(p => (p.employee_id || p.employeeId) == currentUser.id && p.status === 'Approved');
     const myTotalScore = myProdSubmissions.length > 0 ? Math.round(myProdSubmissions.reduce((sum, p) => sum + p.score, 0) / myProdSubmissions.length) : 0;
     document.getElementById('employee-metric-avg-prod').textContent = myTotalScore;
 
     // Pending Leaves
-    const pendingLeaves = db.leaves.filter(l => l.employeeId === currentUser.id && l.status === 'Pending').length;
+    const pendingLeaves = db.leaves.filter(l => l.employeeId == currentUser.id && l.status === 'Pending').length;
     document.getElementById('employee-metric-pending-leaves').textContent = pendingLeaves;
 
     // 1. Employee Monthly Attendance Doughnut Chart
     const currentMonthPrefix = today.substring(0, 7);
-    const monthlyLogs = db.attendance.filter(a => a.employeeId === currentUser.id && a.date.startsWith(currentMonthPrefix));
+    const monthlyLogs = db.attendance.filter(a => a.employeeId == currentUser.id && a.date.startsWith(currentMonthPrefix));
 
     let present = monthlyLogs.filter(a => a.status === 'Present').length;
     let late = monthlyLogs.filter(a => a.status === 'Late').length;
@@ -5287,7 +5287,7 @@ function renderEmployeeDashboard() {
         }
     }
 
-    const dailySub = lastXDays.map(day => (db.productivity || []).filter(p => p.date === day && (p.employee_id || p.employeeId) === currentUser.id).length);
+    const dailySub = lastXDays.map(day => (db.productivity || []).filter(p => p.date === day && (p.employee_id || p.employeeId) == currentUser.id).length);
 
     const maxVal = Math.max(5, ...dailySub);
     const getSvgY = (val) => 95 - (val / maxVal) * 80;
@@ -5426,7 +5426,7 @@ function renderEmployeeAttendanceTab() {
     const tableBody = document.getElementById('employee-tab-attendance-table');
     tableBody.innerHTML = '';
 
-    const myAtt = db.attendance.filter(a => a.employeeId === currentUser.id);
+    const myAtt = db.attendance.filter(a => a.employeeId == currentUser.id);
     myAtt.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     if (myAtt.length === 0) {
@@ -5458,7 +5458,7 @@ function renderEmployeeLeaveTab() {
     const tableBody = document.getElementById('employee-tab-leave-table');
     tableBody.innerHTML = '';
 
-    const myLeaves = db.leaves.filter(l => l.employeeId === currentUser.id);
+    const myLeaves = db.leaves.filter(l => l.employeeId == currentUser.id);
     myLeaves.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
 
     if (myLeaves.length === 0) {
@@ -5483,7 +5483,7 @@ function renderEmployeeLeaveTab() {
     const balancesBody = document.getElementById('employee-leave-balances-body');
     if (balancesBody) {
         balancesBody.innerHTML = '';
-        const userRec = db.users.find(u => u.id === currentUser.id);
+        const userRec = db.users.find(u => u.id == currentUser.id);
 
         let balances = userRec?.leaveBalances || [];
         if (balances.length === 0 && db.companyProfile?.leaveTypes) {
@@ -5550,7 +5550,7 @@ function renderNotifications() {
 
     if (!currentUser) return;
 
-    const myNotifications = db.notifications.filter(n => n.userId === currentUser.id);
+    const myNotifications = db.notifications.filter(n => n.userId == currentUser.id);
     const unreadCount = myNotifications.filter(n => !n.read).length;
 
     // Badge pulse handler
@@ -6818,7 +6818,7 @@ window.openManualAttendanceModal = function () {
     if (currentUser.role === 'Admin') {
         targetUsers = db.users.filter(u => u.status === 'Active');
     } else if (currentUser.role === 'Manager') {
-        targetUsers = db.users.filter(u => u.status === 'Active' && (u.managerId === currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
+        targetUsers = db.users.filter(u => u.status === 'Active' && (u.managerId == currentUser.id || u.managerId === currentUser.name || u.managerId === currentUser.email));
     }
 
     const renderBulkList = () => {
@@ -7013,7 +7013,7 @@ window.toggleAnnouncementEmployeeSelect = function() {
         const select = document.getElementById('announcement-single-user');
         select.innerHTML = '<option value="">-- Select Employee --</option>';
         db.users.forEach(u => {
-            if (u.id !== currentUser.id) {
+            if (u.id != currentUser.id) {
                 select.innerHTML += `<option value="${u.id}">${u.name} (${u.role})</option>`;
             }
         });
@@ -7051,9 +7051,9 @@ window.createAnnouncement = function() {
     // Determine Target Users
     let targetUsers = [];
     if (audience === 'All') {
-        targetUsers = db.users.filter(u => u.id !== currentUser.id);
+        targetUsers = db.users.filter(u => u.id != currentUser.id);
     } else if (audience === 'Manager') {
-        targetUsers = db.users.filter(u => u.id !== currentUser.id && u.role === 'Manager');
+        targetUsers = db.users.filter(u => u.id != currentUser.id && u.role === 'Manager');
     } else if (audience === 'Single') {
         targetUsers = db.users.filter(u => u.id === singleUserId);
         audience = `User: ${singleUserId}`;
@@ -7809,7 +7809,7 @@ function generateReport(roleContext) {
     // Filter employees set based on parameters (include Admin, exclude Inactive)
     let filteredEmployees = db.users.filter(u => u.status !== 'Inactive');
     if (roleContext === 'Manager') {
-        filteredEmployees = filteredEmployees.filter(e => e.managerId === currentUser.id || e.managerId === currentUser.name || e.managerId === currentUser.email);
+        filteredEmployees = filteredEmployees.filter(e => e.managerId == currentUser.id || e.managerId === currentUser.name || e.managerId === currentUser.email);
     } else { // Admin
         if (managerId) {
             filteredEmployees = filteredEmployees.filter(e => e.managerId === managerId || e.managerId === (db.users.find(u => u.id === managerId) || {}).name || e.managerId === (db.users.find(u => u.id === managerId) || {}).email);
@@ -8474,7 +8474,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     safeAddListener('btn-clear-notifications', 'click', () => {
         const db = getDb();
         db.notifications.forEach(n => {
-            if (n.userId === currentUser.id) n.read = true;
+            if (n.userId == currentUser.id) n.read = true;
         });
         saveDb(db);
         renderNotifications();
@@ -8485,7 +8485,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (confirm("Clear all notifications? This cannot be undone.")) {
             const db = getDb();
             const originalLength = db.notifications.length;
-            db.notifications = db.notifications.filter(n => n.userId !== currentUser.id);
+            db.notifications = db.notifications.filter(n => n.userId != currentUser.id);
             if (db.notifications.length < originalLength) {
                 saveDb(db);
                 renderNotifications();
