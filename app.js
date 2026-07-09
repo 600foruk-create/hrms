@@ -10536,7 +10536,7 @@ function updateDropdownShiftProgress() {
     if(shiftDurationHours <= 0) shiftDurationHours = 8;
 
     const parseDbTime = (tStr) => {
-        let d = new Date(${today} );
+        let d = new Date(`${today} ${tStr}`);
         if (isNaN(d.getTime())) {
             const match = tStr.match(/(\d+):(\d+)(?::\d+)?\s*(AM|PM)?/i);
             if (match) {
@@ -10576,21 +10576,21 @@ function updateDropdownShiftProgress() {
     
     const displayPct = Math.floor(progressPct);
     
-    progressBar.style.width = ${displayPct}%;
-    progressText.textContent = ${displayPct}%;
+    progressBar.style.width = `${displayPct}%`;
+    progressText.textContent = `${displayPct}%`;
     
     if (attRecord.timeOut) {
-        statusText.textContent = Shift completed (h logged);
+        statusText.textContent = `Shift completed (${elapsedHours.toFixed(1)}h logged)`;
         progressBar.style.backgroundColor = 'var(--success)';
     } else {
         const remainingHours = shiftDurationHours - elapsedHours;
         if (remainingHours > 0) {
             const rH = Math.floor(remainingHours);
             const rM = Math.floor((remainingHours - rH) * 60);
-            statusText.textContent = ${rH}h m remaining in shift;
+            statusText.textContent = `${rH}h ${rM}m remaining in shift`;
             progressBar.style.backgroundColor = 'var(--primary)';
         } else {
-            statusText.textContent = Overtime (h extra);
+            statusText.textContent = `Overtime (${(elapsedHours - shiftDurationHours).toFixed(1)}h extra)`;
             progressBar.style.backgroundColor = 'var(--warning)';
         }
     }
