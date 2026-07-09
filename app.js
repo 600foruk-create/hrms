@@ -10695,10 +10695,12 @@ function renderMyTeamWidget() {
         
         return `
             <div class="team-member-card">
-                ${badgeHtml}
                 ${avatarHtml}
-                <div class="team-member-name" title="${user.name}">${user.name}</div>
-                <div class="team-member-role">${user.designation || user.role || 'Staff'}</div>
+                <div class="team-member-info">
+                    <div class="team-member-name" title="${user.name}">${user.name}</div>
+                    <div class="team-member-role">${user.designation || user.role || 'Staff'}</div>
+                </div>
+                ${badgeHtml}
                 <div class="team-member-tooltip">${tooltipHtml}</div>
             </div>
         `;
