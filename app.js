@@ -4047,7 +4047,7 @@ window.renderUserAnnouncementsTab = function(subtab = 'today') {
             const dislikeCount = Object.values(ann.reactions || {}).filter(r => r === 'dislike').length;
 
             container.innerHTML += `
-                <div class="card bg-glass" style="border:none; background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%); box-shadow: 0 4px 16px 0 rgba(0,0,0,0.05); backdrop-filter: blur(10px); border-left: 4px solid var(--primary); border-radius: 8px; margin-bottom: 10px; position:relative; overflow:hidden;">
+                <div class="card" style="border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 10px; position:relative; overflow:hidden; background: var(--bg-card);">
                     <div style="position:absolute; top:-15px; right:-15px; font-size:80px; color:var(--primary); opacity:0.03; transform:rotate(-15deg); pointer-events:none;">
                         <i class="fa-solid fa-bullhorn"></i>
                     </div>
