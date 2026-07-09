@@ -4069,6 +4069,11 @@ window.renderUserAnnouncementsTab = function(subtab = 'today') {
                         <p style="margin:0; margin-bottom: 10px; color:var(--text-primary); line-height:1.4; font-size: 13.5px; white-space:pre-wrap; word-break: break-word;">${ann.message || ann.content || ''}</p>
                         
                         <div style="display:flex; align-items:center; gap: 8px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px;">
+                            ${ann.id.startsWith('BTH-') ? `
+                                <button class="btn btn-sm btn-outline text-primary" onclick="openNewsInteractionModal('${ann.id}')" style="border-radius: 20px; display:flex; align-items:center; gap:5px;">
+                                    <i class="fa-solid fa-comments"></i> View Comments & Reactions
+                                </button>
+                            ` : `
                             <button class="btn btn-sm ${myReaction === 'like' ? 'btn-primary' : 'btn-outline'}" onclick="reactToAnnouncement('${ann.id}', 'like')" style="border-radius: 20px; display:flex; align-items:center; gap:5px;">
                                 👍 <span style="font-size:12px; font-weight:bold;">${likeCount > 0 ? likeCount : 'Like'}</span>
                             </button>
@@ -4078,6 +4083,7 @@ window.renderUserAnnouncementsTab = function(subtab = 'today') {
                             <button class="btn btn-sm ${myReaction === 'dislike' ? 'btn-secondary' : 'btn-outline'}" onclick="reactToAnnouncement('${ann.id}', 'dislike')" style="border-radius: 20px; display:flex; align-items:center; gap:5px;">
                                 👎 <span style="font-size:12px; font-weight:bold;">${dislikeCount > 0 ? dislikeCount : ''}</span>
                             </button>
+                            `}
                         </div>
                     </div>
                 </div>

@@ -1913,13 +1913,17 @@ elseif ($action === 'save_all') {
             if (!empty($data['announcements'])) {
                 $stmt = $pdo->prepare("INSERT INTO announcements (id, title, message, target_audience, created_by, created_at, read_by, hidden_by, reactions, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 foreach ($data['announcements'] as $a) {
+                    $created_at = $a['created_at'] ?? '';
+                    if ($created_at) {
+                        $created_at = str_replace(['T', 'Z'], [' ', ''], explode('.', $created_at)[0]);
+                    }
                     $stmt->execute([
                         $a['id'],
                         $a['title'] ?? '',
                         $a['message'] ?? '',
                         $a['target_audience'] ?? '',
                         $a['created_by'] ?? '',
-                        $a['created_at'] ?? '',
+                        $created_at,
                         isset($a['read_by']) ? json_encode($a['read_by']) : '[]',
                         isset($a['hidden_by']) ? json_encode($a['hidden_by']) : '[]',
                         isset($a['reactions']) ? json_encode($a['reactions']) : '{}',
