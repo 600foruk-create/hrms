@@ -1095,6 +1095,7 @@ function updatePunchButtonState() {
         btn.style.background = "rgba(244, 63, 94, 0.1)";
         btn.style.borderColor = "rgba(244, 63, 94, 0.3)";
         btn.style.color = "#f43f5e";
+        btn.disabled = false;
     } else if (record && record.timeOut) {
         btnText.textContent = "Punched Out";
         btnIcon.className = "fa-solid fa-check";

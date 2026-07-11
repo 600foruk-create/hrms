@@ -1858,7 +1858,17 @@ elseif ($action === 'save_all') {
                         $timeOutVal = isset($a['timeOut']) ? $a['timeOut'] : null;
                         $stmt->execute([$dateVal, $empIdVal, $empNameVal, $statusVal, $markedByVal, $timeInVal, $timeOutVal]);
                     } catch (Exception $rowEx) {
-                        error_log("Attendance row insert error: " . $rowEx->getMessage());
+                        if (stripos($rowEx->getMessage(), 'status') !== false || stripos($rowEx->getMessage(), 'enum') !== false || stripos($rowEx->getMessage(), 'truncate') !== false) {
+                            try {
+                                $stmt->execute([$dateVal, $empIdVal, $empNameVal, 'Present', $markedByVal, $timeInVal, $timeOutVal]);
+                            } catch (Exception $retryEx) {
+                                error_log("Attendance row retry insert error: " . $retryEx->getMessage());
+                                file_put_contents(__DIR__ . '/attendance_error.log', date('Y-m-d H:i:s') . " - RETRY - " . $retryEx->getMessage() . "\n", FILE_APPEND);
+                            }
+                        } else {
+                            error_log("Attendance row insert error: " . $rowEx->getMessage());
+                            file_put_contents(__DIR__ . '/attendance_error.log', date('Y-m-d H:i:s') . " - " . $rowEx->getMessage() . "\n", FILE_APPEND);
+                        }
                     }
                 }
             }
