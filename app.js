@@ -10785,8 +10785,9 @@ window.generateDailyBirthdays = function(db) {
                 const bMonth = parseInt(parts[1], 10);
                 const bDay = parseInt(parts[2], 10);
                 if (bMonth === currentMonth && bDay === currentDay) {
+                    const safeName = (u.name || 'User').replace(/[^a-zA-Z0-9]/g, '');
                     birthdayAnns.push({
-                        id: 'BTH-' + u.id + '-' + today.getFullYear(),
+                        id: 'BTH-' + u.id + '-' + safeName + '-' + today.getFullYear(),
                         title: `&#127881; Happy Birthday ${u.name}! &#127874;`,
                         message: `Wishing you a fantastic birthday, ${u.name}! Hope you have a wonderful day!`,
                         target_audience: 'All',
