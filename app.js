@@ -1112,7 +1112,15 @@ function updatePunchButtonState() {
     }
 }
 
-function handlePunchInOut() {
+async function handlePunchInOut() {
+    const btn = document.getElementById('btn-punch-attendance');
+    const btnIcon = document.querySelector('#btn-punch-attendance i');
+    const btnText = document.getElementById('punch-btn-text');
+    if (btn) btn.disabled = true;
+    const originalIcon = btnIcon ? btnIcon.className : '';
+    const originalText = btnText ? btnText.textContent : '';
+    if (btnIcon) btnIcon.className = "fa-solid fa-spinner fa-spin";
+    if (btnText) btnText.textContent = "Saving...";
     if (!currentUser) return;
     const db = getDb();
     const today = new Date().toISOString().split('T')[0];
@@ -1141,11 +1149,15 @@ function handlePunchInOut() {
         }
         showToast("Punched Out", `You successfully punched out at ${now}.`, "info");
     } else {
+        if (btn) btn.disabled = false;
+        if (btnIcon) btnIcon.className = originalIcon;
+        if (btnText) btnText.textContent = originalText;
         return; // Already punched out
     }
 
-    saveDb(db);
+    await saveDb(db);
     updatePunchButtonState();
+    if (typeof updateDropdownShiftProgress === 'function') updateDropdownShiftProgress();
 
     // Refresh tables if we are looking at them
     if (activeTab === 'attendance') {
