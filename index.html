@@ -2489,9 +2489,9 @@
                             <!-- Sub Tab 1: Categories Config (2x2 Grid) -->
                             <div id="subtab-content-admin-config" class="sub-tab-content active">
                                 <div
-                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: calc(100vh - 240px);">
+                                    style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; height: calc(100vh - 240px);">
 
-                                    <!-- LEFT: Departments & Practices -->
+                                    <!-- LEFT: Departments -->
                                     <div class="section-card bg-glass p-0 overflow-hidden"
                                         style="border-radius: 12px; display:flex; flex-direction:column; height:100%;">
                                         <!-- Panel Header -->
@@ -2501,8 +2501,7 @@
                                                 <i class="fa-solid fa-sitemap"
                                                     style="color:var(--primary); font-size:15px;"></i>
                                                 <span
-                                                    style="font-weight:700; font-size:14px; color:var(--text-dark);">Departments
-                                                    &amp; Practices</span>
+                                                    style="font-weight:700; font-size:14px; color:var(--text-dark);">Departments</span>
                                             </div>
                                             <button class="btn btn-sm btn-primary"
                                                 style="padding:4px 12px; font-size:12px; border-radius:6px;"
@@ -2516,6 +2515,33 @@
                                             style="padding: 8px; display:flex; flex-direction:column; gap:4px; flex:1; overflow-y:auto;">
                                             <div class="text-secondary text-center"
                                                 style="margin-top:50px; font-size:13px;">No departments yet</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- MIDDLE: Practices -->
+                                    <div class="section-card bg-glass p-0 overflow-hidden"
+                                        style="border-radius: 12px; display:flex; flex-direction:column; height:100%;">
+                                        <!-- Panel Header -->
+                                        <div
+                                            style="display:flex; align-items:center; justify-content:space-between; padding: 12px 18px; border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.03);">
+                                            <div style="display:flex; align-items:center; gap:10px;">
+                                                <i class="fa-solid fa-layer-group"
+                                                    style="color:var(--primary); font-size:15px;"></i>
+                                                <span
+                                                    style="font-weight:700; font-size:14px; color:var(--text-dark);">Practices</span>
+                                            </div>
+                                            <button class="btn btn-sm btn-primary"
+                                                style="padding:4px 12px; font-size:12px; border-radius:6px;"
+                                                onclick="window.addPracticeModal()">
+                                                <i class="fa-solid fa-plus"></i> Add Practice
+                                            </button>
+                                        </div>
+
+                                        <!-- List -->
+                                        <div id="admin-practices-list"
+                                            style="padding: 8px; display:flex; flex-direction:column; gap:4px; flex:1; overflow-y:auto;">
+                                            <div class="text-secondary text-center"
+                                                style="margin-top:50px; font-size:13px;">No practices yet</div>
                                         </div>
                                     </div>
 

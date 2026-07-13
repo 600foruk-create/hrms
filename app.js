@@ -9169,10 +9169,26 @@ function getProdSettings() {
     if (!db.productivityCategories) {
         db.productivityCategories = {
             businessUnits: [],
-            tesCategories: []
+            tesCategories: [],
+            practices: []
         };
     }
-    return db.productivityCategories;
+    const settings = db.productivityCategories;
+    if (!settings.practices) {
+        settings.practices = [];
+        let migrated = false;
+        (settings.businessUnits || []).forEach(bu => {
+            if (bu.practices && bu.practices.length > 0) {
+                bu.practices.forEach(p => {
+                    settings.practices.push({ id: p.id, name: p.name, managerId: null });
+                });
+                bu.practices = []; // Keep empty array just in case old code expects it, though we will remove usage
+                migrated = true;
+            }
+        });
+        if (migrated) saveProdSettings(settings);
+    }
+    return settings;
 }
 
 function saveProdSettings(settings) {
@@ -9215,7 +9231,7 @@ window.selectedAdminTaskId = null;
 window.renderAdminCategoriesConfig = function () {
     const settings = getProdSettings();
 
-    // ===== LEFT PANEL: Departments & Practices - Flat List =====
+    // ===== LEFT PANEL: Departments =====
     const buAccordion = document.getElementById('admin-accordion-bu-list');
     if (buAccordion) {
         buAccordion.innerHTML = '';
@@ -9223,45 +9239,57 @@ window.renderAdminCategoriesConfig = function () {
             buAccordion.innerHTML = '<div class="text-secondary text-center" style="margin-top:50px; font-size:13px;">No departments yet. Click "+ Add Department" to start.</div>';
         } else {
             settings.businessUnits.forEach((bu, idx) => {
-                const isOpen = bu.id === window.selectedAdminBuId;
-                const practiceCount = (bu.practices || []).length;
                 const isLast = idx === settings.businessUnits.length - 1;
-
-                const practicesHtml = (bu.practices || []).map(p => `
-                    <div style="display:flex; align-items:center; justify-content:space-between; padding: 3px 10px 3px 24px; background: rgba(var(--primary-rgb,95,59,246),0.03);">
-                        <span style="font-size:12px; color:var(--primary);">• ${p.name}</span>
-                        <div style="display:flex; gap:4px;">
-                            <button style="visibility:hidden; background:none; border:none; font-size:13px; padding:2px 4px;"><i class="fa-solid fa-circle-plus"></i></button>
-                            <button onclick="event.stopPropagation(); window.selectedAdminBuId='${bu.id}'; window.selectedAdminPracticeId='${p.id}'; window.editSelectedPractice();" style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:12px; padding:2px 4px;"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="event.stopPropagation(); window.selectedAdminBuId='${bu.id}'; window.selectedAdminPracticeId='${p.id}'; window.deleteSelectedPractice();" style="background:none; border:none; cursor:pointer; color:#ef4444; font-size:12px; padding:2px 4px;"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>
-                `).join('');
-
-                const toggleClick = isOpen
-                    ? `window.selectedAdminBuId=null; window.renderAdminCategoriesConfig();`
-                    : `window.selectedAdminBuId='${bu.id}'; window.renderAdminCategoriesConfig();`;
 
                 buAccordion.innerHTML += `
                     <div style="${!isLast ? 'border-bottom: 1px solid var(--border-color);' : ''}">
-                        <!-- Department row -->
-                        <div style="display:flex; align-items:center; justify-content:space-between; padding:5px 12px; cursor:pointer; ${isOpen ? 'background:rgba(var(--primary-rgb,95,59,246),0.04);' : ''}"
-                             onclick="${toggleClick}">
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:5px 12px; cursor:default;">
                             <div style="display:flex; align-items:center; gap:8px;">
-                                <i class="fa-solid fa-chevron-${isOpen ? 'down' : 'right'}" style="font-size:9px; color:var(--text-muted); width:9px; transition:transform 0.2s;"></i>
-                                <span style="font-weight:${isOpen ? '600' : '500'}; font-size:13px; color:${isOpen ? 'var(--primary)' : 'var(--text-dark)'};">${bu.name}</span>
-                                <span style="font-size:10px; font-weight:600; padding:1px 6px; border-radius:20px; background:var(--primary); color:#fff;">${practiceCount}</span>
+                                <i class="fa-solid fa-sitemap" style="font-size:12px; color:var(--text-muted); width:12px;"></i>
+                                <span style="font-weight:600; font-size:13px; color:var(--text-dark);">${bu.name}</span>
                             </div>
-                            <div style="display:flex; gap:4px;" onclick="event.stopPropagation();">
-                                <button onclick="window.selectedAdminBuId='${bu.id}'; window.addBuPracticeModal('${bu.id}');" title="Add Practice" style="background:none; border:none; cursor:pointer; color:var(--primary); font-size:13px; padding:2px 4px;"><i class="fa-solid fa-circle-plus"></i></button>
+                            <div style="display:flex; gap:4px;">
                                 <button onclick="window.selectedAdminBuId='${bu.id}'; window.editSelectedBu();" title="Edit" style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:12px; padding:2px 4px;"><i class="fa-solid fa-pen"></i></button>
                                 <button onclick="window.selectedAdminBuId='${bu.id}'; window.deleteSelectedBu();" title="Delete" style="background:none; border:none; cursor:pointer; color:#ef4444; font-size:12px; padding:2px 4px;"><i class="fa-solid fa-trash"></i></button>
                             </div>
                         </div>
-                        <!-- Practices sub-rows -->
-                        ${isOpen ? `<div>
-                            ${practicesHtml || '<div class="text-secondary" style="font-size:11px; text-align:center; padding:6px 14px; background:rgba(0,0,0,0.01);">No practices yet.</div>'}
-                        </div>` : ''}
+                    </div>
+                `;
+            });
+        }
+    }
+
+    // ===== MIDDLE PANEL: Practices =====
+    const practicesList = document.getElementById('admin-practices-list');
+    if (practicesList) {
+        practicesList.innerHTML = '';
+        if (!settings.practices || settings.practices.length === 0) {
+            practicesList.innerHTML = '<div class="text-secondary text-center" style="margin-top:50px; font-size:13px;">No practices yet. Click "+ Add Practice" to start.</div>';
+        } else {
+            const db = getDb();
+            settings.practices.forEach((p, idx) => {
+                const isLast = idx === settings.practices.length - 1;
+                let managerName = 'No Manager';
+                if (p.managerId) {
+                    const manager = (db.users || []).find(u => String(u.id) === String(p.managerId));
+                    if (manager) managerName = manager.name;
+                }
+
+                practicesList.innerHTML += `
+                    <div style="${!isLast ? 'border-bottom: 1px solid var(--border-color);' : ''}">
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:5px 12px; cursor:default;">
+                            <div style="display:flex; flex-direction:column; gap:2px;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <i class="fa-solid fa-layer-group" style="font-size:12px; color:var(--text-muted); width:12px;"></i>
+                                    <span style="font-weight:600; font-size:13px; color:var(--text-dark);">${p.name}</span>
+                                </div>
+                                <span style="font-size:10px; color:var(--text-secondary); margin-left: 20px;">Manager: ${managerName}</span>
+                            </div>
+                            <div style="display:flex; gap:4px;">
+                                <button onclick="window.selectedAdminPracticeId='${p.id}'; window.editSelectedPractice();" title="Edit" style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:12px; padding:2px 4px;"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="window.selectedAdminPracticeId='${p.id}'; window.deleteSelectedPractice();" title="Delete" style="background:none; border:none; cursor:pointer; color:#ef4444; font-size:12px; padding:2px 4px;"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
                     </div>
                 `;
             });
@@ -9408,34 +9436,44 @@ window.editSelectedBu = function () {
     });
 };
 
-window.addBuPracticeModal = function (buId) {
+window.addPracticeModal = function () {
+    const db = getDb();
+    const managers = (db.users || []).filter(u => u.role === 'Manager');
+    let managerOptions = '<option value="">-- No Manager Assigned --</option>';
+    managers.forEach(m => {
+        managerOptions += `<option value="${m.id}">${m.name}</option>`;
+    });
+
     Swal.fire({
         title: 'Add Practice',
-        input: 'text',
-        inputPlaceholder: 'Enter Practice name',
+        html: `
+            <input id="swal-input-practice-name" class="swal2-input" placeholder="Enter Practice name">
+            <select id="swal-input-practice-manager" class="swal2-input" style="width: 80%; max-width: 100%; margin: 10px auto;">
+                ${managerOptions}
+            </select>
+        `,
         showCancelButton: true,
         confirmButtonText: 'Add',
-        preConfirm: (name) => {
+        preConfirm: () => {
+            const name = document.getElementById('swal-input-practice-name').value;
+            const managerId = document.getElementById('swal-input-practice-manager').value;
             if (!name) Swal.showValidationMessage('Name is required');
-            return name;
+            return { name, managerId };
         }
     }).then((result) => {
         if (result.isConfirmed) {
             const settings = getProdSettings();
-            const bu = settings.businessUnits.find(b => b.id === buId);
-            if (bu) {
-                bu.practices.push({ id: generateId('P'), name: result.value });
-                saveProdSettings(settings);
-                showToast('Success', 'Practice added');
-            }
+            settings.practices = settings.practices || [];
+            settings.practices.push({ id: generateId('P'), name: result.value.name, managerId: result.value.managerId || null });
+            saveProdSettings(settings);
+            showToast('Success', 'Practice added');
         }
     });
 };
 
 window.deleteSelectedPractice = function () {
-    const buId = window.selectedAdminBuId;
     const pId = window.selectedAdminPracticeId;
-    if (!buId || !pId) return;
+    if (!pId) return;
     Swal.fire({
         title: 'Delete Practice?',
         icon: 'warning',
@@ -9444,9 +9482,8 @@ window.deleteSelectedPractice = function () {
     }).then((result) => {
         if (result.isConfirmed) {
             const settings = getProdSettings();
-            const bu = settings.businessUnits.find(b => b.id === buId);
-            if (bu) {
-                bu.practices = bu.practices.filter(p => p.id !== pId);
+            if (settings.practices) {
+                settings.practices = settings.practices.filter(p => p.id !== pId);
                 saveProdSettings(settings);
                 window.selectedAdminPracticeId = null;
                 showToast('Deleted', 'Practice removed');
@@ -9456,28 +9493,41 @@ window.deleteSelectedPractice = function () {
 };
 
 window.editSelectedPractice = function () {
-    const buId = window.selectedAdminBuId;
     const pId = window.selectedAdminPracticeId;
-    if (!buId || !pId) return;
+    if (!pId) return;
     const settings = getProdSettings();
-    const bu = settings.businessUnits.find(b => b.id === buId);
-    if (!bu) return;
-    const practice = bu.practices.find(p => p.id === pId);
+    if (!settings.practices) return;
+    const practice = settings.practices.find(p => p.id === pId);
     if (!practice) return;
+    
+    const db = getDb();
+    const managers = (db.users || []).filter(u => u.role === 'Manager');
+    let managerOptions = '<option value="">-- No Manager Assigned --</option>';
+    managers.forEach(m => {
+        const selected = practice.managerId === m.id ? 'selected' : '';
+        managerOptions += `<option value="${m.id}" ${selected}>${m.name}</option>`;
+    });
+
     Swal.fire({
         title: 'Edit Practice',
-        input: 'text',
-        inputValue: practice.name,
-        inputPlaceholder: 'Enter Practice name',
+        html: `
+            <input id="swal-input-practice-name" class="swal2-input" placeholder="Enter Practice name" value="${practice.name}">
+            <select id="swal-input-practice-manager" class="swal2-input" style="width: 80%; max-width: 100%; margin: 10px auto;">
+                ${managerOptions}
+            </select>
+        `,
         showCancelButton: true,
         confirmButtonText: 'Save',
-        preConfirm: (name) => {
+        preConfirm: () => {
+            const name = document.getElementById('swal-input-practice-name').value;
+            const managerId = document.getElementById('swal-input-practice-manager').value;
             if (!name) Swal.showValidationMessage('Name is required');
-            return name;
+            return { name, managerId };
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            practice.name = result.value;
+            practice.name = result.value.name;
+            practice.managerId = result.value.managerId || null;
             saveProdSettings(settings);
             showToast('Success', 'Practice updated');
         }
@@ -9651,10 +9701,18 @@ window.toggleProdTypeFields = function () {
 
 window.populateProdDropdowns = function () {
     const settings = getProdSettings();
+    let practices = settings.practices || [];
+    
+    // Filter practices based on user
+    if (currentUser.role !== 'Admin') {
+        const targetManagerId = currentUser.role === 'Manager' ? currentUser.id : currentUser.managerId;
+        practices = practices.filter(p => !p.managerId || String(p.managerId) === String(targetManagerId));
+    }
 
     // EPT (Inline)
     const eptBuSelect = document.getElementById('ept-bu-select');
     const eptTesSelect = document.getElementById('ept-tes-select');
+    const eptPracticesOptions = document.getElementById('ept-bu-practices-options');
 
     if (eptBuSelect) {
         eptBuSelect.innerHTML = '<option value="">-- Select Department --</option>' +
@@ -9664,10 +9722,21 @@ window.populateProdDropdowns = function () {
         eptTesSelect.innerHTML = '<option value="">-- Select Task Category --</option>' +
             settings.tesCategories.map(tes => `<option value="${tes.id}">${tes.name}</option>`).join('');
     }
+    if (eptPracticesOptions) {
+        if (practices.length === 0) {
+            eptPracticesOptions.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">No practices available</div>';
+        } else {
+            eptPracticesOptions.innerHTML = practices.map(p => `
+                <label><input type="checkbox" value="${p.id}" data-text="${p.name}"> ${p.name}</label>
+            `).join('');
+        }
+    }
 
     // Modal
     const prodBuSelect = document.getElementById('prod-bu-select');
     const prodTesSelect = document.getElementById('prod-tes-select');
+    const prodPracticesSelect = document.getElementById('prod-bu-practices-select');
+
     if (prodBuSelect) {
         prodBuSelect.innerHTML = '<option value="">-- Select Department --</option>' +
             settings.businessUnits.map(bu => `<option value="${bu.id}">${bu.name}</option>`).join('');
@@ -9676,27 +9745,14 @@ window.populateProdDropdowns = function () {
         prodTesSelect.innerHTML = '<option value="">-- Select Task Category --</option>' +
             settings.tesCategories.map(tes => `<option value="${tes.id}">${tes.name}</option>`).join('');
     }
+    if (prodPracticesSelect) {
+        prodPracticesSelect.innerHTML = '<option value="">-- Select Practice --</option>' + 
+            practices.map(p => `<option value="${p.id}" data-text="${p.name}">${p.name}</option>`).join('');
+    }
 };
 
 window.onEptBuChange = function () {
-    const settings = getProdSettings();
-    const buId = document.getElementById('ept-bu-select').value;
-    const bu = settings.businessUnits.find(b => b.id === buId);
-    const optionsContainer = document.getElementById('ept-bu-practices-options');
-
-    document.querySelector('#ept-bu-practices-multiselect .selected-text').textContent = 'Select Practices';
-    if (!bu) {
-        optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">Select a Department first</div>';
-        return;
-    }
-    if (bu.practices.length === 0) {
-        optionsContainer.innerHTML = '<div class="placeholder-msg" style="padding: 10px; font-size: 13px; color: #666;">No practices found in this Department</div>';
-        return;
-    }
-
-    optionsContainer.innerHTML = bu.practices.map(p => `
-        <label><input type="checkbox" value="${p.id}" data-text="${p.name}"> ${p.name}</label>
-    `).join('');
+    // Deprecated: Practices are now independent
 };
 
 window.onEptTesChange = function () {
@@ -9722,16 +9778,7 @@ window.onEptTesChange = function () {
 
 // Same for Modal if needed
 window.onProdBuChange = function () {
-    const settings = getProdSettings();
-    const buId = document.getElementById('prod-bu-select').value;
-    const bu = settings.businessUnits.find(b => b.id === buId);
-    const optionsContainer = document.getElementById('prod-bu-practices-select');
-
-    if (!bu) {
-        optionsContainer.innerHTML = '<option value="">-- Select Practice --</option>';
-        return;
-    }
-    optionsContainer.innerHTML = '<option value="">-- Select Practice --</option>' + bu.practices.map(p => `<option value="${p.id}" data-text="${p.name}">${p.name}</option>`).join('');
+    // Deprecated: Practices are now independent
 };
 
 window.onProdTesChange = function () {
@@ -10283,9 +10330,7 @@ window.renderAdminProductivityTab = function () {
 
     if (catFilter && catFilter.options.length <= 1) {
         let allCats = [];
-        (prodSettings.businessUnits || []).forEach(bu => {
-            (bu.practices || []).forEach(p => allCats.push(p.name));
-        });
+        (prodSettings.practices || []).forEach(p => allCats.push(p.name));
         (prodSettings.tesCategories || []).forEach(tc => {
             (tc.tasks || []).forEach(t => allCats.push(t.name));
         });
