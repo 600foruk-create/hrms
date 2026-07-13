@@ -1393,7 +1393,8 @@ if ($action === 'load_all') {
             $pcats = $stmt->fetchAll(PDO::FETCH_ASSOC);
             $dbState['productivityCategories'] = [
                 'businessUnits' => [],
-                'tesCategories' => []
+                'tesCategories' => [],
+                'practices' => []
             ];
             
             // First pass: Build BUs and TESs
@@ -1419,15 +1420,11 @@ if ($action === 'load_all') {
             // Second pass: Populate Practices and Tasks
             foreach ($pcats as $cat) {
                 if ($cat['type'] === 'PRACTICE') {
-                    foreach ($dbState['productivityCategories']['businessUnits'] as &$bu) {
-                        if ($bu['id'] === $cat['parent_id']) {
-                            $bu['practices'][] = [
-                                'id' => $cat['id'],
-                                'name' => $cat['name']
-                            ];
-                            break;
-                        }
-                    }
+                    $dbState['productivityCategories']['practices'][] = [
+                        'id' => $cat['id'],
+                        'name' => $cat['name'],
+                        'managerId' => $cat['description'] ?: null
+                    ];
                 } else if ($cat['type'] === 'TASK') {
                     foreach ($dbState['productivityCategories']['tesCategories'] as &$tes) {
                         if ($tes['id'] === $cat['parent_id']) {
@@ -1805,11 +1802,12 @@ elseif ($action === 'save_all') {
                 if (!empty($pData['businessUnits'])) {
                     foreach ($pData['businessUnits'] as $bu) {
                         $stmt->execute([$bu['id'], 'BU', null, $bu['name'], 0, '']);
-                        if (!empty($bu['practices'])) {
-                            foreach ($bu['practices'] as $practice) {
-                                $stmt->execute([$practice['id'], 'PRACTICE', $bu['id'], $practice['name'], 0, '']);
-                            }
-                        }
+                    }
+                }
+                if (!empty($pData['practices'])) {
+                    foreach ($pData['practices'] as $practice) {
+                        $managerId = $practice['managerId'] ?? null;
+                        $stmt->execute([$practice['id'], 'PRACTICE', null, $practice['name'], 0, $managerId]);
                     }
                 }
                 if (!empty($pData['tesCategories'])) {
@@ -2385,11 +2383,13 @@ elseif ($action === 'save_all') {
         if (!empty($data['businessUnits'])) {
             foreach ($data['businessUnits'] as $bu) {
                 $stmt->execute([$bu['id'], 'BU', null, $bu['name'], 0, '']);
-                if (!empty($bu['practices'])) {
-                    foreach ($bu['practices'] as $practice) {
-                        $stmt->execute([$practice['id'], 'PRACTICE', $bu['id'], $practice['name'], 0, '']);
-                    }
-                }
+            }
+        }
+        
+        if (!empty($data['practices'])) {
+            foreach ($data['practices'] as $practice) {
+                $managerId = $practice['managerId'] ?? null;
+                $stmt->execute([$practice['id'], 'PRACTICE', null, $practice['name'], 0, $managerId]);
             }
         }
         
