@@ -584,7 +584,9 @@ window.openPayslipModal = function(recordId) {
 };
 
 window.printIndividualPayslip = function() {
+    document.body.classList.add('printing-modal');
     window.print();
+    document.body.classList.remove('printing-modal');
 };
 
 window.renderMyPayslips = function() {
@@ -915,7 +917,9 @@ window.printBankLetter = function() {
 
 
 window.printSummary = function() {
+    document.body.classList.add('printing-modal');
     window.print();
+    document.body.classList.remove('printing-modal');
 };
 
 // --- 1. Salary Profiles Management ---

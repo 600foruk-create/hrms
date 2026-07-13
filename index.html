@@ -351,9 +351,25 @@
                 background: white !important;
             }
 
-            /* Hide ALL direct children of body by default */
-            body>* {
+            /* Hide ALL direct children of body ONLY when explicitly printing a modal */
+            body.printing-modal>* {
                 display: none !important;
+            }
+
+            /* Hide app UI elements during ANY normal print (Ctrl+P or reports) */
+            body:not(.printing-modal) .topbar,
+            body:not(.printing-modal) .sidebar,
+            body:not(.printing-modal) .dashboard-tabs,
+            body:not(.printing-modal) .sub-tabs,
+            body:not(.printing-modal) .controls-row {
+                display: none !important;
+            }
+
+            body:not(.printing-modal) #main-content {
+                margin: 0 !important;
+                padding: 0 !important;
+                left: 0 !important;
+                width: 100% !important;
             }
 
             /* Specifically display ONLY the open modal being printed */

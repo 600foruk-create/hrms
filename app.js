@@ -5654,9 +5654,7 @@ window.viewEmployeeCard = function (userId) {
     }
 };
 
-window.printIdCard = function () {
-    window.print();
-};
+
 
 // 1. Employee Profiles Modal
 window.viewUserProfile = function (userId) {

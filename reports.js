@@ -93,10 +93,10 @@ window.printReport = function(reportId) {
         }
     });
 
-    document.body.classList.add('printing-modal');
+    document.body.classList.add('printing-report');
     window.print();
     
-    document.body.classList.remove('printing-modal');
+    document.body.classList.remove('printing-report');
     printAreas.forEach(area => {
         area.classList.remove('no-print-temp');
         area.style.display = '';
