@@ -10575,6 +10575,10 @@ function updateDropdownShiftProgress() {
         progressText.textContent = '0%';
         statusText.textContent = 'Not checked in today';
         if (shiftInText) shiftInText.textContent = '--:--';
+        
+        const topbarRing = document.getElementById('topbar-avatar-ring');
+        if (topbarRing) topbarRing.style.background = '#e2e8f0';
+        
         return;
     }
     
@@ -10637,6 +10641,11 @@ function updateDropdownShiftProgress() {
     }
     
     progressBar.style.backgroundColor = color;
+    
+    const topbarRing = document.getElementById('topbar-avatar-ring');
+    if (topbarRing) {
+        topbarRing.style.background = `conic-gradient(${color} ${displayPct}%, #e2e8f0 0%)`;
+    }
     
     if (attRecord.timeOut && attRecord.timeOut !== '-') {
         statusText.textContent = `Shift completed (${elapsedHours.toFixed(1)}h logged)`;

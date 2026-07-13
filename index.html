@@ -787,9 +787,11 @@
                 <div class="profile-dropdown-wrapper">
                     <button class="profile-btn" id="btn-profile-dropdown"
                         style="display: flex; align-items: center; gap: 10px; background: transparent; border: none; padding: 4px 8px; cursor: pointer;">
-                        <div class="avatar-small" id="topbar-avatar"
-                            style="width: 34px; height: 34px; border-radius: 50%; background: #5f3bf6; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13.5px; box-shadow: none;">
-                            A</div>
+                        <div id="topbar-avatar-ring" style="width: 42px; height: 42px; border-radius: 50%; padding: 3px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; transition: background 0.5s ease;">
+                            <div class="avatar-small" id="topbar-avatar"
+                                style="width: 36px; height: 36px; border-radius: 50%; background: #5f3bf6; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13.5px; box-shadow: none; border: 2px solid white;">
+                                A</div>
+                        </div>
                         <div
                             style="display: flex; flex-direction: column; align-items: flex-start; text-align: left; line-height: 1.2;">
                             <span id="topbar-user-name-label"
