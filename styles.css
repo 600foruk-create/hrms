@@ -1998,9 +1998,7 @@ body.light-mode .report-preview-container {
         border: 1px solid #000 !important;
     }
 
-    .main-layout {
-        display: none !important;
-    }
+
     .report-print-sheet {
         color: #000000 !important;
     }
