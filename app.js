@@ -4279,6 +4279,9 @@ function renderAdminSettingsTab() {
         document.getElementById('theme-color').value = sysSettings.themeColor;
         document.getElementById('theme-color-hex').textContent = sysSettings.themeColor;
     }
+    
+    // Load ID Card Theme UI
+    if (window.loadIdCardThemeForRole) window.loadIdCardThemeForRole('Admin');
 
     // Payroll Restrictions and Leave Approvals
     if (document.getElementById('payroll-lock-enabled')) {
@@ -7474,6 +7477,42 @@ window.saveSystemSettings = async function () {
     }
 };
 
+window.loadIdCardThemeForRole = function (role) {
+    const db = getDb();
+    const themes = (db.systemSettings && db.systemSettings.idCardTheme) || {
+        Admin: { primary: "#0f3484", secondary: "#00a8e8", background: "#ffffff" },
+        Manager: { primary: "#0f3484", secondary: "#00a8e8", background: "#ffffff" },
+        Employee: { primary: "#0f3484", secondary: "#00a8e8", background: "#ffffff" }
+    };
+    const theme = themes[role] || { primary: "#0f3484", secondary: "#00a8e8", background: "#ffffff" };
+    
+    document.getElementById('idcard-primary-color').value = theme.primary;
+    document.getElementById('idcard-secondary-color').value = theme.secondary;
+    document.getElementById('idcard-bg-color').value = theme.background;
+};
+
+window.saveIdCardThemeSettings = function () {
+    const db = getDb();
+    if (!db.systemSettings) db.systemSettings = {};
+    if (!db.systemSettings.idCardTheme) {
+        db.systemSettings.idCardTheme = {
+            Admin: { primary: "#0f3484", secondary: "#00a8e8", background: "#ffffff" },
+            Manager: { primary: "#0f3484", secondary: "#00a8e8", background: "#ffffff" },
+            Employee: { primary: "#0f3484", secondary: "#00a8e8", background: "#ffffff" }
+        };
+    }
+    
+    const role = document.getElementById('idcard-role-select').value;
+    const primary = document.getElementById('idcard-primary-color').value;
+    const secondary = document.getElementById('idcard-secondary-color').value;
+    const bg = document.getElementById('idcard-bg-color').value;
+    
+    db.systemSettings.idCardTheme[role] = { primary: primary, secondary: secondary, background: bg };
+    
+    saveDb(db);
+    showToast("Theme Saved", `ID Card theme for ${role} saved successfully.`);
+};
+
 window.saveShiftNotificationSettings = function () {
     const db = getDb();
     if (!db) return;
@@ -9099,14 +9138,32 @@ window.openIdCardModal = function (userId) {
     const cp = (!db.companyProfile || Array.isArray(db.companyProfile)) ? {} : db.companyProfile;
 
     const frontLogo = document.getElementById('id-card-front-logo');
-    const backLogo = document.getElementById('id-card-back-logo');
     if (cp.logoBase64) {
         if (frontLogo) { frontLogo.src = cp.logoBase64; frontLogo.style.display = 'block'; }
-        if (backLogo) { backLogo.src = cp.logoBase64; backLogo.style.display = 'block'; }
     } else {
         if (frontLogo) frontLogo.style.display = 'none';
-        if (backLogo) backLogo.style.display = 'none';
     }
+
+    // Apply Theme
+    const themes = (db.systemSettings && db.systemSettings.idCardTheme) || {
+        Admin: { primary: "#0f3484", secondary: "#00a8e8", background: "#ffffff" },
+        Manager: { primary: "#0f3484", secondary: "#00a8e8", background: "#ffffff" },
+        Employee: { primary: "#0f3484", secondary: "#00a8e8", background: "#ffffff" }
+    };
+    const roleTheme = themes[user.role] || themes['Employee'];
+
+    document.querySelectorAll('.id-card-shape-primary').forEach(el => el.style.background = roleTheme.primary);
+    document.querySelectorAll('.id-card-shape-secondary').forEach(el => el.style.background = roleTheme.secondary);
+    document.querySelectorAll('.id-card-bg-primary').forEach(el => el.style.background = roleTheme.primary);
+    document.querySelectorAll('.id-card-text-primary').forEach(el => el.style.color = roleTheme.primary);
+    
+    document.getElementById('id-card-name').style.color = roleTheme.primary;
+    document.getElementById('id-card-avatar-placeholder').style.color = roleTheme.primary;
+    
+    const cardFront = document.querySelector('.id-card-front');
+    const cardBack = document.querySelector('.id-card-back');
+    if (cardFront) cardFront.style.background = roleTheme.background;
+    if (cardBack) cardBack.style.background = roleTheme.background;
 
     const frontCompanyName = document.getElementById('id-card-front-company-name');
     if (frontCompanyName) {
