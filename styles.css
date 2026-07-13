@@ -2645,7 +2645,7 @@ body.light-mode .team-leader {
 
 /* Flex Table Card Utility */
 .flex-table-card {
-    height: calc(100vh - 270px);
+    min-height: 400px;
     display: flex;
     flex-direction: column;
 }
