@@ -15,7 +15,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Style -->
-    <link rel="stylesheet" href="styles.css?v=6.9.45">
+    <link rel="stylesheet" href="styles.css?v=6.9.46">
     <style id="team-widget-style">
         .team-member-card {
             position: relative;
@@ -349,6 +349,25 @@
                 padding: 0 !important;
                 overflow: visible !important;
                 background: white !important;
+            }
+
+            /* Fix Chrome print blanking for nested scrollable elements */
+            .main-layout,
+            .content-body,
+            .main-view,
+            .tab-view,
+            .sub-tab-content,
+            .section-card,
+            .flex-table-card,
+            .table-container,
+            .printable-area,
+            #app-shell {
+                overflow: visible !important;
+                overflow-x: visible !important;
+                overflow-y: visible !important;
+                height: auto !important;
+                min-height: auto !important;
+                max-height: none !important;
             }
 
             /* Hide ALL direct children of body ONLY when explicitly printing a modal */
