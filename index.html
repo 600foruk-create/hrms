@@ -380,8 +380,32 @@
             body:not(.printing-modal) .sidebar,
             body:not(.printing-modal) .dashboard-tabs,
             body:not(.printing-modal) .sub-tabs,
-            body:not(.printing-modal) .controls-row {
+            body:not(.printing-modal) .controls-row,
+            body:not(.printing-modal) .view-header,
+            body:not(.printing-modal) .sub-tab-nav,
+            body:not(.printing-modal) .report-filters-header,
+            body:not(.printing-modal) .news-ticker-container,
+            body:not(.printing-modal) .sub-tab-content > .mb-3 {
                 display: none !important;
+            }
+
+            body:not(.printing-modal) .content-body {
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            body:not(.printing-modal) .section-card {
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            body:not(.printing-modal) .printable-area {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
             }
 
             body:not(.printing-modal) #main-content {
