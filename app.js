@@ -937,9 +937,9 @@ function handleLogin(usernameOrEmail, password) {
             showToast("Welcome Back", `Successfully signed in as ${user.name}.`);
 
             // Birthday Animation Check
-            if (user.dateOfBirth) {
+            if (user.dob) {
                 const today = new Date();
-                const dob = new Date(user.dateOfBirth);
+                const dob = new Date(user.dob);
                 if (today.getMonth() === dob.getMonth() && today.getDate() === dob.getDate()) {
                     setTimeout(() => {
                         if (window.showBirthdayAnimation) window.showBirthdayAnimation(user.name);
