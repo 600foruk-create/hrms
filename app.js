@@ -11132,7 +11132,7 @@ window.showBirthdayAnimation = function(userName) {
     if (!document.getElementById('birthday-styles')) {
         const style = document.createElement('style');
         style.id = 'birthday-styles';
-        style.innerHTML = 
+        style.innerHTML = `
             @keyframes floatBalloon {
                 0% { transform: translateY(100vh) rotate(0deg); opacity: 1; }
                 100% { transform: translateY(-120vh) rotate(15deg); opacity: 0; }
@@ -11197,7 +11197,7 @@ window.showBirthdayAnimation = function(userName) {
                 width: 12px; height: 24px;
                 animation: fallConfetti linear forwards;
             }
-        \;
+        `;
         document.head.appendChild(style);
     }
 
@@ -11207,7 +11207,7 @@ window.showBirthdayAnimation = function(userName) {
     // Message
     const msg = document.createElement('div');
     msg.className = 'bday-msg';
-    msg.innerHTML = \Happy Birthday<br><span style="font-size:3rem; color: #5f3bf6;">\!</span> ??\;
+    msg.innerHTML = `Happy Birthday<br><span style="font-size:3rem; color: #5f3bf6;">${userName}!</span> 🎉`;
     container.appendChild(msg);
 
     const colors = ['#ff3366', '#33ccff', '#ffcc00', '#66ff66', '#9933ff', '#ff9933'];
