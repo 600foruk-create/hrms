@@ -9447,8 +9447,8 @@ window.addPracticeModal = function () {
     Swal.fire({
         title: 'Add Practice',
         html: `
-            <input id="swal-input-practice-name" class="swal2-input" placeholder="Enter Practice name">
-            <select id="swal-input-practice-manager" class="swal2-input" style="width: 80%; max-width: 100%; margin: 10px auto;">
+            <input id="swal-input-practice-name" class="swal2-input" placeholder="Enter Practice name" style="width: 80%; max-width: 100%; box-sizing: border-box; margin: 10px auto; display: block;">
+            <select id="swal-input-practice-manager" class="swal2-input" style="width: 80%; max-width: 100%; box-sizing: border-box; margin: 10px auto; display: block;">
                 ${managerOptions}
             </select>
         `,
@@ -9511,8 +9511,8 @@ window.editSelectedPractice = function () {
     Swal.fire({
         title: 'Edit Practice',
         html: `
-            <input id="swal-input-practice-name" class="swal2-input" placeholder="Enter Practice name" value="${practice.name}">
-            <select id="swal-input-practice-manager" class="swal2-input" style="width: 80%; max-width: 100%; margin: 10px auto;">
+            <input id="swal-input-practice-name" class="swal2-input" placeholder="Enter Practice name" value="${practice.name}" style="width: 80%; max-width: 100%; box-sizing: border-box; margin: 10px auto; display: block;">
+            <select id="swal-input-practice-manager" class="swal2-input" style="width: 80%; max-width: 100%; box-sizing: border-box; margin: 10px auto; display: block;">
                 ${managerOptions}
             </select>
         `,
