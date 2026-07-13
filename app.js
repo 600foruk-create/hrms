@@ -9269,21 +9269,13 @@ window.renderAdminCategoriesConfig = function () {
             const db = getDb();
             settings.practices.forEach((p, idx) => {
                 const isLast = idx === settings.practices.length - 1;
-                let managerName = 'No Manager';
-                if (p.managerId) {
-                    const manager = (db.users || []).find(u => String(u.id) === String(p.managerId));
-                    if (manager) managerName = manager.name;
-                }
 
                 practicesList.innerHTML += `
                     <div style="${!isLast ? 'border-bottom: 1px solid var(--border-color);' : ''}">
                         <div style="display:flex; align-items:center; justify-content:space-between; padding:5px 12px; cursor:default;">
-                            <div style="display:flex; flex-direction:column; gap:2px;">
-                                <div style="display:flex; align-items:center; gap:8px;">
-                                    <i class="fa-solid fa-layer-group" style="font-size:12px; color:var(--text-muted); width:12px;"></i>
-                                    <span style="font-weight:600; font-size:13px; color:var(--text-dark);">${p.name}</span>
-                                </div>
-                                <span style="font-size:10px; color:var(--text-secondary); margin-left: 20px;">Manager: ${managerName}</span>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <i class="fa-solid fa-layer-group" style="font-size:12px; color:var(--text-muted); width:12px;"></i>
+                                <span style="font-weight:600; font-size:13px; color:var(--text-dark);">${p.name}</span>
                             </div>
                             <div style="display:flex; gap:4px;">
                                 <button onclick="window.selectedAdminPracticeId='${p.id}'; window.editSelectedPractice();" title="Edit" style="background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:12px; padding:2px 4px;"><i class="fa-solid fa-pen"></i></button>
@@ -9439,7 +9431,7 @@ window.editSelectedBu = function () {
 window.addPracticeModal = function () {
     const db = getDb();
     const managers = (db.users || []).filter(u => u.role === 'Manager');
-    let managerOptions = '<option value="">-- No Manager Assigned --</option>';
+    let managerOptions = '<option value="">-- Select Manager --</option>';
     managers.forEach(m => {
         managerOptions += `<option value="${m.id}">${m.name}</option>`;
     });
@@ -9457,7 +9449,8 @@ window.addPracticeModal = function () {
         preConfirm: () => {
             const name = document.getElementById('swal-input-practice-name').value;
             const managerId = document.getElementById('swal-input-practice-manager').value;
-            if (!name) Swal.showValidationMessage('Name is required');
+            if (!name) return Swal.showValidationMessage('Name is required');
+            if (!managerId) return Swal.showValidationMessage('Please select a Manager');
             return { name, managerId };
         }
     }).then((result) => {
@@ -9502,7 +9495,7 @@ window.editSelectedPractice = function () {
     
     const db = getDb();
     const managers = (db.users || []).filter(u => u.role === 'Manager');
-    let managerOptions = '<option value="">-- No Manager Assigned --</option>';
+    let managerOptions = '<option value="">-- Select Manager --</option>';
     managers.forEach(m => {
         const selected = practice.managerId === m.id ? 'selected' : '';
         managerOptions += `<option value="${m.id}" ${selected}>${m.name}</option>`;
@@ -9521,7 +9514,8 @@ window.editSelectedPractice = function () {
         preConfirm: () => {
             const name = document.getElementById('swal-input-practice-name').value;
             const managerId = document.getElementById('swal-input-practice-manager').value;
-            if (!name) Swal.showValidationMessage('Name is required');
+            if (!name) return Swal.showValidationMessage('Name is required');
+            if (!managerId) return Swal.showValidationMessage('Please select a Manager');
             return { name, managerId };
         }
     }).then((result) => {
