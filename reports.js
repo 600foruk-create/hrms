@@ -83,13 +83,23 @@ window.switchAttTab = function(role, view) {
 
 // Unified Print Function
 window.printReport = function(reportId) {
+    let targetArea = document.getElementById(reportId);
+    if (!targetArea) targetArea = document.getElementById('print-area-' + reportId);
+    if (!targetArea) targetArea = document.getElementById('print-area-' + reportId.replace('-report-', '-'));
+
+    if (!targetArea) {
+        showToast("Error", "Print area not found", "error");
+        return;
+    }
+
     const printAreas = document.querySelectorAll('.printable-area');
     printAreas.forEach(area => {
-        if (area.id !== 'print-area-' + reportId) {
+        if (area.id !== targetArea.id) {
             area.classList.add('no-print-temp');
             area.style.display = 'none';
         } else {
-            area.querySelector('.print-header').classList.remove('hidden');
+            const header = area.querySelector('.print-header');
+            if (header) header.classList.remove('hidden');
         }
     });
 
@@ -100,8 +110,9 @@ window.printReport = function(reportId) {
     printAreas.forEach(area => {
         area.classList.remove('no-print-temp');
         area.style.display = '';
-        if (area.id === 'print-area-' + reportId) {
-            area.querySelector('.print-header').classList.add('hidden');
+        if (area.id === targetArea.id) {
+            const header = area.querySelector('.print-header');
+            if (header) header.classList.add('hidden');
         }
     });
 };
