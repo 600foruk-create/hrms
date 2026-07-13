@@ -359,7 +359,8 @@
             /* Specifically display ONLY the open modal being printed */
             body>#modal-view-payslip:not(.hidden),
             body>#modal-view-summary:not(.hidden),
-            body>#modal-bank-letter:not(.hidden) {
+            body>#modal-bank-letter:not(.hidden),
+            body>#modal-id-card:not(.hidden) {
                 display: block !important;
                 position: relative !important;
                 top: auto !important;
@@ -397,10 +398,25 @@
                 box-sizing: border-box;
             }
 
+            #modal-id-card .print-container {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                gap: 20px !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 10mm !important;
+            }
+
+            .id-card {
+                page-break-inside: avoid !important;
+            }
+
             /* Kill all modal flex/scroll behavior in print */
             #modal-view-payslip:not(.hidden),
             #modal-view-summary:not(.hidden),
-            #modal-bank-letter:not(.hidden) {
+            #modal-bank-letter:not(.hidden),
+            #modal-id-card:not(.hidden) {
                 display: block !important;
                 flex-direction: unset !important;
             }
