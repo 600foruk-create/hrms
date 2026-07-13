@@ -935,6 +935,17 @@ function handleLogin(usernameOrEmail, password) {
             setupSessionTimer();
 
             showToast("Welcome Back", `Successfully signed in as ${user.name}.`);
+
+            // Birthday Animation Check
+            if (user.dateOfBirth) {
+                const today = new Date();
+                const dob = new Date(user.dateOfBirth);
+                if (today.getMonth() === dob.getMonth() && today.getDate() === dob.getDate()) {
+                    setTimeout(() => {
+                        if (window.showBirthdayAnimation) window.showBirthdayAnimation(user.name);
+                    }, 500);
+                }
+            }
         };
 
         if (user.twoFactorEnabled) {
@@ -11114,4 +11125,121 @@ window.postNewsComment = async function() {
     if (typeof activeTab !== 'undefined' && activeTab === 'announcements' && typeof renderAdminAnnouncementsTab === 'function') {
         renderAdminAnnouncementsTab();
     }
+};
+// --- Birthday Animation ---
+window.showBirthdayAnimation = function(userName) {
+    // Inject CSS if not exists
+    if (!document.getElementById('birthday-styles')) {
+        const style = document.createElement('style');
+        style.id = 'birthday-styles';
+        style.innerHTML = 
+            @keyframes floatBalloon {
+                0% { transform: translateY(100vh) rotate(0deg); opacity: 1; }
+                100% { transform: translateY(-120vh) rotate(15deg); opacity: 0; }
+            }
+            @keyframes fallConfetti {
+                0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+                100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+            }
+            @keyframes zoomFade {
+                0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+                20% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+                80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+                100% { transform: translate(-50%, -50%) scale(1.2); opacity: 0; }
+            }
+            .bday-container {
+                position: fixed;
+                top: 0; left: 0; width: 100vw; height: 100vh;
+                pointer-events: none;
+                z-index: 99999;
+                overflow: hidden;
+            }
+            .bday-msg {
+                position: absolute;
+                top: 50%; left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 4rem;
+                font-weight: 800;
+                color: #ff3366;
+                text-shadow: 2px 2px 0px #fff, 4px 4px 0px rgba(0,0,0,0.2);
+                animation: zoomFade 5s ease forwards;
+                text-align: center;
+                line-height: 1.2;
+                font-family: 'Poppins', sans-serif;
+            }
+            .bday-balloon {
+                position: absolute;
+                bottom: -150px;
+                width: 60px; height: 80px;
+                border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+                box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2);
+                animation: floatBalloon linear forwards;
+            }
+            .bday-balloon::before {
+                content: "";
+                position: absolute;
+                bottom: -10px; left: 24px;
+                width: 0; height: 0;
+                border-left: 6px solid transparent;
+                border-right: 6px solid transparent;
+                border-bottom: 12px solid currentColor;
+            }
+            .bday-balloon::after {
+                content: "";
+                position: absolute;
+                bottom: -60px; left: 29px;
+                width: 2px; height: 60px;
+                background: rgba(0,0,0,0.3);
+            }
+            .bday-confetti {
+                position: absolute;
+                top: -20px;
+                width: 12px; height: 24px;
+                animation: fallConfetti linear forwards;
+            }
+        \;
+        document.head.appendChild(style);
+    }
+
+    const container = document.createElement('div');
+    container.className = 'bday-container';
+    
+    // Message
+    const msg = document.createElement('div');
+    msg.className = 'bday-msg';
+    msg.innerHTML = \Happy Birthday<br><span style="font-size:3rem; color: #5f3bf6;">\!</span> ??\;
+    container.appendChild(msg);
+
+    const colors = ['#ff3366', '#33ccff', '#ffcc00', '#66ff66', '#9933ff', '#ff9933'];
+
+    // Balloons
+    for (let i = 0; i < 20; i++) {
+        const b = document.createElement('div');
+        b.className = 'bday-balloon';
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        b.style.background = color;
+        b.style.color = color;
+        b.style.left = Math.random() * 90 + 5 + 'vw';
+        b.style.animationDuration = (Math.random() * 3 + 3) + 's';
+        b.style.animationDelay = (Math.random() * 2) + 's';
+        container.appendChild(b);
+    }
+
+    // Confetti
+    for (let i = 0; i < 60; i++) {
+        const c = document.createElement('div');
+        c.className = 'bday-confetti';
+        c.style.background = colors[Math.floor(Math.random() * colors.length)];
+        c.style.left = Math.random() * 100 + 'vw';
+        c.style.animationDuration = (Math.random() * 2 + 2) + 's';
+        c.style.animationDelay = (Math.random() * 3) + 's';
+        container.appendChild(c);
+    }
+
+    document.body.appendChild(container);
+
+    // Remove after 6 seconds
+    setTimeout(() => {
+        if (container.parentNode) container.parentNode.removeChild(container);
+    }, 6000);
 };
