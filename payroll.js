@@ -754,6 +754,7 @@ window.updateBankLetterPreview = function() {
     const db = getDb();
     const history = window.currentBankLetterHistory || [];
     const cp = db.companyProfile || {};
+    const bp = db.bankProfile || {};
     
     const monthFilter = document.getElementById('history-filter-month')?.value || 'All';
     const yearFilter = document.getElementById('history-filter-year')?.value || 'All';
@@ -764,14 +765,14 @@ window.updateBankLetterPreview = function() {
     const chequeDateStr = document.getElementById('bank-letter-date').value;
     const chequeDate = chequeDateStr ? new Date(chequeDateStr).toLocaleDateString('en-GB').replace(/\//g, '-') : '_____________';
 
-    const bankName = cp.bankName || '[Bank Name]';
-    const branchCode = cp.bankBranchCode || '[Branch Code]';
-    const companyAccount = cp.bankAccountNo || '[Company Account No]';
-    const signatory = cp.signatory || '[Signatory Name]';
-    const signatoryDesignation = cp.signatoryDesignation || '[Designation]';
+    const bankName = bp.bankName || '[Bank Name]';
+    const branchCode = bp.bankBranchCode || '[Branch Code]';
+    const companyAccount = bp.bankAccountNo || '[Company Account No]';
+    const signatory = bp.signatory || '[Signatory Name]';
+    const signatoryDesignation = bp.signatoryDesignation || '[Designation]';
 
-    let customHeader = cp.bankLetterHeader || 'We, M/s [COMPANY_NAME], kindly request you to transfer the monthly salaries from our company account No. [ACCOUNT_NO] to the individual accounts of our employees as per the details mentioned below:';
-    let customFooter = cp.bankLetterFooter || 'We authorize the bank to debit our Company Account No. [ACCOUNT_NO] for the total salary disbursement and transfer the respective net amounts into the employees\' individual bank accounts mentioned above.\nIf any further information or documentation is required, please let us know.\nThank you for your cooperation.\nSincerely,';
+    let customHeader = bp.bankLetterHeader || 'We, M/s [COMPANY_NAME], kindly request you to transfer the monthly salaries from our company account No. [ACCOUNT_NO] to the individual accounts of our employees as per the details mentioned below:';
+    let customFooter = bp.bankLetterFooter || 'We authorize the bank to debit our Company Account No. [ACCOUNT_NO] for the total salary disbursement and transfer the respective net amounts into the employees\' individual bank accounts mentioned above.\nIf any further information or documentation is required, please let us know.\nThank you for your cooperation.\nSincerely,';
 
     const compName = cp.name || 'Company';
     customHeader = customHeader.replace(/\[COMPANY_NAME\]/g, `<strong>${compName}</strong>`).replace(/\[ACCOUNT_NO\]/g, `<strong>${companyAccount}</strong>`).replace(/\n/g, '<br>');
