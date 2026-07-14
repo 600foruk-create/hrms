@@ -8176,6 +8176,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Populate username dropdown after data loads
     populateLoginDropdown();
 
+    // Initialize all month pickers to current month
+    document.querySelectorAll('input[type="month"]').forEach(input => {
+        if (!input.value) input.value = new Date().toISOString().slice(0, 7);
+    });
+
     try {
         // Yeti eye tracking & arm animation (GSAP calibration)
         const armL = document.querySelector('.armL');
