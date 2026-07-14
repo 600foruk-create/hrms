@@ -834,9 +834,20 @@ window.updateBankLetterPreview = function() {
     const html = `
         <div class="report-print-sheet" style="color: black !important; font-size: 13px !important; font-family: Arial, sans-serif;">
             ${cp.letterheadBase64 ? `<img src="${cp.letterheadBase64}" style="width: 100%; max-height: 150px; object-fit: cover;">` : `
-            <div style="text-align: center; border-bottom: 2px solid #000; padding: 30px;">
-                <h2 style="margin: 0; font-size: 24px; text-transform: uppercase;">${compName}</h2>
-                <p style="margin: 5px 0 0 0; font-size: 14px;">Bank Transfer Letter</p>
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #000; padding: 20px 30px; background: #fafafa;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    ${cp.logoBase64 ? `<img src="${cp.logoBase64}" style="max-height: 70px; max-width: 150px; object-fit: contain;">` : ''}
+                    <div>
+                        <h2 style="margin: 0; font-size: 22px; text-transform: uppercase; color: #000;">${compName}</h2>
+                        <p style="margin: 3px 0 0 0; font-size: 13px; color: #555;">Bank Transfer Letter</p>
+                    </div>
+                </div>
+                <div style="text-align: right; font-size: 11px; color: #444; max-width: 250px; line-height: 1.4;">
+                    ${cp.address ? `<div style="margin-bottom: 2px;"><strong>Address:</strong> ${cp.address}</div>` : ''}
+                    ${cp.phone ? `<div style="margin-bottom: 2px;"><strong>Phone:</strong> ${cp.phone}</div>` : ''}
+                    ${cp.email ? `<div style="margin-bottom: 2px;"><strong>Email:</strong> ${cp.email}</div>` : ''}
+                    ${cp.website ? `<div><strong>Web:</strong> ${cp.website}</div>` : ''}
+                </div>
             </div>`}
             
             <div style="padding: 20px 30px 30px 30px;">
