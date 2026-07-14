@@ -5780,7 +5780,7 @@ window.openCompanyProfileModal = function () {
             dropzone.innerHTML = `
                 <div style="position: relative; display: inline-block;">
                     <img src="${cp.logoBase64}" alt="Company Logo" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
-                    <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('logo')" style="position: absolute; top: -5px; right: -15px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Logo"><i class="fa-solid fa-times"></i></button>
+                    <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('logo')" style="position: absolute; top: 0px; right: 0px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Logo"><i class="fa-solid fa-times"></i></button>
                 </div>
                 <div style="font-size: 11px; color: var(--text-muted);">Click to change logo</div>
                 <input type="file" id="comp-logo-input" accept="image/*" style="display:none;">
@@ -5816,7 +5816,7 @@ window.openCompanyProfileModal = function () {
                 letterheadDropzone.innerHTML = `
                     <div style="position: relative; display: inline-block;">
                         <img src="${cp.letterheadBase64}" alt="Letterhead Banner" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
-                        <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('letterhead')" style="position: absolute; top: -5px; right: -15px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Banner"><i class="fa-solid fa-times"></i></button>
+                        <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('letterhead')" style="position: absolute; top: 0px; right: 0px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Banner"><i class="fa-solid fa-times"></i></button>
                     </div>
                     <div style="font-size: 11px; color: var(--text-muted);">Click to change banner</div>
                     <input type="file" id="comp-letterhead-input" accept="image/*" style="display:none;">
@@ -5852,7 +5852,7 @@ window.openCompanyProfileModal = function () {
                 signatureDropzone.innerHTML = `
                     <div style="position: relative; display: inline-block;">
                         <img src="${cp.signatureBase64}" alt="Signature" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
-                        <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('signature')" style="position: absolute; top: -5px; right: -15px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Signature"><i class="fa-solid fa-times"></i></button>
+                        <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('signature')" style="position: absolute; top: 0px; right: 0px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Signature"><i class="fa-solid fa-times"></i></button>
                     </div>
                     <div style="font-size: 11px; color: var(--text-muted);">Click to change signature</div>
                     <input type="file" id="comp-signature-input" accept="image/*" style="display:none;">
@@ -6027,7 +6027,7 @@ function initSignaturePad() {
             signatureDropzone.innerHTML = `
                 <div style="position: relative; display: inline-block;">
                     <img src="${dataURL}" alt="Signature" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
-                    <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('signature')" style="position: absolute; top: -5px; right: -15px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Signature"><i class="fa-solid fa-times"></i></button>
+                    <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('signature')" style="position: absolute; top: 0px; right: 0px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Signature"><i class="fa-solid fa-times"></i></button>
                 </div>
                 <div style="font-size: 11px; color: var(--text-muted);">Click to change signature</div>
                 <input type="file" id="comp-signature-input" accept="image/*" style="display:none;">
@@ -8819,7 +8819,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 dropzone.innerHTML = `
                     <div style="position: relative; display: inline-block;">
                         <img src="${dataURL}" alt="Company Logo" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
-                        <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('logo')" style="position: absolute; top: -5px; right: -15px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Logo"><i class="fa-solid fa-times"></i></button>
+                        <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('logo')" style="position: absolute; top: 0px; right: 0px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Logo"><i class="fa-solid fa-times"></i></button>
                     </div>
                     <div style="font-size: 11px; color: var(--text-muted);">Click to change logo</div>
                     <input type="file" id="comp-logo-input" accept="image/*" style="display:none;">
@@ -8865,7 +8865,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 dropzone.innerHTML = `
                     <div style="position: relative; display: inline-block;">
                         <img src="${dataURL}" alt="Letterhead Banner" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
-                        <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('letterhead')" style="position: absolute; top: -5px; right: -15px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Banner"><i class="fa-solid fa-times"></i></button>
+                        <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('letterhead')" style="position: absolute; top: 0px; right: 0px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Banner"><i class="fa-solid fa-times"></i></button>
                     </div>
                     <div style="font-size: 11px; color: var(--text-muted);">Click to change banner</div>
                     <input type="file" id="comp-letterhead-input" accept="image/*" style="display:none;">
@@ -8911,7 +8911,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 dropzone.innerHTML = `
                     <div style="position: relative; display: inline-block;">
                         <img src="${dataURL}" alt="Signature" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
-                        <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('signature')" style="position: absolute; top: -5px; right: -15px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Signature"><i class="fa-solid fa-times"></i></button>
+                        <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('signature')" style="position: absolute; top: 0px; right: 0px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Signature"><i class="fa-solid fa-times"></i></button>
                     </div>
                     <div style="font-size: 11px; color: var(--text-muted);">Click to change signature</div>
                     <input type="file" id="comp-signature-input" accept="image/*" style="display:none;">
