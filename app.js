@@ -6038,7 +6038,7 @@ window.openAddTeamModal = function() {
 
     // Populate Managers
     managerSelect.innerHTML = '<option value="">Select a Manager...</option>';
-    const managers = db.users.filter(u => u.status === 'Active' && (u.role === 'Manager' || u.role === 'Admin'));
+    const managers = db.users.filter(u => u.status === 'Active' && u.role === 'Manager');
     managers.forEach(mgr => {
         const opt = document.createElement('option');
         opt.value = mgr.id;
