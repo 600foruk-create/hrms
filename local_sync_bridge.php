@@ -12,22 +12,21 @@ define('LIVE_DOMAIN', 'http://localhost'); // Local XAMPP URL
 define('MACHINE_IP', '192.168.1.201');           // Your biometric machine's local IP
 define('MACHINE_PORT', 4370);                    // Default ZKTeco port
 
-// We use the existing SDK from your HRMS folder
 require __DIR__ . '/backend/vendor/autoload.php';
-use Laradevsbd\Zkteco\Http\Library\ZKLib;
+use Mithun\PhpZkteco\Libs\ZKTeco;
 
 header('Content-Type: text/plain');
-echo "Starting local sync bridge...\n";
+echo "Starting local sync bridge (TCP Mode)...\n";
 echo "Connecting to machine " . MACHINE_IP . ":" . MACHINE_PORT . "...\n";
 
-$zk = new ZKLib(MACHINE_IP, MACHINE_PORT);
+$zk = new ZKTeco(MACHINE_IP, MACHINE_PORT, false, 25, 0, 'tcp');
 if (!$zk->connect()) {
-    echo "ERROR: Could not connect to local machine!\n";
+    echo "ERROR: Could not connect to local machine via TCP!\n";
     exit;
 }
 
 echo "Connected successfully! Fetching attendance logs...\n";
-$attendance = $zk->getAttendance();
+$attendance = $zk->getAttendances();
 $zk->disconnect();
 
 if (empty($attendance)) {
