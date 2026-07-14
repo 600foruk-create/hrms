@@ -9153,9 +9153,7 @@ window.openIdCardModal = function (userId) {
     document.querySelectorAll('.id-card-shape-primary').forEach(el => el.style.background = roleTheme.primary);
     document.querySelectorAll('.id-card-shape-secondary').forEach(el => el.style.background = roleTheme.secondary);
     document.querySelectorAll('.id-card-bg-primary').forEach(el => el.style.background = roleTheme.primary);
-    document.querySelectorAll('.id-card-text-primary').forEach(el => el.style.color = roleTheme.primary);
     
-    document.getElementById('id-card-name').style.color = roleTheme.primary;
     document.getElementById('id-card-avatar-placeholder').style.color = roleTheme.primary;
     
     const cardFront = document.querySelector('.id-card-front');
