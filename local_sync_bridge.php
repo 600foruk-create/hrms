@@ -55,7 +55,12 @@ $error = curl_error($ch);
 curl_close($ch);
 
 if ($error) {
-    echo "ERROR uploading to Hostinger: $error\n";
+    echo "ERROR uploading to Server: $error\n";
+    if (strpos($error, 'Failed to connect to localhost port 80') !== false || strpos($error, 'Couldn\'t connect to server') !== false) {
+        echo "\n[!] IMPORTANT: It looks like you are trying to sync to 'localhost', but XAMPP Apache is NOT running!\n";
+        echo "Please open the XAMPP Control Panel and click 'Start' next to Apache, then run this script again.\n";
+        echo "(If your HRMS is actually hosted on Hostinger/Live server, please edit this file and change LIVE_DOMAIN from 'http://localhost' to your actual website URL.)\n";
+    }
     exit;
 }
 
