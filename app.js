@@ -3922,8 +3922,9 @@ window.filterLeavesByTime = function(leaves, filterVal, startId, endId) {
     const todayStr = today.toISOString().split('T')[0];
 
     return leaves.filter(l => {
-        const lDate = l.dateSubmitted || l.startDate;
+        let lDate = l.dateSubmitted || l.startDate;
         if (!lDate) return true;
+        lDate = lDate.substring(0, 10);
         
         if (filterVal === 'today') return lDate === todayStr;
         if (filterVal === 'this-week') {
@@ -3968,7 +3969,7 @@ function renderAdminLeaveTab() {
 
     // Sort leaves status: pending first, then by date
     let leaves = db.leaves || [];
-    const filterVal = document.getElementById('admin-leave-time-filter')?.value || 'today';
+    const filterVal = document.getElementById('admin-leave-time-filter')?.value || 'all';
     leaves = window.filterLeavesByTime(leaves, filterVal, 'admin-leave-start-date', 'admin-leave-end-date');
 
     leaves.sort((a, b) => {
@@ -5162,7 +5163,7 @@ function renderManagerLeaveTab() {
     if (teamTableBody) {
         teamTableBody.innerHTML = '';
         let teamLeaves = db.leaves.filter(l => teamEmails.includes(l.employeeId));
-        const filterVal = document.getElementById('manager-leave-time-filter')?.value || 'today';
+        const filterVal = document.getElementById('manager-leave-time-filter')?.value || 'all';
         teamLeaves = window.filterLeavesByTime(teamLeaves, filterVal, 'manager-leave-start-date', 'manager-leave-end-date');
         
         teamLeaves.sort((a, b) => {
@@ -5564,7 +5565,7 @@ function renderEmployeeLeaveTab() {
     tableBody.innerHTML = '';
 
     let myLeaves = db.leaves.filter(l => l.employeeId == currentUser.id);
-    const filterVal = document.getElementById('employee-leave-time-filter')?.value || 'today';
+    const filterVal = document.getElementById('employee-leave-time-filter')?.value || 'all';
     myLeaves = window.filterLeavesByTime(myLeaves, filterVal, 'employee-leave-start-date', 'employee-leave-end-date');
     
     myLeaves.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));

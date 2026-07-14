@@ -2234,11 +2234,11 @@
                                     <h3 style="margin: 0;">Global Leave Requests</h3>
                                     <div class="header-filters" style="display: flex; gap: 10px; align-items: center;">
                                         <select id="admin-leave-time-filter" class="form-control" onchange="toggleAdminLeaveCustomDates(); renderAdminLeaveRequests()">
-                                            <option value="today" selected>Today</option>
+                                            <option value="today">Today</option>
                                             <option value="this-week">This Week</option>
                                             <option value="this-month">This Month</option>
                                             <option value="custom">Custom</option>
-                                            <option value="all">All Time</option>
+                                            <option value="all" selected>All Time</option>
                                         </select>
                                         <input type="date" id="admin-leave-start-date" class="form-control hidden" onchange="renderAdminLeaveRequests()">
                                         <input type="date" id="admin-leave-end-date" class="form-control hidden" onchange="renderAdminLeaveRequests()">
@@ -5098,11 +5098,11 @@
                                     <h3 style="margin: 0;">Team Leave Requests</h3>
                                     <div class="header-filters" style="display: flex; gap: 10px; align-items: center;">
                                         <select id="manager-leave-time-filter" class="form-control" onchange="toggleManagerLeaveCustomDates(); renderManagerLeaveTeam()">
-                                            <option value="today" selected>Today</option>
+                                            <option value="today">Today</option>
                                             <option value="this-week">This Week</option>
                                             <option value="this-month">This Month</option>
                                             <option value="custom">Custom</option>
-                                            <option value="all">All Time</option>
+                                            <option value="all" selected>All Time</option>
                                         </select>
                                         <input type="date" id="manager-leave-start-date" class="form-control hidden" onchange="renderManagerLeaveTeam()">
                                         <input type="date" id="manager-leave-end-date" class="form-control hidden" onchange="renderManagerLeaveTeam()">
@@ -6259,11 +6259,11 @@
                             </div>
                             <div class="header-filters" style="display: flex; gap: 10px; align-items: center;">
                                 <select id="employee-leave-time-filter" class="form-control" onchange="toggleEmployeeLeaveCustomDates(); renderEmployeeLeaveMy()">
-                                    <option value="today" selected>Today</option>
+                                    <option value="today">Today</option>
                                     <option value="this-week">This Week</option>
                                     <option value="this-month">This Month</option>
                                     <option value="custom">Custom</option>
-                                    <option value="all">All Time</option>
+                                    <option value="all" selected>All Time</option>
                                 </select>
                                 <input type="date" id="employee-leave-start-date" class="form-control hidden" onchange="renderEmployeeLeaveMy()">
                                 <input type="date" id="employee-leave-end-date" class="form-control hidden" onchange="renderEmployeeLeaveMy()">
