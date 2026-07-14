@@ -9610,19 +9610,79 @@ window.toggleTree = function (id) {
     }
 };
 
+// --------- CUSTOM PROMPT MODAL ---------
+window.showCustomPrompt = function (title, placeholder, defaultValue = '', showSelect = false, selectLabel = '', selectOptionsHTML = '') {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('modal-generic-prompt');
+        const backdrop = document.getElementById('modal-backdrop');
+        
+        document.getElementById('generic-modal-title').innerText = title;
+        
+        const input = document.getElementById('generic-modal-input');
+        input.placeholder = placeholder;
+        input.value = defaultValue;
+        
+        const selectContainer = document.getElementById('generic-modal-select-container');
+        const select = document.getElementById('generic-modal-select');
+        const selectLabelEl = document.getElementById('generic-modal-select-label');
+        
+        if (showSelect) {
+            selectContainer.style.display = 'block';
+            selectLabelEl.innerText = selectLabel;
+            select.innerHTML = selectOptionsHTML;
+        } else {
+            selectContainer.style.display = 'none';
+            select.innerHTML = '';
+        }
+
+        // Show modal
+        modal.classList.remove('hidden');
+        backdrop.classList.remove('hidden');
+        
+        // Remove old event listeners by cloning
+        const form = document.getElementById('generic-modal-form');
+        const newForm = form.cloneNode(true);
+        form.parentNode.replaceChild(newForm, form);
+
+        const btnCancel = document.getElementById('generic-modal-cancel');
+        const newCancel = btnCancel.cloneNode(true);
+        btnCancel.parentNode.replaceChild(newCancel, btnCancel);
+
+        const btnClose = document.getElementById('generic-modal-close');
+        const newClose = btnClose.cloneNode(true);
+        btnClose.parentNode.replaceChild(newClose, btnClose);
+        
+        const closeModal = () => {
+            modal.classList.add('hidden');
+            backdrop.classList.add('hidden');
+        };
+
+        newCancel.onclick = () => { closeModal(); resolve({ isConfirmed: false }); };
+        newClose.onclick = () => { closeModal(); resolve({ isConfirmed: false }); };
+
+        newForm.onsubmit = (e) => {
+            e.preventDefault();
+            const val = document.getElementById('generic-modal-input').value.trim();
+            if (!val) {
+                showToast('Error', 'Input cannot be empty', 'error');
+                return;
+            }
+            closeModal();
+            resolve({ 
+                isConfirmed: true, 
+                value: val,
+                selectValue: showSelect ? document.getElementById('generic-modal-select').value : null
+            });
+        };
+        
+        // Auto focus
+        setTimeout(() => document.getElementById('generic-modal-input').focus(), 100);
+    });
+};
+
 // --------- ADMIN ACTIONS ---------
 window.addBuModal = function () {
-    Swal.fire({
-        title: 'Add Department',
-        input: 'text',
-        inputPlaceholder: 'Enter Department name',
-        showCancelButton: true,
-        confirmButtonText: 'Add',
-        preConfirm: (name) => {
-            if (!name) Swal.showValidationMessage('Name is required');
-            return name;
-        }
-    }).then((result) => {
+    window.showCustomPrompt('Add Department', 'Enter Department name').then((result) => {
         if (result.isConfirmed) {
             const settings = getProdSettings();
             settings.businessUnits.push({ id: generateId('BU'), name: result.value, practices: [] });
@@ -9658,18 +9718,8 @@ window.editSelectedBu = function () {
     const settings = getProdSettings();
     const bu = settings.businessUnits.find(b => b.id === id);
     if (!bu) return;
-    Swal.fire({
-        title: 'Edit Department',
-        input: 'text',
-        inputValue: bu.name,
-        inputPlaceholder: 'Enter Department name',
-        showCancelButton: true,
-        confirmButtonText: 'Save',
-        preConfirm: (name) => {
-            if (!name) Swal.showValidationMessage('Name is required');
-            return name;
-        }
-    }).then((result) => {
+    
+    window.showCustomPrompt('Edit Department', 'Enter Department name', bu.name).then((result) => {
         if (result.isConfirmed) {
             bu.name = result.value;
             saveProdSettings(settings);
@@ -9686,28 +9736,11 @@ window.addPracticeModal = function () {
         managerOptions += `<option value="${m.id}">${m.name}</option>`;
     });
 
-    Swal.fire({
-        title: 'Add Practice',
-        html: `
-            <input id="swal-input-practice-name" class="swal2-input" placeholder="Enter Practice name" style="width: 80%; max-width: 100%; box-sizing: border-box; margin: 10px auto; display: block;">
-            <select id="swal-input-practice-manager" class="swal2-input" style="width: 80%; max-width: 100%; box-sizing: border-box; margin: 10px auto; display: block;">
-                ${managerOptions}
-            </select>
-        `,
-        showCancelButton: true,
-        confirmButtonText: 'Add',
-        preConfirm: () => {
-            const name = document.getElementById('swal-input-practice-name').value;
-            const managerId = document.getElementById('swal-input-practice-manager').value;
-            if (!name) return Swal.showValidationMessage('Name is required');
-            if (!managerId) return Swal.showValidationMessage('Please select a Manager');
-            return { name, managerId };
-        }
-    }).then((result) => {
+    window.showCustomPrompt('Add Practice', 'Enter Practice name', '', true, 'Manager', managerOptions).then((result) => {
         if (result.isConfirmed) {
             const settings = getProdSettings();
             settings.practices = settings.practices || [];
-            settings.practices.push({ id: generateId('P'), name: result.value.name, managerId: result.value.managerId || null });
+            settings.practices.push({ id: generateId('P'), name: result.value, managerId: result.selectValue || null });
             saveProdSettings(settings);
             showToast('Success', 'Practice added');
         }
@@ -9751,27 +9784,10 @@ window.editSelectedPractice = function () {
         managerOptions += `<option value="${m.id}" ${selected}>${m.name}</option>`;
     });
 
-    Swal.fire({
-        title: 'Edit Practice',
-        html: `
-            <input id="swal-input-practice-name" class="swal2-input" placeholder="Enter Practice name" value="${practice.name}" style="width: 80%; max-width: 100%; box-sizing: border-box; margin: 10px auto; display: block;">
-            <select id="swal-input-practice-manager" class="swal2-input" style="width: 80%; max-width: 100%; box-sizing: border-box; margin: 10px auto; display: block;">
-                ${managerOptions}
-            </select>
-        `,
-        showCancelButton: true,
-        confirmButtonText: 'Save',
-        preConfirm: () => {
-            const name = document.getElementById('swal-input-practice-name').value;
-            const managerId = document.getElementById('swal-input-practice-manager').value;
-            if (!name) return Swal.showValidationMessage('Name is required');
-            if (!managerId) return Swal.showValidationMessage('Please select a Manager');
-            return { name, managerId };
-        }
-    }).then((result) => {
+    window.showCustomPrompt('Edit Practice', 'Enter Practice name', practice.name, true, 'Manager', managerOptions).then((result) => {
         if (result.isConfirmed) {
-            practice.name = result.value.name;
-            practice.managerId = result.value.managerId || null;
+            practice.name = result.value;
+            practice.managerId = result.selectValue || null;
             saveProdSettings(settings);
             showToast('Success', 'Practice updated');
         }
@@ -9779,17 +9795,7 @@ window.editSelectedPractice = function () {
 };
 
 window.addTesModal = function () {
-    Swal.fire({
-        title: 'Add Task Category',
-        input: 'text',
-        inputPlaceholder: 'Enter Task Category name',
-        showCancelButton: true,
-        confirmButtonText: 'Add',
-        preConfirm: (name) => {
-            if (!name) Swal.showValidationMessage('Name is required');
-            return name;
-        }
-    }).then((result) => {
+    window.showCustomPrompt('Add Task Category', 'Enter Task Category name').then((result) => {
         if (result.isConfirmed) {
             const settings = getProdSettings();
             settings.tesCategories.push({ id: generateId('TC'), name: result.value, tasks: [] });
@@ -9825,18 +9831,8 @@ window.editSelectedTes = function () {
     const settings = getProdSettings();
     const tes = settings.tesCategories.find(tc => tc.id === id);
     if (!tes) return;
-    Swal.fire({
-        title: 'Edit Task Category',
-        input: 'text',
-        inputValue: tes.name,
-        inputPlaceholder: 'Enter Task Category name',
-        showCancelButton: true,
-        confirmButtonText: 'Save',
-        preConfirm: (name) => {
-            if (!name) Swal.showValidationMessage('Name is required');
-            return name;
-        }
-    }).then((result) => {
+    
+    window.showCustomPrompt('Edit Task Category', 'Enter Task Category name', tes.name).then((result) => {
         if (result.isConfirmed) {
             tes.name = result.value;
             saveProdSettings(settings);
@@ -9846,17 +9842,7 @@ window.editSelectedTes = function () {
 };
 
 window.addTesTaskModal = function (tesId) {
-    Swal.fire({
-        title: 'Add Task Sub Category',
-        input: 'text',
-        inputPlaceholder: 'Enter Task Sub Category name',
-        showCancelButton: true,
-        confirmButtonText: 'Add',
-        preConfirm: (name) => {
-            if (!name) Swal.showValidationMessage('Name is required');
-            return name;
-        }
-    }).then((result) => {
+    window.showCustomPrompt('Add Task Sub Category', 'Enter Task Sub Category name').then((result) => {
         if (result.isConfirmed) {
             const settings = getProdSettings();
             const tes = settings.tesCategories.find(t => t.id === tesId);
@@ -9901,18 +9887,8 @@ window.editSelectedTask = function () {
     if (!tes) return;
     const task = tes.tasks.find(t => t.id === taskId);
     if (!task) return;
-    Swal.fire({
-        title: 'Edit Task',
-        input: 'text',
-        inputValue: task.name,
-        inputPlaceholder: 'Enter Task name',
-        showCancelButton: true,
-        confirmButtonText: 'Save',
-        preConfirm: (name) => {
-            if (!name) Swal.showValidationMessage('Name is required');
-            return name;
-        }
-    }).then((result) => {
+    
+    window.showCustomPrompt('Edit Task', 'Enter Task name', task.name).then((result) => {
         if (result.isConfirmed) {
             task.name = result.value;
             saveProdSettings(settings);

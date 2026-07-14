@@ -6970,6 +6970,30 @@
     <!-- Modal Backdrop -->
     <div id="modal-backdrop" class="modal-backdrop hidden"></div>
 
+    <!-- Generic Prompt Modal -->
+    <div id="modal-generic-prompt" class="modal modal-window hidden" style="max-width: 400px; z-index: 1100;">
+        <div class="modal-header">
+            <h2 id="generic-modal-title">Prompt</h2>
+            <button class="btn-close" type="button" id="generic-modal-close" onclick="document.getElementById('generic-modal-cancel').click()"><i class="fa-solid fa-times"></i></button>
+        </div>
+        <div class="modal-body" style="padding: 20px;">
+            <form id="generic-modal-form" onsubmit="return false;">
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label id="generic-modal-input-label" style="display: none; font-weight: 600; font-size: 13px; margin-bottom: 5px; color: var(--text-dark);"></label>
+                    <input type="text" id="generic-modal-input" class="form-control" required style="font-size: 13px;">
+                </div>
+                <div class="form-group" id="generic-modal-select-container" style="display: none; margin-bottom: 15px;">
+                    <label id="generic-modal-select-label" style="font-weight: 600; font-size: 13px; margin-bottom: 5px; color: var(--text-dark);">Manager</label>
+                    <select id="generic-modal-select" class="form-control" style="font-size: 13px;"></select>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px;">
+                    <button type="button" class="btn btn-outline" id="generic-modal-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="generic-modal-confirm">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- 1. Add/Edit Employee Modal -->
     <div id="modal-employee" class="modal modal-window hidden">
         <div class="modal-header">
