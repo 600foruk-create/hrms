@@ -5779,7 +5779,7 @@ window.openCompanyProfileModal = function () {
         if (cp.logoBase64) {
             dropzone.innerHTML = `
                 <div style="position: relative; display: inline-block;">
-                    <img src="${cp.logoBase64}" alt="Company Logo" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                    <img src="${cp.logoBase64}" alt="Company Logo" style="max-height: 55px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
                     <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('logo')" style="position: absolute; top: 0px; right: 0px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Logo"><i class="fa-solid fa-times"></i></button>
                 </div>
                 <div style="font-size: 11px; color: var(--text-muted);">Click to change logo</div>
@@ -5815,7 +5815,7 @@ window.openCompanyProfileModal = function () {
                 document.getElementById('company-profile-form').dataset.letterheadBase64 = cp.letterheadBase64;
                 letterheadDropzone.innerHTML = `
                     <div style="position: relative; display: inline-block;">
-                        <img src="${cp.letterheadBase64}" alt="Letterhead Banner" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                        <img src="${cp.letterheadBase64}" alt="Letterhead Banner" style="max-height: 55px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
                         <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('letterhead')" style="position: absolute; top: 0px; right: 0px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Banner"><i class="fa-solid fa-times"></i></button>
                     </div>
                     <div style="font-size: 11px; color: var(--text-muted);">Click to change banner</div>
@@ -5851,7 +5851,7 @@ window.openCompanyProfileModal = function () {
                 document.getElementById('company-profile-form').dataset.signatureBase64 = cp.signatureBase64;
                 signatureDropzone.innerHTML = `
                     <div style="position: relative; display: inline-block;">
-                        <img src="${cp.signatureBase64}" alt="Signature" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                        <img src="${cp.signatureBase64}" alt="Signature" style="max-height: 55px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
                         <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('signature')" style="position: absolute; top: 0px; right: 0px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Signature"><i class="fa-solid fa-times"></i></button>
                     </div>
                     <div style="font-size: 11px; color: var(--text-muted);">Click to change signature</div>
@@ -5896,7 +5896,7 @@ window.openCompanyProfileModal = function () {
             if (cp.idCardFrontBase64) {
                 document.getElementById('company-profile-form').dataset.idCardFrontBase64 = cp.idCardFrontBase64;
                 idCardFrontDropzone.innerHTML = `
-                    <img src="${cp.idCardFrontBase64}" alt="ID Card Front" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                    <img src="${cp.idCardFrontBase64}" alt="ID Card Front" style="max-height: 55px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
                     <div style="font-size: 11px; color: var(--text-muted);">Click to change Front Template</div>
                     <input type="file" id="comp-idcard-front-input" accept="image/*" style="display:none;">
                 `;
@@ -5930,7 +5930,7 @@ window.openCompanyProfileModal = function () {
             if (cp.idCardBackBase64) {
                 document.getElementById('company-profile-form').dataset.idCardBackBase64 = cp.idCardBackBase64;
                 idCardBackDropzone.innerHTML = `
-                    <img src="${cp.idCardBackBase64}" alt="ID Card Back" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                    <img src="${cp.idCardBackBase64}" alt="ID Card Back" style="max-height: 55px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
                     <div style="font-size: 11px; color: var(--text-muted);">Click to change Back Template</div>
                     <input type="file" id="comp-idcard-back-input" accept="image/*" style="display:none;">
                 `;
@@ -6026,7 +6026,7 @@ function initSignaturePad() {
         if (signatureDropzone) {
             signatureDropzone.innerHTML = `
                 <div style="position: relative; display: inline-block;">
-                    <img src="${dataURL}" alt="Signature" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                    <img src="${dataURL}" alt="Signature" style="max-height: 55px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
                     <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('signature')" style="position: absolute; top: 0px; right: 0px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Signature"><i class="fa-solid fa-times"></i></button>
                 </div>
                 <div style="font-size: 11px; color: var(--text-muted);">Click to change signature</div>
@@ -8818,7 +8818,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const dataURL = canvas.toDataURL('image/png', 0.8);
                 dropzone.innerHTML = `
                     <div style="position: relative; display: inline-block;">
-                        <img src="${dataURL}" alt="Company Logo" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                        <img src="${dataURL}" alt="Company Logo" style="max-height: 55px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
                         <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('logo')" style="position: absolute; top: 0px; right: 0px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Logo"><i class="fa-solid fa-times"></i></button>
                     </div>
                     <div style="font-size: 11px; color: var(--text-muted);">Click to change logo</div>
@@ -8864,7 +8864,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 dropzone.innerHTML = `
                     <div style="position: relative; display: inline-block;">
-                        <img src="${dataURL}" alt="Letterhead Banner" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                        <img src="${dataURL}" alt="Letterhead Banner" style="max-height: 55px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
                         <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('letterhead')" style="position: absolute; top: 0px; right: 0px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Banner"><i class="fa-solid fa-times"></i></button>
                     </div>
                     <div style="font-size: 11px; color: var(--text-muted);">Click to change banner</div>
@@ -8910,7 +8910,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 dropzone.innerHTML = `
                     <div style="position: relative; display: inline-block;">
-                        <img src="${dataURL}" alt="Signature" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                        <img src="${dataURL}" alt="Signature" style="max-height: 55px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
                         <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('signature')" style="position: absolute; top: 0px; right: 0px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Signature"><i class="fa-solid fa-times"></i></button>
                     </div>
                     <div style="font-size: 11px; color: var(--text-muted);">Click to change signature</div>
@@ -9281,7 +9281,7 @@ window.onIdCardFrontSelected = function (dropzone, files) {
         const b64 = e.target.result;
         document.getElementById('company-profile-form').dataset.idCardFrontBase64 = b64;
         dropzone.innerHTML = `
-            <img src="${b64}" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+            <img src="${b64}" style="max-height: 55px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
             <div style="font-size: 11px; color: var(--text-muted);">Click to change Front Template</div>
             <input type="file" id="comp-idcard-front-input" accept="image/*" style="display:none;">
         `;
@@ -9302,7 +9302,7 @@ window.onIdCardBackSelected = function (dropzone, files) {
         const b64 = e.target.result;
         document.getElementById('company-profile-form').dataset.idCardBackBase64 = b64;
         dropzone.innerHTML = `
-            <img src="${b64}" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+            <img src="${b64}" style="max-height: 55px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
             <div style="font-size: 11px; color: var(--text-muted);">Click to change Back Template</div>
             <input type="file" id="comp-idcard-back-input" accept="image/*" style="display:none;">
         `;
