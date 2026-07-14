@@ -7767,6 +7767,7 @@ document.addEventListener('click', async (e) => {
         document.documentElement.style.setProperty('--primary', defaultTheme);
         showToast("Theme Reset", "Color has been reset to default.");
     }
+});
 
     // Biometric Machines Management Functions
     window.renderBiometricMachinesList = function() {
@@ -7939,7 +7940,6 @@ document.addEventListener('click', async (e) => {
         await saveDb(db);
         showToast("Sync Setting Updated", `Auto-sync state updated for "${db.settings.biometricMachines[idx].name}".`, "info");
     };
-});
 
 // Update hex code preview dynamically
 document.getElementById('theme-color').addEventListener('input', (e) => {
