@@ -2167,6 +2167,9 @@ elseif ($action === 'save_all') {
 
         // 13. Sync Biometric Machines
         try {
+            $existingBms = [];
+            try { $existingBms = $pdo->query("SELECT id, status FROM biometric_machines")->fetchAll(PDO::FETCH_KEY_PAIR); } catch (Exception $e) {}
+            
             $pdo->exec("DELETE FROM biometric_machines");
             $bList = !empty($data['settings']) && !empty($data['settings']['biometricMachines']) ? $data['settings']['biometricMachines'] : (!empty($data['biometricMachines']) ? $data['biometricMachines'] : []);
             
@@ -2178,13 +2181,15 @@ elseif ($action === 'save_all') {
                 $bmStmt = $pdo->prepare("INSERT INTO biometric_machines (id, name, ip, port, auto_sync, status) VALUES (?, ?, ?, ?, ?, ?)");
                 $inserted = 0;
                 foreach ($bList as $bm) {
+                    $bId = $bm['id'] ?? ('BIO_' . uniqid());
+                    $realStatus = $existingBms[$bId] ?? ($bm['status'] ?? 'Untested');
                     $bmStmt->execute([
-                        $bm['id'] ?? ('BIO_' . uniqid()),
+                        $bId,
                         $bm['name'] ?? '',
                         $bm['ip'] ?? '',
                         (int)($bm['port'] ?? 4370),
                         !empty($bm['autoSync']) ? 1 : 0,
-                        $bm['status'] ?? 'Untested'
+                        $realStatus
                     ]);
                     $inserted++;
                 }
