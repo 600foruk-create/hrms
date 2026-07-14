@@ -3894,6 +3894,66 @@ window.checkAndRunAutoShiftRotation = function(db) {
     }
 };
 
+window.toggleAdminLeaveCustomDates = function () {
+    const val = document.getElementById('admin-leave-time-filter').value;
+    const start = document.getElementById('admin-leave-start-date');
+    const end = document.getElementById('admin-leave-end-date');
+    if (val === 'custom') { start.classList.remove('hidden'); end.classList.remove('hidden'); }
+    else { start.classList.add('hidden'); end.classList.add('hidden'); }
+};
+window.toggleManagerLeaveCustomDates = function () {
+    const val = document.getElementById('manager-leave-time-filter').value;
+    const start = document.getElementById('manager-leave-start-date');
+    const end = document.getElementById('manager-leave-end-date');
+    if (val === 'custom') { start.classList.remove('hidden'); end.classList.remove('hidden'); }
+    else { start.classList.add('hidden'); end.classList.add('hidden'); }
+};
+window.toggleEmployeeLeaveCustomDates = function () {
+    const val = document.getElementById('employee-leave-time-filter').value;
+    const start = document.getElementById('employee-leave-start-date');
+    const end = document.getElementById('employee-leave-end-date');
+    if (val === 'custom') { start.classList.remove('hidden'); end.classList.remove('hidden'); }
+    else { start.classList.add('hidden'); end.classList.add('hidden'); }
+};
+
+window.filterLeavesByTime = function(leaves, filterVal, startId, endId) {
+    if (filterVal === 'all') return leaves;
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+
+    return leaves.filter(l => {
+        const lDate = l.dateSubmitted || l.startDate;
+        if (!lDate) return true;
+        
+        if (filterVal === 'today') return lDate === todayStr;
+        if (filterVal === 'this-week') {
+            const startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - today.getDay());
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            const ld = new Date(lDate);
+            return ld >= startOfWeek && ld <= endOfWeek;
+        }
+        if (filterVal === 'this-month') {
+            return lDate.startsWith(todayStr.substring(0, 7));
+        }
+        if (filterVal === 'custom') {
+            const s = document.getElementById(startId)?.value;
+            const e = document.getElementById(endId)?.value;
+            if (s && e) {
+                return lDate >= s && lDate <= e;
+            } else if (s) {
+                return lDate >= s;
+            } else if (e) {
+                return lDate <= e;
+            }
+            return true;
+        }
+        return true;
+    });
+};
+
+
 function renderAdminLeaveTab() {
     renderLeaveTypes();
     const db = getDb();
@@ -3907,7 +3967,10 @@ function renderAdminLeaveTab() {
     tableBody.innerHTML = '';
 
     // Sort leaves status: pending first, then by date
-    const leaves = db.leaves;
+    let leaves = db.leaves || [];
+    const filterVal = document.getElementById('admin-leave-time-filter')?.value || 'today';
+    leaves = window.filterLeavesByTime(leaves, filterVal, 'admin-leave-start-date', 'admin-leave-end-date');
+
     leaves.sort((a, b) => {
         const aNeedsReview = (a.status === 'Pending' || a.status === 'Waiting for Admin Approval');
         const bNeedsReview = (b.status === 'Pending' || b.status === 'Waiting for Admin Approval');
@@ -5098,7 +5161,10 @@ function renderManagerLeaveTab() {
     const teamTableBody = document.getElementById('manager-leave-table-body');
     if (teamTableBody) {
         teamTableBody.innerHTML = '';
-        const teamLeaves = db.leaves.filter(l => teamEmails.includes(l.employeeId));
+        let teamLeaves = db.leaves.filter(l => teamEmails.includes(l.employeeId));
+        const filterVal = document.getElementById('manager-leave-time-filter')?.value || 'today';
+        teamLeaves = window.filterLeavesByTime(teamLeaves, filterVal, 'manager-leave-start-date', 'manager-leave-end-date');
+        
         teamLeaves.sort((a, b) => {
             if (a.status === 'Pending' && b.status !== 'Pending') return -1;
             if (a.status !== 'Pending' && b.status === 'Pending') return 1;
@@ -5497,7 +5563,10 @@ function renderEmployeeLeaveTab() {
     const tableBody = document.getElementById('employee-tab-leave-table');
     tableBody.innerHTML = '';
 
-    const myLeaves = db.leaves.filter(l => l.employeeId == currentUser.id);
+    let myLeaves = db.leaves.filter(l => l.employeeId == currentUser.id);
+    const filterVal = document.getElementById('employee-leave-time-filter')?.value || 'today';
+    myLeaves = window.filterLeavesByTime(myLeaves, filterVal, 'employee-leave-start-date', 'employee-leave-end-date');
+    
     myLeaves.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
 
     if (myLeaves.length === 0) {
