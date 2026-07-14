@@ -8,7 +8,7 @@
  * 3. Run this file in your browser: http://localhost/HRMS/hrms/local_sync_bridge.php
  */
 
-define('LIVE_DOMAIN', 'http://localhost'); // Local XAMPP URL
+define('LIVE_DOMAIN', 'https://azure-quetzal-636989.hostingersite.com'); // Live Hostinger URL
 define('MACHINE_IP', '192.168.1.201');           // Your biometric machine's local IP
 define('MACHINE_PORT', 4370);                    // Default ZKTeco port
 
@@ -42,7 +42,7 @@ $payload = json_encode([
     'machine_status' => 'Online'
 ]);
 
-$ch = curl_init(LIVE_DOMAIN . '/HRMS/hrms/backend/api.php?action=upload_biometric_logs');
+$ch = curl_init(LIVE_DOMAIN . '/backend/api.php?action=upload_biometric_logs');
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
