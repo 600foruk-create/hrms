@@ -333,6 +333,10 @@ try {
     try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockStartDate` varchar(50) DEFAULT NULL"); } catch (Exception $ex) {}
     try { $pdo->exec("ALTER TABLE company_profile ADD COLUMN `payrollLockEndDate` varchar(50) DEFAULT NULL"); } catch (Exception $ex) {}
     
+    // Add status column to biometric_machines if missing
+    try { $pdo->exec("ALTER TABLE biometric_machines ADD COLUMN `status` varchar(30) DEFAULT 'Untested'"); } catch (Exception $ex) {}
+    
+    
     // Phase 1: Database Normalization Tables
     $pdo->exec("CREATE TABLE IF NOT EXISTS `employee_documents` (
         `id` int(11) NOT NULL AUTO_INCREMENT,
