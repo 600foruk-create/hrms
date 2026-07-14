@@ -6026,6 +6026,100 @@ function initSignaturePad() {
 window.tempProfilePic = null;
 window.tempDocuments = [];
 
+// --- Add New Team Modal Logic ---
+window.openAddTeamModal = function() {
+    const db = getDb();
+    const managerSelect = document.getElementById('team-manager-select');
+    if (!managerSelect) return;
+
+    // Reset form
+    document.getElementById('add-team-form').reset();
+    document.getElementById('team-members-checkbox-list').innerHTML = '';
+
+    // Populate Managers
+    managerSelect.innerHTML = '<option value="">Select a Manager...</option>';
+    const managers = db.users.filter(u => u.status === 'Active' && (u.role === 'Manager' || u.role === 'Admin'));
+    managers.forEach(mgr => {
+        const opt = document.createElement('option');
+        opt.value = mgr.id;
+        opt.textContent = `${mgr.name} (${mgr.role})`;
+        managerSelect.appendChild(opt);
+    });
+
+    openModal('modal-add-team');
+};
+
+window.populateTeamMembersList = function() {
+    const db = getDb();
+    const managerId = document.getElementById('team-manager-select').value;
+    const listContainer = document.getElementById('team-members-checkbox-list');
+    listContainer.innerHTML = '';
+
+    if (!managerId) return;
+
+    // List all active employees except the selected manager
+    const eligibleMembers = db.users.filter(u => u.status === 'Active' && u.id !== managerId && u.role !== 'Admin');
+    
+    if (eligibleMembers.length === 0) {
+        listContainer.innerHTML = '<div style="color:var(--text-muted); font-size:13px; text-align:center; padding:10px;">No eligible employees found.</div>';
+        return;
+    }
+
+    eligibleMembers.forEach(emp => {
+        // Check if employee is already assigned to this manager
+        const isAlreadyAssigned = String(emp.managerId) === String(managerId);
+        // We can optionally visually indicate if they have another manager
+        const otherManagerName = (emp.managerId && String(emp.managerId) !== String(managerId)) 
+            ? db.users.find(m => m.id === emp.managerId)?.name || 'Another Manager'
+            : '';
+        const warningTxt = otherManagerName ? `<span style="color:var(--warning); font-size:11px; margin-left:5px;">(Currently with ${otherManagerName})</span>` : '';
+
+        const cbWrapper = document.createElement('div');
+        cbWrapper.style.cssText = 'display: flex; align-items: center; gap: 10px; padding: 6px; border-bottom: 1px solid var(--border-color);';
+        
+        cbWrapper.innerHTML = `
+            <input type="checkbox" class="team-member-checkbox" value="${emp.id}" id="team-emp-${emp.id}" ${isAlreadyAssigned ? 'checked' : ''} style="cursor: pointer; width:16px; height:16px;">
+            <label for="team-emp-${emp.id}" style="cursor: pointer; flex: 1; margin: 0; font-size:13px;">
+                <strong>${emp.name}</strong> <span style="color:var(--text-muted); font-size:11px;">(${emp.role})</span>
+                ${warningTxt}
+            </label>
+        `;
+        listContainer.appendChild(cbWrapper);
+    });
+};
+
+window.submitAddTeam = function() {
+    const db = getDb();
+    const managerId = document.getElementById('team-manager-select').value;
+    if (!managerId) {
+        showToast("Error", "Please select a Manager.", "error");
+        return;
+    }
+
+    const checkboxes = document.querySelectorAll('.team-member-checkbox:checked');
+    const selectedEmpIds = Array.from(checkboxes).map(cb => cb.value);
+
+    // Update the database
+    // Anyone checked gets this manager. Anyone unchecked who HAD this manager gets unassigned.
+    db.users.forEach(u => {
+        if (selectedEmpIds.includes(u.id)) {
+            // Assign to new manager
+            u.managerId = managerId;
+        } else if (String(u.managerId) === String(managerId)) {
+            // Remove from manager if they were unchecked
+            u.managerId = '';
+        }
+    });
+
+    saveDb(db);
+    closeModal('modal-add-team');
+    showToast("Team Saved", `Team updated successfully for selected manager.`, "success");
+    
+    if (typeof window.renderAdminEmployeesTab === 'function') {
+        window.renderAdminEmployeesTab();
+    }
+};
+
 window.openEditEmployeeModal = function (userId, isViewOnly = false) {
     try {
         const db = getDb();
@@ -8293,7 +8387,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Admin dashboard specific buttons
     safeAddListener('btn-admin-add-emp', 'click', () => openEditEmployeeModal(""));
-    safeAddListener('btn-admin-add-emp-tab', 'click', () => openEditEmployeeModal(""));
+    // btn-admin-add-emp-tab click handler is dynamically assigned in subtab switching logic
 
     // Salary Increment Logic
     safeAddListener('btn-apply-salary-increment', 'click', () => {
@@ -8797,6 +8891,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             parent.querySelectorAll('.sub-tab-content').forEach(c => c.classList.add('hidden'));
             const targetContent = document.getElementById(`subtab-content-${subtab}`);
             if (targetContent) targetContent.classList.remove('hidden');
+
+            if (parent.id === 'admin-tab-employees') {
+                const addEmpBtn = document.getElementById('btn-admin-add-emp-tab');
+                if (addEmpBtn) {
+                    if (subtab === 'teams') {
+                        addEmpBtn.innerHTML = '<i class="fa-solid fa-users"></i> Add New Team';
+                        addEmpBtn.onclick = () => { if(window.openAddTeamModal) window.openAddTeamModal(); };
+                    } else {
+                        addEmpBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Add New Employee';
+                        addEmpBtn.onclick = () => { openEditEmployeeModal(""); };
+                    }
+                }
+            }
 
             // Specific logic for Attendance & Leave tab
             if (parent.id === 'admin-tab-attendance') {
