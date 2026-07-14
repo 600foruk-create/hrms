@@ -5751,6 +5751,26 @@ window.openCompanyProfileModal = function () {
         document.getElementById('payroll-lock-start-date').value = sysSettings.payrollLockStartDate || '';
         document.getElementById('payroll-lock-end-date').value = sysSettings.payrollLockEndDate || '';
     }
+    window.removeCompanyImage = function(type) {
+        const db = getDb();
+        if (!db.companyProfile) db.companyProfile = {};
+        const form = document.getElementById('company-profile-form');
+        
+        if (type === 'logo') {
+            db.companyProfile.logoBase64 = '';
+            if (form) form.dataset.logoBase64 = '';
+        } else if (type === 'letterhead') {
+            db.companyProfile.letterheadBase64 = '';
+            if (form) form.dataset.letterheadBase64 = '';
+        } else if (type === 'signature') {
+            db.companyProfile.signatureBase64 = '';
+            if (form) form.dataset.signatureBase64 = '';
+        }
+        
+        saveDb(db);
+        // Re-render the modal to reflect deletion
+        window.openCompanyProfileModal();
+    };
 
     // Clear logo input just in case
     document.getElementById('comp-logo-input').value = '';
@@ -5758,7 +5778,10 @@ window.openCompanyProfileModal = function () {
     if (dropzone) {
         if (cp.logoBase64) {
             dropzone.innerHTML = `
-                <img src="${cp.logoBase64}" alt="Company Logo" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                <div style="position: relative; display: inline-block;">
+                    <img src="${cp.logoBase64}" alt="Company Logo" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                    <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('logo')" style="position: absolute; top: -5px; right: -15px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Logo"><i class="fa-solid fa-times"></i></button>
+                </div>
                 <div style="font-size: 11px; color: var(--text-muted);">Click to change logo</div>
                 <input type="file" id="comp-logo-input" accept="image/*" style="display:none;">
             `;
@@ -5791,7 +5814,10 @@ window.openCompanyProfileModal = function () {
             if (cp.letterheadBase64) {
                 document.getElementById('company-profile-form').dataset.letterheadBase64 = cp.letterheadBase64;
                 letterheadDropzone.innerHTML = `
-                    <img src="${cp.letterheadBase64}" alt="Letterhead Banner" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                    <div style="position: relative; display: inline-block;">
+                        <img src="${cp.letterheadBase64}" alt="Letterhead Banner" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                        <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('letterhead')" style="position: absolute; top: -5px; right: -15px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Banner"><i class="fa-solid fa-times"></i></button>
+                    </div>
                     <div style="font-size: 11px; color: var(--text-muted);">Click to change banner</div>
                     <input type="file" id="comp-letterhead-input" accept="image/*" style="display:none;">
                 `;
@@ -5824,7 +5850,10 @@ window.openCompanyProfileModal = function () {
             if (cp.signatureBase64) {
                 document.getElementById('company-profile-form').dataset.signatureBase64 = cp.signatureBase64;
                 signatureDropzone.innerHTML = `
-                    <img src="${cp.signatureBase64}" alt="Signature" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                    <div style="position: relative; display: inline-block;">
+                        <img src="${cp.signatureBase64}" alt="Signature" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                        <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('signature')" style="position: absolute; top: -5px; right: -15px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Signature"><i class="fa-solid fa-times"></i></button>
+                    </div>
                     <div style="font-size: 11px; color: var(--text-muted);">Click to change signature</div>
                     <input type="file" id="comp-signature-input" accept="image/*" style="display:none;">
                 `;
@@ -5996,7 +6025,10 @@ function initSignaturePad() {
         const signatureDropzone = document.getElementById('dropzone-company-signature');
         if (signatureDropzone) {
             signatureDropzone.innerHTML = `
-                <img src="${dataURL}" alt="Signature" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                <div style="position: relative; display: inline-block;">
+                    <img src="${dataURL}" alt="Signature" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                    <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('signature')" style="position: absolute; top: -5px; right: -15px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Signature"><i class="fa-solid fa-times"></i></button>
+                </div>
                 <div style="font-size: 11px; color: var(--text-muted);">Click to change signature</div>
                 <input type="file" id="comp-signature-input" accept="image/*" style="display:none;">
             `;
@@ -8785,7 +8817,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 const dataURL = canvas.toDataURL('image/png', 0.8);
                 dropzone.innerHTML = `
-                    <img src="${dataURL}" alt="Company Logo" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                    <div style="position: relative; display: inline-block;">
+                        <img src="${dataURL}" alt="Company Logo" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                        <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('logo')" style="position: absolute; top: -5px; right: -15px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Logo"><i class="fa-solid fa-times"></i></button>
+                    </div>
                     <div style="font-size: 11px; color: var(--text-muted);">Click to change logo</div>
                     <input type="file" id="comp-logo-input" accept="image/*" style="display:none;">
                 `;
@@ -8828,7 +8863,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const dataURL = canvas.toDataURL('image/jpeg', 0.7);
 
                 dropzone.innerHTML = `
-                    <img src="${dataURL}" alt="Letterhead Banner" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                    <div style="position: relative; display: inline-block;">
+                        <img src="${dataURL}" alt="Letterhead Banner" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                        <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('letterhead')" style="position: absolute; top: -5px; right: -15px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Banner"><i class="fa-solid fa-times"></i></button>
+                    </div>
                     <div style="font-size: 11px; color: var(--text-muted);">Click to change banner</div>
                     <input type="file" id="comp-letterhead-input" accept="image/*" style="display:none;">
                 `;
@@ -8871,7 +8909,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const dataURL = canvas.toDataURL('image/png');
 
                 dropzone.innerHTML = `
-                    <img src="${dataURL}" alt="Signature" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                    <div style="position: relative; display: inline-block;">
+                        <img src="${dataURL}" alt="Signature" style="max-height: 80px; max-width: 100%; object-fit: contain; margin-bottom: 5px;">
+                        <button type="button" onclick="event.stopPropagation(); window.removeCompanyImage('signature')" style="position: absolute; top: -5px; right: -15px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Remove Signature"><i class="fa-solid fa-times"></i></button>
+                    </div>
                     <div style="font-size: 11px; color: var(--text-muted);">Click to change signature</div>
                     <input type="file" id="comp-signature-input" accept="image/*" style="display:none;">
                 `;
