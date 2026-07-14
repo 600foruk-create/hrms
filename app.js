@@ -8275,6 +8275,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!input.value) input.value = new Date().toISOString().slice(0, 7);
     });
 
+    // Protect Bank Letter Placeholders
+    const enforcePlaceholders = (e) => {
+        if (!e.target.dataset.lastValid) {
+            e.target.dataset.lastValid = e.target.value;
+        }
+        const val = e.target.value;
+        let required = [];
+        if (e.target.id === 'bp-letter-header') required = ['[COMPANY_NAME]', '[ACCOUNT_NO]'];
+        if (e.target.id === 'bp-letter-footer') required = ['[ACCOUNT_NO]'];
+
+        let missing = false;
+        for (let r of required) {
+            if (!val.includes(r)) missing = true;
+        }
+
+        if (missing) {
+            e.target.value = e.target.dataset.lastValid;
+            showToast("Protected Placeholders", "The placeholders (e.g. [COMPANY_NAME], [ACCOUNT_NO]) are required for auto-filling and cannot be deleted.", "warning");
+        } else {
+            e.target.dataset.lastValid = val;
+        }
+    };
+    const headerTA = document.getElementById('bp-letter-header');
+    const footerTA = document.getElementById('bp-letter-footer');
+    if (headerTA) {
+        headerTA.addEventListener('focus', (e) => e.target.dataset.lastValid = e.target.value);
+        headerTA.addEventListener('input', enforcePlaceholders);
+    }
+    if (footerTA) {
+        footerTA.addEventListener('focus', (e) => e.target.dataset.lastValid = e.target.value);
+        footerTA.addEventListener('input', enforcePlaceholders);
+    }
+
     try {
         // Yeti eye tracking & arm animation (GSAP calibration)
         const armL = document.querySelector('.armL');
