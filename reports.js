@@ -280,74 +280,173 @@ function generateAdminAttendanceSummaryReport(db) {
     const end = document.getElementById('admin-rep-att-sum-end').value;
     const emp = document.getElementById('admin-rep-att-sum-emp').value;
 
+    if (!start || !end) {
+        if (window.showToast) window.showToast('Notice', 'Please select both Start Date and End Date.', 'info');
+        return;
+    }
+
     let filteredUsers = db.users;
     if (emp !== 'All') {
         filteredUsers = filteredUsers.filter(u => String(u.id) === String(emp));
     }
 
     let summaryData = [];
-    let grandTotalPresent = 0, grandTotalAbsent = 0, grandTotalLate = 0, grandTotalOvertime = 0;
+    let grandTotalWork = 0, grandTotalLateHrs = 0, grandTotalEarlyHrs = 0, grandTotalOvertime = 0, grandTotalAbsent = 0;
+
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    
+    // Safety check for range
+    if (startDate > endDate) {
+        if (window.showToast) window.showToast('Error', 'Start Date must be before End Date.', 'error');
+        return;
+    }
 
     filteredUsers.forEach(u => {
-        let present = 0, absent = 0, late = 0, halfDay = 0, overtimeHrs = 0;
+        let presentCount = 0, absentCount = 0, lateCount = 0, halfDayCount = 0;
+        let workHrs = 0, lateHrs = 0, earlyHrs = 0, overtimeHrs = 0, holidayCount = 0, restCount = 0;
 
+        // Get shift details
+        const defaultShift = { start: '09:00', end: '17:00' };
+        let userShift = defaultShift;
+        if (db.shifts && u.shiftId) {
+            const shift = db.shifts.find(s => String(s.id) === String(u.shiftId));
+            if (shift && shift.start !== 'Manual') {
+                userShift = shift;
+            }
+        }
+
+        const parseTimeStr = (t) => {
+            if (!t) return null;
+            const [h, m] = t.split(':').map(Number);
+            return h + m/60;
+        };
+
+        const shiftStartHr = parseTimeStr(userShift.start) || 9;
+        const shiftEndHr = parseTimeStr(userShift.end) || 17;
+
+        // Pre-build logs map for this user
+        const myLogs = {};
         if (db.attendance) {
             db.attendance.forEach(log => {
                 if (String(log.employeeId) === String(u.id)) {
-                    if (start && log.date < start) return;
-                    if (end && log.date > end) return;
-                    
-                    if (log.status === 'Present') present++;
-                    else if (log.status === 'Absent') absent++;
-                    else if (log.status === 'Late') late++;
-                    else if (log.status === 'Half-Day') halfDay++;
+                    myLogs[log.date] = log;
+                }
+            });
+        }
 
-                    // Simple overtime logic: > 9 hours
-                    if (log.timeIn && log.timeOut) {
-                        const tIn = new Date(`1970-01-01T${log.timeIn}:00`);
-                        const tOut = new Date(`1970-01-01T${log.timeOut}:00`);
-                        const diffHrs = (tOut - tIn) / (1000 * 60 * 60);
-                        if (diffHrs > 9) {
-                            overtimeHrs += (diffHrs - 9);
-                        }
+        // Pre-build leaves map for this user
+        const myLeaves = {};
+        if (db.leaves) {
+            db.leaves.forEach(l => {
+                if (String(l.employeeId) === String(u.id) && l.status === 'Approved') {
+                    let curr = new Date(l.startDate);
+                    const lEnd = new Date(l.endDate);
+                    while (curr <= lEnd) {
+                        myLeaves[curr.toISOString().split('T')[0]] = true;
+                        curr.setDate(curr.getDate() + 1);
                     }
                 }
             });
         }
 
-        grandTotalPresent += present;
-        grandTotalAbsent += absent;
-        grandTotalLate += late;
-        grandTotalOvertime += overtimeHrs;
+        // Iterate over days
+        let currentDate = new Date(startDate);
+        const todayStr = new Date().toISOString().split('T')[0];
+        
+        while (currentDate <= endDate) {
+            const dStr = currentDate.toISOString().split('T')[0];
+            const isHol = window.isPublicHoliday && window.isPublicHoliday(dStr);
+            const isRest = window.isEmployeeOnRest && window.isEmployeeOnRest(u, dStr);
+            const isLeave = myLeaves[dStr];
+            const log = myLogs[dStr];
 
-        if (present > 0 || absent > 0 || late > 0 || halfDay > 0) {
-            summaryData.push({ u, present, absent, late, halfDay, overtimeHrs });
+            if (log) {
+                if (log.status === 'Present') presentCount++;
+                else if (log.status === 'Absent') absentCount++;
+                else if (log.status === 'Late') lateCount++;
+                else if (log.status === 'Half-Day') halfDayCount++;
+                
+                if (log.timeIn && log.timeOut) {
+                    const tInHr = parseTimeStr(log.timeIn);
+                    const tOutHr = parseTimeStr(log.timeOut);
+                    const dailyWorkHrs = Math.max(0, tOutHr - tInHr);
+                    workHrs += dailyWorkHrs;
+
+                    // Late coming calculation
+                    if (tInHr > shiftStartHr) {
+                        lateHrs += (tInHr - shiftStartHr);
+                    }
+                    
+                    // Early leaving calculation
+                    if (tOutHr < shiftEndHr) {
+                        earlyHrs += (shiftEndHr - tOutHr);
+                    }
+                    
+                    // Overtime calculation
+                    if (tOutHr > shiftEndHr) {
+                        overtimeHrs += (tOutHr - shiftEndHr);
+                    }
+                }
+            } else {
+                if (isLeave) {
+                    // do nothing for metrics or count as leave
+                } else if (isHol) {
+                    holidayCount++;
+                } else if (isRest) {
+                    restCount++;
+                } else {
+                    // Implicit absent if it's a working day and no log exists
+                    if (dStr <= todayStr) { 
+                        absentCount++;
+                    }
+                }
+            }
+
+            currentDate.setDate(currentDate.getDate() + 1);
         }
+
+        grandTotalWork += workHrs;
+        grandTotalLateHrs += lateHrs;
+        grandTotalEarlyHrs += earlyHrs;
+        grandTotalOvertime += overtimeHrs;
+        grandTotalAbsent += absentCount;
+
+        summaryData.push({ u, presentCount, absentCount, lateCount, halfDayCount, workHrs, lateHrs, earlyHrs, overtimeHrs, holidayCount, restCount });
     });
 
-    const elTotalPresent = document.getElementById('admin-rep-att-total-present');
-    if(elTotalPresent) elTotalPresent.innerText = grandTotalPresent;
-    
-    const elTotalAbsent = document.getElementById('admin-rep-att-total-absent');
-    if(elTotalAbsent) elTotalAbsent.innerText = grandTotalAbsent;
-    
-    const elTotalLate = document.getElementById('admin-rep-att-total-late');
-    if(elTotalLate) elTotalLate.innerText = grandTotalLate;
-    
-    const elTotalOvertime = document.getElementById('admin-rep-att-total-overtime');
-    if(elTotalOvertime) elTotalOvertime.innerText = grandTotalOvertime.toFixed(1);
+    const setTotal = (id, val) => {
+        const el = document.getElementById(id);
+        if(el) el.innerText = val;
+    };
+
+    setTotal('admin-rep-att-total-work', grandTotalWork.toFixed(1));
+    setTotal('admin-rep-att-total-late-hrs', grandTotalLateHrs.toFixed(1));
+    setTotal('admin-rep-att-total-early-hrs', grandTotalEarlyHrs.toFixed(1));
+    setTotal('admin-rep-att-total-overtime', grandTotalOvertime.toFixed(1));
+    setTotal('admin-rep-att-total-absent', grandTotalAbsent);
 
     const tbody = document.getElementById('admin-rep-body-attendance-summary');
     if(!tbody) return;
     tbody.innerHTML = '';
     
     if(summaryData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No attendance data found in this period</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No attendance data found in this period</td></tr>';
     } else {
         summaryData.forEach(row => {
             const initials = row.u.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
             const avatarHtml = `<div style="display:flex;align-items:center;"><div class="team-member-avatar" style="width:36px;height:36px;font-size:14px;margin-right:12px;border:none;">${initials}</div><div><div style="font-size:13px;font-weight:700;">${row.u.name}</div><div class="text-secondary" style="font-size:11px;">ID: ${row.u.id}</div></div></div>`;
-            tbody.innerHTML += `<tr><td>${avatarHtml}</td><td><span class="status-badge status-approved">${row.present}</span></td><td><span class="status-badge status-rejected">${row.absent}</span></td><td><span class="status-badge status-pending">${row.late}</span></td><td><span class="status-badge status-pending">${row.halfDay}</span></td><td><strong>${row.overtimeHrs.toFixed(1)} Hrs</strong></td></tr>`;
+            const presAbsStr = `<span class="status-badge status-approved">${row.presentCount+row.lateCount+row.halfDayCount} P</span> <span class="status-badge status-rejected">${row.absentCount} A</span>`;
+            tbody.innerHTML += `<tr>
+                <td>${avatarHtml}</td>
+                <td>${presAbsStr}</td>
+                <td><strong>${row.workHrs.toFixed(1)} Hrs</strong></td>
+                <td><span class="text-warning">${row.lateHrs > 0 ? row.lateHrs.toFixed(1) + ' Hrs' : '-'}</span></td>
+                <td><span class="text-danger">${row.earlyHrs > 0 ? row.earlyHrs.toFixed(1) + ' Hrs' : '-'}</span></td>
+                <td><span class="text-primary">${row.overtimeHrs > 0 ? row.overtimeHrs.toFixed(1) + ' Hrs' : '-'}</span></td>
+                <td>${row.holidayCount}</td>
+                <td>${row.restCount}</td>
+            </tr>`;
         });
     }
     

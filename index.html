@@ -3176,25 +3176,30 @@
                             <div id="admin-att-content-summary">
                                 <!-- Summary Cards -->
                                 <div class="metrics-grid mb-4"
-                                    style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                                    style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
                                     <div class="metric-card bg-glass" style="padding: 15px;">
-                                        <div class="text-secondary" style="font-size: 13px;">Total Present</div>
-                                        <div class="metric-value text-success" id="admin-rep-att-total-present"
+                                        <div class="text-secondary" style="font-size: 13px;">Total Work (Hrs)</div>
+                                        <div class="metric-value text-success" id="admin-rep-att-total-work"
                                             style="font-size: 20px;">0</div>
                                     </div>
                                     <div class="metric-card bg-glass" style="padding: 15px;">
-                                        <div class="text-secondary" style="font-size: 13px;">Total Absent</div>
-                                        <div class="metric-value text-danger" id="admin-rep-att-total-absent"
+                                        <div class="text-secondary" style="font-size: 13px;">Late Coming (Hrs)</div>
+                                        <div class="metric-value text-warning" id="admin-rep-att-total-late-hrs"
                                             style="font-size: 20px;">0</div>
                                     </div>
                                     <div class="metric-card bg-glass" style="padding: 15px;">
-                                        <div class="text-secondary" style="font-size: 13px;">Total Late</div>
-                                        <div class="metric-value text-warning" id="admin-rep-att-total-late"
+                                        <div class="text-secondary" style="font-size: 13px;">Early Leave (Hrs)</div>
+                                        <div class="metric-value text-danger" id="admin-rep-att-total-early-hrs"
                                             style="font-size: 20px;">0</div>
                                     </div>
                                     <div class="metric-card bg-glass" style="padding: 15px;">
                                         <div class="text-secondary" style="font-size: 13px;">Total Overtime (Hrs)</div>
                                         <div class="metric-value text-primary" id="admin-rep-att-total-overtime"
+                                            style="font-size: 20px;">0</div>
+                                    </div>
+                                    <div class="metric-card bg-glass" style="padding: 15px;">
+                                        <div class="text-secondary" style="font-size: 13px;">Total Absent</div>
+                                        <div class="metric-value text-danger" id="admin-rep-att-total-absent"
                                             style="font-size: 20px;">0</div>
                                     </div>
                                 </div>
@@ -3238,16 +3243,22 @@
                                             <thead>
                                                 <tr>
                                                     <th>Employee</th>
-                                                    <th>Present</th>
-                                                    <th>Absent</th>
-                                                    <th>Late</th>
-                                                    <th>Half-Day</th>
-                                                    <th>Total Overtime</th>
+                                                    <th>Present / Absent</th>
+                                                    <th>Work (Hrs)</th>
+                                                    <th>Late (Hrs)</th>
+                                                    <th>Early (Hrs)</th>
+                                                    <th>Overtime (Hrs)</th>
+                                                    <th>Holidays</th>
+                                                    <th>Weekends</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="admin-rep-body-attendance-summary">
                                                 <tr>
-                                                    <td colspan="6" class="text-center text-muted">Click Generate to
+                                                    <td colspan="8" class="text-center text-muted">Click Generate to
+                                                        view
+                                                        data</td>
+                                                </tr>
+                                            </tbody>
                                                         view
                                                         data</td>
                                                 </tr>
