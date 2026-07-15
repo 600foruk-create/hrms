@@ -317,9 +317,16 @@ function generateAdminAttendanceSummaryReport(db) {
         }
 
         const parseTimeStr = (t) => {
-            if (!t) return null;
-            const [h, m] = t.split(':').map(Number);
-            return h + m/60;
+            if (!t || typeof t !== 'string') return null;
+            const isPM = t.toUpperCase().includes('PM');
+            const isAM = t.toUpperCase().includes('AM');
+            const cleanT = t.replace(/[A-Za-z\s]/g, '');
+            if (!cleanT.includes(':')) return null;
+            let [h, m] = cleanT.split(':').map(Number);
+            if (isNaN(h) || isNaN(m)) return null;
+            if (isPM && h !== 12) h += 12;
+            if (isAM && h === 12) h = 0;
+            return h + (m || 0)/60;
         };
 
         const shiftStartHr = parseTimeStr(userShift.start) || 9;
@@ -415,37 +422,27 @@ function generateAdminAttendanceSummaryReport(db) {
         summaryData.push({ u, presentCount, absentCount, lateCount, halfDayCount, workHrs, lateHrs, earlyHrs, overtimeHrs, holidayCount, restCount });
     });
 
-    const setTotal = (id, val) => {
-        const el = document.getElementById(id);
-        if(el) el.innerText = val;
-    };
-
-    setTotal('admin-rep-att-total-work', grandTotalWork.toFixed(1));
-    setTotal('admin-rep-att-total-late-hrs', grandTotalLateHrs.toFixed(1));
-    setTotal('admin-rep-att-total-early-hrs', grandTotalEarlyHrs.toFixed(1));
-    setTotal('admin-rep-att-total-overtime', grandTotalOvertime.toFixed(1));
-    setTotal('admin-rep-att-total-absent', grandTotalAbsent);
-
     const tbody = document.getElementById('admin-rep-body-attendance-summary');
     if(!tbody) return;
     tbody.innerHTML = '';
     
     if(summaryData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No attendance data found in this period</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">No attendance data found in this period</td></tr>';
     } else {
         summaryData.forEach(row => {
             const initials = row.u.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
             const avatarHtml = `<div style="display:flex;align-items:center;"><div class="team-member-avatar" style="width:36px;height:36px;font-size:14px;margin-right:12px;border:none;">${initials}</div><div><div style="font-size:13px;font-weight:700;">${row.u.name}</div><div class="text-secondary" style="font-size:11px;">ID: ${row.u.id}</div></div></div>`;
-            const presAbsStr = `<span class="status-badge status-approved">${row.presentCount+row.lateCount+row.halfDayCount} P</span> <span class="status-badge status-rejected">${row.absentCount} A</span>`;
+            const presTotal = row.presentCount + row.lateCount + row.halfDayCount;
             tbody.innerHTML += `<tr>
                 <td>${avatarHtml}</td>
-                <td>${presAbsStr}</td>
-                <td><strong>${row.workHrs.toFixed(1)} Hrs</strong></td>
-                <td><span class="text-warning">${row.lateHrs > 0 ? row.lateHrs.toFixed(1) + ' Hrs' : '-'}</span></td>
-                <td><span class="text-danger">${row.earlyHrs > 0 ? row.earlyHrs.toFixed(1) + ' Hrs' : '-'}</span></td>
-                <td><span class="text-primary">${row.overtimeHrs > 0 ? row.overtimeHrs.toFixed(1) + ' Hrs' : '-'}</span></td>
-                <td>${row.holidayCount}</td>
-                <td>${row.restCount}</td>
+                <td style="text-align: center;"><span class="status-badge status-approved">${presTotal}</span></td>
+                <td style="text-align: center;"><span class="status-badge status-rejected">${row.absentCount}</span></td>
+                <td style="text-align: center;"><strong>${row.workHrs > 0 ? row.workHrs.toFixed(1) + ' Hrs' : '-'}</strong></td>
+                <td style="text-align: center;"><span class="text-warning">${row.lateHrs > 0 ? row.lateHrs.toFixed(1) + ' Hrs' : '-'}</span></td>
+                <td style="text-align: center;"><span class="text-danger">${row.earlyHrs > 0 ? row.earlyHrs.toFixed(1) + ' Hrs' : '-'}</span></td>
+                <td style="text-align: center;"><span class="text-primary">${row.overtimeHrs > 0 ? row.overtimeHrs.toFixed(1) + ' Hrs' : '-'}</span></td>
+                <td style="text-align: center;">${row.holidayCount}</td>
+                <td style="text-align: center;">${row.restCount}</td>
             </tr>`;
         });
     }
