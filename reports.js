@@ -320,7 +320,13 @@ function generateAdminEmployeesReport(db) {
             if (stat === 'Terminated') statClass = 'status-rejected';
             
             const initials = (u.name || '').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-            const avatarHtml = `<div style="display:flex;align-items:center;"><div class="team-member-avatar" style="width:36px;height:36px;font-size:14px;margin-right:12px;border:none;">${initials}</div><div><div style="font-size:13px;font-weight:700;">${u.name}</div><div class="text-secondary" style="font-size:11px;">${u.email}</div></div></div>`;
+            let avatarContent = initials;
+            let avatarStyle = "width:36px;height:36px;font-size:14px;margin-right:12px;border:none;";
+            if (u.profilePic) {
+                avatarContent = `<img src="${u.profilePic}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="Pic">`;
+                avatarStyle += "padding:0;background:none;";
+            }
+            const avatarHtml = `<div style="display:flex;align-items:center;"><div class="team-member-avatar" style="${avatarStyle}">${avatarContent}</div><div><div style="font-size:13px;font-weight:700;">${u.name}</div><div class="text-secondary" style="font-size:11px;">${u.email}</div></div></div>`;
 
             const uJoinDate = u.joiningDate || u.startDate || '-';
             const uEmpType = u.employmentType || 'Permanent';
