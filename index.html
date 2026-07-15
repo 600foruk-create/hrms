@@ -2233,15 +2233,15 @@
                                 <div class="section-card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                                     <h3 style="margin: 0;">Global Leave Requests</h3>
                                     <div class="header-filters" style="display: flex; gap: 10px; align-items: center;">
-                                        <select id="admin-leave-time-filter" class="form-control" onchange="toggleAdminLeaveCustomDates(); renderAdminLeaveRequests()">
+                                        <select id="admin-leave-time-filter" class="form-control" onchange="toggleAdminLeaveCustomDates(); renderAdminLeaveTab()">
                                             <option value="today">Today</option>
                                             <option value="this-week">This Week</option>
                                             <option value="this-month">This Month</option>
                                             <option value="custom">Custom</option>
                                             <option value="all" selected>All Time</option>
                                         </select>
-                                        <input type="date" id="admin-leave-start-date" class="form-control hidden" onchange="renderAdminLeaveRequests()">
-                                        <input type="date" id="admin-leave-end-date" class="form-control hidden" onchange="renderAdminLeaveRequests()">
+                                        <input type="date" id="admin-leave-start-date" class="form-control hidden" onchange="renderAdminLeaveTab()">
+                                        <input type="date" id="admin-leave-end-date" class="form-control hidden" onchange="renderAdminLeaveTab()">
                                     </div>
                                 </div>
                                 <p class="text-secondary mb-3">Review and approve leave requests from all employees and
@@ -5105,15 +5105,15 @@
                                 <div class="section-card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding: 15px 20px; border-bottom: 1px solid var(--border-color);">
                                     <h3 style="margin: 0;">Team Leave Requests</h3>
                                     <div class="header-filters" style="display: flex; gap: 10px; align-items: center;">
-                                        <select id="manager-leave-time-filter" class="form-control" onchange="toggleManagerLeaveCustomDates(); renderManagerLeaveTeam()">
+                                        <select id="manager-leave-time-filter" class="form-control" onchange="toggleManagerLeaveCustomDates(); renderManagerLeaveTab()">
                                             <option value="today">Today</option>
                                             <option value="this-week">This Week</option>
                                             <option value="this-month">This Month</option>
                                             <option value="custom">Custom</option>
                                             <option value="all" selected>All Time</option>
                                         </select>
-                                        <input type="date" id="manager-leave-start-date" class="form-control hidden" onchange="renderManagerLeaveTeam()">
-                                        <input type="date" id="manager-leave-end-date" class="form-control hidden" onchange="renderManagerLeaveTeam()">
+                                        <input type="date" id="manager-leave-start-date" class="form-control hidden" onchange="renderManagerLeaveTab()">
+                                        <input type="date" id="manager-leave-end-date" class="form-control hidden" onchange="renderManagerLeaveTab()">
                                     </div>
                                 </div>
                                 <div class="table-container">
@@ -6266,15 +6266,15 @@
                                 <p class="text-secondary">Submit leave applications and track pending evaluations</p>
                             </div>
                             <div class="header-filters" style="display: flex; gap: 10px; align-items: center;">
-                                <select id="employee-leave-time-filter" class="form-control" onchange="toggleEmployeeLeaveCustomDates(); renderEmployeeLeaveMy()">
+                                <select id="employee-leave-time-filter" class="form-control" onchange="toggleEmployeeLeaveCustomDates(); renderEmployeeLeaveTab()">
                                     <option value="today">Today</option>
                                     <option value="this-week">This Week</option>
                                     <option value="this-month">This Month</option>
                                     <option value="custom">Custom</option>
                                     <option value="all" selected>All Time</option>
                                 </select>
-                                <input type="date" id="employee-leave-start-date" class="form-control hidden" onchange="renderEmployeeLeaveMy()">
-                                <input type="date" id="employee-leave-end-date" class="form-control hidden" onchange="renderEmployeeLeaveMy()">
+                                <input type="date" id="employee-leave-start-date" class="form-control hidden" onchange="renderEmployeeLeaveTab()">
+                                <input type="date" id="employee-leave-end-date" class="form-control hidden" onchange="renderEmployeeLeaveTab()">
                             </div>
                             <div class="actions">
                                 <button class="btn btn-primary" id="btn-employee-add-leave-tab"><i
