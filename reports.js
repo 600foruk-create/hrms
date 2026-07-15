@@ -59,7 +59,7 @@ window.switchLoanInnerTab = function(role, status) {
 
 // Attendance Inner Tab Switcher
 window.switchAttTab = function(role, view) {
-    const tabs = ['log', 'register'];
+    const tabs = ['summary', 'log', 'register'];
     tabs.forEach(t => {
         const btn = document.getElementById(`btn-${role}-att-${t}`);
         if (btn) {
@@ -122,7 +122,7 @@ window.initAdminReportsTab = function() {
     const activeUser = window.currentUser || JSON.parse(localStorage.getItem('current_user'));
     
     // Fill Employee Selects (for Admin)
-    const empSelectsAdmin = ['admin-rep-att-emp', 'admin-rep-att-reg-emp', 'admin-rep-leave-emp', 'admin-rep-pay-emp', 'admin-rep-prod-emp', 'admin-rep-loan-emp'];
+    const empSelectsAdmin = ['admin-rep-att-sum-emp', 'admin-rep-att-emp', 'admin-rep-att-reg-emp', 'admin-rep-leave-emp', 'admin-rep-pay-emp', 'admin-rep-prod-emp', 'admin-rep-loan-emp'];
     const employees = db.users; // Show all users including managers and admins
     empSelectsAdmin.forEach(id => {
         const el = document.getElementById(id);
@@ -148,11 +148,11 @@ window.initAdminReportsTab = function() {
     const startStr = start.toISOString().split('T')[0];
     const endStr = end.toISOString().split('T')[0];
     
-    ['admin-rep-att-start', 'admin-rep-leave-start', 'admin-rep-prod-start'].forEach(id => {
+    ['admin-rep-att-sum-start', 'admin-rep-att-start', 'admin-rep-leave-start', 'admin-rep-prod-start'].forEach(id => {
         const el = document.getElementById(id);
         if(el) el.value = startStr;
     });
-    ['admin-rep-att-end', 'admin-rep-leave-end', 'admin-rep-prod-end'].forEach(id => {
+    ['admin-rep-att-sum-end', 'admin-rep-att-end', 'admin-rep-leave-end', 'admin-rep-prod-end'].forEach(id => {
         const el = document.getElementById(id);
         if(el) el.value = endStr;
     });
@@ -222,6 +222,7 @@ window.initManagerReportsTab = function() {
 window.generateAdminReport = function(type) {
     const db = getDb();
     if (type === 'employees') generateAdminEmployeesReport(db);
+    else if (type === 'attendance-summary') generateAdminAttendanceSummaryReport(db);
     else if (type === 'attendance') generateAdminAttendanceReport(db);
     else if (type === 'attendance-register') generateAttendanceRegister('admin');
     else if (type === 'leave') generateAdminLeaveReport(db);
@@ -274,6 +275,86 @@ function generateAdminEmployeesReport(db) {
     document.getElementById('print-subtitle-admin-employees').innerText = 'Total Employees: ' + filtered.length + ' | Status: ' + status + ' | Role: ' + role;
 }
 
+function generateAdminAttendanceSummaryReport(db) {
+    const start = document.getElementById('admin-rep-att-sum-start').value;
+    const end = document.getElementById('admin-rep-att-sum-end').value;
+    const emp = document.getElementById('admin-rep-att-sum-emp').value;
+
+    let filteredUsers = db.users;
+    if (emp !== 'All') {
+        filteredUsers = filteredUsers.filter(u => String(u.id) === String(emp));
+    }
+
+    let summaryData = [];
+    let grandTotalPresent = 0, grandTotalAbsent = 0, grandTotalLate = 0, grandTotalOvertime = 0;
+
+    filteredUsers.forEach(u => {
+        let present = 0, absent = 0, late = 0, halfDay = 0, overtimeHrs = 0;
+
+        if (db.attendance) {
+            db.attendance.forEach(log => {
+                if (String(log.employeeId) === String(u.id)) {
+                    if (start && log.date < start) return;
+                    if (end && log.date > end) return;
+                    
+                    if (log.status === 'Present') present++;
+                    else if (log.status === 'Absent') absent++;
+                    else if (log.status === 'Late') late++;
+                    else if (log.status === 'Half-Day') halfDay++;
+
+                    // Simple overtime logic: > 9 hours
+                    if (log.timeIn && log.timeOut) {
+                        const tIn = new Date(`1970-01-01T${log.timeIn}:00`);
+                        const tOut = new Date(`1970-01-01T${log.timeOut}:00`);
+                        const diffHrs = (tOut - tIn) / (1000 * 60 * 60);
+                        if (diffHrs > 9) {
+                            overtimeHrs += (diffHrs - 9);
+                        }
+                    }
+                }
+            });
+        }
+
+        grandTotalPresent += present;
+        grandTotalAbsent += absent;
+        grandTotalLate += late;
+        grandTotalOvertime += overtimeHrs;
+
+        if (present > 0 || absent > 0 || late > 0 || halfDay > 0) {
+            summaryData.push({ u, present, absent, late, halfDay, overtimeHrs });
+        }
+    });
+
+    const elTotalPresent = document.getElementById('admin-rep-att-total-present');
+    if(elTotalPresent) elTotalPresent.innerText = grandTotalPresent;
+    
+    const elTotalAbsent = document.getElementById('admin-rep-att-total-absent');
+    if(elTotalAbsent) elTotalAbsent.innerText = grandTotalAbsent;
+    
+    const elTotalLate = document.getElementById('admin-rep-att-total-late');
+    if(elTotalLate) elTotalLate.innerText = grandTotalLate;
+    
+    const elTotalOvertime = document.getElementById('admin-rep-att-total-overtime');
+    if(elTotalOvertime) elTotalOvertime.innerText = grandTotalOvertime.toFixed(1);
+
+    const tbody = document.getElementById('admin-rep-body-attendance-summary');
+    if(!tbody) return;
+    tbody.innerHTML = '';
+    
+    if(summaryData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No attendance data found in this period</td></tr>';
+    } else {
+        summaryData.forEach(row => {
+            const initials = row.u.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            const avatarHtml = `<div style="display:flex;align-items:center;"><div class="team-member-avatar" style="width:36px;height:36px;font-size:14px;margin-right:12px;border:none;">${initials}</div><div><div style="font-size:13px;font-weight:700;">${row.u.name}</div><div class="text-secondary" style="font-size:11px;">ID: ${row.u.id}</div></div></div>`;
+            tbody.innerHTML += `<tr><td>${avatarHtml}</td><td><span class="status-badge status-approved">${row.present}</span></td><td><span class="status-badge status-rejected">${row.absent}</span></td><td><span class="status-badge status-pending">${row.late}</span></td><td><span class="status-badge status-pending">${row.halfDay}</span></td><td><strong>${row.overtimeHrs.toFixed(1)} Hrs</strong></td></tr>`;
+        });
+    }
+    
+    const subtitle = document.getElementById('print-subtitle-admin-attendance-summary');
+    if(subtitle) subtitle.innerText = 'Date Range: ' + start + ' to ' + end + ' | Filter: ' + (emp==='All'?'All Employees':emp);
+}
+
 function generateAdminAttendanceReport(db) {
     const start = document.getElementById('admin-rep-att-start').value;
     const end = document.getElementById('admin-rep-att-end').value;
@@ -302,7 +383,9 @@ function generateAdminAttendanceReport(db) {
         logs.forEach(log => {
             const u = db.users.find(u => u.id === log.employeeId);
             const uname = u ? u.name : 'Unknown';
-            tbody.innerHTML += '<tr><td>'+log.date+'</td><td>'+log.employeeId+'</td><td><strong>'+uname+'</strong></td><td>'+(log.timeIn || '-')+'</td><td>'+(log.timeOut || '-')+'</td><td><span class=\"status-badge status-'+(log.status?log.status.toLowerCase().replace(' ','-'):'present')+'\">'+log.status+'</span></td></tr>';
+            const initials = uname !== 'Unknown' ? uname.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '?';
+            const avatarHtml = `<div style="display:flex;align-items:center;"><div class="team-member-avatar" style="width:28px;height:28px;font-size:11px;margin-right:8px;margin-bottom:0;border:none;">${initials}</div><strong style="font-size:12px;">${uname}</strong></div>`;
+            tbody.innerHTML += '<tr><td>'+log.date+'</td><td>'+log.employeeId+'</td><td>'+avatarHtml+'</td><td>'+(log.timeIn || '-')+'</td><td>'+(log.timeOut || '-')+'</td><td><span class=\"status-badge status-'+(log.status?log.status.toLowerCase().replace(' ','-'):'present')+'\">'+log.status+'</span></td></tr>';
         });
     }
     document.getElementById('print-subtitle-admin-attendance').innerText = 'Date Range: ' + start + ' to ' + end + ' | Filter: ' + (emp==='All'?'All Employees':emp);
@@ -977,7 +1060,8 @@ window.generateAttendanceRegister = function(role) {
             });
         }
 
-        let rowHTML = `<tr><td style="white-space: nowrap;"><strong>${user.name}</strong> <small class="text-secondary">(${user.designation || 'Emp'})</small></td>`;
+        const initials = user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        let rowHTML = `<tr><td style="white-space: nowrap; display:flex; align-items:center;"><div class="team-member-avatar" style="width:28px;height:28px;font-size:11px;margin-right:8px;margin-bottom:0;border:none;">${initials}</div><div style="line-height:1.2;"><strong>${user.name}</strong><br><small class="text-secondary" style="font-size:10px;">${user.designation || 'Emp'}</small></div></td>`;
         
         let tPresent = 0, tAbsent = 0, tLeave = 0, tRest = 0, tHoliday = 0, tHalfDay = 0;
 
