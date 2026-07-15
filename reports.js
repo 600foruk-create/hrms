@@ -249,30 +249,213 @@ window.generateManagerReport = function(type) {
 };
 
 function generateAdminEmployeesReport(db) {
-    const status = document.getElementById('admin-rep-emp-status').value;
-    const role = document.getElementById('admin-rep-emp-role').value;
-    const managerId = document.getElementById('admin-rep-emp-manager').value;
+    const search = (document.getElementById('admin-rep-emp-search')?.value || '').toLowerCase();
+    const status = document.getElementById('admin-rep-emp-status')?.value || 'All';
+    const role = document.getElementById('admin-rep-emp-role')?.value || 'All';
+    const managerId = document.getElementById('admin-rep-emp-manager')?.value || 'All';
+    const dept = document.getElementById('admin-rep-emp-dept')?.value || 'All';
+    const type = document.getElementById('admin-rep-emp-type')?.value || 'All';
+    const joinStart = document.getElementById('admin-rep-emp-join-start')?.value || '';
+    const joinEnd = document.getElementById('admin-rep-emp-join-end')?.value || '';
+
+    // Calculate Summary Metrics based on ALL users (or just active ones)
+    let total = db.users.length;
+    let active = db.users.filter(u => u.status === 'Active' || !u.status).length;
+    let inactive = db.users.filter(u => u.status === 'Inactive' || u.status === 'Terminated').length;
+    
+    // New hires this month
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    let newHires = db.users.filter(u => u.joiningDate && u.joiningDate >= firstDay).length;
+
+    const elTotal = document.getElementById('admin-rep-emp-total');
+    if(elTotal) elTotal.innerText = total;
+    const elActive = document.getElementById('admin-rep-emp-active');
+    if(elActive) elActive.innerText = active;
+    const elInactive = document.getElementById('admin-rep-emp-inactive');
+    if(elInactive) elInactive.innerText = inactive;
+    const elNew = document.getElementById('admin-rep-emp-new');
+    if(elNew) elNew.innerText = newHires;
 
     let filtered = db.users.filter(u => {
-        if(status !== 'All' && u.status !== status) return false;
+        if(status !== 'All' && u.status !== status && !(status==='Active' && !u.status)) return false;
         if(role !== 'All' && u.role !== role) return false;
         if(managerId !== 'All' && u.managerId !== managerId) return false;
+        if(dept !== 'All' && u.department !== dept) return false;
+        if(type !== 'All' && u.employmentType !== type) return false;
+        if(joinStart && (!u.joiningDate || u.joiningDate < joinStart)) return false;
+        if(joinEnd && (!u.joiningDate || u.joiningDate > joinEnd)) return false;
+        if(search) {
+            const matchesId = (u.id||'').toLowerCase().includes(search);
+            const matchesName = (u.name||'').toLowerCase().includes(search);
+            const matchesEmail = (u.email||'').toLowerCase().includes(search);
+            if(!matchesId && !matchesName && !matchesEmail) return false;
+        }
         return true;
     });
 
     const tbody = document.getElementById('admin-rep-body-employees');
+    if(!tbody) return;
     tbody.innerHTML = '';
     
     if(filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan=\"6\" class=\"text-center text-muted\">No employees found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted">No employees found</td></tr>';
     } else {
         filtered.forEach(u => {
             const mgrName = u.managerId ? (db.users.find(m => m.id === u.managerId)?.name || 'Unknown') : '-';
             const stat = u.status || 'Active';
-            tbody.innerHTML += '<tr><td>'+u.id+'</td><td><strong>'+u.name+'</strong></td><td>'+u.role+'</td><td>'+mgrName+'</td><td>'+u.email+'</td><td><span class=\"status-badge status-'+stat.toLowerCase()+'\">'+stat+'</span></td></tr>';
+            let statClass = 'status-approved';
+            if (stat === 'Inactive') statClass = 'status-pending';
+            if (stat === 'Terminated') statClass = 'status-rejected';
+            
+            const initials = (u.name || '').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            const avatarHtml = `<div style="display:flex;align-items:center;"><div class="team-member-avatar" style="width:36px;height:36px;font-size:14px;margin-right:12px;border:none;">${initials}</div><div><div style="font-size:13px;font-weight:700;">${u.name}</div><div class="text-secondary" style="font-size:11px;">${u.email}</div></div></div>`;
+
+            tbody.innerHTML += `<tr>
+                <td>${u.id}</td>
+                <td>${avatarHtml}</td>
+                <td>${u.department || '-'}</td>
+                <td>${u.role}</td>
+                <td>${mgrName}</td>
+                <td>${u.phone || '-'}</td>
+                <td>${u.joiningDate || '-'}</td>
+                <td>${u.employmentType || '-'}</td>
+                <td><span class="status-badge ${statClass}">${stat}</span></td>
+                <td class="text-center no-print">
+                    <button class="btn btn-sm btn-outline" style="padding:4px 8px; font-size:12px;" onclick="window.viewEmployeeReportDetail('${u.id}')">View</button>
+                </td>
+            </tr>`;
         });
     }
-    document.getElementById('print-subtitle-admin-employees').innerText = 'Total Employees: ' + filtered.length + ' | Status: ' + status + ' | Role: ' + role;
+    const printSubtitle = document.getElementById('print-subtitle-admin-employees');
+    if(printSubtitle) {
+        printSubtitle.innerText = 'Total Displayed: ' + filtered.length + ' | Status: ' + status + ' | Role: ' + role;
+    }
+}
+
+window.viewEmployeeReportDetail = function(empId) {
+    const db = getDb();
+    const user = db.users.find(u => String(u.id) === String(empId));
+    if(!user) return;
+    
+    document.getElementById('print-emp-detail-date').innerText = 'Generated on: ' + new Date().toLocaleString();
+    
+    // Personal Info
+    const initials = (user.name || '').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    document.getElementById('emp-det-avatar').innerText = initials;
+    document.getElementById('emp-det-name').innerText = user.name || '-';
+    
+    const stat = user.status || 'Active';
+    const statEl = document.getElementById('emp-det-status');
+    statEl.innerText = stat;
+    statEl.className = 'status-badge ' + (stat === 'Active' ? 'status-approved' : stat === 'Inactive' ? 'status-pending' : 'status-rejected');
+
+    document.getElementById('emp-det-id').innerText = user.id || '-';
+    document.getElementById('emp-det-email').innerText = user.email || '-';
+    document.getElementById('emp-det-phone').innerText = user.phone || '-';
+    document.getElementById('emp-det-cnic').innerText = user.cnic || '-';
+    document.getElementById('emp-det-gender').innerText = user.gender || '-';
+
+    // Employment Info
+    const mgrName = user.managerId ? (db.users.find(m => m.id === user.managerId)?.name || 'Unknown') : '-';
+    document.getElementById('emp-det-role').innerText = user.role || '-';
+    document.getElementById('emp-det-dept').innerText = user.department || '-';
+    document.getElementById('emp-det-desig').innerText = user.designation || '-';
+    document.getElementById('emp-det-manager').innerText = mgrName;
+    document.getElementById('emp-det-type').innerText = user.employmentType || '-';
+    document.getElementById('emp-det-join').innerText = user.joiningDate || user.startDate || '-';
+
+    // Calculate Quick Stats
+    let totalPresent = 0, totalLeaves = 0, totalOt = 0, totalAssets = 0;
+    
+    if(db.attendance) {
+        const myLogs = db.attendance.filter(log => String(log.employeeId) === String(empId));
+        totalPresent = myLogs.filter(log => log.status === 'Present' || log.status === 'Late' || log.status === 'Half-Day').length;
+    }
+    
+    if(db.leaves) {
+        totalLeaves = db.leaves.filter(l => String(l.employeeId) === String(empId) && l.status === 'Approved').reduce((acc, curr) => acc + (curr.totalDays || 1), 0);
+    }
+    
+    if(db.overtime) {
+        totalOt = db.overtime.filter(ot => String(ot.employeeId) === String(empId) && ot.status === 'Approved').reduce((acc, curr) => acc + (curr.hours || 0), 0);
+    }
+    
+    if(db.assets_requests) {
+        totalAssets = db.assets_requests.filter(req => String(req.employeeId) === String(empId) && req.status === 'Assigned').length;
+    }
+
+    // Attendance Rate (Rough approx based on total days tracked if we wanted, but we'll show raw present count if join date unknown, else percentage)
+    let attRateDisplay = totalPresent + ' Days';
+    if(user.joiningDate) {
+        const jDate = new Date(user.joiningDate);
+        const today = new Date();
+        const diffTime = Math.abs(today - jDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        if(diffDays > 0) {
+            const workingDaysApprox = diffDays * (5/7); // roughly 5 days a week
+            if(workingDaysApprox > 0) {
+                const rate = Math.min(100, Math.round((totalPresent / workingDaysApprox) * 100));
+                attRateDisplay = rate + '%';
+            }
+        }
+    }
+    
+    document.getElementById('emp-det-stat-attendance').innerText = attRateDisplay;
+    document.getElementById('emp-det-stat-leaves').innerText = totalLeaves;
+    document.getElementById('emp-det-stat-ot').innerText = totalOt.toFixed(1);
+    document.getElementById('emp-det-stat-assets').innerText = totalAssets;
+
+    const modal = document.getElementById('modal-employee-report-detail');
+    modal.classList.remove('hidden');
+}
+
+window.exportEmployeeReportCSV = function() {
+    const db = getDb();
+    let csv = 'Emp ID,Name,Department,Role,Manager,Email,Phone,Join Date,Emp Type,Status\n';
+    
+    // Use same filters as current view
+    const search = (document.getElementById('admin-rep-emp-search')?.value || '').toLowerCase();
+    const status = document.getElementById('admin-rep-emp-status')?.value || 'All';
+    const role = document.getElementById('admin-rep-emp-role')?.value || 'All';
+    const managerId = document.getElementById('admin-rep-emp-manager')?.value || 'All';
+    const dept = document.getElementById('admin-rep-emp-dept')?.value || 'All';
+    const type = document.getElementById('admin-rep-emp-type')?.value || 'All';
+    const joinStart = document.getElementById('admin-rep-emp-join-start')?.value || '';
+    const joinEnd = document.getElementById('admin-rep-emp-join-end')?.value || '';
+    
+    let filtered = db.users.filter(u => {
+        if(status !== 'All' && u.status !== status && !(status==='Active' && !u.status)) return false;
+        if(role !== 'All' && u.role !== role) return false;
+        if(managerId !== 'All' && u.managerId !== managerId) return false;
+        if(dept !== 'All' && u.department !== dept) return false;
+        if(type !== 'All' && u.employmentType !== type) return false;
+        if(joinStart && (!u.joiningDate || u.joiningDate < joinStart)) return false;
+        if(joinEnd && (!u.joiningDate || u.joiningDate > joinEnd)) return false;
+        if(search) {
+            const matchesId = (u.id||'').toLowerCase().includes(search);
+            const matchesName = (u.name||'').toLowerCase().includes(search);
+            const matchesEmail = (u.email||'').toLowerCase().includes(search);
+            if(!matchesId && !matchesName && !matchesEmail) return false;
+        }
+        return true;
+    });
+
+    filtered.forEach(u => {
+        const mgrName = u.managerId ? (db.users.find(m => m.id === u.managerId)?.name || 'Unknown') : 'None';
+        const uStatus = u.status || 'Active';
+        csv += `${u.id},"${u.name}",${u.department||'N/A'},${u.role},${mgrName},${u.email},${u.phone||'N/A'},${u.joiningDate||'N/A'},${u.employmentType||'N/A'},${uStatus}\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'Employee_Report_' + new Date().toISOString().split('T')[0] + '.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 function generateAdminAttendanceSummaryReport(db) {

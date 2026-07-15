@@ -3095,16 +3095,41 @@
 
                         <!-- Sub Tab 2: Employees Report -->
                         <div id="subtab-content-admin-report-employees" class="sub-tab-content hidden">
+                            <!-- Employee Summary Cards -->
+                            <div class="metrics-grid mb-4" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                                <div class="metric-card bg-glass" style="padding: 15px;">
+                                    <div class="text-secondary" style="font-size: 13px;">Total Employees</div>
+                                    <div class="metric-value text-primary" id="admin-rep-emp-total" style="font-size: 20px;">0</div>
+                                </div>
+                                <div class="metric-card bg-glass" style="padding: 15px;">
+                                    <div class="text-secondary" style="font-size: 13px;">Active</div>
+                                    <div class="metric-value text-success" id="admin-rep-emp-active" style="font-size: 20px;">0</div>
+                                </div>
+                                <div class="metric-card bg-glass" style="padding: 15px;">
+                                    <div class="text-secondary" style="font-size: 13px;">Inactive</div>
+                                    <div class="metric-value text-warning" id="admin-rep-emp-inactive" style="font-size: 20px;">0</div>
+                                </div>
+                                <div class="metric-card bg-glass" style="padding: 15px;">
+                                    <div class="text-secondary" style="font-size: 13px;">New Hires (Month)</div>
+                                    <div class="metric-value text-info" id="admin-rep-emp-new" style="font-size: 20px;">0</div>
+                                </div>
+                            </div>
+
                             <div class="section-card bg-glass flex-table-card">
                                 <div class="section-card-header report-filters-header"
                                     style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 15px;">
                                     <div style="display: flex; gap: 15px; flex-wrap: wrap; flex: 1;">
+                                        <div class="form-group" style="margin-bottom: 0;">
+                                            <label>Search Employee</label>
+                                            <input type="text" id="admin-rep-emp-search" class="form-control" placeholder="Name, ID, Email...">
+                                        </div>
                                         <div class="form-group" style="margin-bottom: 0;">
                                             <label>Status</label>
                                             <select id="admin-rep-emp-status" class="form-control">
                                                 <option value="All">All</option>
                                                 <option value="Active">Active</option>
                                                 <option value="Inactive">Inactive</option>
+                                                <option value="Terminated">Terminated</option>
                                             </select>
                                         </div>
                                         <div class="form-group" style="margin-bottom: 0;">
@@ -3122,13 +3147,41 @@
                                                 <option value="All">All Managers</option>
                                             </select>
                                         </div>
-                                        <div style="display: flex; align-items: flex-end;">
+                                        <div class="form-group" style="margin-bottom: 0;">
+                                            <label>Department</label>
+                                            <select id="admin-rep-emp-dept" class="form-control">
+                                                <option value="All">All Depts</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0;">
+                                            <label>Emp Type</label>
+                                            <select id="admin-rep-emp-type" class="form-control">
+                                                <option value="All">All Types</option>
+                                                <option value="Permanent">Permanent</option>
+                                                <option value="Contract">Contract</option>
+                                                <option value="Intern">Intern</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0;">
+                                            <label>Join Date From</label>
+                                            <input type="date" id="admin-rep-emp-join-start" class="form-control">
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0;">
+                                            <label>Join Date To</label>
+                                            <input type="date" id="admin-rep-emp-join-end" class="form-control">
+                                        </div>
+                                        <div style="display: flex; align-items: flex-end; gap: 10px;">
                                             <button class="btn btn-primary"
                                                 onclick="if(window.generateAdminReport) window.generateAdminReport('employees')"><i
                                                     class="fa-solid fa-filter"></i> Generate</button>
+                                            <button class="btn btn-outline"
+                                                onclick="document.querySelectorAll('#subtab-content-admin-report-employees .form-control').forEach(el => el.value = el.tagName === 'SELECT' ? 'All' : ''); if(window.generateAdminReport) window.generateAdminReport('employees')"><i class="fa-solid fa-rotate-left"></i> Reset</button>
                                         </div>
                                     </div>
-                                    <div style="margin-left: 15px;">
+                                    <div style="margin-left: 15px; display: flex; gap: 10px;">
+                                        <button class="btn btn-outline"
+                                            onclick="if(window.exportEmployeeReportCSV) window.exportEmployeeReportCSV()"><i
+                                                class="fa-solid fa-file-excel"></i> Export</button>
                                         <button class="btn btn-outline"
                                             onclick="if(window.printReport) window.printReport('admin-report-employees')"><i
                                                 class="fa-solid fa-print"></i> Print</button>
@@ -3142,17 +3195,21 @@
                                     <table class="data-table">
                                         <thead>
                                             <tr>
-                                                <th>Emp ID</th>
-                                                <th>Name</th>
-                                                <th>Role</th>
-                                                <th>Manager</th>
-                                                <th>Email</th>
-                                                <th>Status</th>
+                                                <th style="font-size: 11px;">Emp ID</th>
+                                                <th style="font-size: 11px;">Employee Info</th>
+                                                <th style="font-size: 11px;">Department</th>
+                                                <th style="font-size: 11px;">Role</th>
+                                                <th style="font-size: 11px;">Manager</th>
+                                                <th style="font-size: 11px;">Phone</th>
+                                                <th style="font-size: 11px;">Join Date</th>
+                                                <th style="font-size: 11px;">Emp Type</th>
+                                                <th style="font-size: 11px;">Status</th>
+                                                <th style="font-size: 11px;" class="no-print text-center">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody id="admin-rep-body-employees">
                                             <tr>
-                                                <td colspan="6" class="text-center text-muted">Click Generate to view
+                                                <td colspan="10" class="text-center text-muted">Click Generate to view
                                                     data</td>
                                             </tr>
                                         </tbody>
@@ -7739,6 +7796,84 @@
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-primary modal-close">Close Profile</button>
+        </div>
+    </div>
+
+    <!-- 8. Employee Report Detail Modal -->
+    <div id="modal-employee-report-detail" class="modal hidden" style="width: 800px; max-width: 95vw;">
+        <div class="modal-header">
+            <h3>Employee Full Report</h3>
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-outline btn-sm" id="btn-print-emp-report" onclick="if(window.printReport) window.printReport('emp-report-detail-content')"><i class="fa-solid fa-print"></i> Print</button>
+                <button class="modal-close" onclick="closeModal('modal-employee-report-detail')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+        <div class="modal-body" id="emp-report-detail-content" style="padding: 20px;">
+            <div class="printable-area">
+                <div class="print-header hidden text-center mb-4">
+                    <h2>Employee Detail Report</h2>
+                    <p id="print-emp-detail-date"></p>
+                </div>
+                
+                <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+                    <!-- Left Column: Personal Info -->
+                    <div style="flex: 1; min-width: 300px;">
+                        <h4 class="section-title" style="margin-top:0;">Personal Information</h4>
+                        <div class="review-details" style="background: var(--surface-color); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 15px;">
+                            <div style="display:flex; align-items:center; margin-bottom: 15px;">
+                                <div class="team-member-avatar" id="emp-det-avatar" style="width: 60px; height: 60px; font-size: 24px; margin-right: 15px;"></div>
+                                <div>
+                                    <h3 id="emp-det-name" style="margin:0; font-size:18px;">Name</h3>
+                                    <span id="emp-det-status" class="status-badge status-approved" style="margin-top:5px; display:inline-block;">Active</span>
+                                </div>
+                            </div>
+                            <div class="detail-row"><span>Employee ID:</span> <strong id="emp-det-id"></strong></div>
+                            <div class="detail-row"><span>Email:</span> <strong id="emp-det-email"></strong></div>
+                            <div class="detail-row"><span>Phone:</span> <strong id="emp-det-phone"></strong></div>
+                            <div class="detail-row"><span>CNIC:</span> <strong id="emp-det-cnic"></strong></div>
+                            <div class="detail-row"><span>Gender:</span> <strong id="emp-det-gender"></strong></div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Employment Info -->
+                    <div style="flex: 1; min-width: 300px;">
+                        <h4 class="section-title" style="margin-top:0;">Employment Information</h4>
+                        <div class="review-details" style="background: var(--surface-color); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 15px;">
+                            <div class="detail-row"><span>Role / Access:</span> <strong id="emp-det-role"></strong></div>
+                            <div class="detail-row"><span>Department:</span> <strong id="emp-det-dept"></strong></div>
+                            <div class="detail-row"><span>Designation:</span> <strong id="emp-det-desig"></strong></div>
+                            <div class="detail-row"><span>Manager:</span> <strong id="emp-det-manager"></strong></div>
+                            <div class="detail-row"><span>Employment Type:</span> <strong id="emp-det-type"></strong></div>
+                            <div class="detail-row"><span>Join Date:</span> <strong id="emp-det-join"></strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Row: Quick Statistics -->
+                <h4 class="section-title" style="margin-top:20px;">Quick Statistics (Lifetime / YTD)</h4>
+                <div class="metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                    <div class="metric-card bg-glass" style="padding: 15px;">
+                        <div class="text-secondary" style="font-size: 13px;">Attendance Rate</div>
+                        <div class="metric-value text-primary" id="emp-det-stat-attendance" style="font-size: 20px;">0%</div>
+                    </div>
+                    <div class="metric-card bg-glass" style="padding: 15px;">
+                        <div class="text-secondary" style="font-size: 13px;">Leaves Taken</div>
+                        <div class="metric-value text-warning" id="emp-det-stat-leaves" style="font-size: 20px;">0</div>
+                    </div>
+                    <div class="metric-card bg-glass" style="padding: 15px;">
+                        <div class="text-secondary" style="font-size: 13px;">Overtime (Hrs)</div>
+                        <div class="metric-value text-success" id="emp-det-stat-ot" style="font-size: 20px;">0</div>
+                    </div>
+                    <div class="metric-card bg-glass" style="padding: 15px;">
+                        <div class="text-secondary" style="font-size: 13px;">Assigned Assets</div>
+                        <div class="metric-value text-info" id="emp-det-stat-assets" style="font-size: 20px;">0</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="modal-footer" style="justify-content: flex-end;">
+            <button type="button" class="btn btn-outline modal-close" onclick="closeModal('modal-employee-report-detail')">Close</button>
         </div>
     </div>
 
