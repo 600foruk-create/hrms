@@ -416,6 +416,45 @@
                 width: 100% !important;
             }
 
+            /* Professional Table Print Styling */
+            body:not(.printing-modal) table.data-table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                margin-top: 20px !important;
+                font-size: 11pt !important;
+            }
+            
+            body:not(.printing-modal) table.data-table th {
+                background-color: #f8f9fa !important;
+                color: #333 !important;
+                font-weight: bold !important;
+                border-bottom: 2px solid #333 !important;
+                padding: 10px 8px !important;
+                text-align: left !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            body:not(.printing-modal) table.data-table td {
+                border-bottom: 1px solid #ddd !important;
+                padding: 8px !important;
+                color: #111 !important;
+                vertical-align: middle !important;
+            }
+
+            body:not(.printing-modal) .print-header h2 {
+                font-size: 20px !important;
+                color: #222 !important;
+                margin-bottom: 5px !important;
+                font-weight: 700 !important;
+            }
+            
+            body:not(.printing-modal) .print-header p {
+                font-size: 12px !important;
+                color: #666 !important;
+                margin-bottom: 15px !important;
+            }
+
             /* Specifically display ONLY the open modal being printed */
             body>#modal-view-payslip:not(.hidden),
             body>#modal-view-summary:not(.hidden),

@@ -102,22 +102,30 @@ window.printReport = function(reportId) {
             if (header) {
                 header.classList.remove('hidden');
                 
-                // Add company branding if not already present
-                if (!header.querySelector('.company-branding')) {
-                    const cp = window.db && window.db.companyProfile ? window.db.companyProfile : {};
-                    const logoHtml = cp.logoBase64 ? `<img src="${cp.logoBase64}" style="max-height: 70px; object-fit: contain; margin-bottom: 10px;">` : '';
-                    const compName = cp.name || 'Company Report';
-                    const compDetails = [cp.address, cp.phone, cp.email].filter(Boolean).join(' | ');
-                    
-                    const brandingHtml = `
-                        <div class="company-branding" style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 15px;">
-                            ${logoHtml}
-                            <h1 style="margin: 0 0 5px 0; font-size: 24px; color: #333;">${compName}</h1>
-                            <p style="margin: 0; font-size: 13px; color: #666;">${compDetails}</p>
+                // Add company branding (remove old one if exists to ensure up to date)
+                const existingBranding = header.querySelector('.company-branding');
+                if (existingBranding) existingBranding.remove();
+
+                const db = typeof getDb === 'function' ? getDb() : (window.db || {});
+                const cp = (!db.companyProfile || Array.isArray(db.companyProfile)) ? {} : db.companyProfile;
+                const logoHtml = cp.logoBase64 ? `<img src="${cp.logoBase64}" style="max-height: 80px; object-fit: contain; margin-right: 20px;">` : '';
+                const compName = cp.name || 'Your Company Name';
+                const addr = cp.address || 'Company Address';
+                const phone = cp.phone || 'Phone Number';
+                const email = cp.email || 'Email Address';
+                const compDetails = [addr, phone, email].join(' | ');
+                
+                const brandingHtml = `
+                    <div class="company-branding" style="display: flex; align-items: center; justify-content: center; margin-bottom: 25px; border-bottom: 2px solid #333; padding-bottom: 20px;">
+                        ${logoHtml}
+                        <div style="text-align: ${cp.logoBase64 ? 'left' : 'center'};">
+                            <h1 style="margin: 0; font-size: 28px; font-weight: 800; color: #111; letter-spacing: 1px;">${compName}</h1>
+                            <p style="margin: 5px 0 0; font-size: 13px; color: #555;">${compDetails}</p>
                         </div>
-                    `;
-                    header.insertAdjacentHTML('afterbegin', brandingHtml);
-                }
+                    </div>
+                `;
+                header.insertAdjacentHTML('afterbegin', brandingHtml);
+                header.style.textAlign = 'center';
             }
         }
     });
