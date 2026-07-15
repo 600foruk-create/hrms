@@ -54,9 +54,19 @@ window.renderPayrollHistory = function() {
     tbody.innerHTML = '';
     let history = db.payrollHistory || [];
     
+    // Populate Department Filter if empty
+    const deptFilterEl = document.getElementById('history-filter-department');
+    if (deptFilterEl && deptFilterEl.options.length <= 1) {
+        const prodSettings = typeof getProdSettings === 'function' ? getProdSettings() : { businessUnits: [] };
+        (prodSettings.businessUnits || []).forEach(bu => {
+            deptFilterEl.innerHTML += `<option value="${bu.name}">${bu.name}</option>`;
+        });
+    }
+
     // Apply filters
     const monthFilter = document.getElementById('history-filter-month')?.value || 'All';
     const yearFilter = document.getElementById('history-filter-year')?.value || 'All';
+    const deptFilter = document.getElementById('history-filter-department')?.value || 'All';
     const searchFilter = document.getElementById('history-filter-search')?.value.toLowerCase().trim() || '';
 
     if (monthFilter !== 'All') {
@@ -69,6 +79,12 @@ window.renderPayrollHistory = function() {
         history = history.filter(h => {
             const d = new Date(h.endDate);
             return String(d.getFullYear()) === yearFilter;
+        });
+    }
+    if (deptFilter !== 'All') {
+        history = history.filter(h => {
+            const u = db.users.find(usr => usr.id === h.userId);
+            return u && u.department === deptFilter;
         });
     }
     
@@ -141,6 +157,7 @@ window.openMonthlySummaryModal = function() {
     // Apply filters to get the current list
     const monthFilter = document.getElementById('history-filter-month')?.value || 'All';
     const yearFilter = document.getElementById('history-filter-year')?.value || 'All';
+    const deptFilter = document.getElementById('history-filter-department')?.value || 'All';
     const searchFilter = document.getElementById('history-filter-search')?.value.toLowerCase().trim() || '';
 
     if (monthFilter !== 'All') {
@@ -153,6 +170,12 @@ window.openMonthlySummaryModal = function() {
         history = history.filter(h => {
             const d = new Date(h.endDate);
             return String(d.getFullYear()) === yearFilter;
+        });
+    }
+    if (deptFilter !== 'All') {
+        history = history.filter(h => {
+            const u = db.users.find(usr => usr.id === h.userId);
+            return u && u.department === deptFilter;
         });
     }
     
@@ -716,6 +739,7 @@ window.generateBankLetter = function() {
         // Apply filters to get the current list
         const monthFilter = document.getElementById('history-filter-month')?.value || 'All';
         const yearFilter = document.getElementById('history-filter-year')?.value || 'All';
+        const deptFilter = document.getElementById('history-filter-department')?.value || 'All';
 
         if (monthFilter !== 'All') {
             history = history.filter(h => {
@@ -727,6 +751,12 @@ window.generateBankLetter = function() {
             history = history.filter(h => {
                 const d = new Date(h.endDate);
                 return String(d.getFullYear()) === yearFilter;
+            });
+        }
+        if (deptFilter !== 'All') {
+            history = history.filter(h => {
+                const u = db.users.find(usr => usr.id === h.userId);
+                return u && u.department === deptFilter;
             });
         }
         
@@ -1333,6 +1363,18 @@ window.initPayrollProcessView = function() {
             }
         }
     }
+
+    // Populate Department Filter
+    const deptFilterEl = document.getElementById('payroll-process-dept');
+    if (deptFilterEl) {
+        const currentVal = deptFilterEl.value;
+        deptFilterEl.innerHTML = '<option value="All">All Employees</option>';
+        const prodSettings = typeof getProdSettings === 'function' ? getProdSettings() : { businessUnits: [] };
+        (prodSettings.businessUnits || []).forEach(bu => {
+            deptFilterEl.innerHTML += `<option value="${bu.name}">${bu.name}</option>`;
+        });
+        if (currentVal) deptFilterEl.value = currentVal;
+    }
 };
 
 window.generatePayrollPreview = function() {
@@ -1392,7 +1434,7 @@ window.generatePayrollPreview = function() {
     let users = db.users.filter(u => u.status === 'Active');
     
     if (deptFilter !== 'All') {
-        // Implement department filter if added later
+        users = users.filter(u => u.department === deptFilter);
     }
 
     const tbody = document.getElementById('payroll-preview-tbody');
