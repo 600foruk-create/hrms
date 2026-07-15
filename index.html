@@ -3096,7 +3096,7 @@
                         <!-- Sub Tab 2: Employees Report -->
                         <div id="subtab-content-admin-report-employees" class="sub-tab-content hidden">
                             <!-- Employee Summary Cards -->
-                            <div class="metrics-grid mb-4" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                            <div class="metrics-grid mb-2" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
                                 <div class="metric-card bg-glass" style="padding: 15px;">
                                     <div class="text-secondary" style="font-size: 13px;">Total Employees</div>
                                     <div class="metric-value text-primary" id="admin-rep-emp-total" style="font-size: 20px;">0</div>
@@ -3118,12 +3118,12 @@
                             <div class="section-card bg-glass flex-table-card">
                                 <div class="section-card-header report-filters-header"
                                     style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 15px;">
-                                    <div style="display: flex; gap: 15px; flex-wrap: wrap; flex: 1;">
-                                        <div class="form-group" style="margin-bottom: 0;">
+                                    <div style="display: flex; gap: 10px; flex-wrap: nowrap; align-items: flex-end; flex: 1; overflow-x: auto; padding-bottom: 5px;">
+                                        <div class="form-group" style="margin-bottom: 0; min-width: 140px;">
                                             <label>Search Employee</label>
                                             <input type="text" id="admin-rep-emp-search" class="form-control" placeholder="Name, ID, Email...">
                                         </div>
-                                        <div class="form-group" style="margin-bottom: 0;">
+                                        <div class="form-group" style="margin-bottom: 0; min-width: 90px;">
                                             <label>Status</label>
                                             <select id="admin-rep-emp-status" class="form-control">
                                                 <option value="All">All</option>
@@ -3132,28 +3132,28 @@
                                                 <option value="Terminated">Terminated</option>
                                             </select>
                                         </div>
-                                        <div class="form-group" style="margin-bottom: 0;">
+                                        <div class="form-group" style="margin-bottom: 0; min-width: 90px;">
                                             <label>Role</label>
                                             <select id="admin-rep-emp-role" class="form-control">
-                                                <option value="All">All</option>
+                                                <option value="All">All Roles</option>
                                                 <option value="Admin">Admin</option>
                                                 <option value="Manager">Manager</option>
                                                 <option value="User">Employee</option>
                                             </select>
                                         </div>
-                                        <div class="form-group" style="margin-bottom: 0;">
+                                        <div class="form-group" style="margin-bottom: 0; min-width: 110px;">
                                             <label>Manager</label>
                                             <select id="admin-rep-emp-manager" class="form-control">
                                                 <option value="All">All Managers</option>
                                             </select>
                                         </div>
-                                        <div class="form-group" style="margin-bottom: 0;">
+                                        <div class="form-group" style="margin-bottom: 0; min-width: 110px;">
                                             <label>Department</label>
                                             <select id="admin-rep-emp-dept" class="form-control">
                                                 <option value="All">All Depts</option>
                                             </select>
                                         </div>
-                                        <div class="form-group" style="margin-bottom: 0;">
+                                        <div class="form-group" style="margin-bottom: 0; min-width: 100px;">
                                             <label>Emp Type</label>
                                             <select id="admin-rep-emp-type" class="form-control">
                                                 <option value="All">All Types</option>
@@ -3162,15 +3162,15 @@
                                                 <option value="Intern">Intern</option>
                                             </select>
                                         </div>
-                                        <div class="form-group" style="margin-bottom: 0;">
+                                        <div class="form-group" style="margin-bottom: 0; min-width: 120px;">
                                             <label>Join Date From</label>
                                             <input type="date" id="admin-rep-emp-join-start" class="form-control">
                                         </div>
-                                        <div class="form-group" style="margin-bottom: 0;">
+                                        <div class="form-group" style="margin-bottom: 0; min-width: 120px;">
                                             <label>Join Date To</label>
                                             <input type="date" id="admin-rep-emp-join-end" class="form-control">
                                         </div>
-                                        <div style="display: flex; align-items: flex-end; gap: 10px;">
+                                        <div style="display: flex; gap: 8px;">
                                             <button class="btn btn-primary"
                                                 onclick="if(window.generateAdminReport) window.generateAdminReport('employees')"><i
                                                     class="fa-solid fa-filter"></i> Generate</button>

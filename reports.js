@@ -249,6 +249,37 @@ window.generateManagerReport = function(type) {
 };
 
 function generateAdminEmployeesReport(db) {
+    // Populate filter dropdowns dynamically
+    const deptSelect = document.getElementById('admin-rep-emp-dept');
+    if (deptSelect && deptSelect.options.length <= 1) {
+        const depts = new Set();
+        db.users.forEach(u => { if (u.department) depts.add(u.department); });
+        Array.from(depts).sort().forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d;
+            opt.innerText = d;
+            deptSelect.appendChild(opt);
+        });
+    }
+
+    const mgrSelect = document.getElementById('admin-rep-emp-manager');
+    if (mgrSelect && mgrSelect.options.length <= 1) {
+        const mgrs = new Set();
+        db.users.forEach(u => {
+            if (u.managerId) {
+                const mObj = db.users.find(m => m.id === u.managerId);
+                if (mObj) mgrs.add(`${mObj.name}|${mObj.id}`);
+            }
+        });
+        Array.from(mgrs).sort().forEach(m => {
+            const [name, id] = m.split('|');
+            const opt = document.createElement('option');
+            opt.value = id;
+            opt.innerText = name;
+            mgrSelect.appendChild(opt);
+        });
+    }
+
     const search = (document.getElementById('admin-rep-emp-search')?.value || '').toLowerCase();
     const status = document.getElementById('admin-rep-emp-status')?.value || 'All';
     const role = document.getElementById('admin-rep-emp-role')?.value || 'All';
@@ -266,7 +297,10 @@ function generateAdminEmployeesReport(db) {
     // New hires this month
     const now = new Date();
     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-    let newHires = db.users.filter(u => u.joiningDate && u.joiningDate >= firstDay).length;
+    let newHires = db.users.filter(u => {
+        const jd = u.joiningDate || u.startDate;
+        return jd && jd >= firstDay;
+    }).length;
 
     const elTotal = document.getElementById('admin-rep-emp-total');
     if(elTotal) elTotal.innerText = total;
@@ -278,13 +312,16 @@ function generateAdminEmployeesReport(db) {
     if(elNew) elNew.innerText = newHires;
 
     let filtered = db.users.filter(u => {
+        const uJoinDate = u.joiningDate || u.startDate || '';
+        const uEmpType = u.employmentType || 'Permanent';
+
         if(status !== 'All' && u.status !== status && !(status==='Active' && !u.status)) return false;
         if(role !== 'All' && u.role !== role) return false;
         if(managerId !== 'All' && u.managerId !== managerId) return false;
         if(dept !== 'All' && u.department !== dept) return false;
-        if(type !== 'All' && u.employmentType !== type) return false;
-        if(joinStart && (!u.joiningDate || u.joiningDate < joinStart)) return false;
-        if(joinEnd && (!u.joiningDate || u.joiningDate > joinEnd)) return false;
+        if(type !== 'All' && uEmpType !== type) return false;
+        if(joinStart && (!uJoinDate || uJoinDate < joinStart)) return false;
+        if(joinEnd && (!uJoinDate || uJoinDate > joinEnd)) return false;
         if(search) {
             const matchesId = (u.id||'').toLowerCase().includes(search);
             const matchesName = (u.name||'').toLowerCase().includes(search);
@@ -311,6 +348,9 @@ function generateAdminEmployeesReport(db) {
             const initials = (u.name || '').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
             const avatarHtml = `<div style="display:flex;align-items:center;"><div class="team-member-avatar" style="width:36px;height:36px;font-size:14px;margin-right:12px;border:none;">${initials}</div><div><div style="font-size:13px;font-weight:700;">${u.name}</div><div class="text-secondary" style="font-size:11px;">${u.email}</div></div></div>`;
 
+            const uJoinDate = u.joiningDate || u.startDate || '-';
+            const uEmpType = u.employmentType || 'Permanent';
+            
             tbody.innerHTML += `<tr>
                 <td>${u.id}</td>
                 <td>${avatarHtml}</td>
@@ -318,8 +358,8 @@ function generateAdminEmployeesReport(db) {
                 <td>${u.role}</td>
                 <td>${mgrName}</td>
                 <td>${u.phone || '-'}</td>
-                <td>${u.joiningDate || '-'}</td>
-                <td>${u.employmentType || '-'}</td>
+                <td>${uJoinDate}</td>
+                <td>${uEmpType}</td>
                 <td><span class="status-badge ${statClass}">${stat}</span></td>
                 <td class="text-center no-print">
                     <button class="btn btn-sm btn-outline" style="padding:4px 8px; font-size:12px;" onclick="window.viewEmployeeReportDetail('${u.id}')">View</button>
@@ -425,13 +465,16 @@ window.exportEmployeeReportCSV = function() {
     const joinEnd = document.getElementById('admin-rep-emp-join-end')?.value || '';
     
     let filtered = db.users.filter(u => {
+        const uJoinDate = u.joiningDate || u.startDate || '';
+        const uEmpType = u.employmentType || 'Permanent';
+
         if(status !== 'All' && u.status !== status && !(status==='Active' && !u.status)) return false;
         if(role !== 'All' && u.role !== role) return false;
         if(managerId !== 'All' && u.managerId !== managerId) return false;
         if(dept !== 'All' && u.department !== dept) return false;
-        if(type !== 'All' && u.employmentType !== type) return false;
-        if(joinStart && (!u.joiningDate || u.joiningDate < joinStart)) return false;
-        if(joinEnd && (!u.joiningDate || u.joiningDate > joinEnd)) return false;
+        if(type !== 'All' && uEmpType !== type) return false;
+        if(joinStart && (!uJoinDate || uJoinDate < joinStart)) return false;
+        if(joinEnd && (!uJoinDate || uJoinDate > joinEnd)) return false;
         if(search) {
             const matchesId = (u.id||'').toLowerCase().includes(search);
             const matchesName = (u.name||'').toLowerCase().includes(search);
@@ -444,7 +487,9 @@ window.exportEmployeeReportCSV = function() {
     filtered.forEach(u => {
         const mgrName = u.managerId ? (db.users.find(m => m.id === u.managerId)?.name || 'Unknown') : 'None';
         const uStatus = u.status || 'Active';
-        csv += `${u.id},"${u.name}",${u.department||'N/A'},${u.role},${mgrName},${u.email},${u.phone||'N/A'},${u.joiningDate||'N/A'},${u.employmentType||'N/A'},${uStatus}\n`;
+        const uJoinDate = u.joiningDate || u.startDate || 'N/A';
+        const uEmpType = u.employmentType || 'Permanent';
+        csv += `${u.id},"${u.name}",${u.department||'N/A'},${u.role},${mgrName},${u.email},${u.phone||'N/A'},${uJoinDate},${uEmpType},${uStatus}\n`;
     });
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
