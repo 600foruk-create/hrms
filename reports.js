@@ -252,12 +252,11 @@ function generateAdminEmployeesReport(db) {
     // Populate filter dropdowns dynamically
     const deptSelect = document.getElementById('admin-rep-emp-dept');
     if (deptSelect && deptSelect.options.length <= 1) {
-        const depts = new Set();
-        db.users.forEach(u => { if (u.department) depts.add(u.department); });
-        Array.from(depts).sort().forEach(d => {
+        const prodSettings = typeof getProdSettings === 'function' ? getProdSettings() : (db.productivityCategories || { businessUnits: [] });
+        (prodSettings.businessUnits || []).forEach(bu => {
             const opt = document.createElement('option');
-            opt.value = d;
-            opt.innerText = d;
+            opt.value = bu.name;
+            opt.innerText = bu.name;
             deptSelect.appendChild(opt);
         });
     }
