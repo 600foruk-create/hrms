@@ -362,7 +362,14 @@ window.viewEmployeeReportDetail = function(empId) {
     
     // Personal Info
     const initials = (user.name || '').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-    document.getElementById('emp-det-avatar').innerText = initials;
+    const avatarEl = document.getElementById('emp-det-avatar');
+    if (user.profilePic) {
+        avatarEl.innerHTML = `<img src="${user.profilePic}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="Pic">`;
+        avatarEl.style.background = 'transparent';
+    } else {
+        avatarEl.innerHTML = initials;
+        avatarEl.style.background = '';
+    }
     document.getElementById('emp-det-name').innerText = user.name || '-';
     
     const stat = user.status || 'Active';
