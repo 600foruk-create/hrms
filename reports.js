@@ -99,7 +99,26 @@ window.printReport = function(reportId) {
             area.style.display = 'none';
         } else {
             const header = area.querySelector('.print-header');
-            if (header) header.classList.remove('hidden');
+            if (header) {
+                header.classList.remove('hidden');
+                
+                // Add company branding if not already present
+                if (!header.querySelector('.company-branding')) {
+                    const cp = window.db && window.db.companyProfile ? window.db.companyProfile : {};
+                    const logoHtml = cp.logoBase64 ? `<img src="${cp.logoBase64}" style="max-height: 70px; object-fit: contain; margin-bottom: 10px;">` : '';
+                    const compName = cp.name || 'Company Report';
+                    const compDetails = [cp.address, cp.phone, cp.email].filter(Boolean).join(' | ');
+                    
+                    const brandingHtml = `
+                        <div class="company-branding" style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 15px;">
+                            ${logoHtml}
+                            <h1 style="margin: 0 0 5px 0; font-size: 24px; color: #333;">${compName}</h1>
+                            <p style="margin: 0; font-size: 13px; color: #666;">${compDetails}</p>
+                        </div>
+                    `;
+                    header.insertAdjacentHTML('afterbegin', brandingHtml);
+                }
+            }
         }
     });
 
