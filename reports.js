@@ -262,6 +262,19 @@ window.initAdminReportsTab = function() {
         });
     }
 
+    // Populate Departments
+    const deptSelects = ['admin-rep-att-sum-dept', 'admin-rep-emp-dept'];
+    const departments = [...new Set(db.users.map(u => u.department).filter(d => d))];
+    deptSelects.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) {
+            el.innerHTML = '<option value=\"All\">All Departments</option>';
+            departments.forEach(d => {
+                el.innerHTML += `<option value="${d}">${d}</option>`;
+            });
+        }
+    });
+
     // Default dates
     const end = new Date();
     const start = new Date();
@@ -605,13 +618,33 @@ window.exportEmployeeReportCSV = function() {
     document.body.removeChild(link);
 }
 
+function resetAttSummaryFilters() {
+    const today = new Date().toISOString().split('T')[0];
+    const firstDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+    document.getElementById('admin-rep-att-sum-start').value = firstDay;
+    document.getElementById('admin-rep-att-sum-end').value = today;
+    document.getElementById('admin-rep-att-sum-dept').value = 'All';
+    document.getElementById('admin-rep-att-sum-emp').value = 'All';
+    document.getElementById('admin-rep-att-sum-status').value = 'All';
+    if(window.generateAdminReport) window.generateAdminReport('attendance-summary');
+}
+
 function generateAdminAttendanceSummaryReport(db) {
     const start = document.getElementById('admin-rep-att-sum-start').value;
     const end = document.getElementById('admin-rep-att-sum-end').value;
     const emp = document.getElementById('admin-rep-att-sum-emp').value;
+    const dept = document.getElementById('admin-rep-att-sum-dept').value;
+    const statusFilter = document.getElementById('admin-rep-att-sum-status').value;
 
     if (!start || !end) {
         if (window.showToast) window.showToast('Notice', 'Please select both Start Date and End Date.', 'info');
+        return;
+    }
+
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    if (startDate > endDate) {
+        if (window.showToast) window.showToast('Error', 'Start Date must be before End Date.', 'error');
         return;
     }
 
@@ -619,24 +652,17 @@ function generateAdminAttendanceSummaryReport(db) {
     if (emp !== 'All') {
         filteredUsers = filteredUsers.filter(u => String(u.id) === String(emp));
     }
-
-    let summaryData = [];
-    let grandTotalWork = 0, grandTotalLateHrs = 0, grandTotalEarlyHrs = 0, grandTotalOvertime = 0, grandTotalAbsent = 0;
-
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    
-    // Safety check for range
-    if (startDate > endDate) {
-        if (window.showToast) window.showToast('Error', 'Start Date must be before End Date.', 'error');
-        return;
+    if (dept !== 'All') {
+        filteredUsers = filteredUsers.filter(u => String(u.department) === String(dept));
     }
 
+    let summaryData = [];
+    let globalWorkDays = 0, globalWeekends = 0, globalHolidays = 0, globalLeaves = 0, globalOvertime = 0;
+    
     filteredUsers.forEach(u => {
         let presentCount = 0, absentCount = 0, lateCount = 0, halfDayCount = 0;
-        let workHrs = 0, lateHrs = 0, earlyHrs = 0, overtimeHrs = 0, holidayCount = 0, restCount = 0;
+        let workHrs = 0, lateHrs = 0, earlyHrs = 0, overtimeHrs = 0, holidayCount = 0, restCount = 0, leaveCount = 0;
 
-        // Get shift details
         const defaultShift = { start: '09:00', end: '17:00' };
         let userShift = defaultShift;
         if (db.shifts && u.shiftId) {
@@ -662,7 +688,6 @@ function generateAdminAttendanceSummaryReport(db) {
         const shiftStartHr = parseTimeStr(userShift.start) || 9;
         const shiftEndHr = parseTimeStr(userShift.end) || 17;
 
-        // Pre-build logs map for this user
         const myLogs = {};
         if (db.attendance) {
             db.attendance.forEach(log => {
@@ -672,7 +697,6 @@ function generateAdminAttendanceSummaryReport(db) {
             });
         }
 
-        // Pre-build leaves map for this user
         const myLeaves = {};
         if (db.leaves) {
             db.leaves.forEach(l => {
@@ -687,7 +711,6 @@ function generateAdminAttendanceSummaryReport(db) {
             });
         }
 
-        // Iterate over days
         let currentDate = new Date(startDate);
         const todayStr = new Date().toISOString().split('T')[0];
         
@@ -701,7 +724,7 @@ function generateAdminAttendanceSummaryReport(db) {
             if (log) {
                 if (log.status === 'Present') presentCount++;
                 else if (log.status === 'Absent') absentCount++;
-                else if (log.status === 'Late') lateCount++;
+                else if (log.status === 'Late') { lateCount++; presentCount++; }
                 else if (log.status === 'Half-Day') halfDayCount++;
                 
                 if (log.timeIn && log.timeOut) {
@@ -709,77 +732,280 @@ function generateAdminAttendanceSummaryReport(db) {
                     const tOutHr = parseTimeStr(log.timeOut);
                     const dailyWorkHrs = Math.max(0, tOutHr - tInHr);
                     workHrs += dailyWorkHrs;
-
-                    // Late coming calculation
-                    if (tInHr > shiftStartHr) {
-                        lateHrs += (tInHr - shiftStartHr);
-                    }
-                    
-                    // Early leaving calculation
-                    if (tOutHr < shiftEndHr) {
-                        earlyHrs += (shiftEndHr - tOutHr);
-                    }
-                    
-                    // Overtime calculation
-                    if (tOutHr > shiftEndHr) {
-                        overtimeHrs += (tOutHr - shiftEndHr);
-                    }
+                    if (tInHr > shiftStartHr) lateHrs += (tInHr - shiftStartHr);
+                    if (tOutHr < shiftEndHr) earlyHrs += (shiftEndHr - tOutHr);
+                    if (tOutHr > shiftEndHr) overtimeHrs += (tOutHr - shiftEndHr);
                 }
+                
+                // Track global
+                if(!isHol && !isRest) globalWorkDays++;
+                
             } else {
                 if (isLeave) {
-                    // do nothing for metrics or count as leave
+                    leaveCount++;
+                    globalLeaves++;
                 } else if (isHol) {
                     holidayCount++;
                 } else if (isRest) {
                     restCount++;
                 } else {
-                    // Implicit absent if it's a working day and no log exists
                     if (dStr <= todayStr) { 
                         absentCount++;
+                        globalWorkDays++;
                     }
                 }
             }
-
             currentDate.setDate(currentDate.getDate() + 1);
         }
 
-        grandTotalWork += workHrs;
-        grandTotalLateHrs += lateHrs;
-        grandTotalEarlyHrs += earlyHrs;
-        grandTotalOvertime += overtimeHrs;
-        grandTotalAbsent += absentCount;
+        // Add user totals to global
+        globalHolidays += holidayCount;
+        globalWeekends += restCount;
+        globalOvertime += overtimeHrs;
 
-        summaryData.push({ u, presentCount, absentCount, lateCount, halfDayCount, workHrs, lateHrs, earlyHrs, overtimeHrs, holidayCount, restCount });
+        const totalWorkingDays = presentCount + absentCount + leaveCount;
+        const attendanceRate = totalWorkingDays > 0 ? ((presentCount) / totalWorkingDays) * 100 : 0;
+        
+        // Status Badge Logic
+        let statusBadge = '<span class="badge" style="background:#ef4444; color:white;">Poor</span>';
+        if (attendanceRate >= 95) statusBadge = '<span class="badge" style="background:#10b981; color:white;">Excellent</span>';
+        else if (attendanceRate >= 85) statusBadge = '<span class="badge" style="background:#0ea5e9; color:white;">Good</span>';
+        else if (attendanceRate >= 75) statusBadge = '<span class="badge" style="background:#f59e0b; color:white;">Warning</span>';
+
+        summaryData.push({ 
+            u, presentCount, absentCount, leaveCount, lateCount, workHrs, overtimeHrs, attendanceRate, statusBadge
+        });
     });
+
+    // Apply Status Filter
+    if (statusFilter !== 'All') {
+        summaryData = summaryData.filter(row => {
+            if (statusFilter === 'Present') return row.presentCount > 0;
+            if (statusFilter === 'Absent') return row.absentCount > 0;
+            if (statusFilter === 'Late') return row.lateCount > 0;
+            if (statusFilter === 'Leave') return row.leaveCount > 0;
+            return true;
+        });
+    }
 
     const tbody = document.getElementById('admin-rep-body-attendance-summary');
     if(!tbody) return;
     tbody.innerHTML = '';
     
+    let totalEmpCount = 0, totalP = 0, totalA = 0, totalL = 0, totalLate = 0, sumRate = 0;
+
     if(summaryData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">No attendance data found in this period</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="12" class="text-center text-muted" style="padding: 30px;"><i class="fa-solid fa-inbox fa-3x mb-3 text-light"></i><br>No attendance data found in this period</td></tr>';
     } else {
         summaryData.forEach(row => {
+            totalEmpCount++;
+            totalP += row.presentCount;
+            totalA += row.absentCount;
+            totalL += row.leaveCount;
+            totalLate += row.lateCount;
+            sumRate += row.attendanceRate;
+
             const initials = row.u.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-            const avatarHtml = `<div style="display:flex;align-items:center;"><div class="team-member-avatar" style="width:36px;height:36px;font-size:14px;margin-right:12px;border:none;">${initials}</div><div><div style="font-size:13px;font-weight:700;">${row.u.name}</div><div class="text-secondary" style="font-size:11px;">ID: ${row.u.id}</div></div></div>`;
-            const presTotal = row.presentCount + row.lateCount + row.halfDayCount;
+            const avatarHtml = `<div style="display:flex;align-items:center; cursor:pointer;" onclick="window.openAttendanceDetailModal('${row.u.id}')">
+                <div class="team-member-avatar" style="width:36px;height:36px;font-size:14px;margin-right:12px;border:none;">${initials}</div>
+                <div><div style="font-size:13px;font-weight:700;color:#0ea5e9;">${row.u.name}</div></div>
+            </div>`;
+            
             tbody.innerHTML += `<tr>
+                <td style="font-size:11px; font-weight:600; color:#666;">#${row.u.id}</td>
                 <td>${avatarHtml}</td>
-                <td style="text-align: center;"><span class="status-badge status-approved">${presTotal}</span></td>
-                <td style="text-align: center;"><span class="status-badge status-rejected">${row.absentCount}</span></td>
-                <td style="text-align: center;"><strong>${row.workHrs > 0 ? row.workHrs.toFixed(1) + ' Hrs' : '-'}</strong></td>
-                <td style="text-align: center;"><span class="text-warning">${row.lateHrs > 0 ? row.lateHrs.toFixed(1) + ' Hrs' : '-'}</span></td>
-                <td style="text-align: center;"><span class="text-danger">${row.earlyHrs > 0 ? row.earlyHrs.toFixed(1) + ' Hrs' : '-'}</span></td>
-                <td style="text-align: center;"><span class="text-primary">${row.overtimeHrs > 0 ? row.overtimeHrs.toFixed(1) + ' Hrs' : '-'}</span></td>
-                <td style="text-align: center;">${row.holidayCount}</td>
-                <td style="text-align: center;">${row.restCount}</td>
+                <td style="font-size:11px;">${row.u.department || '-'}</td>
+                <td style="font-size:11px;">${row.u.designation || '-'}</td>
+                <td style="text-align: center; font-weight: 600; color:#10b981;">${row.presentCount}</td>
+                <td style="text-align: center; font-weight: 600; color:#ef4444;">${row.absentCount}</td>
+                <td style="text-align: center; font-weight: 600; color:#8b5cf6;">${row.leaveCount}</td>
+                <td style="text-align: center; font-weight: 600; color:#f59e0b;">${row.lateCount}</td>
+                <td style="text-align: center; font-weight: 600;">${row.workHrs > 0 ? row.workHrs.toFixed(1) : '-'}</td>
+                <td style="text-align: center; font-weight: 600; color:#0ea5e9;">${row.overtimeHrs > 0 ? row.overtimeHrs.toFixed(1) : '-'}</td>
+                <td style="text-align: center; font-weight: 700;">${row.attendanceRate.toFixed(1)}%</td>
+                <td style="text-align: center;">${row.statusBadge}</td>
             </tr>`;
         });
     }
+
+    // Update Summary Cards
+    document.getElementById('att-sum-total-emp').innerText = totalEmpCount;
+    document.getElementById('att-sum-present').innerText = totalP;
+    document.getElementById('att-sum-absent').innerText = totalA;
+    document.getElementById('att-sum-leave').innerText = totalL;
+    document.getElementById('att-sum-late').innerText = totalLate;
+    const avgRate = totalEmpCount > 0 ? (sumRate / totalEmpCount).toFixed(1) : 0;
+    document.getElementById('att-sum-rate').innerText = avgRate + '%';
+
+    // Analytics: Top 5 Attendance
+    const topAttList = [...summaryData].sort((a,b) => b.attendanceRate - a.attendanceRate).slice(0, 5);
+    const topAttEl = document.getElementById('att-sum-top-att');
+    topAttEl.innerHTML = topAttList.length ? topAttList.map((x, i) => `<li class="list-group-item d-flex justify-content-between align-items-center" style="border: none; padding: 5px 0;"><span><strong style="color:#0f2e53;">${i+1}.</strong> ${x.u.name}</span><span class="badge" style="background:#e0f2fe; color:#0ea5e9;">${x.attendanceRate.toFixed(1)}%</span></li>`).join('') : '<li class="list-group-item text-muted text-center">No data</li>';
+
+    // Analytics: Top 5 Work Hours
+    const topHrsList = [...summaryData].sort((a,b) => b.workHrs - a.workHrs).slice(0, 5);
+    const topHrsEl = document.getElementById('att-sum-top-hrs');
+    topHrsEl.innerHTML = topHrsList.length ? topHrsList.map((x, i) => `<li class="list-group-item d-flex justify-content-between align-items-center" style="border: none; padding: 5px 0;"><span><strong style="color:#0f2e53;">${i+1}.</strong> ${x.u.name}</span><span class="badge" style="background:#e0f2fe; color:#0ea5e9;">${x.workHrs.toFixed(1)} Hrs</span></li>`).join('') : '<li class="list-group-item text-muted text-center">No data</li>';
+
+    // Period Global Summary
+    document.getElementById('att-sum-g-workdays').innerText = Math.round(globalWorkDays / Math.max(1, filteredUsers.length)); // Avg work days per employee period
+    document.getElementById('att-sum-g-weekends').innerText = Math.round(globalWeekends / Math.max(1, filteredUsers.length));
+    document.getElementById('att-sum-g-holidays').innerText = Math.round(globalHolidays / Math.max(1, filteredUsers.length));
+    document.getElementById('att-sum-g-leaves').innerText = globalLeaves;
+    document.getElementById('att-sum-g-overtime').innerText = globalOvertime.toFixed(1);
     
+    // Print logic
     const subtitle = document.getElementById('print-subtitle-admin-attendance-summary');
-    if(subtitle) subtitle.innerText = 'Date Range: ' + start + ' to ' + end + ' | Filter: ' + (emp==='All'?'All Employees':emp);
+    if(subtitle) subtitle.innerText = 'Date Range: ' + start + ' to ' + end + ' | Dept: ' + (dept) + ' | Status: ' + statusFilter;
 }
+
+// Global scope for modal
+window.currentAttModalEmpId = null;
+window.currentAttModalDate = new Date();
+
+window.openAttendanceDetailModal = function(empId) {
+    window.currentAttModalEmpId = empId;
+    window.currentAttModalDate = new Date(); // reset to current month
+    renderAttendanceDetailModal();
+    document.getElementById('modal-attendance-detail').classList.remove('hidden');
+}
+
+window.changeAttCalMonth = function(dir) {
+    window.currentAttModalDate.setMonth(window.currentAttModalDate.getMonth() + dir);
+    renderAttendanceDetailModal();
+}
+
+function renderAttendanceDetailModal() {
+    const db = typeof getDb === 'function' ? getDb() : (window.db || {});
+    const empId = window.currentAttModalEmpId;
+    const u = db.users ? db.users.find(u => String(u.id) === String(empId)) : null;
+    if(!u) return;
+
+    // Set Info
+    document.getElementById('att-det-name').innerText = u.name;
+    document.getElementById('att-det-status').innerText = u.status || 'Active';
+    document.getElementById('att-det-status').className = 'badge ' + (u.status==='Inactive'?'bg-danger':'bg-success');
+    document.getElementById('att-det-id').innerText = u.id;
+    document.getElementById('att-det-dept').innerText = u.department || 'N/A';
+    document.getElementById('att-det-desig').innerText = u.designation || 'N/A';
+    
+    let mgrName = 'N/A';
+    if(u.managerId && db.users) {
+        const mgr = db.users.find(m => String(m.id) === String(u.managerId));
+        if(mgr) mgrName = mgr.name;
+    }
+    document.getElementById('att-det-manager').innerText = mgrName;
+
+    // Calculate Stats for current month view
+    const year = window.currentAttModalDate.getFullYear();
+    const month = window.currentAttModalDate.getMonth();
+    
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    document.getElementById('att-det-month-label').innerText = `${monthNames[month]} ${year}`;
+
+    const startDate = new Date(year, month, 1);
+    const endDate = new Date(year, month + 1, 0); // last day
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    // Get leaves
+    const myLeaves = {};
+    if (db.leaves) {
+        db.leaves.forEach(l => {
+            if (String(l.employeeId) === String(u.id) && l.status === 'Approved') {
+                let curr = new Date(l.startDate);
+                const lEnd = new Date(l.endDate);
+                while (curr <= lEnd) {
+                    myLeaves[curr.toISOString().split('T')[0]] = true;
+                    curr.setDate(curr.getDate() + 1);
+                }
+            }
+        });
+    }
+
+    // Get Logs
+    const myLogs = {};
+    if (db.attendance) {
+        db.attendance.forEach(log => {
+            if (String(log.employeeId) === String(u.id)) {
+                myLogs[log.date] = log;
+            }
+        });
+    }
+
+    let p=0, a=0, l=0, late=0, wh=0;
+
+    let calHtml = '';
+    // empty slots for first day
+    const firstDayIndex = startDate.getDay();
+    for(let i=0; i<firstDayIndex; i++) {
+        calHtml += '<div style="padding: 10px; border-radius: 4px; background: rgba(0,0,0,0.02);"></div>';
+    }
+
+    let curr = new Date(startDate);
+    while (curr <= endDate) {
+        const dStr = curr.toISOString().split('T')[0];
+        const dayNum = curr.getDate();
+        
+        let code = '';
+        let bgColor = '';
+        let color = '';
+
+        const isHol = window.isPublicHoliday && window.isPublicHoliday(dStr);
+        const isRest = window.isEmployeeOnRest && window.isEmployeeOnRest(u, dStr);
+        const isLeave = myLeaves[dStr];
+        const log = myLogs[dStr];
+
+        if (log) {
+            if(log.status === 'Present') { code = 'P'; bgColor = 'rgba(16, 185, 129, 0.15)'; color = '#10b981'; p++; }
+            if(log.status === 'Late') { code = 'L'; bgColor = 'rgba(245, 158, 11, 0.15)'; color = '#f59e0b'; late++; p++; }
+            if(log.status === 'Half-Day') { code = 'H/D'; bgColor = 'rgba(14, 165, 233, 0.15)'; color = '#0ea5e9'; p+=0.5; }
+            if(log.status === 'Absent') { code = 'A'; bgColor = 'rgba(239, 68, 68, 0.15)'; color = '#ef4444'; a++; }
+            
+            // Just rough work hours
+            if (log.timeIn && log.timeOut) {
+                const parseTimeStr = (t) => {
+                    const isPM = t.toUpperCase().includes('PM');
+                    const cleanT = t.replace(/[A-Za-z\s]/g, '');
+                    if (!cleanT.includes(':')) return 0;
+                    let [hr, m] = cleanT.split(':').map(Number);
+                    if (isPM && hr !== 12) hr += 12;
+                    return hr + (m || 0)/60;
+                };
+                wh += Math.max(0, parseTimeStr(log.timeOut) - parseTimeStr(log.timeIn));
+            }
+
+        } else {
+            if (isLeave) { code = 'V'; bgColor = 'rgba(139, 92, 246, 0.15)'; color = '#8b5cf6'; l++; }
+            else if (isHol) { code = 'H'; bgColor = 'rgba(0, 0, 0, 0.05)'; color = '#666'; }
+            else if (isRest) { code = 'W'; bgColor = 'rgba(226, 232, 240, 0.8)'; color = '#64748b'; }
+            else {
+                if (dStr <= todayStr) { 
+                    code = 'A'; bgColor = 'rgba(239, 68, 68, 0.15)'; color = '#ef4444'; a++; 
+                } else {
+                    code = '-'; bgColor = 'transparent'; color = '#ccc';
+                }
+            }
+        }
+
+        calHtml += `<div style="padding: 8px 0; border-radius: 6px; background: ${bgColor}; border: 1px solid rgba(0,0,0,0.05); text-align: center; position:relative;">
+            <div style="font-size: 10px; color: #999; margin-bottom: 2px;">${dayNum}</div>
+            <div style="font-size: 14px; font-weight: 700; color: ${color};">${code}</div>
+        </div>`;
+
+        curr.setDate(curr.getDate() + 1);
+    }
+    
+    document.getElementById('att-det-calendar-grid').innerHTML = calHtml;
+
+    document.getElementById('att-det-present').innerText = p;
+    document.getElementById('att-det-absent').innerText = a;
+    document.getElementById('att-det-leave').innerText = l;
+    document.getElementById('att-det-late').innerText = late;
+    document.getElementById('att-det-workhrs').innerText = wh.toFixed(1);
+    const wrate = (p+a+l) > 0 ? (p/(p+a+l))*100 : 0;
+    document.getElementById('att-det-rate').innerText = wrate.toFixed(1) + '%';
+}
+
 
 function generateAdminAttendanceReport(db) {
     const start = document.getElementById('admin-rep-att-start').value;
@@ -1558,3 +1784,32 @@ window.generateAttendanceRegister = function(role) {
     document.getElementById(subtitleId).innerText = `Month: ${monthName} | Employees: ${usersToProcess.length}`;
 };
 
+
+
+window.exportAttSummaryExcel = function() {
+    exportTableToCSV('table-admin-attendance-summary', 'Attendance_Summary_Report_' + new Date().toISOString().split('T')[0] + '.csv');
+}
+
+window.exportAttSummaryPDF = function() {
+    if(window.printReport) window.printReport('admin-report-attendance-summary');
+}
+window.exportTableToCSV = function(tableId, filename) {
+    var csv = [];
+    var rows = document.querySelectorAll('#' + tableId + ' tr');
+    
+    for (var i = 0; i < rows.length; i++) {
+        var row = [], cols = rows[i].querySelectorAll('td, th');
+        for (var j = 0; j < cols.length; j++) 
+            row.push('"' + cols[j].innerText.replace(/"/g, '""').trim() + '"');
+        csv.push(row.join(','));
+    }
+
+    var csvFile = new Blob([csv.join('\n')], {type: 'text/csv'});
+    var downloadLink = document.createElement('a');
+    downloadLink.download = filename;
+    downloadLink.href = window.URL.createObjectURL(csvFile);
+    downloadLink.style.display = 'none';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+}
