@@ -767,13 +767,21 @@ function generateAdminAttendanceSummaryReport(db) {
         const attendanceRate = totalWorkingDays > 0 ? ((presentCount) / totalWorkingDays) * 100 : 0;
         
         // Status Badge Logic
-        let statusBadge = '<span class="badge" style="background:#ef4444; color:white;">Poor</span>';
-        if (attendanceRate >= 95) statusBadge = '<span class="badge" style="background:#10b981; color:white;">Excellent</span>';
-        else if (attendanceRate >= 85) statusBadge = '<span class="badge" style="background:#0ea5e9; color:white;">Good</span>';
-        else if (attendanceRate >= 75) statusBadge = '<span class="badge" style="background:#f59e0b; color:white;">Warning</span>';
+        let statusBadge = '<span class="badge border border-danger text-danger bg-white px-2 py-1">Poor</span>';
+        let pgColor = 'bg-danger';
+        if (attendanceRate >= 95) {
+            statusBadge = '<span class="badge border border-success text-success bg-white px-2 py-1">Excellent</span>';
+            pgColor = 'bg-success';
+        } else if (attendanceRate >= 85) {
+            statusBadge = '<span class="badge border border-primary text-primary bg-white px-2 py-1">Good</span>';
+            pgColor = 'bg-primary';
+        } else if (attendanceRate >= 75) {
+            statusBadge = '<span class="badge border border-warning text-warning bg-white px-2 py-1">Warning</span>';
+            pgColor = 'bg-warning';
+        }
 
         summaryData.push({ 
-            u, presentCount, absentCount, leaveCount, lateCount, workHrs, overtimeHrs, attendanceRate, statusBadge
+            u, presentCount, absentCount, leaveCount, lateCount, workHrs, overtimeHrs, attendanceRate, statusBadge, pgColor
         });
     });
 
@@ -795,9 +803,9 @@ function generateAdminAttendanceSummaryReport(db) {
     let totalEmpCount = 0, totalP = 0, totalA = 0, totalL = 0, totalLate = 0, sumRate = 0;
 
     if(summaryData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="12" class="text-center text-muted" style="padding: 30px;"><i class="fa-solid fa-inbox fa-3x mb-3 text-light"></i><br>No attendance data found in this period</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" class="text-center text-muted" style="padding: 30px;"><i class="fa-solid fa-inbox fa-3x mb-3 text-light"></i><br>No attendance data found in this period</td></tr>';
     } else {
-        summaryData.forEach(row => {
+        summaryData.forEach((row, idx) => {
             totalEmpCount++;
             totalP += row.presentCount;
             totalA += row.absentCount;
@@ -807,22 +815,31 @@ function generateAdminAttendanceSummaryReport(db) {
 
             const initials = row.u.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
             const avatarHtml = `<div style="display:flex;align-items:center; cursor:pointer;" onclick="window.openAttendanceDetailModal('${row.u.id}')">
-                <div class="team-member-avatar" style="width:36px;height:36px;font-size:14px;margin-right:12px;border:none;">${initials}</div>
-                <div><div style="font-size:13px;font-weight:700;color:#0ea5e9;">${row.u.name}</div></div>
+                <div>
+                    <div style="font-size:13px;font-weight:700;color:#1e293b;">${row.u.name}</div>
+                    <div style="font-size:11px;color:#64748b;">${row.u.id}</div>
+                </div>
             </div>`;
             
+            const progressHtml = `
+            <div style="display: flex; flex-direction: column; width: 100%;">
+                <div style="font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 2px;">${row.attendanceRate.toFixed(1)}%</div>
+                <div class="progress" style="height: 6px;">
+                    <div class="progress-bar ${row.pgColor}" role="progressbar" style="width: ${row.attendanceRate}%;" aria-valuenow="${row.attendanceRate}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>`;
+
             tbody.innerHTML += `<tr>
-                <td style="font-size:11px; font-weight:600; color:#666;">#${row.u.id}</td>
+                <td style="font-size:12px; font-weight:600; color:#64748b;" class="ps-3">${idx + 1}</td>
                 <td>${avatarHtml}</td>
-                <td style="font-size:11px;">${row.u.department || '-'}</td>
-                <td style="font-size:11px;">${row.u.designation || '-'}</td>
-                <td style="text-align: center; font-weight: 600; color:#10b981;">${row.presentCount}</td>
-                <td style="text-align: center; font-weight: 600; color:#ef4444;">${row.absentCount}</td>
-                <td style="text-align: center; font-weight: 600; color:#8b5cf6;">${row.leaveCount}</td>
-                <td style="text-align: center; font-weight: 600; color:#f59e0b;">${row.lateCount}</td>
-                <td style="text-align: center; font-weight: 600;">${row.workHrs > 0 ? row.workHrs.toFixed(1) : '-'}</td>
-                <td style="text-align: center; font-weight: 600; color:#0ea5e9;">${row.overtimeHrs > 0 ? row.overtimeHrs.toFixed(1) : '-'}</td>
-                <td style="text-align: center; font-weight: 700;">${row.attendanceRate.toFixed(1)}%</td>
+                <td style="font-size:12px; color:#475569;">${row.u.department || 'N/A'}</td>
+                <td style="text-align: center; font-size:13px; color:#475569;">${row.presentCount}</td>
+                <td style="text-align: center; font-size:13px; color:#475569;">${row.absentCount}</td>
+                <td style="text-align: center; font-size:13px; color:#475569;">${row.leaveCount}</td>
+                <td style="text-align: center; font-size:13px; color:#475569;">${row.lateCount}</td>
+                <td style="text-align: center; font-size:13px; color:#475569;">${row.workHrs > 0 ? row.workHrs.toFixed(1) + 'h' : '-'}</td>
+                <td style="text-align: center; font-size:13px; color:#475569;">${row.overtimeHrs > 0 ? row.overtimeHrs.toFixed(1) + 'h' : '-'}</td>
+                <td style="width: 150px; padding-right: 20px;">${progressHtml}</td>
                 <td style="text-align: center;">${row.statusBadge}</td>
             </tr>`;
         });
@@ -835,29 +852,83 @@ function generateAdminAttendanceSummaryReport(db) {
     document.getElementById('att-sum-leave').innerText = totalL;
     document.getElementById('att-sum-late').innerText = totalLate;
     const avgRate = totalEmpCount > 0 ? (sumRate / totalEmpCount).toFixed(1) : 0;
-    document.getElementById('att-sum-rate').innerText = avgRate + '%';
+    
+    // For avgRate card, we can show an arrow if we want, but simple is fine
+    const rateColor = avgRate >= 95 ? '#10b981' : avgRate >= 85 ? '#3b82f6' : avgRate >= 75 ? '#f59e0b' : '#ef4444';
+    document.getElementById('att-sum-rate').innerHTML = `<span style="color:${rateColor}">${avgRate}%</span>`;
 
-    // Analytics: Top 5 Attendance
+    // Analytics: Top Performers (By Attendance %)
     const topAttList = [...summaryData].sort((a,b) => b.attendanceRate - a.attendanceRate).slice(0, 5);
     const topAttEl = document.getElementById('att-sum-top-att');
-    topAttEl.innerHTML = topAttList.length ? topAttList.map((x, i) => `<li class="list-group-item d-flex justify-content-between align-items-center" style="border: none; padding: 5px 0;"><span><strong style="color:#0f2e53;">${i+1}.</strong> ${x.u.name}</span><span class="badge" style="background:#e0f2fe; color:#0ea5e9;">${x.attendanceRate.toFixed(1)}%</span></li>`).join('') : '<li class="list-group-item text-muted text-center">No data</li>';
+    if (topAttList.length) {
+        topAttEl.innerHTML = topAttList.map((x, i) => `
+            <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 13px;">
+                <div style="width: 110px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <strong style="color:#1e293b; margin-right: 5px;">${i+1}</strong> <span style="font-weight: 600; color:#475569;">${x.u.name}</span>
+                </div>
+                <div class="progress flex-grow-1 mx-2" style="height: 6px;">
+                    <div class="progress-bar ${x.pgColor}" style="width: ${x.attendanceRate}%;"></div>
+                </div>
+                <div style="width: 45px; text-align: right; font-weight: 700; color: #475569;">
+                    ${x.attendanceRate.toFixed(1)}%
+                </div>
+            </div>
+        `).join('');
+    } else {
+        topAttEl.innerHTML = '<div class="text-center text-muted" style="padding: 20px 0; font-size: 13px;">No data</div>';
+    }
 
-    // Analytics: Top 5 Work Hours
-    const topHrsList = [...summaryData].sort((a,b) => b.workHrs - a.workHrs).slice(0, 5);
-    const topHrsEl = document.getElementById('att-sum-top-hrs');
-    topHrsEl.innerHTML = topHrsList.length ? topHrsList.map((x, i) => `<li class="list-group-item d-flex justify-content-between align-items-center" style="border: none; padding: 5px 0;"><span><strong style="color:#0f2e53;">${i+1}.</strong> ${x.u.name}</span><span class="badge" style="background:#e0f2fe; color:#0ea5e9;">${x.workHrs.toFixed(1)} Hrs</span></li>`).join('') : '<li class="list-group-item text-muted text-center">No data</li>';
+    // Analytics: Attendance Issues
+    // Most Absent, Most Late, Lowest Attendance, Least Work Hours
+    const issuesEl = document.getElementById('att-sum-issues');
+    if (summaryData.length) {
+        const mostAbsent = [...summaryData].sort((a,b) => b.absentCount - a.absentCount)[0];
+        const mostLate = [...summaryData].sort((a,b) => b.lateCount - a.lateCount)[0];
+        const lowestAtt = [...summaryData].sort((a,b) => a.attendanceRate - b.attendanceRate)[0];
+        const leastWork = [...summaryData].sort((a,b) => a.workHrs - b.workHrs)[0];
+
+        issuesEl.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center gap-2" style="width: 140px;">
+                    <i class="fa-solid fa-user-xmark" style="color: #ef4444;"></i> <span style="font-size: 12px; font-weight: 600; color: #475569;">Most Absent</span>
+                </div>
+                <div style="font-size: 12px; color: #1e293b;">${mostAbsent.u.name} <span class="text-muted">(${mostAbsent.absentCount} Days)</span></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center gap-2" style="width: 140px;">
+                    <i class="fa-regular fa-clock" style="color: #f59e0b;"></i> <span style="font-size: 12px; font-weight: 600; color: #475569;">Most Late</span>
+                </div>
+                <div style="font-size: 12px; color: #1e293b;">${mostLate.u.name} <span class="text-muted">(${mostLate.lateCount} Days)</span></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center gap-2" style="width: 140px;">
+                    <i class="fa-solid fa-arrow-trend-down" style="color: #f97316;"></i> <span style="font-size: 12px; font-weight: 600; color: #475569;">Lowest Attendance</span>
+                </div>
+                <div style="font-size: 12px; color: #1e293b;">${lowestAtt.u.name} <span class="text-muted">(${lowestAtt.attendanceRate.toFixed(1)}%)</span></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2" style="width: 140px;">
+                    <i class="fa-regular fa-hourglass-half" style="color: #3b82f6;"></i> <span style="font-size: 12px; font-weight: 600; color: #475569;">Least Work Hours</span>
+                </div>
+                <div style="font-size: 12px; color: #1e293b;">${leastWork.u.name} <span class="text-muted">(${leastWork.workHrs.toFixed(1)}h)</span></div>
+            </div>
+        `;
+    } else {
+        issuesEl.innerHTML = '<div class="text-center text-muted" style="padding: 20px 0; font-size: 13px;">No data</div>';
+    }
 
     // Period Global Summary
     document.getElementById('att-sum-g-workdays').innerText = Math.round(globalWorkDays / Math.max(1, filteredUsers.length)); // Avg work days per employee period
     document.getElementById('att-sum-g-weekends').innerText = Math.round(globalWeekends / Math.max(1, filteredUsers.length));
     document.getElementById('att-sum-g-holidays').innerText = Math.round(globalHolidays / Math.max(1, filteredUsers.length));
     document.getElementById('att-sum-g-leaves').innerText = globalLeaves;
-    document.getElementById('att-sum-g-overtime').innerText = globalOvertime.toFixed(1);
+    document.getElementById('att-sum-g-overtime').innerText = globalOvertime.toFixed(1) + 'h';
     
     // Print logic
     const subtitle = document.getElementById('print-subtitle-admin-attendance-summary');
     if(subtitle) subtitle.innerText = 'Date Range: ' + start + ' to ' + end + ' | Dept: ' + (dept) + ' | Status: ' + statusFilter;
 }
+
 
 // Global scope for modal
 window.currentAttModalEmpId = null;
@@ -1813,3 +1884,4 @@ window.exportTableToCSV = function(tableId, filename) {
     downloadLink.click();
     document.body.removeChild(downloadLink);
 }
+
