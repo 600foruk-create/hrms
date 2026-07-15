@@ -3302,143 +3302,133 @@
 <div id="admin-att-content-summary" style="background: #f8f9fa; padding: 20px; min-height: 100vh;">
 
     <!-- TOP CONTROLS ROW: FILTERS -->
-    <div class="bg-white rounded p-3 mb-3 shadow-sm d-flex align-items-center flex-wrap gap-3" style="border: 1px solid rgba(0,0,0,0.05);">
-        
-        <div class="d-flex flex-column" style="width: 250px;">
-            <label style="font-size: 11px; font-weight: 600; color: #6b7280; margin-bottom: 5px;">Date Range</label>
-            <div class="d-flex align-items-center border rounded px-2" style="height: 38px;">
-                <i class="fa-regular fa-calendar text-muted me-2" style="font-size: 14px;"></i>
-                <input type="date" id="admin-rep-att-sum-start" class="form-control border-0 p-0 shadow-none text-dark" style="font-size: 13px; background: transparent;">
-                <span class="mx-1 text-muted">-</span>
-                <input type="date" id="admin-rep-att-sum-end" class="form-control border-0 p-0 shadow-none text-dark" style="font-size: 13px; background: transparent;">
+    <div class="bg-white rounded p-3 mb-4 shadow-sm" style="border: 1px solid rgba(0,0,0,0.05);">
+        <div class="row align-items-end g-3">
+            
+            <div class="col-xl-4 col-lg-4 col-md-12">
+                <label style="font-size: 12px; font-weight: 600; color: #4b5563; margin-bottom: 6px;">Date Range</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white text-muted border-end-0"><i class="fa-regular fa-calendar"></i></span>
+                    <input type="date" id="admin-rep-att-sum-start" class="form-control border-start-0 text-dark" style="font-size: 13px;">
+                    <span class="input-group-text bg-white text-muted border-start-0 border-end-0 px-2" style="font-size: 13px;">-</span>
+                    <input type="date" id="admin-rep-att-sum-end" class="form-control border-start-0 text-dark" style="font-size: 13px;">
+                </div>
             </div>
+            
+            <div class="col-xl-2 col-lg-2 col-md-4">
+                <label style="font-size: 12px; font-weight: 600; color: #4b5563; margin-bottom: 6px;">Department</label>
+                <select id="admin-rep-att-sum-dept" class="form-select text-dark shadow-none" style="font-size: 13px;">
+                    <option value="All">All Departments</option>
+                </select>
+            </div>
+            
+            <div class="col-xl-2 col-lg-2 col-md-4">
+                <label style="font-size: 12px; font-weight: 600; color: #4b5563; margin-bottom: 6px;">Employee</label>
+                <select id="admin-rep-att-sum-emp" class="form-select text-dark shadow-none" style="font-size: 13px;">
+                    <option value="All">All Employees</option>
+                </select>
+            </div>
+            
+            <div class="col-xl-2 col-lg-2 col-md-4">
+                <label style="font-size: 12px; font-weight: 600; color: #4b5563; margin-bottom: 6px;">Status</label>
+                <select id="admin-rep-att-sum-status" class="form-select text-dark shadow-none" style="font-size: 13px;">
+                    <option value="All">All</option>
+                    <option value="Present">Present Only</option>
+                    <option value="Absent">Absent Only</option>
+                    <option value="Late">Late Only</option>
+                    <option value="Leave">On Leave</option>
+                </select>
+            </div>
+            
+            <div class="col-xl-2 col-lg-2 col-md-12 text-md-end text-lg-start d-flex gap-2">
+                <button class="btn text-white flex-grow-1 shadow-sm" style="background: #2563eb; font-size: 13px; font-weight: 500;" onclick="if(window.generateAdminReport) window.generateAdminReport('attendance-summary')">
+                    Generate Report
+                </button>
+                <button class="btn bg-white border text-dark shadow-sm" style="font-size: 13px; font-weight: 500;" onclick="if(window.resetAttSummaryFilters) window.resetAttSummaryFilters()" title="Reset Filters">
+                    <i class="fa-solid fa-rotate-right"></i> Reset
+                </button>
+            </div>
+            
         </div>
-        
-        <div class="d-flex flex-column" style="width: 180px;">
-            <label style="font-size: 11px; font-weight: 600; color: #6b7280; margin-bottom: 5px;">Department</label>
-            <select id="admin-rep-att-sum-dept" class="form-select border shadow-none" style="height: 38px; font-size: 13px;">
-                <option value="All">All Departments</option>
-            </select>
-        </div>
-        
-        <div class="d-flex flex-column" style="width: 180px;">
-            <label style="font-size: 11px; font-weight: 600; color: #6b7280; margin-bottom: 5px;">Employee</label>
-            <select id="admin-rep-att-sum-emp" class="form-select border shadow-none" style="height: 38px; font-size: 13px;">
-                <option value="All">All Employees</option>
-            </select>
-        </div>
-        
-        <div class="d-flex flex-column" style="width: 140px;">
-            <label style="font-size: 11px; font-weight: 600; color: #6b7280; margin-bottom: 5px;">Status</label>
-            <select id="admin-rep-att-sum-status" class="form-select border shadow-none" style="height: 38px; font-size: 13px;">
-                <option value="All">All</option>
-                <option value="Present">Present Only</option>
-                <option value="Absent">Absent Only</option>
-                <option value="Late">Late Only</option>
-                <option value="Leave">On Leave</option>
-            </select>
-        </div>
-        
-        <div class="d-flex gap-2 ms-auto align-items-end" style="margin-top: 20px;">
-            <button class="btn text-white shadow-sm" style="background: #2563eb; height: 38px; font-size: 13px; font-weight: 500; padding: 0 20px;" onclick="if(window.generateAdminReport) window.generateAdminReport('attendance-summary')">
-                <i class="fa-solid fa-chart-simple me-2"></i> Generate Report
-            </button>
-            <button class="btn bg-white border text-dark shadow-sm" style="height: 38px; font-size: 13px; font-weight: 500; padding: 0 15px;" onclick="if(window.resetAttSummaryFilters) window.resetAttSummaryFilters()">
-                <i class="fa-solid fa-rotate-right me-1"></i> Reset
-            </button>
-        </div>
-        
     </div>
 
     <!-- SUMMARY CARDS IN ONE ROW -->
-    <div class="row g-3 mb-4" id="att-summary-cards-container">
+    <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-3 mb-4" id="att-summary-cards-container">
         
         <div class="col">
-            <div class="bg-white rounded p-3 h-100 shadow-sm d-flex flex-column justify-content-center position-relative" style="border: 1px solid rgba(0,0,0,0.05);">
-                <div class="d-flex align-items-center">
-                    <div style="width:40px; height:40px; background: #e0e7ff; color: #4f46e5; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 15px;">
-                        <i class="fa-solid fa-users"></i>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; font-weight: 500; color: #6b7280; margin-bottom: 2px;">Total Employees</div>
-                        <div id="att-sum-total-emp" style="font-size: 24px; font-weight: 700; color: #111827; line-height: 1;">0</div>
-                    </div>
+            <div class="bg-white rounded p-3 h-100 shadow-sm position-relative d-flex align-items-center" style="border: 1px solid rgba(0,0,0,0.05); min-height: 90px;">
+                <div style="width:46px; height:46px; background: #eff6ff; color: #3b82f6; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px; flex-shrink: 0;">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <div style="flex-grow: 1;">
+                    <div style="font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 4px; white-space: nowrap;">Total Employees</div>
+                    <div id="att-sum-total-emp" style="font-size: 24px; font-weight: 800; color: #111827; line-height: 1;">0</div>
                 </div>
             </div>
         </div>
         
         <div class="col">
-            <div class="bg-white rounded p-3 h-100 shadow-sm d-flex flex-column justify-content-center position-relative" style="border: 1px solid rgba(0,0,0,0.05);">
-                <div class="d-flex align-items-center">
-                    <div style="width:40px; height:40px; background: #d1fae5; color: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">
-                        <i class="fa-regular fa-circle-check"></i>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; font-weight: 500; color: #6b7280; margin-bottom: 2px;">Present</div>
-                        <div id="att-sum-present" style="font-size: 24px; font-weight: 700; color: #111827; line-height: 1;">0</div>
-                    </div>
+            <div class="bg-white rounded p-3 h-100 shadow-sm position-relative d-flex align-items-center" style="border: 1px solid rgba(0,0,0,0.05); min-height: 90px;">
+                <div style="width:46px; height:46px; border: 2px solid #10b981; color: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px; flex-shrink: 0;">
+                    <i class="fa-solid fa-check"></i>
                 </div>
-                <div id="att-sum-present-perc" style="position: absolute; bottom: 10px; right: 15px; font-size: 11px; color: #9ca3af; font-weight: 500;">0.00%</div>
+                <div style="flex-grow: 1;">
+                    <div style="font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 4px; white-space: nowrap;">Present</div>
+                    <div id="att-sum-present" style="font-size: 24px; font-weight: 800; color: #111827; line-height: 1;">0</div>
+                </div>
+                <div id="att-sum-present-perc" style="position: absolute; bottom: 12px; right: 12px; font-size: 11px; color: #9ca3af; font-weight: 600;">0.00%</div>
             </div>
         </div>
         
         <div class="col">
-            <div class="bg-white rounded p-3 h-100 shadow-sm d-flex flex-column justify-content-center position-relative" style="border: 1px solid rgba(0,0,0,0.05);">
-                <div class="d-flex align-items-center">
-                    <div style="width:40px; height:40px; color: #f97316; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-right: 15px;">
-                        <i class="fa-solid fa-user-xmark"></i>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; font-weight: 500; color: #6b7280; margin-bottom: 2px;">Absent</div>
-                        <div id="att-sum-absent" style="font-size: 24px; font-weight: 700; color: #111827; line-height: 1;">0</div>
-                    </div>
+            <div class="bg-white rounded p-3 h-100 shadow-sm position-relative d-flex align-items-center" style="border: 1px solid rgba(0,0,0,0.05); min-height: 90px;">
+                <div style="width:46px; height:46px; color: #f97316; display: flex; align-items: center; justify-content: center; font-size: 26px; margin-right: 15px; flex-shrink: 0;">
+                    <i class="fa-solid fa-user-xmark"></i>
                 </div>
-                <div id="att-sum-absent-perc" style="position: absolute; bottom: 10px; right: 15px; font-size: 11px; color: #9ca3af; font-weight: 500;">0.00%</div>
+                <div style="flex-grow: 1;">
+                    <div style="font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 4px; white-space: nowrap;">Absent</div>
+                    <div id="att-sum-absent" style="font-size: 24px; font-weight: 800; color: #111827; line-height: 1;">0</div>
+                </div>
+                <div id="att-sum-absent-perc" style="position: absolute; bottom: 12px; right: 12px; font-size: 11px; color: #9ca3af; font-weight: 600;">0.00%</div>
             </div>
         </div>
         
         <div class="col">
-            <div class="bg-white rounded p-3 h-100 shadow-sm d-flex flex-column justify-content-center position-relative" style="border: 1px solid rgba(0,0,0,0.05);">
-                <div class="d-flex align-items-center">
-                    <div style="width:40px; height:40px; color: #eab308; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-right: 15px;">
-                        <i class="fa-regular fa-clock"></i>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; font-weight: 500; color: #6b7280; margin-bottom: 2px;">Late Arrivals</div>
-                        <div id="att-sum-late" style="font-size: 24px; font-weight: 700; color: #111827; line-height: 1;">0</div>
-                    </div>
+            <div class="bg-white rounded p-3 h-100 shadow-sm position-relative d-flex align-items-center" style="border: 1px solid rgba(0,0,0,0.05); min-height: 90px;">
+                <div style="width:46px; height:46px; color: #eab308; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-right: 15px; flex-shrink: 0;">
+                    <i class="fa-regular fa-clock"></i>
                 </div>
-                <div id="att-sum-late-perc" style="position: absolute; bottom: 10px; right: 15px; font-size: 11px; color: #9ca3af; font-weight: 500;">0.00%</div>
+                <div style="flex-grow: 1;">
+                    <div style="font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 4px; white-space: nowrap;">Late Arrivals</div>
+                    <div id="att-sum-late" style="font-size: 24px; font-weight: 800; color: #111827; line-height: 1;">0</div>
+                </div>
+                <div id="att-sum-late-perc" style="position: absolute; bottom: 12px; right: 12px; font-size: 11px; color: #9ca3af; font-weight: 600;">0.00%</div>
             </div>
         </div>
         
         <div class="col">
-            <div class="bg-white rounded p-3 h-100 shadow-sm d-flex flex-column justify-content-center position-relative" style="border: 1px solid rgba(0,0,0,0.05);">
-                <div class="d-flex align-items-center">
-                    <div style="width:40px; height:40px; color: #0ea5e9; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-right: 15px;">
-                        <i class="fa-solid fa-umbrella"></i>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; font-weight: 500; color: #6b7280; margin-bottom: 2px;">On Leave</div>
-                        <div id="att-sum-leave" style="font-size: 24px; font-weight: 700; color: #111827; line-height: 1;">0</div>
-                    </div>
+            <div class="bg-white rounded p-3 h-100 shadow-sm position-relative d-flex align-items-center" style="border: 1px solid rgba(0,0,0,0.05); min-height: 90px;">
+                <div style="width:46px; height:46px; color: #0ea5e9; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-right: 15px; flex-shrink: 0;">
+                    <i class="fa-solid fa-umbrella"></i>
                 </div>
-                <div id="att-sum-leave-perc" style="position: absolute; bottom: 10px; right: 15px; font-size: 11px; color: #9ca3af; font-weight: 500;">0.00%</div>
+                <div style="flex-grow: 1;">
+                    <div style="font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 4px; white-space: nowrap;">On Leave</div>
+                    <div id="att-sum-leave" style="font-size: 24px; font-weight: 800; color: #111827; line-height: 1;">0</div>
+                </div>
+                <div id="att-sum-leave-perc" style="position: absolute; bottom: 12px; right: 12px; font-size: 11px; color: #9ca3af; font-weight: 600;">0.00%</div>
             </div>
         </div>
         
         <div class="col">
-            <div class="bg-white rounded p-3 h-100 shadow-sm d-flex flex-column justify-content-center position-relative" style="border: 1px solid rgba(0,0,0,0.05);">
-                <div class="d-flex align-items-center">
-                    <div style="width:40px; height:40px; color: #8b5cf6; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-right: 15px;">
-                        <i class="fa-solid fa-chart-pie"></i>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; font-weight: 500; color: #6b7280; margin-bottom: 2px;">Attendance Rate</div>
-                        <div id="att-sum-rate" style="font-size: 24px; font-weight: 700; color: #111827; line-height: 1;">0%</div>
-                    </div>
+            <div class="bg-white rounded p-3 h-100 shadow-sm position-relative d-flex align-items-center" style="border: 1px solid rgba(0,0,0,0.05); min-height: 90px;">
+                <div style="width:46px; height:46px; color: #8b5cf6; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-right: 15px; flex-shrink: 0;">
+                    <i class="fa-solid fa-chart-pie"></i>
                 </div>
-                <div id="att-sum-rate-trend" style="position: absolute; bottom: 10px; right: 15px; font-size: 11px; color: #10b981; font-weight: 500;"><i class="fa-solid fa-arrow-up"></i> 0.0%</div>
+                <div style="flex-grow: 1;">
+                    <div style="font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 4px; white-space: nowrap;">Attendance Rate</div>
+                    <div id="att-sum-rate" style="font-size: 24px; font-weight: 800; color: #111827; line-height: 1;">0%</div>
+                </div>
+                <div id="att-sum-rate-trend" style="position: absolute; bottom: 12px; right: 12px; font-size: 11px; color: #10b981; font-weight: 600;"><i class="fa-solid fa-arrow-up"></i> 5.2%</div>
             </div>
         </div>
     </div>
@@ -3448,14 +3438,15 @@
         <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
             <h5 style="margin: 0; font-size: 16px; font-weight: 700; color: #111827;">Attendance Report</h5>
             <div class="d-flex gap-2">
-                <button class="btn btn-sm bg-white border text-dark shadow-sm" style="font-size: 12px; font-weight: 500;" onclick="if(window.exportAttSummaryExcel) window.exportAttSummaryExcel()">
-                    <i class="fa-solid fa-file-excel text-success me-1"></i> Excel
+                <!-- EXPORT BUTTONS (AS REQUESTED) -->
+                <button class="btn btn-sm border text-dark bg-white shadow-sm" style="font-size: 12px; font-weight: 500;" onclick="if(window.exportAttSummaryExcel) window.exportAttSummaryExcel()">
+                    Excel
                 </button>
-                <button class="btn btn-sm bg-white border text-dark shadow-sm" style="font-size: 12px; font-weight: 500;" onclick="if(window.exportAttSummaryPDF) window.exportAttSummaryPDF()">
-                    <i class="fa-solid fa-file-pdf text-danger me-1"></i> PDF
+                <button class="btn btn-sm border text-dark bg-white shadow-sm" style="font-size: 12px; font-weight: 500;" onclick="if(window.exportAttSummaryPDF) window.exportAttSummaryPDF()">
+                    PDF
                 </button>
-                <button class="btn btn-sm bg-white border text-dark shadow-sm" style="font-size: 12px; font-weight: 500;" onclick="if(window.printReport) window.printReport('admin-report-attendance-summary')">
-                    <i class="fa-solid fa-print text-primary me-1"></i> Print
+                <button class="btn btn-sm border text-dark bg-white shadow-sm" style="font-size: 12px; font-weight: 500;" onclick="if(window.printReport) window.printReport('admin-report-attendance-summary')">
+                    Print
                 </button>
             </div>
         </div>
@@ -3466,7 +3457,7 @@
                 <p id="print-subtitle-admin-attendance-summary"></p>
             </div>
             <table class="table align-middle data-table" id="table-admin-attendance-summary" style="margin: 0; font-size: 13px;">
-                <thead style="background: #ffffff; border-bottom: 1px solid #e5e7eb; color: #111827; font-size: 12px; font-weight: 600;">
+                <thead style="background: #ffffff; border-bottom: 1px solid #e5e7eb; color: #111827; font-size: 12px; font-weight: 700;">
                     <tr>
                         <th class="ps-4 py-3" style="width: 40px; border-bottom: none;">#</th>
                         <th class="py-3" style="border-bottom: none;">Employee</th>
@@ -3493,7 +3484,7 @@
     </div>
 
     <!-- BOTTOM WIDGETS -->
-    <div class="row g-4 d-print-none">
+    <div class="row g-4 d-print-none mb-5">
         
         <!-- Attendance Summary List -->
         <div class="col-md-4">
@@ -3501,36 +3492,36 @@
                 <h6 style="margin: 0 0 20px 0; font-size: 15px; font-weight: 700; color: #111827;">Attendance Summary</h6>
                 
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div class="d-flex align-items-center gap-2 text-primary" style="font-size: 14px;">
-                        <i class="fa-solid fa-briefcase me-1"></i> <span style="font-weight: 600; color: #4b5563;">Total Working Days</span>
+                    <div class="d-flex align-items-center gap-3 text-primary" style="font-size: 14px;">
+                        <i class="fa-solid fa-briefcase"></i> <span style="font-weight: 600; color: #4b5563;">Total Working Days</span>
                     </div>
                     <strong style="font-size: 14px; color: #111827;" id="att-sum-g-workdays">0</strong>
                 </div>
                 
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div class="d-flex align-items-center gap-2 text-secondary" style="font-size: 14px;">
-                        <i class="fa-regular fa-clock me-1"></i> <span style="font-weight: 600; color: #4b5563;">Total Weekends</span>
+                    <div class="d-flex align-items-center gap-3 text-secondary" style="font-size: 14px;">
+                        <i class="fa-regular fa-clock"></i> <span style="font-weight: 600; color: #4b5563;">Total Weekends</span>
                     </div>
                     <strong style="font-size: 14px; color: #111827;" id="att-sum-g-weekends">0</strong>
                 </div>
                 
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div class="d-flex align-items-center gap-2 text-danger" style="font-size: 14px;">
-                        <i class="fa-solid fa-calendar-star me-1"></i> <span style="font-weight: 600; color: #4b5563;">Total Holidays</span>
+                    <div class="d-flex align-items-center gap-3 text-danger" style="font-size: 14px;">
+                        <i class="fa-solid fa-calendar-star"></i> <span style="font-weight: 600; color: #4b5563;">Total Holidays</span>
                     </div>
                     <strong style="font-size: 14px; color: #111827;" id="att-sum-g-holidays">0</strong>
                 </div>
                 
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div class="d-flex align-items-center gap-2 text-warning" style="font-size: 14px;">
-                        <i class="fa-solid fa-user-injured me-1"></i> <span style="font-weight: 600; color: #4b5563;">Total Leave Days</span>
+                    <div class="d-flex align-items-center gap-3 text-warning" style="font-size: 14px;">
+                        <i class="fa-solid fa-user-injured"></i> <span style="font-weight: 600; color: #4b5563;">Total Leave Days</span>
                     </div>
                     <strong style="font-size: 14px; color: #111827;" id="att-sum-g-leaves">0</strong>
                 </div>
                 
                 <div class="d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center gap-2 text-danger" style="font-size: 14px;">
-                        <i class="fa-solid fa-clock-rotate-left me-1"></i> <span style="font-weight: 600; color: #4b5563;">Total Overtime Hours</span>
+                    <div class="d-flex align-items-center gap-3 text-danger" style="font-size: 14px;">
+                        <i class="fa-solid fa-clock-rotate-left"></i> <span style="font-weight: 600; color: #4b5563;">Total Overtime Hours</span>
                     </div>
                     <strong style="font-size: 14px; color: #111827;" id="att-sum-g-overtime">0h 0m</strong>
                 </div>
@@ -8947,5 +8938,6 @@
 </body>
 
 </html>
+
 
 
