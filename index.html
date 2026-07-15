@@ -3121,11 +3121,11 @@
                                     <div style="display: flex; gap: 10px; flex-wrap: nowrap; align-items: flex-end; flex: 1; overflow-x: auto; padding-bottom: 5px;">
                                         <div class="form-group" style="margin-bottom: 0; min-width: 140px;">
                                             <label>Search Employee</label>
-                                            <input type="text" id="admin-rep-emp-search" class="form-control" placeholder="Name, ID, Email...">
+                                            <input type="text" id="admin-rep-emp-search" class="form-control" placeholder="Name, ID, Email..." oninput="if(window.generateAdminReport) window.generateAdminReport('employees')">
                                         </div>
                                         <div class="form-group" style="margin-bottom: 0; min-width: 90px;">
                                             <label>Status</label>
-                                            <select id="admin-rep-emp-status" class="form-control">
+                                            <select id="admin-rep-emp-status" class="form-control" onchange="if(window.generateAdminReport) window.generateAdminReport('employees')">
                                                 <option value="All">All</option>
                                                 <option value="Active">Active</option>
                                                 <option value="Inactive">Inactive</option>
@@ -3134,7 +3134,7 @@
                                         </div>
                                         <div class="form-group" style="margin-bottom: 0; min-width: 90px;">
                                             <label>Role</label>
-                                            <select id="admin-rep-emp-role" class="form-control">
+                                            <select id="admin-rep-emp-role" class="form-control" onchange="if(window.generateAdminReport) window.generateAdminReport('employees')">
                                                 <option value="All">All Roles</option>
                                                 <option value="Admin">Admin</option>
                                                 <option value="Manager">Manager</option>
@@ -3142,33 +3142,19 @@
                                             </select>
                                         </div>
                                         <div class="form-group" style="margin-bottom: 0; min-width: 110px;">
-                                            <label>Manager</label>
-                                            <select id="admin-rep-emp-manager" class="form-control">
-                                                <option value="All">All Managers</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group" style="margin-bottom: 0; min-width: 110px;">
                                             <label>Department</label>
-                                            <select id="admin-rep-emp-dept" class="form-control">
+                                            <select id="admin-rep-emp-dept" class="form-control" onchange="if(window.generateAdminReport) window.generateAdminReport('employees')">
                                                 <option value="All">All Depts</option>
                                             </select>
                                         </div>
                                         <div class="form-group" style="margin-bottom: 0; min-width: 100px;">
                                             <label>Emp Type</label>
-                                            <select id="admin-rep-emp-type" class="form-control">
+                                            <select id="admin-rep-emp-type" class="form-control" onchange="if(window.generateAdminReport) window.generateAdminReport('employees')">
                                                 <option value="All">All Types</option>
                                                 <option value="Permanent">Permanent</option>
                                                 <option value="Contract">Contract</option>
                                                 <option value="Intern">Intern</option>
                                             </select>
-                                        </div>
-                                        <div class="form-group" style="margin-bottom: 0; min-width: 120px;">
-                                            <label>Join Date From</label>
-                                            <input type="date" id="admin-rep-emp-join-start" class="form-control">
-                                        </div>
-                                        <div class="form-group" style="margin-bottom: 0; min-width: 120px;">
-                                            <label>Join Date To</label>
-                                            <input type="date" id="admin-rep-emp-join-end" class="form-control">
                                         </div>
                                         <div style="display: flex; gap: 8px;">
                                             <button class="btn btn-primary"

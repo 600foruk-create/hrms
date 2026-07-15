@@ -262,32 +262,11 @@ function generateAdminEmployeesReport(db) {
         });
     }
 
-    const mgrSelect = document.getElementById('admin-rep-emp-manager');
-    if (mgrSelect && mgrSelect.options.length <= 1) {
-        const mgrs = new Set();
-        db.users.forEach(u => {
-            if (u.managerId) {
-                const mObj = db.users.find(m => m.id === u.managerId);
-                if (mObj) mgrs.add(`${mObj.name}|${mObj.id}`);
-            }
-        });
-        Array.from(mgrs).sort().forEach(m => {
-            const [name, id] = m.split('|');
-            const opt = document.createElement('option');
-            opt.value = id;
-            opt.innerText = name;
-            mgrSelect.appendChild(opt);
-        });
-    }
-
     const search = (document.getElementById('admin-rep-emp-search')?.value || '').toLowerCase();
     const status = document.getElementById('admin-rep-emp-status')?.value || 'All';
     const role = document.getElementById('admin-rep-emp-role')?.value || 'All';
-    const managerId = document.getElementById('admin-rep-emp-manager')?.value || 'All';
     const dept = document.getElementById('admin-rep-emp-dept')?.value || 'All';
     const type = document.getElementById('admin-rep-emp-type')?.value || 'All';
-    const joinStart = document.getElementById('admin-rep-emp-join-start')?.value || '';
-    const joinEnd = document.getElementById('admin-rep-emp-join-end')?.value || '';
 
     // Calculate Summary Metrics based on ALL users (or just active ones)
     let total = db.users.length;
@@ -312,16 +291,12 @@ function generateAdminEmployeesReport(db) {
     if(elNew) elNew.innerText = newHires;
 
     let filtered = db.users.filter(u => {
-        const uJoinDate = u.joiningDate || u.startDate || '';
         const uEmpType = u.employmentType || 'Permanent';
 
         if(status !== 'All' && u.status !== status && !(status==='Active' && !u.status)) return false;
         if(role !== 'All' && u.role !== role) return false;
-        if(managerId !== 'All' && u.managerId !== managerId) return false;
         if(dept !== 'All' && u.department !== dept) return false;
         if(type !== 'All' && uEmpType !== type) return false;
-        if(joinStart && (!uJoinDate || uJoinDate < joinStart)) return false;
-        if(joinEnd && (!uJoinDate || uJoinDate > joinEnd)) return false;
         if(search) {
             const matchesId = (u.id||'').toLowerCase().includes(search);
             const matchesName = (u.name||'').toLowerCase().includes(search);
@@ -458,23 +433,16 @@ window.exportEmployeeReportCSV = function() {
     const search = (document.getElementById('admin-rep-emp-search')?.value || '').toLowerCase();
     const status = document.getElementById('admin-rep-emp-status')?.value || 'All';
     const role = document.getElementById('admin-rep-emp-role')?.value || 'All';
-    const managerId = document.getElementById('admin-rep-emp-manager')?.value || 'All';
     const dept = document.getElementById('admin-rep-emp-dept')?.value || 'All';
     const type = document.getElementById('admin-rep-emp-type')?.value || 'All';
-    const joinStart = document.getElementById('admin-rep-emp-join-start')?.value || '';
-    const joinEnd = document.getElementById('admin-rep-emp-join-end')?.value || '';
     
     let filtered = db.users.filter(u => {
-        const uJoinDate = u.joiningDate || u.startDate || '';
         const uEmpType = u.employmentType || 'Permanent';
 
         if(status !== 'All' && u.status !== status && !(status==='Active' && !u.status)) return false;
         if(role !== 'All' && u.role !== role) return false;
-        if(managerId !== 'All' && u.managerId !== managerId) return false;
         if(dept !== 'All' && u.department !== dept) return false;
         if(type !== 'All' && uEmpType !== type) return false;
-        if(joinStart && (!uJoinDate || uJoinDate < joinStart)) return false;
-        if(joinEnd && (!uJoinDate || uJoinDate > joinEnd)) return false;
         if(search) {
             const matchesId = (u.id||'').toLowerCase().includes(search);
             const matchesName = (u.name||'').toLowerCase().includes(search);
