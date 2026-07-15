@@ -409,6 +409,8 @@
                 margin: 0 !important;
                 padding: 0 !important;
                 width: 100% !important;
+                border: none !important;
+                box-shadow: none !important;
             }
 
             body:not(.printing-modal) #main-content {
@@ -422,6 +424,8 @@
             body:not(.printing-modal) table.data-table {
                 width: 100% !important;
                 border-collapse: collapse !important;
+                border: none !important;
+                box-shadow: none !important;
                 margin-top: 15px !important;
                 font-size: 11px !important;
             }
@@ -7869,7 +7873,6 @@
         <div class="modal-header">
             <h3>Employee Full Report</h3>
             <div style="display:flex; gap:10px;">
-                <button class="btn btn-outline btn-sm" id="btn-print-emp-report" onclick="if(window.printReport) window.printReport('emp-report-detail-content')"><i class="fa-solid fa-print"></i> Print</button>
                 <button class="modal-close" onclick="closeModal('modal-employee-report-detail')"><i class="fa-solid fa-xmark"></i></button>
             </div>
         </div>
