@@ -323,8 +323,11 @@
         @media print {
             @page {
                 size: A4 portrait;
-                margin: 10mm;
-                /* No browser margins to allow edge-to-edge letterhead */
+                margin: 0; /* Margin 0 removes browser headers/footers */
+            }
+            body.printing-report {
+                padding: 15mm !important;
+            }
             }
 
             * {
@@ -420,22 +423,16 @@
             body:not(.printing-modal) table.data-table {
                 width: 100% !important;
                 border-collapse: collapse !important;
-                margin-top: 25px !important;
+                margin-top: 15px !important;
                 font-size: 11px !important;
             }
             
-            body:not(.printing-modal) table.data-table th {
-                background-color: #0f2e53 !important;
-                color: #ffffff !important;
-                font-weight: 600 !important;
-                border: none !important;
-                border-bottom: 2px solid #0f2e53 !important;
-                padding: 12px 10px !important;
-                text-transform: uppercase;
-                font-size: 10px !important;
-                letter-spacing: 0.5px;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
+            body:not(.printing-modal) table.data-table thead {
+                display: none !important; /* Hide table headers (the empty box) */
+            }
+
+            body:not(.printing-modal) table.data-table tbody tr {
+                border-bottom: 1px solid #e2e8f0 !important;
             }
 
             body:not(.printing-modal) table.data-table tbody tr:nth-child(even) {
@@ -445,10 +442,10 @@
             }
             
             body:not(.printing-modal) table.data-table td {
-                border: 1px solid #e2e8f0 !important;
-                padding: 12px 10px !important;
+                border: none !important; /* Remove vertical columns */
+                padding: 6px 4px !important; /* Smaller row size */
                 color: #334155 !important;
-                font-size: 11px !important;
+                font-size: 10px !important;
                 vertical-align: middle !important;
             }
 
