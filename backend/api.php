@@ -219,7 +219,8 @@ $new_columns = [
     "ADD COLUMN `branchCode` varchar(50) DEFAULT NULL",
     "ADD COLUMN `themeColor` varchar(50) DEFAULT NULL",
     "ADD COLUMN `twoFactorEnabled` tinyint(1) DEFAULT 0",
-    "ADD COLUMN `restDay` varchar(20) DEFAULT NULL"
+    "ADD COLUMN `restDay` varchar(20) DEFAULT NULL",
+    "ADD COLUMN `department` varchar(150) DEFAULT NULL"
 ];
 
 foreach ($new_columns as $col) {
@@ -1739,7 +1740,7 @@ elseif ($action === 'save_all') {
             $pdo->exec("DELETE FROM employee_documents");
             $pdo->exec("DELETE FROM employee_leave_balances");
             if (!empty($data['users'])) {
-                $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, bloodGroup, designation, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode, twoFactorEnabled, hasCustomLeaveBalances, restDay) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, bloodGroup, designation, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode, twoFactorEnabled, hasCustomLeaveBalances, restDay, department) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 $docStmt = $pdo->prepare("INSERT INTO employee_documents (employee_id, doc_name, doc_url) VALUES (?, ?, ?)");
                 $balStmt = $pdo->prepare("INSERT INTO employee_leave_balances (employee_id, leave_type, balance, total) VALUES (?, ?, ?, ?)");
                 
@@ -1755,7 +1756,7 @@ elseif ($action === 'save_all') {
                         $u['emergencyContact'] ?? null, $u['bankName'] ?? null, $u['accountTitle'] ?? null,
                         $u['accountNumber'] ?? null, $u['iban'] ?? null, $u['branchCode'] ?? null,
                         !empty($u['twoFactorEnabled']) ? 1 : 0, !empty($u['hasCustomLeaveBalances']) ? 1 : 0,
-                        $u['restDay'] ?? null
+                        $u['restDay'] ?? null, $u['department'] ?? null
                     ]);
                     
                     if (!empty($u['documents']) && is_array($u['documents'])) {
@@ -2255,7 +2256,7 @@ elseif ($action === 'save_all') {
         $exists = $stmt->fetch();
         
         if ($exists) {
-            $stmt = $pdo->prepare("UPDATE users SET displayId=?, email=?, password=?, name=?, role=?, managerId=?, status=?, salary=?, startDate=?, endDate=?, profilePic=?, bloodGroup=?, designation=?, fatherName=?, gender=?, dob=?, cnic=?, maritalStatus=?, phone=?, emergencyContact=?, bankName=?, accountTitle=?, accountNumber=?, iban=?, branchCode=?, twoFactorEnabled=?, restDay=? WHERE id=?");
+            $stmt = $pdo->prepare("UPDATE users SET displayId=?, email=?, password=?, name=?, role=?, managerId=?, status=?, salary=?, startDate=?, endDate=?, profilePic=?, bloodGroup=?, designation=?, fatherName=?, gender=?, dob=?, cnic=?, maritalStatus=?, phone=?, emergencyContact=?, bankName=?, accountTitle=?, accountNumber=?, iban=?, branchCode=?, twoFactorEnabled=?, restDay=?, department=? WHERE id=?");
             $stmt->execute([
                 $u['displayId'] ?? null, $u['email'], $u['password'], $u['name'], $u['role'], 
                 $u['managerId'] ?? null, $u['status'], $u['salary'], 
@@ -2266,11 +2267,11 @@ elseif ($action === 'save_all') {
                 $u['cnic'] ?? null, $u['maritalStatus'] ?? null, $u['phone'] ?? null, 
                 $u['emergencyContact'] ?? null, $u['bankName'] ?? null, $u['accountTitle'] ?? null,
                 $u['accountNumber'] ?? null, $u['iban'] ?? null, $u['branchCode'] ?? null,
-                !empty($u['twoFactorEnabled']) ? 1 : 0, $u['restDay'] ?? null,
+                !empty($u['twoFactorEnabled']) ? 1 : 0, $u['restDay'] ?? null, $u['department'] ?? null,
                 $u['id']
             ]);
         } else {
-            $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, bloodGroup, designation, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode, twoFactorEnabled, restDay) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO users (id, displayId, email, password, name, role, managerId, status, salary, startDate, endDate, profilePic, bloodGroup, designation, fatherName, gender, dob, cnic, maritalStatus, phone, emergencyContact, bankName, accountTitle, accountNumber, iban, branchCode, twoFactorEnabled, restDay, department) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $u['id'], $u['displayId'] ?? null, $u['email'], $u['password'], $u['name'], $u['role'], 
                 $u['managerId'] ?? null, $u['status'], $u['salary'], 
@@ -2281,7 +2282,7 @@ elseif ($action === 'save_all') {
                 $u['cnic'] ?? null, $u['maritalStatus'] ?? null, $u['phone'] ?? null, 
                 $u['emergencyContact'] ?? null, $u['bankName'] ?? null, $u['accountTitle'] ?? null,
                 $u['accountNumber'] ?? null, $u['iban'] ?? null, $u['branchCode'] ?? null,
-                !empty($u['twoFactorEnabled']) ? 1 : 0, $u['restDay'] ?? null
+                !empty($u['twoFactorEnabled']) ? 1 : 0, $u['restDay'] ?? null, $u['department'] ?? null
             ]);
         }
         
