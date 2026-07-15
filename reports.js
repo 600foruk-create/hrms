@@ -108,7 +108,7 @@ window.printReport = function(reportId) {
 
                 const db = typeof getDb === 'function' ? getDb() : (window.db || {});
                 const cp = (!db.companyProfile || Array.isArray(db.companyProfile)) ? {} : db.companyProfile;
-                const logoHtml = cp.logoBase64 ? `<img src="${cp.logoBase64}" style="max-height: 50px; object-fit: contain; margin-right: 15px;">` : '';
+                const logoHtml = cp.logoBase64 ? `<img src="${cp.logoBase64}" style="height: 60px; width: auto; object-fit: contain; margin-right: 15px; display: block !important;">` : '';
                 const compName = cp.name || 'Your Company Name';
                 const tagLine = cp.slogan || 'Beyond The Ocean';
                 const addr = cp.address || 'Company Address';

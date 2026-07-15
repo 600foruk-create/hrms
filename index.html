@@ -326,7 +326,7 @@
                 margin: 0; /* Margin 0 removes browser headers/footers */
             }
             body.printing-report {
-                padding: 15mm !important;
+                padding: 0 10mm !important; /* Removed top padding to fix empty space */
             }
 
             * {
@@ -442,9 +442,10 @@
             
             body:not(.printing-modal) table.data-table td {
                 border: none !important; /* Remove vertical columns */
-                padding: 6px 4px !important; /* Smaller row size */
+                padding: 3px 2px !important; /* Extremely small row padding */
                 color: #334155 !important;
-                font-size: 10px !important;
+                font-size: 9px !important;
+                line-height: 1.2 !important;
                 vertical-align: middle !important;
             }
 
