@@ -110,22 +110,117 @@ window.printReport = function(reportId) {
                 const cp = (!db.companyProfile || Array.isArray(db.companyProfile)) ? {} : db.companyProfile;
                 const logoHtml = cp.logoBase64 ? `<img src="${cp.logoBase64}" style="max-height: 80px; object-fit: contain; margin-right: 20px;">` : '';
                 const compName = cp.name || 'Your Company Name';
+                const tagLine = cp.slogan || 'Beyond The Ocean';
                 const addr = cp.address || 'Company Address';
                 const phone = cp.phone || 'Phone Number';
                 const email = cp.email || 'Email Address';
-                const compDetails = [addr, phone, email].join(' | ');
+                const website = cp.website || 'www.company.com';
                 
+                // Construct Professional A4 Header
                 const brandingHtml = `
-                    <div class="company-branding" style="display: flex; align-items: center; justify-content: center; margin-bottom: 25px; border-bottom: 2px solid #333; padding-bottom: 20px;">
-                        ${logoHtml}
-                        <div style="text-align: ${cp.logoBase64 ? 'left' : 'center'};">
-                            <h1 style="margin: 0; font-size: 28px; font-weight: 800; color: #111; letter-spacing: 1px;">${compName}</h1>
-                            <p style="margin: 5px 0 0; font-size: 13px; color: #555;">${compDetails}</p>
+                    <div class="company-branding" style="width: 100%; font-family: 'Inter', sans-serif; margin-bottom: 30px;">
+                        <!-- Header Top Split -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <!-- Left: Logo & Title -->
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                ${logoHtml}
+                                <div style="text-align: left;">
+                                    <h1 style="margin: 0; font-size: 26px; font-weight: 800; color: #0f2e53; letter-spacing: 0.5px;">${compName.toUpperCase()}</h1>
+                                    <div style="display:flex; align-items:center; gap: 10px; margin-top: 4px;">
+                                        <div style="flex:1; height:1px; background:#ccc;"></div>
+                                        <span style="font-size: 11px; color: #666; letter-spacing: 1px; text-transform: uppercase; white-space:nowrap;">${tagLine}</span>
+                                        <div style="flex:1; height:1px; background:#ccc;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Right: Contact Details -->
+                            <div style="text-align: left; font-size: 11px; color: #333; line-height: 1.8; display: flex; gap: 20px;">
+                                <div>
+                                    <div style="display:flex; align-items: flex-start; gap: 8px;"><i class="fa-solid fa-location-dot" style="color: #0ea5e9; margin-top:3px; width: 14px; text-align:center;"></i> <span style="max-width: 180px; display:inline-block;">${addr}</span></div>
+                                </div>
+                                <div>
+                                    <div style="display:flex; align-items: center; gap: 8px;"><i class="fa-solid fa-phone" style="color: #0ea5e9; width: 14px; text-align:center;"></i> <span>${phone}</span></div>
+                                    <div style="display:flex; align-items: center; gap: 8px;"><i class="fa-solid fa-envelope" style="color: #0ea5e9; width: 14px; text-align:center;"></i> <span>${email}</span></div>
+                                    <div style="display:flex; align-items: center; gap: 8px;"><i class="fa-solid fa-globe" style="color: #0ea5e9; width: 14px; text-align:center;"></i> <span>${website}</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Divider Line -->
+                        <div style="width: 100%; height: 3px; background-color: #0f2e53; margin-bottom: 25px;"></div>
+                    </div>
+                `;
+
+                // Build the new specific Report Title and Subtitle Area
+                const reportTitleEl = area.querySelector('h2');
+                let reportTitleStr = reportTitleEl ? reportTitleEl.innerText.toUpperCase() : 'REPORT';
+                if (reportTitleEl) reportTitleEl.style.display = 'none'; // hide the default h2
+
+                const subtitleEl = area.querySelector('p[id^="print-subtitle"]');
+                let subTitleStr = subtitleEl ? subtitleEl.innerText : '';
+                if (subtitleEl) subtitleEl.style.display = 'none';
+
+                let filterHtml = '';
+                const today = new Date();
+                const dateStr = today.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+                if (subTitleStr) {
+                    const parts = subTitleStr.split('|').map(p => p.trim());
+                    // First part is usually "Total Displayed: X", add Date first
+                    filterHtml += `<div style="display:flex; align-items:center; gap:5px;"><i class="fa-solid fa-calendar-days" style="color: #0f2e53;"></i> <span>Report Date: ${dateStr}</span></div>`;
+                    
+                    parts.forEach(part => {
+                        let icon = 'fa-circle-info';
+                        if (part.toLowerCase().includes('date') || part.toLowerCase().includes('range')) icon = 'fa-calendar-days';
+                        if (part.toLowerCase().includes('total')) icon = 'fa-users';
+                        if (part.toLowerCase().includes('status')) icon = 'fa-list-check';
+                        if (part.toLowerCase().includes('role')) icon = 'fa-user-tie';
+                        if (part.toLowerCase().includes('emp')) icon = 'fa-user-tie';
+                        
+                        filterHtml += `<div style="width:1px; height:12px; background:#ccc;"></div>`;
+                        filterHtml += `<div style="display:flex; align-items:center; gap:5px;"><i class="fa-solid ${icon}" style="color: #0f2e53;"></i> <span>${part}</span></div>`;
+                    });
+                } else {
+                    filterHtml = `<div style="display:flex; align-items:center; gap:5px;"><i class="fa-solid fa-calendar-days" style="color: #0f2e53;"></i> <span>Report Date: ${dateStr}</span></div>`;
+                }
+
+                const titleHtml = `
+                    <div style="margin-bottom: 25px; width: 100%;">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 15px;">
+                            <div style="height: 1px; flex: 1; max-width: 150px; background: #0ea5e9;"></div>
+                            <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: #0f2e53; letter-spacing: 1px;">${reportTitleStr}</h2>
+                            <div style="height: 1px; flex: 1; max-width: 150px; background: #0ea5e9;"></div>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 15px; font-size: 11px; color: #444; font-weight: 500;">
+                            ${filterHtml}
                         </div>
                     </div>
                 `;
-                header.insertAdjacentHTML('afterbegin', brandingHtml);
-                header.style.textAlign = 'center';
+
+                header.insertAdjacentHTML('afterbegin', brandingHtml + titleHtml);
+                
+                // Add Footer if not present
+                const printContainer = area;
+                if (!printContainer.querySelector('.print-footer-report')) {
+                    const today = new Date();
+                    const dateStr = today.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+                    const timeStr = today.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                    
+                    const footerHtml = `
+                        <div class="print-footer-report" style="margin-top: 50px; padding-top: 15px; border-top: 2px solid #0f2e53; display: flex; justify-content: space-between; font-size: 11px; font-family: 'Inter', sans-serif; color: #333;">
+                            <div style="line-height: 1.6;">
+                                <p style="margin:0;"><strong>Generated By:</strong> HR System</p>
+                                <p style="margin:0;"><strong>Generated On:</strong> ${dateStr} &nbsp;&nbsp;&nbsp; <strong>Time:</strong> ${timeStr}</p>
+                            </div>
+                            <div style="text-align: center; width: 250px;">
+                                <div style="border-bottom: 1px solid #333; height: 30px; margin-bottom: 5px;"></div>
+                                <span>Authorized Signature</span>
+                            </div>
+                        </div>
+                    `;
+                    printContainer.insertAdjacentHTML('beforeend', footerHtml);
+                }
             }
         }
     });
