@@ -3299,10 +3299,10 @@
                             </div>
 
                             <!-- Sub Tab 3A: Attendance Summary Report -->
-<div id="admin-att-content-summary" style="background: #f8f9fa; padding: 20px; min-height: 100vh; overflow-x: auto;">
+<div id="admin-att-content-summary" class="section-card bg-white flex-table-card" style="padding: 20px; min-height: 100vh; overflow-x: auto; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
 
     <!-- TOP CONTROLS ROW: FILTERS (Forced single line) -->
-    <div class="bg-white p-3 mb-4" style="border-radius: 8px; border: none; min-width: 1000px; display: flex !important; flex-wrap: nowrap !important; align-items: center !important; gap: 10px;">
+    <div class="p-3 mb-4" style="border-radius: 8px; border: none; min-width: 1000px; display: flex !important; flex-wrap: nowrap !important; align-items: center !important; gap: 10px;">
             
         <div class="input-group" style="width: 310px; flex-shrink: 0; display: flex !important; flex-wrap: nowrap !important; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1; height: 38px;">
             <input type="date" id="admin-rep-att-sum-start" class="form-control border-0 text-dark px-2 shadow-none text-center" style="font-size: 13px; background: transparent; flex: 1;">
@@ -3332,7 +3332,7 @@
             </select>
         </div>
         
-        <div class="d-flex flex-nowrap align-items-center" style="gap: 8px;">
+        <div class="d-flex flex-nowrap align-items-center" style="gap: 8px; margin-left: auto;">
             <button class="btn btn-primary text-white shadow-none" style="font-size: 13px; font-weight: 500; white-space: nowrap; padding: 0 16px; height: 38px; border-radius: 6px;" onclick="if(window.generateAdminReport) window.generateAdminReport('attendance-summary')">
                 <i class="fa-solid fa-chart-bar me-1"></i>Generate Report
             </button>
