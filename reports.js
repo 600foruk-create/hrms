@@ -944,9 +944,16 @@ function generateAdminAttendanceSummaryReport(db) {
     document.getElementById('att-sum-g-leaves').innerText = globalLeaves;
     document.getElementById('att-sum-g-overtime').innerText = formatHrs(globalOvertime);
     
-    // Print logic
-    const subtitle = document.getElementById('print-subtitle-admin-attendance-summary');
-    if(subtitle) subtitle.innerText = 'Date Range: ' + start + ' to ' + end + ' | Dept: ' + (dept) + ' | Status: ' + statusFilter;
+    // Print logic (Custom Header)
+    const activeUser = window.currentUser || JSON.parse(localStorage.getItem('current_user')) || {name: 'Admin'};
+    const printDate = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+    const sDate = new Date(start).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    const eDate = new Date(end).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    
+    if(document.getElementById('print-att-sum-date')) document.getElementById('print-att-sum-date').innerText = printDate;
+    if(document.getElementById('print-att-sum-range')) document.getElementById('print-att-sum-range').innerText = sDate + ' - ' + eDate;
+    if(document.getElementById('print-att-sum-dept')) document.getElementById('print-att-sum-dept').innerText = dept;
+    if(document.getElementById('print-att-sum-user')) document.getElementById('print-att-sum-user').innerText = activeUser.name;
 }
 
 
