@@ -767,16 +767,16 @@ function generateAdminAttendanceSummaryReport(db) {
         const attendanceRate = totalWorkingDays > 0 ? ((presentCount) / totalWorkingDays) * 100 : 0;
         
         // Status Badge Logic
-        let statusBadge = '<span class="badge border border-danger text-danger bg-white px-2 py-1 rounded-1" style="font-weight: 500;">Poor</span>';
+        let statusBadge = '<span style="display:inline-block; border: 1px solid #dc2626; color: #dc2626; background: #fff; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 600;">Poor</span>';
         let pgColor = 'bg-danger';
         if (attendanceRate >= 95) {
-            statusBadge = '<span class="badge border border-success text-success bg-white px-2 py-1 rounded-1" style="font-weight: 500;">Excellent</span>';
+            statusBadge = '<span style="display:inline-block; border: 1px solid #16a34a; color: #16a34a; background: #fff; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 600;">Excellent</span>';
             pgColor = 'bg-success';
         } else if (attendanceRate >= 85) {
-            statusBadge = '<span class="badge border border-primary text-primary bg-white px-2 py-1 rounded-1" style="font-weight: 500;">Good</span>';
+            statusBadge = '<span style="display:inline-block; border: 1px solid #3b82f6; color: #3b82f6; background: #fff; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 600;">Good</span>';
             pgColor = 'bg-primary';
         } else if (attendanceRate >= 75) {
-            statusBadge = '<span class="badge border border-warning text-warning bg-white px-2 py-1 rounded-1" style="font-weight: 500;">Warning</span>';
+            statusBadge = '<span style="display:inline-block; border: 1px solid #f97316; color: #f97316; background: #fff; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 600;">Warning</span>';
             pgColor = 'bg-warning';
         }
 
