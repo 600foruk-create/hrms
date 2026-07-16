@@ -105,6 +105,8 @@ window.printReport = function(reportId) {
                 // Add company branding (remove old one if exists to ensure up to date)
                 const existingBranding = header.querySelector('.company-branding');
                 if (existingBranding) existingBranding.remove();
+                const existingTitle = header.querySelector('.dynamic-print-title');
+                if (existingTitle) existingTitle.remove();
 
                 const db = typeof getDb === 'function' ? getDb() : (window.db || {});
                 const cp = (!db.companyProfile || Array.isArray(db.companyProfile)) ? {} : db.companyProfile;
@@ -186,7 +188,7 @@ window.printReport = function(reportId) {
                 }
 
                 const titleHtml = `
-                    <div style="margin-bottom: 15px; width: 100%;">
+                    <div class="dynamic-print-title" style="margin-bottom: 15px; width: 100%;">
                         <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px;">
                             <div style="height: 1px; flex: 1; max-width: 150px; background: #0ea5e9;"></div>
                             <h2 style="margin: 0; font-size: 16px; font-weight: 700; color: #0f2e53; letter-spacing: 1px;">${reportTitleStr}</h2>
