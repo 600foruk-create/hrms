@@ -3871,62 +3871,62 @@
 
         <!-- ROW 2: SUMMARY CARDS -->
         <div id="leave-summary-cards-container" style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
-            <div class="col-md-2 col-sm-4 col-6">
-                <div class="premium-card p-3 h-100 d-flex align-items-center" style="gap: 12px; margin-bottom: 0;">
-                    <div class="sum-card-icon" style="background: #f5f3ff; color: #8b5cf6;"><i class="fa-solid fa-file-invoice"></i></div>
-                    <div class="flex-grow-1">
+            <div style="flex: 1; min-width: 140px;">
+                <div class="premium-card py-2 px-1 h-100 d-flex flex-column justify-content-center align-items-center text-center" style="margin-bottom: 0; position: relative; min-height: 75px;">
+                    
+                    <div class="flex-grow-1 d-flex flex-column justify-content-center align-items-center" style="width: 100%;">
                         <div class="sum-card-title">Total Leave Requests</div>
                         <div class="sum-card-val" id="leave-sum-total">0</div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-2 col-sm-4 col-6">
-                <div class="premium-card p-3 h-100 d-flex align-items-center" style="gap: 12px; margin-bottom: 0; position: relative;">
-                    <div class="sum-card-icon" style="background: #ecfdf5; color: #10b981;"><i class="fa-regular fa-circle-check"></i></div>
-                    <div class="flex-grow-1">
+            <div style="flex: 1; min-width: 140px;">
+                <div class="premium-card py-2 px-1 h-100 d-flex flex-column justify-content-center align-items-center text-center" style="margin-bottom: 0; position: relative; min-height: 75px;">
+                    
+                    <div class="flex-grow-1 d-flex flex-column justify-content-center align-items-center" style="width: 100%;">
                         <div class="sum-card-title">Approved Requests</div>
                         <div class="sum-card-val" id="leave-sum-approved" style="color: #10b981;">0</div>
                     </div>
-                    <div class="sum-card-sub" style="position: absolute; bottom: 12px; right: 12px;" id="leave-sum-pct-app">0%</div>
+                    <div class="sum-card-sub" style="position: absolute; bottom: 6px; right: 8px; font-size: 10px;" id="leave-sum-pct-app">0%</div>
                 </div>
             </div>
-            <div class="col-md-2 col-sm-4 col-6">
-                <div class="premium-card p-3 h-100 d-flex align-items-center" style="gap: 12px; margin-bottom: 0; position: relative;">
-                    <div class="sum-card-icon" style="background: #fff7ed; color: #f97316;"><i class="fa-regular fa-clock"></i></div>
-                    <div class="flex-grow-1">
+            <div style="flex: 1; min-width: 140px;">
+                <div class="premium-card py-2 px-1 h-100 d-flex flex-column justify-content-center align-items-center text-center" style="margin-bottom: 0; position: relative; min-height: 75px;">
+                    
+                    <div class="flex-grow-1 d-flex flex-column justify-content-center align-items-center" style="width: 100%;">
                         <div class="sum-card-title">Pending Requests</div>
                         <div class="sum-card-val" id="leave-sum-pending" style="color: #f97316;">0</div>
                     </div>
-                    <div class="sum-card-sub" style="position: absolute; bottom: 12px; right: 12px;" id="leave-sum-pct-pen">0%</div>
+                    <div class="sum-card-sub" style="position: absolute; bottom: 6px; right: 8px; font-size: 10px;" id="leave-sum-pct-pen">0%</div>
                 </div>
             </div>
-            <div class="col-md-2 col-sm-4 col-6">
-                <div class="premium-card p-3 h-100 d-flex align-items-center" style="gap: 12px; margin-bottom: 0; position: relative;">
-                    <div class="sum-card-icon" style="background: #fef2f2; color: #ef4444;"><i class="fa-regular fa-circle-xmark"></i></div>
-                    <div class="flex-grow-1">
+            <div style="flex: 1; min-width: 140px;">
+                <div class="premium-card py-2 px-1 h-100 d-flex flex-column justify-content-center align-items-center text-center" style="margin-bottom: 0; position: relative; min-height: 75px;">
+                    
+                    <div class="flex-grow-1 d-flex flex-column justify-content-center align-items-center" style="width: 100%;">
                         <div class="sum-card-title">Rejected Requests</div>
                         <div class="sum-card-val" id="leave-sum-rejected" style="color: #ef4444;">0</div>
                     </div>
-                    <div class="sum-card-sub" style="position: absolute; bottom: 12px; right: 12px;" id="leave-sum-pct-rej">0%</div>
+                    <div class="sum-card-sub" style="position: absolute; bottom: 6px; right: 8px; font-size: 10px;" id="leave-sum-pct-rej">0%</div>
                 </div>
             </div>
-            <div class="col-md-2 col-sm-4 col-6">
-                <div class="premium-card p-3 h-100 d-flex align-items-center" style="gap: 12px; margin-bottom: 0;">
-                    <div class="sum-card-icon" style="background: #eff6ff; color: #3b82f6;"><i class="fa-solid fa-user-clock"></i></div>
-                    <div class="flex-grow-1">
+            <div style="flex: 1; min-width: 140px;">
+                <div class="premium-card py-2 px-1 h-100 d-flex flex-column justify-content-center align-items-center text-center" style="margin-bottom: 0; position: relative; min-height: 75px;">
+                    
+                    <div class="flex-grow-1 d-flex flex-column justify-content-center align-items-center" style="width: 100%;">
                         <div class="sum-card-title">Employees On Leave Today</div>
                         <div class="sum-card-val" id="leave-sum-onleave" style="color: #0f172a;">0</div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-2 col-sm-4 col-6">
-                <div class="premium-card p-3 h-100 d-flex align-items-center" style="gap: 12px; margin-bottom: 0; position: relative;">
-                    <div class="sum-card-icon" style="background: #f0fdf4; color: #22c55e;"><i class="fa-regular fa-calendar-check"></i></div>
-                    <div class="flex-grow-1">
+            <div style="flex: 1; min-width: 140px;">
+                <div class="premium-card py-2 px-1 h-100 d-flex flex-column justify-content-center align-items-center text-center" style="margin-bottom: 0; position: relative; min-height: 75px;">
+                    
+                    <div class="flex-grow-1 d-flex flex-column justify-content-center align-items-center" style="width: 100%;">
                         <div class="sum-card-title">Total Leave Days Consumed</div>
                         <div class="sum-card-val" id="leave-sum-consumed" style="color: #0f172a;">0</div>
                     </div>
-                    <div class="sum-card-sub" style="position: absolute; bottom: 12px; right: 12px; color: #64748b; font-weight: 400;">Days</div>
+                    <div class="sum-card-sub" style="position: absolute; bottom: 6px; right: 8px; font-size: 10px; color: #64748b; font-weight: 400;">Days</div>
                 </div>
             </div>
         </div>
