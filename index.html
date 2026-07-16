@@ -3304,9 +3304,9 @@
     <!-- TOP CONTROLS ROW: FILTERS (Forced single line) -->
     <div class="bg-white p-3 mb-4" style="border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #f1f5f9; min-width: 1000px; display: flex !important; flex-wrap: nowrap !important; align-items: flex-end !important; gap: 20px;">
             
-        <div style="width: 280px; flex-shrink: 0;">
+        <div style="flex: 1.5; min-width: 250px;">
             <label style="font-size: 13px; font-weight: 600; color: #4b5563; margin-bottom: 8px; display:block;">Date Range</label>
-            <div class="input-group" style="display: flex !important; flex-wrap: nowrap !important; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0;">
+            <div class="input-group" style="display: flex !important; flex-wrap: nowrap !important; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; height: 38px;">
                 <span class="input-group-text bg-white text-muted border-0" style="padding: 0 12px;"><i class="fa-regular fa-calendar"></i></span>
                 <input type="date" id="admin-rep-att-sum-start" class="form-control border-0 text-dark px-1 shadow-none" style="font-size: 13px; background: transparent;">
                 <span class="input-group-text bg-white text-muted border-0 px-1" style="font-size: 13px;">-</span>
@@ -3314,21 +3314,21 @@
             </div>
         </div>
         
-        <div style="width: 200px; flex-shrink: 0;">
+        <div style="flex: 1; min-width: 180px;">
             <label style="font-size: 13px; font-weight: 600; color: #4b5563; margin-bottom: 8px; display:block;">Department</label>
             <select id="admin-rep-att-sum-dept" class="form-select text-dark shadow-none" style="font-size: 13px; border-radius: 8px; border: 1px solid #e2e8f0; height: 38px;">
                 <option value="All">All Departments</option>
             </select>
         </div>
         
-        <div style="width: 200px; flex-shrink: 0;">
+        <div style="flex: 1; min-width: 180px;">
             <label style="font-size: 13px; font-weight: 600; color: #4b5563; margin-bottom: 8px; display:block;">Employee</label>
             <select id="admin-rep-att-sum-emp" class="form-select text-dark shadow-none" style="font-size: 13px; border-radius: 8px; border: 1px solid #e2e8f0; height: 38px;">
                 <option value="All">All Employees</option>
             </select>
         </div>
         
-        <div style="width: 150px; flex-shrink: 0;">
+        <div style="flex: 0.8; min-width: 130px;">
             <label style="font-size: 13px; font-weight: 600; color: #4b5563; margin-bottom: 8px; display:block;">Status</label>
             <select id="admin-rep-att-sum-status" class="form-select text-dark shadow-none" style="font-size: 13px; border-radius: 8px; border: 1px solid #e2e8f0; height: 38px;">
                 <option value="All">All</option>
@@ -3340,7 +3340,7 @@
         </div>
         
         <div style="display: flex; flex-nowrap; align-items: flex-end; gap: 12px; margin-left: auto;">
-            <button class="btn text-white shadow-sm" style="background: #2563eb; font-size: 14px; font-weight: 500; white-space: nowrap; padding: 0 24px; height: 38px; border-radius: 8px; border: none;" onclick="if(window.generateAdminReport) window.generateAdminReport('attendance-summary')">
+            <button class="btn btn-primary text-white shadow-sm" style="font-size: 14px; font-weight: 500; white-space: nowrap; padding: 0 24px; height: 38px; border-radius: 8px;" onclick="if(window.generateAdminReport) window.generateAdminReport('attendance-summary')">
                 <i class="fa-solid fa-chart-bar me-2"></i>Generate Report
             </button>
             <button class="btn bg-white text-dark shadow-sm" style="font-size: 14px; font-weight: 500; white-space: nowrap; padding: 0 16px; height: 38px; border-radius: 8px; border: 1px solid #e2e8f0;" onclick="if(window.resetAttSummaryFilters) window.resetAttSummaryFilters()" title="Reset Filters">
@@ -3354,79 +3354,79 @@
     <div id="att-summary-cards-container" class="mb-4" style="display: flex !important; flex-wrap: nowrap !important; overflow-x: auto; gap: 20px; min-width: 1000px;">
         
         <div style="flex: 1; min-width: 160px;">
-            <div class="bg-white p-3 h-100 shadow-sm position-relative d-flex align-items-center" style="border-radius: 12px; border: 1px solid #f1f5f9; min-height: 110px;">
-                <div style="width:50px; height:50px; background: #eff6ff; color: #3b82f6; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-right: 15px; flex-shrink: 0;">
+            <div class="bg-white p-3 h-100 shadow-sm position-relative d-flex align-items-center" style="border-radius: 12px; border: 1px solid #f1f5f9; min-height: 80px;">
+                <div style="width:40px; height:40px; background: #eff6ff; color: #3b82f6; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 12px; flex-shrink: 0;">
                     <i class="fa-solid fa-users"></i>
                 </div>
                 <div style="flex-grow: 1;">
-                    <div style="font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 6px; white-space: nowrap;">Total Employees</div>
-                    <div id="att-sum-total-emp" style="font-size: 32px; font-weight: 800; color: #0f172a; line-height: 1;">0</div>
+                    <div style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 2px; white-space: nowrap;">Total Employees</div>
+                    <div id="att-sum-total-emp" style="font-size: 24px; font-weight: 800; color: #0f172a; line-height: 1;">0</div>
                 </div>
             </div>
         </div>
         
         <div style="flex: 1; min-width: 160px;">
-            <div class="bg-white p-3 h-100 shadow-sm position-relative d-flex align-items-center" style="border-radius: 12px; border: 1px solid #f1f5f9; min-height: 110px;">
-                <div style="width:50px; height:50px; border: 2px solid #22c55e; color: #22c55e; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-right: 15px; flex-shrink: 0;">
+            <div class="bg-white p-3 h-100 shadow-sm position-relative d-flex align-items-center" style="border-radius: 12px; border: 1px solid #f1f5f9; min-height: 80px;">
+                <div style="width:40px; height:40px; border: 2px solid #22c55e; color: #22c55e; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 12px; flex-shrink: 0;">
                     <i class="fa-solid fa-check"></i>
                 </div>
                 <div style="flex-grow: 1;">
-                    <div style="font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 6px; white-space: nowrap;">Present</div>
-                    <div id="att-sum-present" style="font-size: 32px; font-weight: 800; color: #0f172a; line-height: 1;">0</div>
+                    <div style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 2px; white-space: nowrap;">Present</div>
+                    <div id="att-sum-present" style="font-size: 24px; font-weight: 800; color: #0f172a; line-height: 1;">0</div>
                 </div>
-                <div id="att-sum-present-perc" style="position: absolute; bottom: 12px; right: 15px; font-size: 11px; color: #94a3b8; font-weight: 600;">0.00%</div>
+                <div id="att-sum-present-perc" style="position: absolute; bottom: 10px; right: 12px; font-size: 10px; color: #94a3b8; font-weight: 600;">0.00%</div>
             </div>
         </div>
         
         <div style="flex: 1; min-width: 160px;">
-            <div class="bg-white p-3 h-100 shadow-sm position-relative d-flex align-items-center" style="border-radius: 12px; border: 1px solid #f1f5f9; min-height: 110px;">
-                <div style="width:50px; height:50px; color: #f97316; display: flex; align-items: center; justify-content: center; font-size: 32px; margin-right: 15px; flex-shrink: 0;">
+            <div class="bg-white p-3 h-100 shadow-sm position-relative d-flex align-items-center" style="border-radius: 12px; border: 1px solid #f1f5f9; min-height: 80px;">
+                <div style="width:40px; height:40px; color: #f97316; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-right: 12px; flex-shrink: 0;">
                     <i class="fa-solid fa-user-xmark"></i>
                 </div>
                 <div style="flex-grow: 1;">
-                    <div style="font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 6px; white-space: nowrap;">Absent</div>
-                    <div id="att-sum-absent" style="font-size: 32px; font-weight: 800; color: #0f172a; line-height: 1;">0</div>
+                    <div style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 2px; white-space: nowrap;">Absent</div>
+                    <div id="att-sum-absent" style="font-size: 24px; font-weight: 800; color: #0f172a; line-height: 1;">0</div>
                 </div>
-                <div id="att-sum-absent-perc" style="position: absolute; bottom: 12px; right: 15px; font-size: 11px; color: #94a3b8; font-weight: 600;">0.00%</div>
+                <div id="att-sum-absent-perc" style="position: absolute; bottom: 10px; right: 12px; font-size: 10px; color: #94a3b8; font-weight: 600;">0.00%</div>
             </div>
         </div>
         
         <div style="flex: 1; min-width: 160px;">
-            <div class="bg-white p-3 h-100 shadow-sm position-relative d-flex align-items-center" style="border-radius: 12px; border: 1px solid #f1f5f9; min-height: 110px;">
-                <div style="width:50px; height:50px; color: #eab308; display: flex; align-items: center; justify-content: center; font-size: 30px; margin-right: 15px; flex-shrink: 0;">
+            <div class="bg-white p-3 h-100 shadow-sm position-relative d-flex align-items-center" style="border-radius: 12px; border: 1px solid #f1f5f9; min-height: 80px;">
+                <div style="width:40px; height:40px; color: #eab308; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-right: 12px; flex-shrink: 0;">
                     <i class="fa-regular fa-clock"></i>
                 </div>
                 <div style="flex-grow: 1;">
-                    <div style="font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 6px; white-space: nowrap;">Late Arrivals</div>
-                    <div id="att-sum-late" style="font-size: 32px; font-weight: 800; color: #0f172a; line-height: 1;">0</div>
+                    <div style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 2px; white-space: nowrap;">Late Arrivals</div>
+                    <div id="att-sum-late" style="font-size: 24px; font-weight: 800; color: #0f172a; line-height: 1;">0</div>
                 </div>
-                <div id="att-sum-late-perc" style="position: absolute; bottom: 12px; right: 15px; font-size: 11px; color: #94a3b8; font-weight: 600;">0.00%</div>
+                <div id="att-sum-late-perc" style="position: absolute; bottom: 10px; right: 12px; font-size: 10px; color: #94a3b8; font-weight: 600;">0.00%</div>
             </div>
         </div>
         
         <div style="flex: 1; min-width: 160px;">
-            <div class="bg-white p-3 h-100 shadow-sm position-relative d-flex align-items-center" style="border-radius: 12px; border: 1px solid #f1f5f9; min-height: 110px;">
-                <div style="width:50px; height:50px; color: #0ea5e9; display: flex; align-items: center; justify-content: center; font-size: 30px; margin-right: 15px; flex-shrink: 0;">
+            <div class="bg-white p-3 h-100 shadow-sm position-relative d-flex align-items-center" style="border-radius: 12px; border: 1px solid #f1f5f9; min-height: 80px;">
+                <div style="width:40px; height:40px; color: #0ea5e9; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-right: 12px; flex-shrink: 0;">
                     <i class="fa-solid fa-umbrella"></i>
                 </div>
                 <div style="flex-grow: 1;">
-                    <div style="font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 6px; white-space: nowrap;">On Leave</div>
-                    <div id="att-sum-leave" style="font-size: 32px; font-weight: 800; color: #0f172a; line-height: 1;">0</div>
+                    <div style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 2px; white-space: nowrap;">On Leave</div>
+                    <div id="att-sum-leave" style="font-size: 24px; font-weight: 800; color: #0f172a; line-height: 1;">0</div>
                 </div>
-                <div id="att-sum-leave-perc" style="position: absolute; bottom: 12px; right: 15px; font-size: 11px; color: #94a3b8; font-weight: 600;">0.00%</div>
+                <div id="att-sum-leave-perc" style="position: absolute; bottom: 10px; right: 12px; font-size: 10px; color: #94a3b8; font-weight: 600;">0.00%</div>
             </div>
         </div>
         
         <div style="flex: 1; min-width: 160px;">
-            <div class="bg-white p-3 h-100 shadow-sm position-relative d-flex align-items-center" style="border-radius: 12px; border: 1px solid #f1f5f9; min-height: 110px;">
-                <div style="width:50px; height:50px; color: #8b5cf6; display: flex; align-items: center; justify-content: center; font-size: 30px; margin-right: 15px; flex-shrink: 0;">
+            <div class="bg-white p-3 h-100 shadow-sm position-relative d-flex align-items-center" style="border-radius: 12px; border: 1px solid #f1f5f9; min-height: 80px;">
+                <div style="width:40px; height:40px; color: #8b5cf6; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-right: 12px; flex-shrink: 0;">
                     <i class="fa-solid fa-chart-pie"></i>
                 </div>
                 <div style="flex-grow: 1;">
-                    <div style="font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 6px; white-space: nowrap;">Attendance Rate</div>
-                    <div id="att-sum-rate" style="font-size: 32px; font-weight: 800; color: #0f172a; line-height: 1;">0%</div>
+                    <div style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 2px; white-space: nowrap;">Attendance Rate</div>
+                    <div id="att-sum-rate" style="font-size: 24px; font-weight: 800; color: #0f172a; line-height: 1;">0%</div>
                 </div>
-                <div id="att-sum-rate-trend" style="position: absolute; bottom: 12px; right: 15px; font-size: 11px; color: #22c55e; font-weight: 600;"><i class="fa-solid fa-arrow-up"></i> 5.2%</div>
+                <div id="att-sum-rate-trend" style="position: absolute; bottom: 10px; right: 12px; font-size: 10px; color: #22c55e; font-weight: 600;"><i class="fa-solid fa-arrow-up"></i> 5.2%</div>
             </div>
         </div>
     </div>
@@ -3470,11 +3470,11 @@
     </div>
 
     <!-- BOTTOM WIDGETS -->
-    <div class="d-print-none mb-5" style="display: flex !important; flex-wrap: nowrap !important; gap: 20px; min-width: 1000px;">
+    <div class="d-print-none mb-5" style="display: flex !important; flex-wrap: nowrap !important; align-items: flex-start !important; gap: 20px; min-width: 1000px;">
         
         <!-- Attendance Summary List -->
         <div style="flex: 1;">
-            <div class="bg-white p-4 h-100 shadow-sm" style="border-radius: 12px; border: 1px solid #f1f5f9;">
+            <div class="bg-white p-4 shadow-sm" style="border-radius: 12px; border: 1px solid #f1f5f9;">
                 <h6 style="margin: 0 0 24px 0; font-size: 16px; font-weight: 700; color: #1e293b; white-space: nowrap;">Attendance Summary</h6>
                 
                 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -3516,7 +3516,7 @@
 
         <!-- Top Performers -->
         <div style="flex: 1;">
-            <div class="bg-white p-4 h-100 shadow-sm" style="border-radius: 12px; border: 1px solid #f1f5f9;">
+            <div class="bg-white p-4 shadow-sm" style="border-radius: 12px; border: 1px solid #f1f5f9;">
                 <h6 style="margin: 0 0 24px 0; font-size: 16px; font-weight: 700; color: #1e293b; white-space: nowrap;">Top Performers (By Attendance %)</h6>
                 <div id="att-sum-top-att">
                     <!-- JS will inject top performers here -->
@@ -3527,7 +3527,7 @@
         
         <!-- Attendance Issues -->
         <div style="flex: 1;">
-            <div class="bg-white p-4 h-100 shadow-sm" style="border-radius: 12px; border: 1px solid #f1f5f9;">
+            <div class="bg-white p-4 shadow-sm" style="border-radius: 12px; border: 1px solid #f1f5f9;">
                 <h6 style="margin: 0 0 24px 0; font-size: 16px; font-weight: 700; color: #1e293b; white-space: nowrap;">Attendance Issues</h6>
                 <div id="att-sum-issues">
                     <!-- JS will inject issues here -->
@@ -8924,6 +8924,7 @@
 </body>
 
 </html>
+
 
 
 
