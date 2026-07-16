@@ -768,16 +768,16 @@ function generateAdminAttendanceSummaryReport(db) {
         
         // Status Badge Logic
         let statusBadge = '<span style="display:inline-block; border: 1px solid #dc2626; color: #dc2626; background: #fff; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 600;">Poor</span>';
-        let pgColor = 'bg-danger';
+        let pgColor = '#dc2626';
         if (attendanceRate >= 95) {
             statusBadge = '<span style="display:inline-block; border: 1px solid #16a34a; color: #16a34a; background: #fff; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 600;">Excellent</span>';
-            pgColor = 'bg-success';
+            pgColor = '#16a34a';
         } else if (attendanceRate >= 85) {
             statusBadge = '<span style="display:inline-block; border: 1px solid #3b82f6; color: #3b82f6; background: #fff; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 600;">Good</span>';
-            pgColor = 'bg-primary';
+            pgColor = '#3b82f6';
         } else if (attendanceRate >= 75) {
             statusBadge = '<span style="display:inline-block; border: 1px solid #f97316; color: #f97316; background: #fff; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 600;">Warning</span>';
-            pgColor = 'bg-warning';
+            pgColor = '#f97316';
         }
 
         summaryData.push({ 
@@ -824,28 +824,28 @@ function generateAdminAttendanceSummaryReport(db) {
             const progressHtml = `
             <div style="display: flex; flex-direction: column; width: 100%; max-width: 120px;">
                 <div style="font-size: 13px; font-weight: 700; color: #111827; margin-bottom: 4px;">${row.attendanceRate.toFixed(2)}%</div>
-                <div class="progress" style="height: 4px; background: #e5e7eb; border-radius: 4px;">
-                    <div class="progress-bar ${row.pgColor}" role="progressbar" style="width: ${row.attendanceRate}%; border-radius: 4px;"></div>
+                <div style="height: 4px; background: #e5e7eb; border-radius: 4px; width: 100%; overflow: hidden;">
+                    <div style="width: ${row.attendanceRate}%; height: 100%; background-color: ${row.pgColor}; border-radius: 4px;"></div>
                 </div>
             </div>`;
 
             tbody.innerHTML += `<tr>
-                <td style="font-size:12px; font-weight:600; color:#6b7280;" class="ps-4">${idx + 1}</td>
-                <td>
+                <td style="font-size:12px; font-weight:600; color:#6b7280; padding: 10px 15px;" class="ps-4">${idx + 1}</td>
+                <td style="padding: 10px 15px;">
                     <div style="cursor:pointer;" onclick="window.openAttendanceDetailModal('${row.u.id}')">
                         <div style="font-size:13px;font-weight:600;color:#111827;">${row.u.name}</div>
                         <div style="font-size:11px;color:#6b7280;margin-top:2px;">EMP-${row.u.id}</div>
                     </div>
                 </td>
-                <td style="font-size:12px; color:#4b5563;">${row.u.department || 'N/A'}</td>
-                <td style="text-align: center; font-size:13px; color:#4b5563;">${row.presentCount}</td>
-                <td style="text-align: center; font-size:13px; color:#4b5563;">${row.absentCount}</td>
-                <td style="text-align: center; font-size:13px; color:#4b5563;">${row.leaveCount}</td>
-                <td style="text-align: center; font-size:13px; color:#4b5563;">${row.lateCount}</td>
-                <td style="text-align: center; font-size:13px; color:#4b5563;">${formatHrs(row.workHrs)}</td>
-                <td style="text-align: center; font-size:13px; color:#4b5563;">${formatHrs(row.overtimeHrs)}</td>
-                <td>${progressHtml}</td>
-                <td style="text-align: center;">${row.statusBadge}</td>
+                <td style="font-size:12px; color:#4b5563; padding: 10px 15px;">${row.u.department || 'N/A'}</td>
+                <td style="text-align: center; font-size:13px; color:#4b5563; padding: 10px 15px;">${row.presentCount}</td>
+                <td style="text-align: center; font-size:13px; color:#4b5563; padding: 10px 15px;">${row.absentCount}</td>
+                <td style="text-align: center; font-size:13px; color:#4b5563; padding: 10px 15px;">${row.leaveCount}</td>
+                <td style="text-align: center; font-size:13px; color:#4b5563; padding: 10px 15px;">${row.lateCount}</td>
+                <td style="text-align: center; font-size:13px; color:#4b5563; padding: 10px 15px;">${formatHrs(row.workHrs)}</td>
+                <td style="text-align: center; font-size:13px; color:#4b5563; padding: 10px 15px;">${formatHrs(row.overtimeHrs)}</td>
+                <td style="padding: 10px 15px;">${progressHtml}</td>
+                <td style="text-align: center; padding: 10px 15px;">${row.statusBadge}</td>
             </tr>`;
         });
     }
