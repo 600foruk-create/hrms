@@ -1269,7 +1269,7 @@ function generateAdminLeaveReport(db) {
             
             let applyDate = req.submittedAt || req.startDate || req.fromDate || req.date || '-';
             if(applyDate.includes('T')) applyDate = applyDate.split('T')[0];
-            const displayApplyDate = new Date(applyDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            const displayApplyDate = applyDate !== '-' && !isNaN(new Date(applyDate)) ? new Date(applyDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
 
             let fromDate = req.startDate || req.fromDate || req.date || '-';
             let toDate = req.endDate || req.toDate || req.date || '-';
@@ -1281,8 +1281,8 @@ function generateAdminLeaveReport(db) {
                 } else calculatedDays = 1;
             }
             
-            const displayFrom = fromDate !== '-' ? new Date(fromDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
-            const displayTo = toDate !== '-' ? new Date(toDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+            const displayFrom = fromDate !== '-' && !isNaN(new Date(fromDate)) ? new Date(fromDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+            const displayTo = toDate !== '-' && !isNaN(new Date(toDate)) ? new Date(toDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
 
             const lType = req.type || req.leaveType || '-';
             const bClass = badgeMap[lType] || 'badge-soft-blue';
@@ -1311,7 +1311,7 @@ function generateAdminLeaveReport(db) {
 
     // Analyze data per employee for Table 2 and Table 3
     let empStats = {};
-    allUsers.filter(u => u.role === 'employee' || u.role === 'manager').forEach(u => {
+    allUsers.filter(u => u.role && (u.role.toLowerCase() === 'employee' || u.role.toLowerCase() === 'manager')).forEach(u => {
         if (dept !== 'All' && u.department !== dept) return;
         if (manager !== 'All' && u.manager !== manager && manager !== u.name) return;
         if (empId !== 'All' && u.id != empId) return;
