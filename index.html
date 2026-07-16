@@ -3303,11 +3303,11 @@
 
     <!-- TOP CONTROLS ROW: FILTERS (Forced single line) -->
     <div class="bg-white rounded p-3 mb-4 shadow-sm" style="border: 2px solid red; min-width: 1000px;">
-        <div class="d-flex flex-row flex-nowrap align-items-end" style="gap: 15px;">
+        <div style="display: flex !important; flex-wrap: nowrap !important; align-items: flex-end !important; gap: 15px; min-width: max-content;">
             
             <div style="width: 260px; flex-shrink: 0;">
                 <label style="font-size: 12px; font-weight: 600; color: #4b5563; margin-bottom: 6px; display:block;">Date Range</label>
-                <div class="input-group">
+                <div class="input-group" style="display: flex !important; flex-wrap: nowrap !important;">
                     <span class="input-group-text bg-white text-muted border-end-0" style="padding: 0 10px;"><i class="fa-regular fa-calendar"></i></span>
                     <input type="date" id="admin-rep-att-sum-start" class="form-control border-start-0 text-dark px-1" style="font-size: 12px;">
                     <span class="input-group-text bg-white text-muted border-start-0 border-end-0 px-1" style="font-size: 12px;">-</span>
@@ -8938,6 +8938,7 @@
 </body>
 
 </html>
+
 
 
 
