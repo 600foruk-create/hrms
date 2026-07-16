@@ -3395,7 +3395,7 @@
     </div>
 
     <!-- DATA TABLE -->
-    <div class="bg-white mb-4" style="border-radius: 8px; border: none; overflow: hidden; min-width: 1000px;">
+    <div class="bg-white mb-4 print-full-width" style="border-radius: 8px; border: none; overflow: hidden; min-width: 1000px;">
         <div class="p-3 border-bottom d-flex justify-content-between align-items-center d-print-none">
             <h5 style="margin: 0; font-size: 16px; font-weight: 700; color: #1e293b;">Attendance Report</h5>
             <div class="d-flex flex-nowrap" style="gap: 8px;">
@@ -3405,21 +3405,32 @@
             </div>
         </div>
         
-        <div class="table-responsive printable-area" id="print-area-admin-attendance-summary">
+        <div class="table-responsive printable-area print-full-width" id="print-area-admin-attendance-summary">
             <style>
                 @media print {
+                    .print-full-width {
+                        min-width: 100% !important;
+                        width: 100% !important;
+                    }
+                    #table-admin-attendance-summary {
+                        min-width: 100% !important;
+                        width: 100% !important;
+                        border-collapse: collapse !important;
+                        font-size: 10px !important;
+                        white-space: normal !important;
+                    }
                     #table-admin-attendance-summary thead th {
                         background-color: #0f2e53 !important;
                         color: #ffffff !important;
                         border-bottom: none !important;
+                        font-size: 9px !important;
+                        padding: 6px 4px !important;
                     }
                     #table-admin-attendance-summary td {
                         border-bottom: 1px solid #e2e8f0 !important;
                         border-right: none !important;
                         border-left: none !important;
-                    }
-                    #table-admin-attendance-summary {
-                        border-collapse: collapse !important;
+                        padding: 6px 4px !important;
                     }
                     .att-bottom-widgets {
                         display: none !important;
