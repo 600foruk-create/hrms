@@ -3302,36 +3302,30 @@
 <div id="admin-att-content-summary" style="background: #f8f9fa; padding: 20px; min-height: 100vh; overflow-x: auto;">
 
     <!-- TOP CONTROLS ROW: FILTERS (Forced single line) -->
-    <div class="bg-white p-3 mb-4" style="border-radius: 8px; border: 1px solid #e2e8f0; min-width: 1000px; display: flex !important; flex-wrap: nowrap !important; align-items: flex-end !important; gap: 12px;">
+    <div class="bg-white p-3 mb-4 d-flex flex-nowrap align-items-center" style="border-radius: 8px; border: 1px solid #e2e8f0; min-width: 1000px; gap: 10px;">
             
-        <div style="width: 240px; flex-shrink: 0;">
-            <label style="font-size: 12px; font-weight: 600; color: #4b5563; margin-bottom: 5px; display:block;">Date Range</label>
-            <div class="input-group" style="display: flex !important; flex-wrap: nowrap !important; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1; height: 36px;">
-                <span class="input-group-text bg-white text-muted border-0" style="padding: 0 10px;"><i class="fa-regular fa-calendar"></i></span>
-                <input type="date" id="admin-rep-att-sum-start" class="form-control border-0 text-dark px-1 shadow-none" style="font-size: 12px; background: transparent;">
-                <span class="input-group-text bg-white text-muted border-0 px-1" style="font-size: 12px;">-</span>
-                <input type="date" id="admin-rep-att-sum-end" class="form-control border-0 text-dark px-1 shadow-none" style="font-size: 12px; background: transparent;">
-            </div>
+        <div class="input-group" style="width: 310px; flex-shrink: 0; display: flex !important; flex-wrap: nowrap !important; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1; height: 38px;">
+            <span class="input-group-text bg-white text-muted border-0" style="padding: 0 10px;"><i class="fa-regular fa-calendar"></i></span>
+            <input type="date" id="admin-rep-att-sum-start" class="form-control border-0 text-dark px-1 shadow-none" style="font-size: 13px; background: transparent; flex: 1;">
+            <span class="input-group-text bg-white text-muted border-0 px-1" style="font-size: 13px;">-</span>
+            <input type="date" id="admin-rep-att-sum-end" class="form-control border-0 text-dark px-1 shadow-none" style="font-size: 13px; background: transparent; flex: 1;">
         </div>
         
         <div style="width: 160px; flex-shrink: 0;">
-            <label style="font-size: 12px; font-weight: 600; color: #4b5563; margin-bottom: 5px; display:block;">Department</label>
-            <select id="admin-rep-att-sum-dept" class="form-select text-dark shadow-none" style="font-size: 12px; border-radius: 6px; border: 1px solid #cbd5e1; height: 36px;">
+            <select id="admin-rep-att-sum-dept" class="form-select text-dark shadow-none" style="font-size: 13px; border-radius: 6px; border: 1px solid #cbd5e1; height: 38px; width: 100%;">
                 <option value="All">All Departments</option>
             </select>
         </div>
         
         <div style="width: 160px; flex-shrink: 0;">
-            <label style="font-size: 12px; font-weight: 600; color: #4b5563; margin-bottom: 5px; display:block;">Employee</label>
-            <select id="admin-rep-att-sum-emp" class="form-select text-dark shadow-none" style="font-size: 12px; border-radius: 6px; border: 1px solid #cbd5e1; height: 36px;">
+            <select id="admin-rep-att-sum-emp" class="form-select text-dark shadow-none" style="font-size: 13px; border-radius: 6px; border: 1px solid #cbd5e1; height: 38px; width: 100%;">
                 <option value="All">All Employees</option>
             </select>
         </div>
         
-        <div style="width: 130px; flex-shrink: 0;">
-            <label style="font-size: 12px; font-weight: 600; color: #4b5563; margin-bottom: 5px; display:block;">Status</label>
-            <select id="admin-rep-att-sum-status" class="form-select text-dark shadow-none" style="font-size: 12px; border-radius: 6px; border: 1px solid #cbd5e1; height: 36px;">
-                <option value="All">All</option>
+        <div style="width: 160px; flex-shrink: 0;">
+            <select id="admin-rep-att-sum-status" class="form-select text-dark shadow-none" style="font-size: 13px; border-radius: 6px; border: 1px solid #cbd5e1; height: 38px; width: 100%;">
+                <option value="All">All Statuses</option>
                 <option value="Present">Present</option>
                 <option value="Absent">Absent</option>
                 <option value="Late">Late</option>
@@ -3339,11 +3333,11 @@
             </select>
         </div>
         
-        <div style="display: flex; flex-nowrap; align-items: flex-end; gap: 8px; margin-left: auto;">
-            <button class="btn btn-primary text-white shadow-none" style="font-size: 13px; font-weight: 500; white-space: nowrap; padding: 0 16px; height: 36px; border-radius: 6px;" onclick="if(window.generateAdminReport) window.generateAdminReport('attendance-summary')">
+        <div class="d-flex flex-nowrap align-items-center" style="gap: 8px;">
+            <button class="btn btn-primary text-white shadow-none" style="font-size: 13px; font-weight: 500; white-space: nowrap; padding: 0 16px; height: 38px; border-radius: 6px;" onclick="if(window.generateAdminReport) window.generateAdminReport('attendance-summary')">
                 <i class="fa-solid fa-chart-bar me-1"></i>Generate Report
             </button>
-            <button class="btn bg-white text-dark shadow-none" style="font-size: 13px; font-weight: 500; white-space: nowrap; padding: 0 12px; height: 36px; border-radius: 6px; border: 1px solid #cbd5e1;" onclick="if(window.resetAttSummaryFilters) window.resetAttSummaryFilters()" title="Reset Filters">
+            <button class="btn bg-white text-dark shadow-none" style="font-size: 13px; font-weight: 500; white-space: nowrap; padding: 0 12px; height: 38px; border-radius: 6px; border: 1px solid #cbd5e1;" onclick="if(window.resetAttSummaryFilters) window.resetAttSummaryFilters()" title="Reset Filters">
                 <i class="fa-solid fa-rotate-right me-1"></i> Reset
             </button>
         </div>
