@@ -3302,7 +3302,7 @@
 <div id="admin-att-content-summary" class="section-card bg-white flex-table-card" style="padding: 20px; min-height: 100vh; overflow-x: auto; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
 
     <!-- TOP CONTROLS ROW: FILTERS (Forced single line) -->
-    <div class="p-3 mb-4" style="border-radius: 8px; border: none; min-width: 1000px; display: flex !important; flex-wrap: nowrap !important; align-items: center !important; gap: 10px;">
+    <div class="p-3 mb-4 d-print-none" style="border-radius: 8px; border: none; min-width: 1000px; display: flex; flex-wrap: nowrap; align-items: center; gap: 10px;">
             
         <div class="input-group" style="width: 310px; flex-shrink: 0; display: flex !important; flex-wrap: nowrap !important; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1; height: 38px;">
             <input type="date" id="admin-rep-att-sum-start" class="form-control border-0 text-dark px-2 shadow-none text-center" style="font-size: 13px; background: transparent; flex: 1;">
@@ -3344,7 +3344,7 @@
     </div>
 
     <!-- SUMMARY CARDS IN ONE ROW (Forced single line) -->
-    <div id="att-summary-cards-container" class="mb-4" style="display: flex !important; flex-wrap: nowrap !important; overflow-x: auto; gap: 15px; min-width: 1000px;">
+    <div id="att-summary-cards-container" class="mb-4 d-print-none" style="display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 15px; min-width: 1000px;">
         
         <div style="flex: 1; min-width: 130px;">
             <div class="bg-white p-3 h-100 shadow-sm position-relative text-center" style="border-radius: 8px; border: 1px solid #e2e8f0; min-height: 70px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
@@ -3396,7 +3396,7 @@
 
     <!-- DATA TABLE -->
     <div class="bg-white mb-4" style="border-radius: 8px; border: none; overflow: hidden; min-width: 1000px;">
-        <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center d-print-none">
             <h5 style="margin: 0; font-size: 16px; font-weight: 700; color: #1e293b;">Attendance Report</h5>
             <div class="d-flex flex-nowrap" style="gap: 8px;">
                 <button class="btn btn-sm border text-dark bg-white shadow-sm" style="font-size: 12px; font-weight: 500;" onclick="if(window.exportAttSummaryExcel) window.exportAttSummaryExcel()">Excel</button>
