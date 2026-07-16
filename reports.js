@@ -879,12 +879,12 @@ function generateAdminAttendanceSummaryReport(db) {
     const topAttEl = document.getElementById('att-sum-top-att');
     if (topAttList.length) {
         topAttEl.innerHTML = topAttList.map((x, i) => `
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                 <div style="width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px;">
                     <strong style="color:#111827; margin-right: 8px;">${i+1}</strong> <span style="font-weight: 600; color:#111827;">${x.u.name}</span>
                 </div>
-                <div class="progress flex-grow-1 mx-3" style="height: 6px; background: #e5e7eb; border-radius: 4px;">
-                    <div class="progress-bar ${x.pgColor}" style="width: ${x.attendanceRate}%; border-radius: 4px;"></div>
+                <div style="flex-grow: 1; margin: 0 16px; height: 6px; background: #e5e7eb; border-radius: 4px; overflow: hidden;">
+                    <div style="width: ${x.attendanceRate}%; height: 100%; background-color: ${x.pgColor}; border-radius: 4px;"></div>
                 </div>
                 <div style="width: 55px; text-align: right; font-weight: 600; color: #4b5563; font-size: 12px;">
                     ${x.attendanceRate.toFixed(2)}%
@@ -904,33 +904,33 @@ function generateAdminAttendanceSummaryReport(db) {
         const leastWork = [...summaryData].sort((a,b) => a.workHrs - b.workHrs)[0];
 
         issuesEl.innerHTML = `
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div class="d-flex align-items-center gap-2" style="width: 160px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 12px; width: 160px;">
                     <i class="fa-solid fa-user-xmark" style="color: #ef4444; width: 16px; text-align: center;"></i> 
                     <span style="font-size: 13px; font-weight: 600; color: #4b5563;">Most Absent</span>
                 </div>
-                <div style="font-size: 13px; color: #111827;">${mostAbsent.u.name} <span class="text-muted">(${mostAbsent.absentCount} Days)</span></div>
+                <div style="font-size: 13px; color: #111827;">${mostAbsent.u.name} <span class="text-muted" style="color: #64748b;">(${mostAbsent.absentCount} Days)</span></div>
             </div>
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div class="d-flex align-items-center gap-2" style="width: 160px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 12px; width: 160px;">
                     <i class="fa-regular fa-clock" style="color: #f97316; width: 16px; text-align: center;"></i> 
                     <span style="font-size: 13px; font-weight: 600; color: #4b5563;">Most Late</span>
                 </div>
-                <div style="font-size: 13px; color: #111827;">${mostLate.u.name} <span class="text-muted">(${mostLate.lateCount} Days)</span></div>
+                <div style="font-size: 13px; color: #111827;">${mostLate.u.name} <span class="text-muted" style="color: #64748b;">(${mostLate.lateCount} Days)</span></div>
             </div>
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div class="d-flex align-items-center gap-2" style="width: 160px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 12px; width: 160px;">
                     <i class="fa-solid fa-chart-pie" style="color: #f59e0b; width: 16px; text-align: center;"></i> 
                     <span style="font-size: 13px; font-weight: 600; color: #4b5563;">Lowest Attendance</span>
                 </div>
-                <div style="font-size: 13px; color: #111827;">${lowestAtt.u.name} <span class="text-muted">(${lowestAtt.attendanceRate.toFixed(0)}%)</span></div>
+                <div style="font-size: 13px; color: #111827;">${lowestAtt.u.name} <span class="text-muted" style="color: #64748b;">(${lowestAtt.attendanceRate.toFixed(0)}%)</span></div>
             </div>
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center gap-2" style="width: 160px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 12px; width: 160px;">
                     <i class="fa-solid fa-clock-rotate-left" style="color: #3b82f6; width: 16px; text-align: center;"></i> 
                     <span style="font-size: 13px; font-weight: 600; color: #4b5563;">Least Work Hours</span>
                 </div>
-                <div style="font-size: 13px; color: #111827;">${leastWork.u.name} <span class="text-muted">(${formatHrs(leastWork.workHrs)})</span></div>
+                <div style="font-size: 13px; color: #111827;">${leastWork.u.name} <span class="text-muted" style="color: #64748b;">(${formatHrs(leastWork.workHrs)})</span></div>
             </div>
         `;
     } else {
