@@ -3815,8 +3815,8 @@
         </div>
 
         <!-- ROW 1: FILTERS -->
-        <div class="premium-card p-3 print-hide" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 220px;">
+        <div class="premium-card p-3 print-hide" style="display: flex; gap: 8px; align-items: flex-end; flex-wrap: nowrap; overflow-x: auto;">
+            <div style="flex: 1; min-width: 170px;">
                 <label class="filter-label">Date Range</label>
                 <div class="input-group" style="height: 36px; border-radius: 6px; overflow: hidden; border: 1px solid #e2e8f0; background: #fdfdfd; display: flex !important; flex-wrap: nowrap !important;">
                     <span class="input-group-text bg-transparent border-0 text-muted px-2"><i class="fa-regular fa-calendar"></i></span>
@@ -3825,19 +3825,19 @@
                     <input type="date" id="admin-rep-leave-end" class="form-control border-0 bg-transparent px-1 shadow-none text-center" style="font-size: 12px; color: #1e293b;">
                 </div>
             </div>
-            <div style="flex: 1; min-width: 140px;">
+            <div style="flex: 1; min-width: 100px;">
                 <label class="filter-label">Department</label>
                 <select id="admin-rep-leave-dept" class="premium-select w-100">
                     <option value="All">All Departments</option>
                 </select>
             </div>
-            <div style="flex: 1; min-width: 140px;">
+            <div style="flex: 1; min-width: 100px;">
                 <label class="filter-label">Employee</label>
                 <select id="admin-rep-leave-emp" class="premium-select w-100">
                     <option value="All">All Employees</option>
                 </select>
             </div>
-            <div style="flex: 1; min-width: 140px;">
+            <div style="flex: 1; min-width: 100px;">
                 <label class="filter-label">Leave Type</label>
                 <select id="admin-rep-leave-type" class="premium-select w-100">
                     <option value="All">All Leave Types</option>
@@ -3847,7 +3847,7 @@
                     <option value="Unpaid Leave">Unpaid Leave</option>
                 </select>
             </div>
-            <div style="flex: 1; min-width: 120px;">
+            <div style="flex: 1; min-width: 90px;">
                 <label class="filter-label">Status</label>
                 <select id="admin-rep-leave-status" class="premium-select w-100">
                     <option value="All">All Status</option>
@@ -3856,16 +3856,16 @@
                     <option value="Rejected">Rejected</option>
                 </select>
             </div>
-            <div style="flex: 1; min-width: 140px;">
+            <div style="flex: 1; min-width: 100px;">
                 <label class="filter-label">Manager</label>
                 <select id="admin-rep-leave-manager" class="premium-select w-100">
                     <option value="All">All Managers</option>
                 </select>
             </div>
-            <div style="display: flex; gap: 10px; margin-left: auto;">
-                <button class="btn-premium-primary" onclick="if(window.generateAdminReport) window.generateAdminReport('leave')">Generate Report</button>
-                <button class="btn-premium-outline" onclick="if(window.resetLeaveSummaryFilters) window.resetLeaveSummaryFilters()"><i class="fa-solid fa-rotate-right me-1"></i> Reset</button>
-                <button class="btn-premium-outline ms-2" onclick="if(window.printReport) window.printReport('admin-report-leave')"><i class="fa-solid fa-print"></i> Print</button>
+            <div style="display: flex; gap: 6px; margin-left: auto;">
+                <button class="btn-premium-primary" style="padding: 8px 12px; font-size: 12px; white-space: nowrap;" onclick="if(window.generateAdminReport) window.generateAdminReport('leave')">Generate Report</button>
+                <button class="btn-premium-outline" style="padding: 8px 12px; font-size: 12px; white-space: nowrap;" onclick="if(window.resetLeaveSummaryFilters) window.resetLeaveSummaryFilters()"><i class="fa-solid fa-rotate-right me-1"></i> Reset</button>
+                <button class="btn-premium-outline ms-1" style="padding: 8px 12px; font-size: 12px; white-space: nowrap;" onclick="if(window.printReport) window.printReport('admin-report-leave')"><i class="fa-solid fa-print"></i> Print</button>
             </div>
         </div>
 
