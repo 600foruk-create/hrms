@@ -3870,7 +3870,7 @@
         </div>
 
         <!-- ROW 2: SUMMARY CARDS -->
-        <div class="row g-3 mb-4" id="leave-summary-cards-container">
+        <div id="leave-summary-cards-container" style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
             <div class="col-md-2 col-sm-4 col-6">
                 <div class="premium-card p-3 h-100 d-flex align-items-center" style="gap: 12px; margin-bottom: 0;">
                     <div class="sum-card-icon" style="background: #f5f3ff; color: #8b5cf6;"><i class="fa-solid fa-file-invoice"></i></div>
@@ -3971,9 +3971,9 @@
         </div>
 
         <!-- 3 COLUMN TABLES -->
-        <div class="row g-3 mb-4">
+        <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
             <!-- Table 1 -->
-            <div class="col-md-4">
+            <div style="flex: 1; min-width: 320px;">
                 <div class="premium-card p-3 h-100 d-flex flex-column" style="margin-bottom: 0;">
                     <div class="card-header-title">Employee Leave Summary</div>
                     <div class="table-responsive flex-grow-1">
@@ -4002,7 +4002,7 @@
             </div>
 
             <!-- Table 2 -->
-            <div class="col-md-4">
+            <div style="flex: 1; min-width: 320px;">
                 <div class="premium-card p-3 h-100 d-flex flex-column" style="margin-bottom: 0;">
                     <div class="card-header-title">Leave Balance Report</div>
                     <div class="table-responsive flex-grow-1">
@@ -4029,7 +4029,7 @@
             </div>
 
             <!-- Table 3 -->
-            <div class="col-md-4">
+            <div style="flex: 1; min-width: 320px;">
                 <div class="premium-card p-3 h-100 d-flex flex-column" style="margin-bottom: 0;">
                     <div class="card-header-title">Department Leave Analysis</div>
                     <div class="table-responsive flex-grow-1">
@@ -4060,9 +4060,9 @@
         <!-- INSIGHTS -->
         <div class="premium-card p-4">
             <div class="card-header-title mb-4" style="color: #1e3a8a;"><i class="fa-solid fa-chart-pie me-2"></i>Leave Insights</div>
-            <div class="row g-4">
+            <div style="display: flex; flex-wrap: wrap; gap: 20px;">
                 <!-- Most Leave Taken Employees -->
-                <div class="col-md-3 border-end">
+                <div style="flex: 1.5; min-width: 220px;" class="border-end pe-3">
                     <div style="font-size: 12px; font-weight: 700; color: #0f172a; margin-bottom: 15px;">Most Leave Taken Employees</div>
                     <div id="leave-insight-most-leaves" style="display: flex; flex-direction: column; gap: 12px;">
                         <!-- JS injected -->
@@ -4070,18 +4070,18 @@
                 </div>
 
                 <!-- Most Used Leave Type (Donut) -->
-                <div class="col-md-3 border-end d-flex flex-column">
+                <div style="flex: 1.5; min-width: 220px; display: flex; flex-direction: column;" class="border-end pe-3">
                     <div style="font-size: 12px; font-weight: 700; color: #0f172a; margin-bottom: 15px;">Most Used Leave Type</div>
-                    <div class="d-flex align-items-center justify-content-center flex-grow-1" style="gap: 20px;">
+                    <div style="display: flex; align-items: center; justify-content: center; flex-grow: 1; gap: 15px; flex-wrap: wrap;">
                         <div class="donut-chart-box" id="leave-donut-chart"></div>
-                        <div id="leave-donut-legend" style="display: flex; flex-direction: column; gap: 8px; font-size: 11px; color: #475569;">
+                        <div id="leave-donut-legend" style="display: flex; flex-direction: column; gap: 8px; font-size: 11px; color: #475569; min-width: 100px;">
                             <!-- JS injected -->
                         </div>
                     </div>
                 </div>
 
                 <!-- Department With Highest Leave Usage -->
-                <div class="col-md-2 border-end">
+                <div style="flex: 1; min-width: 180px;" class="border-end pe-3">
                     <div style="font-size: 12px; font-weight: 700; color: #0f172a; margin-bottom: 15px;">Department With Highest Leave Usage</div>
                     <div id="leave-insight-high-dept-name" style="font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">-</div>
                     <div style="font-size: 20px; font-weight: 800; color: #0f172a; line-height: 1;"><span id="leave-insight-high-dept-days">0</span> <span style="font-size: 12px; font-weight: 500; color: #64748b;">Days</span></div>
@@ -4090,7 +4090,7 @@
                 </div>
 
                 <!-- Employees On Leave Today -->
-                <div class="col-md-2 border-end">
+                <div style="flex: 1.2; min-width: 200px;" class="border-end pe-3">
                     <div style="font-size: 12px; font-weight: 700; color: #0f172a; margin-bottom: 15px;">Employees On Leave Today</div>
                     <div id="leave-insight-onleave-list" style="display: flex; flex-direction: column; gap: 12px;">
                         <!-- JS injected -->
@@ -4098,7 +4098,7 @@
                 </div>
 
                 <!-- Low Leave Balance Employees -->
-                <div class="col-md-2">
+                <div style="flex: 1.2; min-width: 200px;">
                     <div style="font-size: 12px; font-weight: 700; color: #ef4444; margin-bottom: 15px;"><i class="fa-solid fa-user-group me-1"></i> Low Leave Balance Employees</div>
                     <div id="leave-insight-low-bal-list" style="display: flex; flex-direction: column; gap: 12px;">
                         <!-- JS injected -->
