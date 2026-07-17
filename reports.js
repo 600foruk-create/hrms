@@ -1164,7 +1164,7 @@ function generateAdminLeaveReport(db) {
     const dept = document.getElementById('admin-rep-leave-dept').value;
     const type = document.getElementById('admin-rep-leave-type').value;
     const status = document.getElementById('admin-rep-leave-status').value;
-    const manager = document.getElementById('admin-rep-leave-manager').value;
+    const shift = document.getElementById('admin-rep-leave-shift').value;
 
     if (!start || !end) {
         if(window.showToast) window.showToast('Please select start and end dates', 'warning');
@@ -1197,7 +1197,7 @@ function generateAdminLeaveReport(db) {
         if (type !== 'All' && req.type !== type && req.leaveType !== type) match = false;
         if (status !== 'All' && req.status !== status) match = false;
         if (dept !== 'All' && emp.department !== dept) match = false;
-        if (manager !== 'All' && emp.manager !== manager && manager !== emp.name) match = false; 
+        if (shift !== 'All' && emp.shift !== shift) match = false; 
 
         return match;
     });
@@ -1585,7 +1585,7 @@ function resetLeaveSummaryFilters() {
     if(document.getElementById('admin-rep-leave-emp')) document.getElementById('admin-rep-leave-emp').value = 'All';
     if(document.getElementById('admin-rep-leave-type')) document.getElementById('admin-rep-leave-type').value = 'All';
     if(document.getElementById('admin-rep-leave-status')) document.getElementById('admin-rep-leave-status').value = 'All';
-    if(document.getElementById('admin-rep-leave-manager')) document.getElementById('admin-rep-leave-manager').value = 'All';
+    if(document.getElementById('admin-rep-leave-shift')) document.getElementById('admin-rep-leave-shift').value = 'All';
     
     if(window.generateAdminReport) window.generateAdminReport('leave');
 }

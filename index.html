@@ -3815,7 +3815,7 @@
         </div>
 
                 <!-- ROW 1: FILTERS -->
-        <div class="premium-card p-3 print-hide" style="display: flex; gap: 10px; align-items: center; flex-wrap: nowrap; overflow-x: auto;">
+        <div class="print-hide" style="display: flex; gap: 10px; align-items: center; flex-wrap: nowrap; overflow-x: auto; margin-bottom: 20px;">
             <input type="date" id="admin-rep-leave-start" class="premium-select" style="padding: 0 8px; font-size: 12px; height: 36px; min-width: 120px; flex: 1;">
             <input type="date" id="admin-rep-leave-end" class="premium-select" style="padding: 0 8px; font-size: 12px; height: 36px; min-width: 120px; flex: 1;">
             
@@ -3842,8 +3842,11 @@
                 <option value="Rejected">Rejected</option>
             </select>
             
-            <select id="admin-rep-leave-manager" class="premium-select" style="height: 36px; min-width: 120px; flex: 1;">
-                <option value="All">All Managers</option>
+            <select id="admin-rep-leave-shift" class="premium-select" style="height: 36px; min-width: 120px; flex: 1;">
+                <option value="All">All Shifts</option>
+                <option value="Morning">Morning</option>
+                <option value="Evening">Evening</option>
+                <option value="Night">Night</option>
             </select>
             
             <div style="display: flex; gap: 6px; margin-left: auto; flex-shrink: 0;">
