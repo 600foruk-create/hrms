@@ -1325,12 +1325,34 @@ function generateAdminLeaveReport(db) {
         if (dept !== 'All' && u.department !== dept) return;
         if (empId !== 'All' && u.id != empId) return;
         
+                let casualAlloc = 10, medicalAlloc = 8, annualAlloc = 14;
+        
+        // 1. Get global defaults
+        if (db.companyProfile && db.companyProfile.leaveTypes) {
+            const cl = db.companyProfile.leaveTypes.find(lt => lt.name === 'Casual Leave' || lt.name === 'Casual Leaves');
+            if (cl) casualAlloc = parseInt(cl.days) || 0;
+            const ml = db.companyProfile.leaveTypes.find(lt => lt.name === 'Medical Leave' || lt.name === 'Medical Leaves');
+            if (ml) medicalAlloc = parseInt(ml.days) || 0;
+            const al = db.companyProfile.leaveTypes.find(lt => lt.name === 'Annual Leave' || lt.name === 'Annual Leaves');
+            if (al) annualAlloc = parseInt(al.days) || 0;
+        }
+
+        // 2. Override with custom balances if enabled
+        if (u.hasCustomLeaveBalances === true && u.leaveBalances) {
+            const cl = u.leaveBalances.find(b => b.name === 'Casual Leave' || b.name === 'Casual Leaves' || b.id === 'L1');
+            if (cl) casualAlloc = parseInt(typeof cl.total !== 'undefined' ? cl.total : cl.balance) || 0;
+            const ml = u.leaveBalances.find(b => b.name === 'Medical Leave' || b.name === 'Medical Leaves' || b.id === 'L2');
+            if (ml) medicalAlloc = parseInt(typeof ml.total !== 'undefined' ? ml.total : ml.balance) || 0;
+            const al = u.leaveBalances.find(b => b.name === 'Annual Leave' || b.name === 'Annual Leaves' || b.id === 'L3');
+            if (al) annualAlloc = parseInt(typeof al.total !== 'undefined' ? al.total : al.balance) || 0;
+        }
+
         empStats[u.id] = {
             id: u.id,
             name: u.name,
             dept: u.department || 'N/A',
             casual: 0, medical: 0, annual: 0, unpaid: 0, totalUsed: 0,
-            annualBal: 14, casualBal: 10, medicalBal: 8 // Mock default allocated
+            annualBal: annualAlloc, casualBal: casualAlloc, medicalBal: medicalAlloc
         };
     });
     
