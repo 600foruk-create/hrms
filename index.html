@@ -3753,7 +3753,7 @@
             color: #0f2e53;
             padding: 8px 5px;
             border-bottom: 1px solid #e2e8f0;
-            background-color: transparent;
+            background-color: transparent !important; white-space: normal !important;
             text-align: center;
         }
         .mini-rep-table th:first-child { text-align: left; padding-left: 0; }
@@ -4007,7 +4007,7 @@
         <!-- 3 COLUMN TABLES -->
         <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
             <!-- Table 1 -->
-            <div style="flex: 1; min-width: 320px;">
+            <div style="flex: 1; min-width: 0; flex-basis: 300px;">
                 <div class="premium-card p-3 h-100 d-flex flex-column" style="margin-bottom: 0;">
                     <div class="card-header-title">Employee Leave Summary</div>
                     <div class="table-responsive flex-grow-1">
@@ -4036,7 +4036,7 @@
             </div>
 
             <!-- Table 2 -->
-            <div style="flex: 1; min-width: 320px;">
+            <div style="flex: 1; min-width: 0; flex-basis: 300px;">
                 <div class="premium-card p-3 h-100 d-flex flex-column" style="margin-bottom: 0;">
                     <div class="card-header-title">Leave Balance Report</div>
                     <div class="table-responsive flex-grow-1">
@@ -4063,11 +4063,11 @@
             </div>
 
             <!-- Table 3 -->
-            <div style="flex: 1; min-width: 320px;">
+            <div style="flex: 1; min-width: 0; flex-basis: 300px;">
                 <div class="premium-card p-3 h-100 d-flex flex-column" style="margin-bottom: 0;">
                     <div class="card-header-title">Department Leave Analysis</div>
                     <div class="table-responsive flex-grow-1">
-                        <table class="prem-table" id="table-admin-leave-dept-analysis">
+                        <table class="mini-rep-table" id="table-admin-leave-dept-analysis">
                             <thead>
                                 <tr>
                                     <th>Department</th>
