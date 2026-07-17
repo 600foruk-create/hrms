@@ -1781,7 +1781,7 @@
                                                     <span><i class="fa-solid fa-rotate text-primary mr-2"></i> Execute
                                                         Cycle Rotation Across All Rotating Shifts</span>
                                                     <i class="fa-solid fa-chevron-right text-muted"
-                                                        style="font-size: 10px;"></i>
+                                                        ></i>
                                                 </button>
                                                 <div
                                                     style="margin-top: 4px; background: rgba(99, 102, 241, 0.05); border: 1px dashed rgba(99, 102, 241, 0.35); border-radius: 10px; padding: 14px 16px;">
@@ -2916,17 +2916,17 @@
                                                             style="padding: 2px 6px; margin-right: 2px; color: var(--primary);"
                                                             onclick="addInlineMainCat()" title="Add"><i
                                                                 class="fa-solid fa-plus"
-                                                                style="font-size: 10px;"></i></button>
+                                                                ></i></button>
                                                         <button class="btn btn-sm btn-icon"
                                                             style="padding: 2px 6px; margin-right: 2px; color: var(--text-secondary);"
                                                             onclick="editInlineMainCat()" title="Edit"><i
                                                                 class="fa-solid fa-pen"
-                                                                style="font-size: 10px;"></i></button>
+                                                                ></i></button>
                                                         <button class="btn btn-sm btn-icon"
                                                             style="padding: 2px 6px; color: var(--danger);"
                                                             onclick="deleteInlineMainCat()" title="Delete"><i
                                                                 class="fa-solid fa-trash"
-                                                                style="font-size: 10px;"></i></button>
+                                                                ></i></button>
                                                     </div>
                                                 </div>
                                                 <ul id="inventory-pane-main-cat"
@@ -2947,17 +2947,17 @@
                                                             style="padding: 2px 6px; margin-right: 2px; color: var(--primary);"
                                                             onclick="addInlineSubCat()" title="Add"><i
                                                                 class="fa-solid fa-plus"
-                                                                style="font-size: 10px;"></i></button>
+                                                                ></i></button>
                                                         <button class="btn btn-sm btn-icon"
                                                             style="padding: 2px 6px; margin-right: 2px; color: var(--text-secondary);"
                                                             onclick="editInlineSubCat()" title="Edit"><i
                                                                 class="fa-solid fa-pen"
-                                                                style="font-size: 10px;"></i></button>
+                                                                ></i></button>
                                                         <button class="btn btn-sm btn-icon"
                                                             style="padding: 2px 6px; color: var(--danger);"
                                                             onclick="deleteInlineSubCat()" title="Delete"><i
                                                                 class="fa-solid fa-trash"
-                                                                style="font-size: 10px;"></i></button>
+                                                                ></i></button>
                                                     </div>
                                                 </div>
                                                 <ul id="inventory-pane-sub-cat"
@@ -3748,25 +3748,27 @@
             border-collapse: collapse;
         }
         .mini-rep-table th {
-            font-size: 10px;
+            font-size: 9px !important;
             font-weight: 700;
             color: #0f2e53;
-            padding: 8px 5px;
+            padding: 4px 2px !important;
             border-bottom: 1px solid #e2e8f0;
             background-color: transparent !important; white-space: normal !important;
             text-align: center;
+            letter-spacing: -0.2px;
         }
         .mini-rep-table th:first-child { text-align: left; padding-left: 0; }
         .mini-rep-table th:last-child { padding-right: 0; }
         
         .mini-rep-table td {
-            font-size: 11px;
+            font-size: 10px !important;
             color: #334155;
-            padding: 8px 5px;
+            padding: 4px 2px !important;
             border-bottom: 1px solid #f1f5f9;
             text-align: center;
             vertical-align: middle;
-            white-space: nowrap;
+            white-space: normal !important;
+            letter-spacing: -0.1px;
         }
         .mini-rep-table td:first-child { text-align: left; padding-left: 0; font-weight: 600; color: #0f172a; }
         .mini-rep-table td:last-child { padding-right: 0; }
@@ -4007,7 +4009,7 @@
         <!-- 3 COLUMN TABLES -->
         <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
             <!-- Table 1 -->
-            <div style="flex: 1; min-width: 0; flex-basis: 300px;">
+            <div style="flex: 1; min-width: 0; flex-basis: 340px;">
                 <div class="premium-card p-3 h-100 d-flex flex-column" style="margin-bottom: 0;">
                     <div class="card-header-title">Employee Leave Summary</div>
                     <div class="table-responsive flex-grow-1">
@@ -4015,12 +4017,12 @@
                             <thead>
                                 <tr>
                                     <th>Employee</th>
-                                    <th class="text-center" style="font-size: 10px;">Casual<br>Leave</th>
-                                    <th class="text-center" style="font-size: 10px;">Medical<br>Leave</th>
-                                    <th class="text-center" style="font-size: 10px;">Annual<br>Leave</th>
-                                    <th class="text-center" style="font-size: 10px;">Unpaid<br>Leave</th>
-                                    <th class="text-center" style="font-size: 10px;">Total<br>Used</th>
-                                    <th class="text-center" style="font-size: 10px;">Remaining<br>Balance</th>
+                                    <th class="text-center" >Casual<br>Leave</th>
+                                    <th class="text-center" >Medical<br>Leave</th>
+                                    <th class="text-center" >Annual<br>Leave</th>
+                                    <th class="text-center" >Unpaid<br>Leave</th>
+                                    <th class="text-center" >Total<br>Used</th>
+                                    <th class="text-center" >Remaining<br>Balance</th>
                                 </tr>
                             </thead>
                             <tbody id="admin-rep-body-leave-emp-summary">
@@ -4036,7 +4038,7 @@
             </div>
 
             <!-- Table 2 -->
-            <div style="flex: 1; min-width: 0; flex-basis: 300px;">
+            <div style="flex: 1; min-width: 0; flex-basis: 340px;">
                 <div class="premium-card p-3 h-100 d-flex flex-column" style="margin-bottom: 0;">
                     <div class="card-header-title">Leave Balance Report</div>
                     <div class="table-responsive flex-grow-1">
@@ -4044,10 +4046,10 @@
                             <thead>
                                 <tr>
                                     <th>Employee</th>
-                                    <th class="text-center" style="font-size: 10px;">Annual Leave<br>Balance</th>
-                                    <th class="text-center" style="font-size: 10px;">Casual Leave<br>Balance</th>
-                                    <th class="text-center" style="font-size: 10px;">Medical Leave<br>Balance</th>
-                                    <th class="text-center" style="font-size: 10px;">Total<br>Remaining</th>
+                                    <th class="text-center" >Annual Leave<br>Balance</th>
+                                    <th class="text-center" >Casual Leave<br>Balance</th>
+                                    <th class="text-center" >Medical Leave<br>Balance</th>
+                                    <th class="text-center" >Total<br>Remaining</th>
                                 </tr>
                             </thead>
                             <tbody id="admin-rep-body-leave-balance">
@@ -4063,7 +4065,7 @@
             </div>
 
             <!-- Table 3 -->
-            <div style="flex: 1; min-width: 0; flex-basis: 300px;">
+            <div style="flex: 1; min-width: 0; flex-basis: 340px;">
                 <div class="premium-card p-3 h-100 d-flex flex-column" style="margin-bottom: 0;">
                     <div class="card-header-title">Department Leave Analysis</div>
                     <div class="table-responsive flex-grow-1">
@@ -4071,11 +4073,11 @@
                             <thead>
                                 <tr>
                                     <th>Department</th>
-                                    <th class="text-center" style="font-size: 10px;">Total<br>Employees</th>
-                                    <th class="text-center" style="font-size: 10px;">Total<br>Requests</th>
-                                    <th class="text-center" style="font-size: 10px;">Approved</th>
-                                    <th class="text-center" style="font-size: 10px;">Leave Days<br>Used</th>
-                                    <th class="text-center" style="font-size: 10px;">Avg Leave /<br>Employee</th>
+                                    <th class="text-center" >Total<br>Employees</th>
+                                    <th class="text-center" >Total<br>Requests</th>
+                                    <th class="text-center" >Approved</th>
+                                    <th class="text-center" >Leave Days<br>Used</th>
+                                    <th class="text-center" >Avg Leave /<br>Employee</th>
                                 </tr>
                             </thead>
                             <tbody id="admin-rep-body-leave-dept-analysis">
@@ -9232,7 +9234,7 @@
                             <img id="att-det-avatar" src="" onerror="this.onerror=null; this.src='https://via.placeholder.com/60/0f2e53/ffffff?text=U'" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #e2e8f0; margin-right: 15px;">
                             <div>
                                 <h5 id="att-det-name" style="margin: 0; font-size: 16px; font-weight: 700; color: #0f2e53;">-</h5>
-                                <span id="att-det-status" class="badge" style="font-size: 10px;">-</span>
+                                <span id="att-det-status" class="badge" >-</span>
                             </div>
                         </div>
                         <div class="d-flex justify-content-between mb-2 pb-1" style="border-bottom: 1px dashed #eee; font-size: 12px;">
