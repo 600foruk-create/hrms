@@ -3742,6 +3742,51 @@
             color: #94a3b8;
             margin-top: auto;
         }
+        
+        .mini-rep-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .mini-rep-table th {
+            font-size: 10px;
+            font-weight: 700;
+            color: #0f2e53;
+            padding: 8px 5px;
+            border-bottom: 1px solid #e2e8f0;
+            background-color: transparent;
+            text-align: center;
+        }
+        .mini-rep-table th:first-child { text-align: left; padding-left: 0; }
+        .mini-rep-table th:last-child { padding-right: 0; }
+        
+        .mini-rep-table td {
+            font-size: 11px;
+            color: #334155;
+            padding: 8px 5px;
+            border-bottom: 1px solid #f1f5f9;
+            text-align: center;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+        .mini-rep-table td:first-child { text-align: left; padding-left: 0; font-weight: 600; color: #0f172a; }
+        .mini-rep-table td:last-child { padding-right: 0; }
+
+        .view-all-btn {
+            color: #2563eb; 
+            font-weight: 600; 
+            text-decoration: none; 
+            border: 1px solid #e2e8f0; 
+            padding: 4px 12px; 
+            border-radius: 4px; 
+            font-size: 10px;
+            background: #fff;
+            transition: all 0.2s;
+        }
+        .view-all-btn:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
         .prem-table {
             width: 100%;
             border-collapse: collapse;
@@ -3966,7 +4011,7 @@
                 <div class="premium-card p-3 h-100 d-flex flex-column" style="margin-bottom: 0;">
                     <div class="card-header-title">Employee Leave Summary</div>
                     <div class="table-responsive flex-grow-1">
-                        <table class="prem-table" id="table-admin-leave-emp-summary">
+                        <table class="mini-rep-table" id="table-admin-leave-emp-summary">
                             <thead>
                                 <tr>
                                     <th>Employee</th>
@@ -3985,7 +4030,7 @@
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-2 print-hide" style="font-size: 10px; color: #64748b;">
                         <span id="leave-emp-footer-text">Showing 0 to 0 of 0 entries</span>
-                        <a href="javascript:void(0)" style="color: #2563eb; font-weight: 600; text-decoration: none;">View All</a>
+                        <a href="javascript:void(0)" class="view-all-btn">View All</a>
                     </div>
                 </div>
             </div>
@@ -3995,7 +4040,7 @@
                 <div class="premium-card p-3 h-100 d-flex flex-column" style="margin-bottom: 0;">
                     <div class="card-header-title">Leave Balance Report</div>
                     <div class="table-responsive flex-grow-1">
-                        <table class="prem-table" id="table-admin-leave-balance">
+                        <table class="mini-rep-table" id="table-admin-leave-balance">
                             <thead>
                                 <tr>
                                     <th>Employee</th>
@@ -4012,7 +4057,7 @@
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-2 print-hide" style="font-size: 10px; color: #64748b;">
                         <span id="leave-bal-footer-text">Showing 0 to 0 of 0 entries</span>
-                        <a href="javascript:void(0)" style="color: #2563eb; font-weight: 600; text-decoration: none;">View All</a>
+                        <a href="javascript:void(0)" class="view-all-btn">View All</a>
                     </div>
                 </div>
             </div>
@@ -4040,7 +4085,7 @@
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-2 print-hide" style="font-size: 10px; color: #64748b;">
                         <span id="leave-dept-footer-text">Showing 0 to 0 of 0 entries</span>
-                        <a href="javascript:void(0)" style="color: #2563eb; font-weight: 600; text-decoration: none;">View All</a>
+                        <a href="javascript:void(0)" class="view-all-btn">View All</a>
                     </div>
                 </div>
             </div>
