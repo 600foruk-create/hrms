@@ -1167,9 +1167,9 @@ function generateAdminLeaveReport(db) {
     const shift = document.getElementById('admin-rep-leave-shift').value;
 
     if (!start || !end) {
-        if(window.showToast) window.showToast('Please select start and end dates', 'warning');
-        else alert('Please select start and end dates');
-        return;
+        // Default to wide range to show all real data automatically
+        start = '2000-01-01';
+        end = '2100-12-31';
     }
 
     const tbodyRequests = document.getElementById('admin-rep-body-leave-requests');
@@ -1366,13 +1366,7 @@ function generateAdminLeaveReport(db) {
     let htmlEmpSummary = '';
     const topEmps = validEmps.sort((a,b) => b.totalUsed - a.totalUsed).slice(0, 5);
     if (topEmps.length === 0) {
-        htmlEmpSummary = `
-<tr><td style="font-weight: 600; color: #0f172a;">Faisal Saeed</td><td class="text-center">3</td><td class="text-center">2</td><td class="text-center">5</td><td class="text-center">0</td><td class="text-center">10</td><td class="text-center" style="font-weight: 600;">8</td></tr>
-<tr><td style="font-weight: 600; color: #0f172a;">Naimat Ullah</td><td class="text-center">2</td><td class="text-center">1</td><td class="text-center">6</td><td class="text-center">0</td><td class="text-center">9</td><td class="text-center" style="font-weight: 600;">11</td></tr>
-<tr><td style="font-weight: 600; color: #0f172a;">Ahmad Ali</td><td class="text-center">1</td><td class="text-center">2</td><td class="text-center">4</td><td class="text-center">1</td><td class="text-center">8</td><td class="text-center" style="font-weight: 600;">7</td></tr>
-<tr><td style="font-weight: 600; color: #0f172a;">Suhail Ahmad</td><td class="text-center">3</td><td class="text-center">0</td><td class="text-center">3</td><td class="text-center">0</td><td class="text-center">6</td><td class="text-center" style="font-weight: 600;">9</td></tr>
-<tr><td style="font-weight: 600; color: #0f172a;">Usman Qureshi</td><td class="text-center">2</td><td class="text-center">1</td><td class="text-center">2</td><td class="text-center">0</td><td class="text-center">5</td><td class="text-center" style="font-weight: 600;">10</td></tr>`;
-document.getElementById('leave-emp-footer-text').innerText = 'Showing 1 to 5 of 25 entries';
+        htmlEmpSummary = '<tr><td colspan="7" class="text-center text-muted py-3">No data found</td></tr>';
 
     } else {
         topEmps.forEach(st => {
@@ -1397,13 +1391,7 @@ document.getElementById('leave-emp-footer-text').innerText = 'Showing 1 to 5 of 
     let htmlBalance = '';
     let lowBalEmps = [];
     if (topEmps.length === 0) {
-        htmlBalance = `
-<tr><td style="font-weight: 600; color: #0f172a;">Faisal Saeed</td><td class="text-center">5</td><td class="text-center">2</td><td class="text-center">1</td><td class="text-center"><span class="badge-pill-green">8</span></td></tr>
-<tr><td style="font-weight: 600; color: #0f172a;">Naimat Ullah</td><td class="text-center">8</td><td class="text-center">3</td><td class="text-center">0</td><td class="text-center"><span class="badge-pill-green">11</span></td></tr>
-<tr><td style="font-weight: 600; color: #0f172a;">Ahmad Ali</td><td class="text-center">4</td><td class="text-center">2</td><td class="text-center">1</td><td class="text-center"><span class="badge-pill-green">7</span></td></tr>
-<tr><td style="font-weight: 600; color: #0f172a;">Suhail Ahmad</td><td class="text-center">5</td><td class="text-center">3</td><td class="text-center">1</td><td class="text-center"><span class="badge-pill-green">9</span></td></tr>
-<tr><td style="font-weight: 600; color: #0f172a;">Usman Qureshi</td><td class="text-center">6</td><td class="text-center">4</td><td class="text-center">0</td><td class="text-center"><span class="badge-pill-green">10</span></td></tr>`;
-document.getElementById('leave-bal-footer-text').innerText = 'Showing 1 to 5 of 25 entries';
+        htmlBalance = '<tr><td colspan="5" class="text-center text-muted py-3">No data found</td></tr>';
 
     } else {
         topEmps.forEach(st => {
@@ -1451,13 +1439,7 @@ document.getElementById('leave-bal-footer-text').innerText = 'Showing 1 to 5 of 
     let maxUsedDept = { name: '-', val: 0 };
     const deptKeys = Object.keys(deptStats).slice(0, 5);
     if (deptKeys.length === 0) {
-        htmlDept = `
-<tr><td style="font-weight: 600; color: #0f172a;">IT Department</td><td class="text-center">12</td><td class="text-center">15</td><td class="text-center">13</td><td class="text-center">24.5</td><td class="text-center">2.04</td></tr>
-<tr><td style="font-weight: 600; color: #0f172a;">HR Department</td><td class="text-center">8</td><td class="text-center">10</td><td class="text-center">9</td><td class="text-center">13.0</td><td class="text-center">1.63</td></tr>
-<tr><td style="font-weight: 600; color: #0f172a;">Accounts Department</td><td class="text-center">9</td><td class="text-center">8</td><td class="text-center">7</td><td class="text-center">10.0</td><td class="text-center">1.11</td></tr>
-<tr><td style="font-weight: 600; color: #0f172a;">Sales Department</td><td class="text-center">15</td><td class="text-center">9</td><td class="text-center">7</td><td class="text-center">11.0</td><td class="text-center">0.73</td></tr>
-<tr><td style="font-weight: 600; color: #0f172a;">Operations Department</td><td class="text-center">18</td><td class="text-center">13</td><td class="text-center">12</td><td class="text-center">15.0</td><td class="text-center">0.83</td></tr>`;
-document.getElementById('leave-dept-footer-text').innerText = 'Showing 1 to 5 of 10 entries';
+        htmlDept = '<tr><td colspan="6" class="text-center text-muted py-3">No data found</td></tr>';
 
     } else {
         Object.keys(deptStats).forEach(d => {
