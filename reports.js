@@ -1,3 +1,10 @@
+
+window.leaveReportViewAllFlags = { emp: false, bal: false, dept: false };
+window.toggleLeaveReportViewAll = function(type) {
+    window.leaveReportViewAllFlags[type] = !window.leaveReportViewAllFlags[type];
+    const db = typeof getDb === 'function' ? getDb() : (window.db || {});
+    if (window.generateAdminLeaveReport) window.generateAdminLeaveReport(db);
+};
 // Reports & Analytics Module Logic
 
 // Removed DOMContentLoaded init, now using specific init functions called by app.js
@@ -1363,7 +1370,7 @@ function generateAdminLeaveReport(db) {
     
     // 3. EMPLOYEE LEAVE SUMMARY (TABLE 2)
     let htmlEmpSummary = '';
-    const topEmps = validEmps.sort((a,b) => b.totalUsed - a.totalUsed).slice(0, 5);
+    const topEmps = validEmps.sort((a,b) => b.totalUsed - a.totalUsed).slice(0, window.leaveReportViewAllFlags && window.leaveReportViewAllFlags.emp ? validEmps.length : 5);
     if (topEmps.length === 0) {
         htmlEmpSummary = '<tr><td colspan="7" class="text-center text-muted py-3">No data found</td></tr>';
 
@@ -1384,16 +1391,19 @@ function generateAdminLeaveReport(db) {
         });
     }
     tbodyEmpSummary.innerHTML = htmlEmpSummary;
-      if(topEmps.length > 0) document.getElementById('leave-emp-footer-text').innerText = `Showing 1 to ${topEmps.length} of ${validEmps.length} entries`;
+      if(topEmps.length > 0) { document.getElementById('leave-emp-footer-text').innerText = `Showing ${topEmps.length} of ${validEmps.length} entries`; document.getElementById('btn-viewall-emp').innerText = window.leaveReportViewAllFlags && window.leaveReportViewAllFlags.emp ? 'View Less' : 'View All'; }
 
     // 4. LEAVE BALANCE REPORT (TABLE 3)
+    
+    const balEmps = validEmps.slice().sort((a,b) => b.totalUsed - a.totalUsed).slice(0, window.leaveReportViewAllFlags && window.leaveReportViewAllFlags.bal ? validEmps.length : 5);
     let htmlBalance = '';
     let lowBalEmps = [];
-    if (topEmps.length === 0) {
+    if (balEmps.length === 0) {
+
         htmlBalance = '<tr><td colspan="5" class="text-center text-muted py-3">No data found</td></tr>';
 
     } else {
-        topEmps.forEach(st => {
+        balEmps.forEach(st => {
             const totalRem = Math.max(0, st.annualBal) + Math.max(0, st.casualBal) + Math.max(0, st.medicalBal);
             
             htmlBalance += `
@@ -1413,7 +1423,7 @@ function generateAdminLeaveReport(db) {
         if (totalRem < 10) lowBalEmps.push({name: st.name, bal: totalRem});
     });
     tbodyBalance.innerHTML = htmlBalance;
-      if(topEmps.length > 0) document.getElementById('leave-bal-footer-text').innerText = `Showing 1 to ${topEmps.length} of ${validEmps.length} entries`;
+      if(balEmps.length > 0) { document.getElementById('leave-bal-footer-text').innerText = `Showing ${balEmps.length} of ${validEmps.length} entries`; document.getElementById('btn-viewall-bal').innerText = window.leaveReportViewAllFlags && window.leaveReportViewAllFlags.bal ? 'View Less' : 'View All'; }
 
     // 5. DEPARTMENT LEAVE ANALYSIS (TABLE 4)
     let deptStats = {};
@@ -1436,7 +1446,7 @@ function generateAdminLeaveReport(db) {
 
     let htmlDept = '';
     let maxUsedDept = { name: '-', val: 0 };
-    const deptKeys = Object.keys(deptStats).slice(0, 5);
+    const deptKeys = Object.keys(deptStats).slice(0, window.leaveReportViewAllFlags && window.leaveReportViewAllFlags.dept ? Object.keys(deptStats).length : 5);
     if (deptKeys.length === 0) {
         htmlDept = '<tr><td colspan="6" class="text-center text-muted py-3">No data found</td></tr>';
 
@@ -1464,7 +1474,7 @@ function generateAdminLeaveReport(db) {
         });
     }
     tbodyDept.innerHTML = htmlDept;
-      if(deptKeys.length > 0) document.getElementById('leave-dept-footer-text').innerText = `Showing 1 to ${deptKeys.length} of ${Object.keys(deptStats).length} entries`;
+      if(deptKeys.length > 0) { document.getElementById('leave-dept-footer-text').innerText = `Showing ${deptKeys.length} of ${Object.keys(deptStats).length} entries`; document.getElementById('btn-viewall-dept').innerText = window.leaveReportViewAllFlags && window.leaveReportViewAllFlags.dept ? 'View Less' : 'View All'; }
 
     // 6. INSIGHTS
     // 6.1 Most Leave Taken
