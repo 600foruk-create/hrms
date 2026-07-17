@@ -1314,9 +1314,8 @@ function generateAdminLeaveReport(db) {
 
     // Analyze data per employee for Table 2 and Table 3
     let empStats = {};
-    allUsers.filter(u => u.role && (u.role.toLowerCase() === 'employee' || u.role.toLowerCase() === 'manager')).forEach(u => {
+    allUsers.forEach(u => {
         if (dept !== 'All' && u.department !== dept) return;
-        if (manager !== 'All' && u.manager !== manager && manager !== u.name) return;
         if (empId !== 'All' && u.id != empId) return;
         
         empStats[u.id] = {
