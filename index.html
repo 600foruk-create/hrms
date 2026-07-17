@@ -3815,29 +3815,24 @@
         </div>
 
         <!-- ROW 1: FILTERS -->
-        <div class="premium-card p-3 print-hide" style="display: flex; gap: 5px; align-items: flex-end; flex-wrap: nowrap; overflow-x: auto;">
+        <div class="premium-card p-3 print-hide" style="display: flex; gap: 5px; align-items: center; flex-wrap: nowrap; overflow-x: auto;">
             <div style="width: 115px; flex-shrink: 0;">
-                  <label class="filter-label">From Date</label>
                   <input type="date" id="admin-rep-leave-start" class="premium-select w-100" style="padding: 0 5px; font-size: 11px;">
               </div>
               <div style="width: 115px; flex-shrink: 0;">
-                  <label class="filter-label">To Date</label>
                   <input type="date" id="admin-rep-leave-end" class="premium-select w-100" style="padding: 0 5px; font-size: 11px;">
               </div>
             <div style="width: 110px; flex-shrink: 0;">
-                <label class="filter-label">Department</label>
                 <select id="admin-rep-leave-dept" class="premium-select w-100">
                     <option value="All">All Departments</option>
                 </select>
             </div>
             <div style="width: 110px; flex-shrink: 0;">
-                <label class="filter-label">Employee</label>
                 <select id="admin-rep-leave-emp" class="premium-select w-100">
                     <option value="All">All Employees</option>
                 </select>
             </div>
             <div style="width: 110px; flex-shrink: 0;">
-                <label class="filter-label">Leave Type</label>
                 <select id="admin-rep-leave-type" class="premium-select w-100">
                     <option value="All">All Leave Types</option>
                     <option value="Casual Leave">Casual Leave</option>
@@ -3847,7 +3842,6 @@
                 </select>
             </div>
             <div style="width: 100px; flex-shrink: 0;">
-                <label class="filter-label">Status</label>
                 <select id="admin-rep-leave-status" class="premium-select w-100">
                     <option value="All">All Status</option>
                     <option value="Approved">Approved</option>
@@ -3856,7 +3850,6 @@
                 </select>
             </div>
             <div style="width: 110px; flex-shrink: 0;">
-                <label class="filter-label">Manager</label>
                 <select id="admin-rep-leave-manager" class="premium-select w-100">
                     <option value="All">All Managers</option>
                 </select>
@@ -3871,7 +3864,7 @@
         <!-- ROW 2: SUMMARY CARDS -->
         <div id="leave-summary-cards-container" style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 25px;">
             <div style="flex: 1; min-width: 140px;">
-                <div class="premium-card" style="margin-bottom: 0; position: relative; min-height: 75px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 10px;">
+                <div class="premium-card" style="margin-bottom: 0; position: relative; min-height: 75px; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 10px;">
                     
                     <div style="width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                         <div class="sum-card-title">Total Leave Requests</div>
@@ -3880,7 +3873,7 @@
                 </div>
             </div>
             <div style="flex: 1; min-width: 140px;">
-                <div class="premium-card" style="margin-bottom: 0; position: relative; min-height: 75px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 10px;">
+                <div class="premium-card" style="margin-bottom: 0; position: relative; min-height: 75px; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 10px;">
                     
                     <div style="width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                         <div class="sum-card-title">Approved Requests</div>
@@ -3890,7 +3883,7 @@
                 </div>
             </div>
             <div style="flex: 1; min-width: 140px;">
-                <div class="premium-card" style="margin-bottom: 0; position: relative; min-height: 75px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 10px;">
+                <div class="premium-card" style="margin-bottom: 0; position: relative; min-height: 75px; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 10px;">
                     
                     <div style="width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                         <div class="sum-card-title">Pending Requests</div>
@@ -3900,7 +3893,7 @@
                 </div>
             </div>
             <div style="flex: 1; min-width: 140px;">
-                <div class="premium-card" style="margin-bottom: 0; position: relative; min-height: 75px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 10px;">
+                <div class="premium-card" style="margin-bottom: 0; position: relative; min-height: 75px; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 10px;">
                     
                     <div style="width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                         <div class="sum-card-title">Rejected Requests</div>
@@ -3910,7 +3903,7 @@
                 </div>
             </div>
             <div style="flex: 1; min-width: 140px;">
-                <div class="premium-card" style="margin-bottom: 0; position: relative; min-height: 75px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 10px;">
+                <div class="premium-card" style="margin-bottom: 0; position: relative; min-height: 75px; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 10px;">
                     
                     <div style="width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                         <div class="sum-card-title">Employees On Leave Today</div>
@@ -3919,10 +3912,10 @@
                 </div>
             </div>
             <div style="flex: 1; min-width: 140px;">
-                <div class="premium-card" style="margin-bottom: 0; position: relative; min-height: 75px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 10px;">
+                <div class="premium-card" style="margin-bottom: 0; position: relative; min-height: 75px; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 10px;">
                     
                     <div style="width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                        <div class="sum-card-title">Total Leave Days Consumed</div>
+                        <div class="sum-card-title">Total Days Consumed</div>
                         <div class="sum-card-val" id="leave-sum-consumed" style="color: #0f172a;">0</div>
                     </div>
                     <div class="sum-card-sub" style="position: absolute; bottom: 6px; right: 8px; font-size: 10px; color: #64748b; font-weight: 400;">Days</div>
