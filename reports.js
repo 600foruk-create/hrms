@@ -95,9 +95,10 @@ window.openFullLeaveReport = function(type) {
             const endD = new Date(req.endDate || req.end);
             let calculatedDays = Math.max(1, Math.round((endD - startD) / (1000 * 60 * 60 * 24)) + 1);
 
-            if (lType === 'Casual Leave') { st.casual += calculatedDays; st.casualBal -= calculatedDays; }
-            else if (lType === 'Medical Leave') { st.medical += calculatedDays; st.medicalBal -= calculatedDays; }
-            else if (lType === 'Annual Leave') { st.annual += calculatedDays; st.annualBal -= calculatedDays; }
+            const typeStr = String(lType).toLowerCase();
+            if (typeStr.includes('casual')) { st.casual += calculatedDays; st.casualBal -= calculatedDays; }
+            else if (typeStr.includes('medical')) { st.medical += calculatedDays; st.medicalBal -= calculatedDays; }
+            else if (typeStr.includes('annual')) { st.annual += calculatedDays; st.annualBal -= calculatedDays; }
             else { st.unpaid += calculatedDays; }
 
             st.totalUsed += calculatedDays;
@@ -1629,9 +1630,10 @@ function generateAdminLeaveReport(db) {
 
             st.totalUsed += calculatedDays;
             const lType = req.type || req.leaveType;
-            if (lType === 'Casual Leave') { st.casual += calculatedDays; st.casualBal -= calculatedDays; }
-            else if (lType === 'Medical Leave') { st.medical += calculatedDays; st.medicalBal -= calculatedDays; }
-            else if (lType === 'Annual Leave') { st.annual += calculatedDays; st.annualBal -= calculatedDays; }
+            const typeStr = String(lType).toLowerCase();
+            if (typeStr.includes('casual')) { st.casual += calculatedDays; st.casualBal -= calculatedDays; }
+            else if (typeStr.includes('medical')) { st.medical += calculatedDays; st.medicalBal -= calculatedDays; }
+            else if (typeStr.includes('annual')) { st.annual += calculatedDays; st.annualBal -= calculatedDays; }
             else { st.unpaid += calculatedDays; }
         }
     });
@@ -1910,9 +1912,10 @@ window.openEmployeeLeaveModal = function(empId) {
         }
         
         if (r.status === 'Approved') {
-            if (lType === 'Casual Leave') casual += calculatedDays;
-            else if (lType === 'Medical Leave') medical += calculatedDays;
-            else if (lType === 'Annual Leave') annual += calculatedDays;
+            const typeStr = String(lType).toLowerCase();
+            if (typeStr.includes('casual')) casual += calculatedDays;
+            else if (typeStr.includes('medical')) medical += calculatedDays;
+            else if (typeStr.includes('annual')) annual += calculatedDays;
             else unpaid += calculatedDays;
         }
         
