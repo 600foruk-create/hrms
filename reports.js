@@ -1339,7 +1339,7 @@ function generateAdminLeaveReport(db) {
         }
 
         // 2. Override with custom balances if enabled
-        if (String(u.hasCustomLeaveBalances) === 'true' && Array.isArray(u.leaveBalances)) {
+        if ((u.hasCustomLeaveBalances === true || String(u.hasCustomLeaveBalances) === 'true') && Array.isArray(u.leaveBalances)) {
             const getBal = (k) => {
                 let match = u.leaveBalances.find(b => {
                     let nm = String(b.name || b.leaveType || b.type || b.leave_type || b.title || b.id || '');
@@ -1361,15 +1361,7 @@ function generateAdminLeaveReport(db) {
         };
     });
     
-    if (db.leaveBalances) {
-        db.leaveBalances.forEach(lb => {
-            if (empStats[lb.employeeId]) {
-                if (lb.type === 'Annual Leave') empStats[lb.employeeId].annualBal = lb.remaining;
-                if (lb.type === 'Casual Leave') empStats[lb.employeeId].casualBal = lb.remaining;
-                if (lb.type === 'Medical Leave') empStats[lb.employeeId].medicalBal = lb.remaining;
-            }
-        });
-    }
+
 
     filtered.forEach(req => {
         if (req.status === 'Approved' && empStats[req.employeeId]) {
@@ -1687,12 +1679,17 @@ window.openEmployeeLeaveModal = function(empId) {
     document.getElementById('emp-leave-detail-unpaid').innerText = unpaid;
     
     let allocated = { casual: 10, medical: 8, annual: 14 };
-    if (db.leaveBalances) {
-        db.leaveBalances.filter(lb => lb.employeeId == emp.id).forEach(lb => {
-            if (lb.type === 'Annual Leave') allocated.annual = lb.allocated || allocated.annual;
-            if (lb.type === 'Casual Leave') allocated.casual = lb.allocated || allocated.casual;
-            if (lb.type === 'Medical Leave') allocated.medical = lb.allocated || allocated.medical;
-        });
+    if (db.companyProfile && Array.isArray(db.companyProfile.leaveTypes)) {
+        const getGlb = (k) => { let match = db.companyProfile.leaveTypes.find(lt => String(lt.name||lt.id||'').toLowerCase().includes(k)); return match ? parseInt(match.days) : null; };
+        let gc = getGlb('casual'); if(gc !== null && !isNaN(gc)) allocated.casual = gc;
+        let gm = getGlb('medical'); if(gm !== null && !isNaN(gm)) allocated.medical = gm;
+        let ga = getGlb('annual'); if(ga !== null && !isNaN(ga)) allocated.annual = ga;
+    }
+    if ((emp.hasCustomLeaveBalances === true || String(emp.hasCustomLeaveBalances) === 'true') && Array.isArray(emp.leaveBalances)) {
+        const getBal = (k) => { let match = emp.leaveBalances.find(b => String(b.name||b.id||'').toLowerCase().includes(k)); return match ? parseInt(typeof match.total !== 'undefined' ? match.total : match.balance) : null; };
+        let c = getBal('casual'); if(c !== null && !isNaN(c)) allocated.casual = c;
+        let m = getBal('medical'); if(m !== null && !isNaN(m)) allocated.medical = m;
+        let a = getBal('annual'); if(a !== null && !isNaN(a)) allocated.annual = a;
     }
     
     let bal = (allocated.casual - casual) + (allocated.medical - medical) + (allocated.annual - annual);
