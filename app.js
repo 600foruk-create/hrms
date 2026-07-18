@@ -4568,7 +4568,7 @@ window.openEditLeaveBalancesModal = function (userId) {
                 }
                 return b.id === lt.id || bName === lt.name || b.name === lt.name || bIndex === index;
             });
-            if (ub) balance = ub.balance;
+            if (ub) balance = typeof ub.total !== 'undefined' ? ub.total : ub.balance;
         }
 
         container.innerHTML += `
