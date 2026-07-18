@@ -505,7 +505,7 @@ window.initAdminReportsTab = function() {
     }
 
     // Populate Departments
-    const deptSelects = ['admin-rep-att-sum-dept', 'admin-rep-emp-dept'];
+    const deptSelects = ['admin-rep-att-sum-dept', 'admin-rep-emp-dept', 'admin-rep-leave-dept'];
     const departments = [...new Set(db.users.map(u => u.department).filter(d => d))];
     deptSelects.forEach(id => {
         const el = document.getElementById(id);
@@ -513,6 +513,19 @@ window.initAdminReportsTab = function() {
             el.innerHTML = '<option value=\"All\">All Departments</option>';
             departments.forEach(d => {
                 el.innerHTML += `<option value="${d}">${d}</option>`;
+            });
+        }
+    });
+
+    // Populate Shifts
+    const shiftSelects = ['admin-rep-leave-shift'];
+    const shifts = db.shifts || [];
+    shiftSelects.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) {
+            el.innerHTML = '<option value="All">All Shifts</option>';
+            shifts.forEach(s => {
+                el.innerHTML += `<option value="${s.id}">${s.name}</option>`;
             });
         }
     });
@@ -567,6 +580,19 @@ window.initAdminReportsTab = function() {
 window.initManagerReportsTab = function() {
     const db = getDb();
     const activeUser = window.currentUser || JSON.parse(localStorage.getItem('current_user'));
+
+    // Populate Shifts
+    const shiftSelects = ['admin-rep-leave-shift'];
+    const shifts = db.shifts || [];
+    shiftSelects.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) {
+            el.innerHTML = '<option value="All">All Shifts</option>';
+            shifts.forEach(s => {
+                el.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+            });
+        }
+    });
 
     // Default dates
     const end = new Date();
@@ -1443,7 +1469,7 @@ function generateAdminLeaveReport(db) {
         if (type !== 'All' && req.type !== type && req.leaveType !== type) match = false;
         if (status !== 'All' && req.status !== status) match = false;
         if (dept !== 'All' && emp.department !== dept) match = false;
-        if (shift !== 'All' && emp.shift !== shift) match = false; 
+        if (shift !== 'All' && (emp.shiftId || 'shift_general') !== shift) match = false; 
 
         return match;
     });
