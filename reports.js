@@ -524,14 +524,21 @@ window.initAdminReportsTab = function() {
     const startStr = start.toISOString().split('T')[0];
     const endStr = end.toISOString().split('T')[0];
     
-    ['admin-rep-att-sum-start', 'admin-rep-att-start', 'admin-rep-leave-start', 'admin-rep-prod-start'].forEach(id => {
+    ['admin-rep-att-sum-start', 'admin-rep-att-start', 'admin-rep-prod-start'].forEach(id => {
         const el = document.getElementById(id);
         if(el) el.value = startStr;
     });
-    ['admin-rep-att-sum-end', 'admin-rep-att-end', 'admin-rep-leave-end', 'admin-rep-prod-end'].forEach(id => {
+    ['admin-rep-att-sum-end', 'admin-rep-att-end', 'admin-rep-prod-end'].forEach(id => {
         const el = document.getElementById(id);
         if(el) el.value = endStr;
     });
+
+        const firstDay = new Date(end.getFullYear(), end.getMonth(), 1);
+    const lastDay = new Date(end.getFullYear(), end.getMonth() + 1, 0);
+    const leaveStartStr = firstDay.getFullYear() + '-' + String(firstDay.getMonth() + 1).padStart(2, '0') + '-01';
+    const leaveEndStr = lastDay.getFullYear() + '-' + String(lastDay.getMonth() + 1).padStart(2, '0') + '-' + String(lastDay.getDate()).padStart(2, '0');
+    if(document.getElementById('admin-rep-leave-start')) document.getElementById('admin-rep-leave-start').value = leaveStartStr;
+    if(document.getElementById('admin-rep-leave-end')) document.getElementById('admin-rep-leave-end').value = leaveEndStr;
 
     const currentMonthStr = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}`;
     const adminRegMonthEl = document.getElementById('admin-rep-att-reg-month');
@@ -589,7 +596,14 @@ window.initManagerReportsTab = function() {
             if(el) el.value = endStr;
         });
 
-        const currentMonthStr = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}`;
+            const firstDay = new Date(end.getFullYear(), end.getMonth(), 1);
+    const lastDay = new Date(end.getFullYear(), end.getMonth() + 1, 0);
+    const leaveStartStr = firstDay.getFullYear() + '-' + String(firstDay.getMonth() + 1).padStart(2, '0') + '-01';
+    const leaveEndStr = lastDay.getFullYear() + '-' + String(lastDay.getMonth() + 1).padStart(2, '0') + '-' + String(lastDay.getDate()).padStart(2, '0');
+    if(document.getElementById('admin-rep-leave-start')) document.getElementById('admin-rep-leave-start').value = leaveStartStr;
+    if(document.getElementById('admin-rep-leave-end')) document.getElementById('admin-rep-leave-end').value = leaveEndStr;
+
+    const currentMonthStr = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}`;
         const mgrRegMonthEl = document.getElementById('mgr-rep-att-reg-month');
         if (mgrRegMonthEl) mgrRegMonthEl.value = currentMonthStr;
     }
