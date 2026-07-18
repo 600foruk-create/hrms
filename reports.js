@@ -1420,13 +1420,41 @@ function generateAdminAttendanceReport(db) {
     document.getElementById('print-subtitle-admin-attendance').innerText = 'Date Range: ' + start + ' to ' + end + ' | Filter: ' + (emp==='All'?'All Employees':emp);
 }
 
+
+window.applyLeaveDatePreset = function(preset) {
+    const today = new Date();
+    let start, end = new Date(today);
+    
+    if (preset === 'Today') {
+        start = new Date(today);
+    } else if (preset === 'This Week') {
+        const day = today.getDay();
+        const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+        start = new Date(today.setDate(diff));
+        end = new Date();
+    } else if (preset === 'Last 15 Days') {
+        start = new Date(today);
+        start.setDate(today.getDate() - 15);
+        end = new Date();
+    } else if (preset === 'This Month') {
+        start = new Date(today.getFullYear(), today.getMonth(), 1);
+        end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    }
+    
+    const startStr = start.toISOString().split('T')[0];
+    const endStr = end.toISOString().split('T')[0];
+    
+    if(document.getElementById('admin-rep-leave-start')) document.getElementById('admin-rep-leave-start').value = startStr;
+    if(document.getElementById('admin-rep-leave-end')) document.getElementById('admin-rep-leave-end').value = endStr;
+};
+
 function generateAdminLeaveReport(db) {
     db = typeof getDb === 'function' ? getDb() : (window.db || {});
     const start = document.getElementById('admin-rep-leave-start').value;
     const end = document.getElementById('admin-rep-leave-end').value;
     const empId = document.getElementById('admin-rep-leave-emp').value;
     const dept = document.getElementById('admin-rep-leave-dept').value;
-    const type = document.getElementById('admin-rep-leave-type').value;
+    
     const status = document.getElementById('admin-rep-leave-status').value;
     const shift = document.getElementById('admin-rep-leave-shift').value;
 
@@ -1466,7 +1494,7 @@ function generateAdminLeaveReport(db) {
         
         const emp = allUsers.find(u => u.id === req.employeeId) || {};
         if (empId !== 'All' && req.employeeId != empId) match = false;
-        if (type !== 'All' && req.type !== type && req.leaveType !== type) match = false;
+        
         if (status !== 'All' && req.status !== status) match = false;
         if (dept !== 'All' && emp.department !== dept) match = false;
         if (shift !== 'All' && (emp.shiftId || 'shift_general') !== shift) match = false; 
@@ -1898,8 +1926,12 @@ function resetLeaveSummaryFilters() {
     if(document.getElementById('admin-rep-leave-start')) document.getElementById('admin-rep-leave-start').value = startStr;
     if(document.getElementById('admin-rep-leave-end')) document.getElementById('admin-rep-leave-end').value = endStr;
     if(document.getElementById('admin-rep-leave-dept')) document.getElementById('admin-rep-leave-dept').value = 'All';
-    if(document.getElementById('admin-rep-leave-emp')) document.getElementById('admin-rep-leave-emp').value = 'All';
-    if(document.getElementById('admin-rep-leave-type')) document.getElementById('admin-rep-leave-type').value = 'All';
+    if(document.getElementById('admin-rep-leave-emp')) {
+        const el = document.getElementById('admin-rep-leave-emp');
+        el.value = 'All';
+        if(window.jQuery) $(el).trigger('change.select2');
+    }
+    
     if(document.getElementById('admin-rep-leave-status')) document.getElementById('admin-rep-leave-status').value = 'All';
     if(document.getElementById('admin-rep-leave-shift')) document.getElementById('admin-rep-leave-shift').value = 'All';
     
