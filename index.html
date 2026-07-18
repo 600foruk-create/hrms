@@ -7786,19 +7786,19 @@
     <div id="modal-backdrop" class="modal-backdrop hidden"></div>
 
     <!-- Full Leave Report Modal -->
-    <div id="modal-full-leave-report" class="modal hidden" style="z-index: 10000;">
-        <div class="modal-content" style="max-width: 900px; width: 95%; max-height: 90vh; display: flex; flex-direction: column;">
-            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 15px;">
-                <h3 id="full-leave-report-title" style="margin: 0; font-size: 18px; color: #0f172a; font-weight: 600;">Full Report</h3>
-                <span class="close" onclick="closeModal('modal-full-leave-report')" style="cursor: pointer; font-size: 24px; color: #64748b;">&times;</span>
+    <div id="modal-full-leave-report" class="modal modal-window hidden" style="z-index: 10000;">
+        <div class="modal-header">
+            <h3 id="full-leave-report-title">Full Report</h3>
+            <div class="modal-header-controls">
+                <button type="button" class="modal-close" onclick="closeModal('modal-full-leave-report')"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div style="flex: 1; overflow-y: auto; padding-right: 5px;">
-                <div class="table-responsive">
-                    <table class="table table-hover" style="font-size: 13px; width: 100%;">
-                        <thead id="full-leave-report-thead" style="background: #f8fafc; position: sticky; top: 0; z-index: 10;"></thead>
-                        <tbody id="full-leave-report-tbody"></tbody>
-                    </table>
-                </div>
+        </div>
+        <div class="modal-body" style="padding: 20px;">
+            <div class="table-responsive">
+                <table class="table table-hover" style="font-size: 13px; width: 100%;">
+                    <thead id="full-leave-report-thead" style="background: #f8fafc; position: sticky; top: 0; z-index: 10;"></thead>
+                    <tbody id="full-leave-report-tbody"></tbody>
+                </table>
             </div>
         </div>
     </div>
