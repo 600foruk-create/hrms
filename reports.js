@@ -1340,16 +1340,29 @@ function generateAdminLeaveReport(db) {
 
         // 2. Override with custom balances if enabled
         if ((u.hasCustomLeaveBalances === true || String(u.hasCustomLeaveBalances) === 'true') && Array.isArray(u.leaveBalances)) {
-            const getBal = (k) => {
-                let match = u.leaveBalances.find(b => {
-                    let nm = String(b.name || b.leaveType || b.type || b.leave_type || b.title || b.id || '');
-                    return nm.toLowerCase().includes(k);
+            let cId = 'L1', mId = 'L2', aId = 'L3';
+            if (db.companyProfile && Array.isArray(db.companyProfile.leaveTypes)) {
+                let clt = db.companyProfile.leaveTypes.find(lt => String(lt.name).toLowerCase().includes('casual'));
+                if (clt) cId = clt.id;
+                let mlt = db.companyProfile.leaveTypes.find(lt => String(lt.name).toLowerCase().includes('medical'));
+                if (mlt) mId = mlt.id;
+                let alt = db.companyProfile.leaveTypes.find(lt => String(lt.name).toLowerCase().includes('annual'));
+                if (alt) aId = alt.id;
+            }
+
+            const getBal = (k, gId, idx) => {
+                let match = u.leaveBalances.find((b, i) => {
+                    let nm = String(b.name || b.leaveType || b.type || b.leave_type || b.title || '');
+                    if (nm.toLowerCase().includes(k)) return true;
+                    if (b.id && String(b.id) === String(gId)) return true;
+                    if (i === idx) return true; // Ultimate fallback
+                    return false;
                 });
                 return match ? parseInt(typeof match.total !== 'undefined' ? match.total : match.balance) : null;
             };
-            let c = getBal('casual'); if (c !== null && !isNaN(c)) casualAlloc = c;
-            let m = getBal('medical'); if (m !== null && !isNaN(m)) medicalAlloc = m;
-            let a = getBal('annual'); if (a !== null && !isNaN(a)) annualAlloc = a;
+            let c = getBal('casual', cId, 0); if (c !== null && !isNaN(c)) casualAlloc = c;
+            let m = getBal('medical', mId, 1); if (m !== null && !isNaN(m)) medicalAlloc = m;
+            let a = getBal('annual', aId, 2); if (a !== null && !isNaN(a)) annualAlloc = a;
         }
 
         empStats[u.id] = {
@@ -1686,10 +1699,29 @@ window.openEmployeeLeaveModal = function(empId) {
         let ga = getGlb('annual'); if(ga !== null && !isNaN(ga)) allocated.annual = ga;
     }
     if ((emp.hasCustomLeaveBalances === true || String(emp.hasCustomLeaveBalances) === 'true') && Array.isArray(emp.leaveBalances)) {
-        const getBal = (k) => { let match = emp.leaveBalances.find(b => String(b.name||b.id||'').toLowerCase().includes(k)); return match ? parseInt(typeof match.total !== 'undefined' ? match.total : match.balance) : null; };
-        let c = getBal('casual'); if(c !== null && !isNaN(c)) allocated.casual = c;
-        let m = getBal('medical'); if(m !== null && !isNaN(m)) allocated.medical = m;
-        let a = getBal('annual'); if(a !== null && !isNaN(a)) allocated.annual = a;
+        let cId = 'L1', mId = 'L2', aId = 'L3';
+        if (db.companyProfile && Array.isArray(db.companyProfile.leaveTypes)) {
+            let clt = db.companyProfile.leaveTypes.find(lt => String(lt.name).toLowerCase().includes('casual'));
+            if (clt) cId = clt.id;
+            let mlt = db.companyProfile.leaveTypes.find(lt => String(lt.name).toLowerCase().includes('medical'));
+            if (mlt) mId = mlt.id;
+            let alt = db.companyProfile.leaveTypes.find(lt => String(lt.name).toLowerCase().includes('annual'));
+            if (alt) aId = alt.id;
+        }
+
+        const getBal = (k, gId, idx) => {
+            let match = emp.leaveBalances.find((b, i) => {
+                let nm = String(b.name || b.leaveType || b.type || b.leave_type || b.title || '');
+                if (nm.toLowerCase().includes(k)) return true;
+                if (b.id && String(b.id) === String(gId)) return true;
+                if (i === idx) return true;
+                return false;
+            });
+            return match ? parseInt(typeof match.total !== 'undefined' ? match.total : match.balance) : null;
+        };
+        let c = getBal('casual', cId, 0); if(c !== null && !isNaN(c)) allocated.casual = c;
+        let m = getBal('medical', mId, 1); if(m !== null && !isNaN(m)) allocated.medical = m;
+        let a = getBal('annual', aId, 2); if(a !== null && !isNaN(a)) allocated.annual = a;
     }
     
     let bal = (allocated.casual - casual) + (allocated.medical - medical) + (allocated.annual - annual);
