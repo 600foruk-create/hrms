@@ -1402,7 +1402,7 @@ function generateAdminLeaveReport(db) {
     
     // 3. EMPLOYEE LEAVE SUMMARY (TABLE 2)
     let htmlEmpSummary = '';
-    const topEmps = validEmps.sort((a,b) => b.totalUsed - a.totalUsed).slice(0, window.leaveReportViewAllFlags && window.leaveReportViewAllFlags.emp ? validEmps.length : 5);
+    const topEmps = validEmps.sort((a,b) => b.totalUsed - a.totalUsed).slice(0, 5);
     if (topEmps.length === 0) {
         htmlEmpSummary = '<tr><td colspan="7" class="text-center text-muted py-3">No data found</td></tr>';
 
@@ -1423,11 +1423,11 @@ function generateAdminLeaveReport(db) {
         });
     }
     tbodyEmpSummary.innerHTML = htmlEmpSummary;
-      if(topEmps.length > 0) { document.getElementById('leave-emp-footer-text').innerText = `Showing ${topEmps.length} of ${validEmps.length} entries`; document.getElementById('btn-viewall-emp').innerText = window.leaveReportViewAllFlags && window.leaveReportViewAllFlags.emp ? 'View Less' : 'View All'; }
+      if(topEmps.length > 0) { document.getElementById('leave-emp-footer-text').innerText = `Showing ${topEmps.length} of ${validEmps.length} entries`; }
 
     // 4. LEAVE BALANCE REPORT (TABLE 3)
     
-    const balEmps = validEmps.slice().sort((a,b) => b.totalUsed - a.totalUsed).slice(0, window.leaveReportViewAllFlags && window.leaveReportViewAllFlags.bal ? validEmps.length : 5);
+    const balEmps = validEmps.slice().sort((a,b) => b.totalUsed - a.totalUsed).slice(0, 5);
     let htmlBalance = '';
     let lowBalEmps = [];
     if (balEmps.length === 0) {
@@ -1455,7 +1455,7 @@ function generateAdminLeaveReport(db) {
         if (totalRem < 10) lowBalEmps.push({name: st.name, bal: totalRem});
     });
     tbodyBalance.innerHTML = htmlBalance;
-      if(balEmps.length > 0) { document.getElementById('leave-bal-footer-text').innerText = `Showing ${balEmps.length} of ${validEmps.length} entries`; document.getElementById('btn-viewall-bal').innerText = window.leaveReportViewAllFlags && window.leaveReportViewAllFlags.bal ? 'View Less' : 'View All'; }
+      if(balEmps.length > 0) { document.getElementById('leave-bal-footer-text').innerText = `Showing ${balEmps.length} of ${validEmps.length} entries`; }
 
     // 5. DEPARTMENT LEAVE ANALYSIS (TABLE 4)
     let deptStats = {};

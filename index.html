@@ -4032,7 +4032,7 @@
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-auto pt-2 pb-1 print-hide" style="font-size: 10px; color: #64748b; width: 100%;">
                         <span id="leave-emp-footer-text">Showing 0 of 0 entries</span>
-                          <a href="javascript:void(0)" class="view-all-btn" id="btn-viewall-emp" onclick="toggleLeaveReportViewAll(\'emp\')">View All</a>
+                        <button class="btn btn-primary btn-sm" onclick="openFullLeaveReport('emp')" style="font-size: 11px; padding: 4px 10px;">View All</button>
                     </div>
                 </div>
             </div>
@@ -4059,7 +4059,7 @@
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-auto pt-2 pb-1 print-hide" style="font-size: 10px; color: #64748b; width: 100%;">
                         <span id="leave-bal-footer-text">Showing 0 of 0 entries</span>
-                          <a href="javascript:void(0)" class="view-all-btn" id="btn-viewall-bal" onclick="toggleLeaveReportViewAll(\'bal\')">View All</a>
+                        <button class="btn btn-primary btn-sm" onclick="openFullLeaveReport('bal')" style="font-size: 11px; padding: 4px 10px;">View All</button>
                     </div>
                 </div>
             </div>
@@ -4087,7 +4087,7 @@
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-auto pt-2 pb-1 print-hide" style="font-size: 10px; color: #64748b; width: 100%;">
                         <span id="leave-dept-footer-text">Showing 0 of 0 entries</span>
-                          <a href="javascript:void(0)" class="view-all-btn" id="btn-viewall-dept" onclick="toggleLeaveReportViewAll(\'dept\')">View All</a>
+                        <button class="btn btn-primary btn-sm" onclick="openFullLeaveReport('dept')" style="font-size: 11px; padding: 4px 10px;">View All</button>
                     </div>
                 </div>
             </div>
@@ -9329,7 +9329,26 @@
         </div>
     </div>
 
+
+    <!-- Full Leave Report Modal -->
+    <div id="modal-full-leave-report" class="modal hidden">
+        <div class="modal-content" style="max-width: 900px; width: 95%; max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 15px;">
+                <h3 id="full-leave-report-title" style="margin: 0; font-size: 18px; color: #0f172a; font-weight: 600;">Full Report</h3>
+                <span class="close" onclick="closeModal('modal-full-leave-report')" style="cursor: pointer; font-size: 24px; color: #64748b;">&times;</span>
+            </div>
+            <div style="flex: 1; overflow-y: auto; padding-right: 5px;">
+                <div class="table-responsive">
+                    <table class="table table-hover" style="font-size: 13px; width: 100%;">
+                        <thead id="full-leave-report-thead" style="background: #f8fafc; position: sticky; top: 0; z-index: 10;"></thead>
+                        <tbody id="full-leave-report-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
+
 
 </html>
 
