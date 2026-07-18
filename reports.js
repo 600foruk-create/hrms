@@ -1390,9 +1390,17 @@ function generateAdminLeaveReport(db) {
     const shift = document.getElementById('admin-rep-leave-shift').value;
 
     if (!start || !end) {
-        // Default to wide range to show all real data automatically
-        start = '2000-01-01';
-        end = '2100-12-31';
+        // Default to current month
+        const now = new Date();
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        
+        start = firstDay.getFullYear() + '-' + String(firstDay.getMonth() + 1).padStart(2, '0') + '-01';
+        end = lastDay.getFullYear() + '-' + String(lastDay.getMonth() + 1).padStart(2, '0') + '-' + String(lastDay.getDate()).padStart(2, '0');
+        
+        // Also update the UI inputs so the user sees the active filter
+        if(document.getElementById('admin-rep-leave-start')) document.getElementById('admin-rep-leave-start').value = start;
+        if(document.getElementById('admin-rep-leave-end')) document.getElementById('admin-rep-leave-end').value = end;
     }
 
     const tbodyRequests = document.getElementById('admin-rep-body-leave-requests');
@@ -1839,11 +1847,14 @@ function generateAdminLeaveReport(db) {
 
 function resetLeaveSummaryFilters() {
     const today = new Date();
-    const thirtyDaysAgo = new Date(today);
-    thirtyDaysAgo.setDate(today.getDate() - 30);
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
     
-    if(document.getElementById('admin-rep-leave-start')) document.getElementById('admin-rep-leave-start').value = thirtyDaysAgo.toISOString().split('T')[0];
-    if(document.getElementById('admin-rep-leave-end')) document.getElementById('admin-rep-leave-end').value = today.toISOString().split('T')[0];
+    const startStr = firstDay.getFullYear() + '-' + String(firstDay.getMonth() + 1).padStart(2, '0') + '-01';
+    const endStr = lastDay.getFullYear() + '-' + String(lastDay.getMonth() + 1).padStart(2, '0') + '-' + String(lastDay.getDate()).padStart(2, '0');
+    
+    if(document.getElementById('admin-rep-leave-start')) document.getElementById('admin-rep-leave-start').value = startStr;
+    if(document.getElementById('admin-rep-leave-end')) document.getElementById('admin-rep-leave-end').value = endStr;
     if(document.getElementById('admin-rep-leave-dept')) document.getElementById('admin-rep-leave-dept').value = 'All';
     if(document.getElementById('admin-rep-leave-emp')) document.getElementById('admin-rep-leave-emp').value = 'All';
     if(document.getElementById('admin-rep-leave-type')) document.getElementById('admin-rep-leave-type').value = 'All';
