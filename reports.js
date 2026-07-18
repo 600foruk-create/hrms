@@ -29,7 +29,6 @@ window.openFullLeaveReport = function(type) {
     const empStats = {};
 
     allUsers.forEach(u => {
-        if (u.role && u.role !== 'Employee' && u.role !== 'Manager' && u.role.toLowerCase() !== 'employee' && u.role.toLowerCase() !== 'manager') return;
         if (dept !== 'All' && u.department !== dept) return;
         if (empId !== 'All' && String(u.id) !== String(empId)) return;
         
