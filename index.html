@@ -319,7 +319,21 @@
             z-index: 11000 !important;
         }
 
+        
+        .insight-inner-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 18px;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+        .insight-inner-card:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-color: #cbd5e1;
+        }
         /* Print Styles */
+
         @media print {
             @page {
                 size: A4 portrait;
@@ -3845,7 +3859,21 @@
         .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
         .num-badge { width: 18px; height: 18px; border-radius: 4px; background: #2563eb; color: #ffffff; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;}
         
+        
+        .insight-inner-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 18px;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+        .insight-inner-card:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-color: #cbd5e1;
+        }
         /* Print Styles */
+
         @media print {
             .premium-card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; page-break-inside: avoid; margin-bottom: 15px !important; }
             .print-hide { display: none !important; }
@@ -4087,9 +4115,9 @@
         <!-- INSIGHTS -->
         <div class="premium-card p-4">
             <div class="card-header-title mb-4" style="color: #1e3a8a;"><i class="fa-solid fa-chart-pie me-2"></i>Leave Insights</div>
-            <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+            <div style="display: flex; flex-wrap: wrap; gap: 15px;">
                 <!-- Most Leave Taken Employees -->
-                <div style="flex: 1.5; min-width: 220px;" class="border-end pe-3">
+                <div style="flex: 1.5; min-width: 220px;" class="insight-inner-card">
                     <div style="font-size: 12px; font-weight: 700; color: #0f172a; margin-bottom: 15px;">Most Leave Taken Employees</div>
                     <div id="leave-insight-most-leaves" style="display: flex; flex-direction: column; gap: 12px;">
                         <!-- JS injected -->
@@ -4097,7 +4125,7 @@
                 </div>
 
                 <!-- Most Used Leave Type (Donut) -->
-                <div style="flex: 1.5; min-width: 220px; display: flex; flex-direction: column;" class="border-end pe-3">
+                <div style="flex: 1.5; min-width: 220px; display: flex; flex-direction: column;" class="insight-inner-card">
                     <div style="font-size: 12px; font-weight: 700; color: #0f172a; margin-bottom: 15px;">Most Used Leave Type</div>
                     <div style="display: flex; align-items: center; justify-content: space-between; flex-grow: 1; gap: 10px;">
                         <div class="donut-chart-box" id="leave-donut-chart"></div>
@@ -4108,7 +4136,7 @@
                 </div>
 
                 <!-- Department With Highest Leave Usage -->
-                <div style="flex: 1; min-width: 180px;" class="border-end pe-3">
+                <div style="flex: 1; min-width: 180px;" class="insight-inner-card">
                     <div style="font-size: 12px; font-weight: 700; color: #0f172a; margin-bottom: 15px;">Department With Highest Leave Usage</div>
                     <div id="leave-insight-high-dept-name" style="font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 5px;">-</div>
                     <div style="font-size: 20px; font-weight: 800; color: #0f172a; line-height: 1;"><span id="leave-insight-high-dept-days">0</span> <span style="font-size: 12px; font-weight: 500; color: #64748b;">Days</span></div>
@@ -4117,7 +4145,7 @@
                 </div>
 
                 <!-- Employees On Leave Today -->
-                <div style="flex: 1.2; min-width: 200px;">
+                <div style="flex: 1.2; min-width: 200px;" class="insight-inner-card">
                     <div style="font-size: 12px; font-weight: 700; color: #0f172a; margin-bottom: 15px;">Employees On Leave Today</div>
                     <div id="leave-insight-onleave-list" style="display: flex; flex-direction: column; gap: 12px;">
                         <!-- JS injected -->
