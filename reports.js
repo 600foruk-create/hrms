@@ -1,9 +1,208 @@
 
-window.leaveReportViewAllFlags = { emp: false, bal: false, dept: false };
-window.toggleLeaveReportViewAll = function(type) {
-    window.leaveReportViewAllFlags[type] = !window.leaveReportViewAllFlags[type];
+window.openFullLeaveReport = function(type) {
+    const thead = document.getElementById('full-leave-report-thead');
+    const tbody = document.getElementById('full-leave-report-tbody');
+    const title = document.getElementById('full-leave-report-title');
+    
+    thead.innerHTML = '';
+    tbody.innerHTML = '';
+    
     const db = typeof getDb === 'function' ? getDb() : (window.db || {});
-    if (window.generateAdminLeaveReport) window.generateAdminLeaveReport(db);
+    
+    // We need to re-run the filtering logic to get the full stats
+    const startObj = document.getElementById('report-start');
+    const endObj = document.getElementById('report-end');
+    const deptObj = document.getElementById('report-dept');
+    const empObj = document.getElementById('report-employee');
+    
+    const start = startObj ? startObj.value : '';
+    const end = endObj ? endObj.value : '';
+    const dept = deptObj ? deptObj.value : 'All';
+    const empId = empObj ? empObj.value : 'All';
+
+    const allUsers = db.users || [];
+    const empStats = {};
+
+    allUsers.forEach(u => {
+        if (u.role && u.role !== 'Employee' && u.role !== 'Manager' && u.role.toLowerCase() !== 'employee' && u.role.toLowerCase() !== 'manager') return;
+        if (dept !== 'All' && u.department !== dept) return;
+        if (empId !== 'All' && String(u.id) !== String(empId)) return;
+        
+        let casualAlloc = 10, medicalAlloc = 8, annualAlloc = 14;
+        
+        if (db.companyProfile && Array.isArray(db.companyProfile.leaveTypes)) {
+            const getGlb = (k) => {
+                let match = db.companyProfile.leaveTypes.find(lt => String(lt.name || lt.id || '').toLowerCase().includes(k));
+                return match ? parseInt(match.days) : null;
+            };
+            let gc = getGlb('casual'); if(gc !== null && !isNaN(gc)) casualAlloc = gc;
+            let gm = getGlb('medical'); if(gm !== null && !isNaN(gm)) medicalAlloc = gm;
+            let ga = getGlb('annual'); if(ga !== null && !isNaN(ga)) annualAlloc = ga;
+        }
+
+        if ((u.hasCustomLeaveBalances === true || String(u.hasCustomLeaveBalances) === 'true') && Array.isArray(u.leaveBalances)) {
+            let cId = 'L1', mId = 'L2', aId = 'L3';
+            if (db.companyProfile && Array.isArray(db.companyProfile.leaveTypes)) {
+                let clt = db.companyProfile.leaveTypes.find(lt => String(lt.name).toLowerCase().includes('casual'));
+                if (clt) cId = clt.id;
+                let mlt = db.companyProfile.leaveTypes.find(lt => String(lt.name).toLowerCase().includes('medical'));
+                if (mlt) mId = mlt.id;
+                let alt = db.companyProfile.leaveTypes.find(lt => String(lt.name).toLowerCase().includes('annual'));
+                if (alt) aId = alt.id;
+            }
+
+            const getBal = (k, gId, idx) => {
+                let match = u.leaveBalances.find((b, i) => {
+                    let nm = String(b.name || b.leaveType || b.type || b.leave_type || b.title || '');
+                    if (nm.toLowerCase().includes(k)) return true;
+                    if (b.id && String(b.id) === String(gId)) return true;
+                    if (i === idx) return true; // Ultimate fallback
+                    return false;
+                });
+                return match ? parseInt(typeof match.total !== 'undefined' ? match.total : match.balance) : null;
+            };
+            let c = getBal('casual', cId, 0); if (c !== null && !isNaN(c)) casualAlloc = c;
+            let m = getBal('medical', mId, 1); if (m !== null && !isNaN(m)) medicalAlloc = m;
+            let a = getBal('annual', aId, 2); if (a !== null && !isNaN(a)) annualAlloc = a;
+        }
+
+        empStats[u.id] = {
+            id: u.id,
+            name: u.name,
+            dept: u.department || 'N/A',
+            casual: 0, medical: 0, annual: 0, unpaid: 0, totalUsed: 0,
+            annualBal: annualAlloc, casualBal: casualAlloc, medicalBal: medicalAlloc
+        };
+    });
+
+    let filtered = db.leaveRequests || [];
+    if (start) { filtered = filtered.filter(r => new Date(r.startDate || r.start) >= new Date(start)); }
+    if (end) { filtered = filtered.filter(r => new Date(r.endDate || r.end) <= new Date(end)); }
+
+    filtered.forEach(req => {
+        if (req.status === 'Approved' && empStats[req.employeeId]) {
+            const st = empStats[req.employeeId];
+            const lType = req.leaveType || req.type;
+            const startD = new Date(req.startDate || req.start);
+            const endD = new Date(req.endDate || req.end);
+            let calculatedDays = Math.max(1, Math.round((endD - startD) / (1000 * 60 * 60 * 24)) + 1);
+
+            if (lType === 'Casual Leave') { st.casual += calculatedDays; st.casualBal -= calculatedDays; }
+            else if (lType === 'Medical Leave') { st.medical += calculatedDays; st.medicalBal -= calculatedDays; }
+            else if (lType === 'Annual Leave') { st.annual += calculatedDays; st.annualBal -= calculatedDays; }
+            else { st.unpaid += calculatedDays; }
+
+            st.totalUsed += calculatedDays;
+        }
+    });
+
+    const validEmps = Object.values(empStats);
+
+    if (type === 'emp') {
+        title.innerText = 'Employee Leave Summary (All)';
+        thead.innerHTML = `
+            <tr>
+                <th style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Employee</th>
+                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Casual Leave</th>
+                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Medical Leave</th>
+                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Annual Leave</th>
+                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Unpaid Leave</th>
+                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Total Used</th>
+                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Remaining Balance</th>
+            </tr>
+        `;
+        let html = '';
+        validEmps.sort((a,b) => b.totalUsed - a.totalUsed).forEach(st => {
+            const totalRem = Math.max(0, st.annualBal) + Math.max(0, st.casualBal) + Math.max(0, st.medicalBal);
+            html += `
+                <tr>
+                    <td style="padding: 12px 10px; font-weight: 600; color: #0f172a; border-bottom: 1px solid #f1f5f9;">${st.name}</td>
+                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.casual}</td>
+                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.medical}</td>
+                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.annual}</td>
+                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.unpaid}</td>
+                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.totalUsed}</td>
+                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${totalRem}</td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    } else if (type === 'bal') {
+        title.innerText = 'Leave Balance Report (All)';
+        thead.innerHTML = `
+            <tr>
+                <th style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Employee</th>
+                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Annual Leave Balance</th>
+                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Casual Leave Balance</th>
+                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Medical Leave Balance</th>
+                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Total Remaining</th>
+            </tr>
+        `;
+        let html = '';
+        validEmps.sort((a,b) => b.totalUsed - a.totalUsed).forEach(st => {
+            const totalRem = Math.max(0, st.annualBal) + Math.max(0, st.casualBal) + Math.max(0, st.medicalBal);
+            html += `
+                <tr>
+                    <td style="padding: 12px 10px; font-weight: 600; color: #0f172a; border-bottom: 1px solid #f1f5f9;">${st.name}</td>
+                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.annualBal}</td>
+                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.casualBal}</td>
+                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.medicalBal}</td>
+                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;"><span class="${totalRem < 5 ? (totalRem <= 0 ? 'badge-pill-green bg-danger text-white' : 'badge-pill-green bg-warning text-dark') : 'badge-pill-green'}">${totalRem}</span></td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    } else if (type === 'dept') {
+        title.innerText = 'Department Leave Analysis (All)';
+        thead.innerHTML = `
+            <tr>
+                <th style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Department</th>
+                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Total Employees</th>
+                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Total Requests</th>
+                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Approved</th>
+                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Leave Days Used</th>
+                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Avg Leave / Employee</th>
+            </tr>
+        `;
+        let html = '';
+        
+        let deptStats = {};
+        validEmps.forEach(st => {
+            if (!deptStats[st.dept]) {
+                deptStats[st.dept] = { emps: 0, reqs: 0, approved: 0, daysUsed: 0 };
+            }
+            deptStats[st.dept].emps++;
+            deptStats[st.dept].daysUsed += st.totalUsed;
+        });
+
+        filtered.forEach(req => {
+            const u = allUsers.find(user => user.id === req.employeeId);
+            if (u && deptStats[u.department || 'N/A']) {
+                deptStats[u.department || 'N/A'].reqs++;
+                if (req.status === 'Approved') deptStats[u.department || 'N/A'].approved++;
+            }
+        });
+
+        const sortedDepts = Object.keys(deptStats).sort((a, b) => deptStats[b].daysUsed - deptStats[a].daysUsed);
+        
+        sortedDepts.forEach(d => {
+            const ds = deptStats[d];
+            const avg = ds.emps > 0 ? (ds.daysUsed / ds.emps).toFixed(2) : '0.00';
+            html += `
+                <tr>
+                    <td style="padding: 12px 10px; font-weight: 600; color: #0f172a; border-bottom: 1px solid #f1f5f9;">${d}</td>
+                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${ds.emps}</td>
+                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${ds.reqs}</td>
+                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${ds.approved}</td>
+                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${ds.daysUsed}</td>
+                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${avg}</td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+    
+    document.getElementById('modal-full-leave-report').classList.remove('hidden');
 };
 // Reports & Analytics Module Logic
 
@@ -1478,7 +1677,7 @@ function generateAdminLeaveReport(db) {
 
     let htmlDept = '';
     let maxUsedDept = { name: '-', val: 0 };
-    const deptKeys = Object.keys(deptStats).slice(0, window.leaveReportViewAllFlags && window.leaveReportViewAllFlags.dept ? Object.keys(deptStats).length : 5);
+    const deptKeys = Object.keys(deptStats).slice(0, 5);
     if (deptKeys.length === 0) {
         htmlDept = '<tr><td colspan="6" class="text-center text-muted py-3">No data found</td></tr>';
 
@@ -1506,7 +1705,7 @@ function generateAdminLeaveReport(db) {
         });
     }
     tbodyDept.innerHTML = htmlDept;
-      if(deptKeys.length > 0) { document.getElementById('leave-dept-footer-text').innerText = `Showing ${deptKeys.length} of ${Object.keys(deptStats).length} entries`; document.getElementById('btn-viewall-dept').innerText = window.leaveReportViewAllFlags && window.leaveReportViewAllFlags.dept ? 'View Less' : 'View All'; }
+      if(deptKeys.length > 0) { document.getElementById('leave-dept-footer-text').innerText = `Showing ${deptKeys.length} of ${Object.keys(deptStats).length} entries`; }
 
     // 6. INSIGHTS
     // 6.1 Most Leave Taken
