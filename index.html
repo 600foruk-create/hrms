@@ -14,6 +14,8 @@
         rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <!-- Main Style -->
     <link rel="stylesheet" href="styles.css?v=6.9.46">
     <style id="team-widget-style">
@@ -4160,82 +4162,322 @@
 
 
                         <!-- Sub Tab 5: Payroll Report -->
-                        <div id="subtab-content-admin-report-payroll" class="sub-tab-content hidden">
-                            <div class="section-card bg-glass flex-table-card">
-                                <div class="section-card-header report-filters-header"
-                                    style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 15px;">
-                                    <div style="display: flex; gap: 15px; flex-wrap: wrap; flex: 1;">
-                                        <div class="form-group" style="margin-bottom: 0;">
-                                            <label>Month</label>
-                                            <select id="admin-rep-pay-month" class="form-control">
-                                                <option value="All">All Months</option>
-                                                <option value="01">January</option>
-                                                <option value="02">February</option>
-                                                <option value="03">March</option>
-                                                <option value="04">April</option>
-                                                <option value="05">May</option>
-                                                <option value="06">June</option>
-                                                <option value="07">July</option>
-                                                <option value="08">August</option>
-                                                <option value="09">September</option>
-                                                <option value="10">October</option>
-                                                <option value="11">November</option>
-                                                <option value="12">December</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group" style="margin-bottom: 0;">
-                                            <label>Year</label>
-                                            <select id="admin-rep-pay-year" class="form-control">
-                                                <option value="2026">2026</option>
-                                                <option value="2025">2025</option>
-                                                <option value="2024">2024</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group" style="margin-bottom: 0;">
-                                            <label>Employee</label>
-                                            <select id="admin-rep-pay-emp" class="form-control">
-                                                <option value="All">All Employees</option>
-                                            </select>
-                                        </div>
-                                        <div style="display: flex; align-items: flex-end;">
-                                            <button class="btn btn-primary"
-                                                onclick="if(window.generateAdminReport) window.generateAdminReport('payroll')"><i
-                                                    class="fa-solid fa-filter"></i> Generate</button>
-                                        </div>
-                                    </div>
-                                    <div style="margin-left: 15px;">
-                                        <button class="btn btn-outline"
-                                            onclick="if(window.printReport) window.printReport('admin-report-payroll')"><i
-                                                class="fa-solid fa-print"></i> Print</button>
+                        <div id="subtab-content-admin-report-payroll" class="sub-tab-content hidden" style="background: transparent; border: none; padding: 0;">
+                            
+                            <!-- PAYROLL MODULE HEADER -->
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div>
+                                    <h3 style="color: #0f172a; font-weight: 700; margin-bottom: 5px;">Payroll Reports & Analytics</h3>
+                                    <div style="font-size: 13px; color: #64748b;">Dashboard > Reports & Analytics > Payroll Reports</div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn-premium-outline" onclick="if(window.exportPayrollExcel) window.exportPayrollExcel()"><i class="fa-solid fa-file-excel text-success me-2"></i> Export Excel</button>
+                                    <button class="btn-premium-outline" onclick="if(window.printPayrollReport) window.printPayrollReport()"><i class="fa-solid fa-print me-2"></i> Print Report</button>
+                                </div>
+                            </div>
+
+                            <!-- PAYROLL TABS NAV -->
+                            <div class="premium-tabs-nav mb-4" style="border-bottom: 2px solid #e2e8f0; display: flex; gap: 20px;">
+                                <button class="payroll-tab-btn active" data-tab="payroll-summary-tab" style="background: none; border: none; padding: 10px 5px; font-weight: 600; color: #3b82f6; border-bottom: 2px solid #3b82f6; cursor: pointer;" onclick="switchPayrollTab('payroll-summary-tab')">Payroll Summary</button>
+                                <button class="payroll-tab-btn" data-tab="payroll-register-tab" style="background: none; border: none; padding: 10px 5px; font-weight: 500; color: #64748b; cursor: pointer;" onclick="switchPayrollTab('payroll-register-tab')">Payroll Register</button>
+                                <button class="payroll-tab-btn" data-tab="salary-breakdown-tab" style="background: none; border: none; padding: 10px 5px; font-weight: 500; color: #64748b; cursor: pointer;" onclick="switchPayrollTab('salary-breakdown-tab')">Salary Breakdown</button>
+                                <button class="payroll-tab-btn" data-tab="dept-analysis-tab" style="background: none; border: none; padding: 10px 5px; font-weight: 500; color: #64748b; cursor: pointer;" onclick="switchPayrollTab('dept-analysis-tab')">Department Analysis</button>
+                            </div>
+
+                            <!-- FILTERS SECTION -->
+                            <div class="premium-card p-3 mb-4" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; z-index: 10;">
+                                <div style="flex: 1; min-width: 120px;">
+                                    <label style="font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 5px; display: block;">Month</label>
+                                    <select id="payroll-filter-month" class="premium-select" style="width: 100%; height: 38px;">
+                                        <option value="All">All Months</option>
+                                        <option value="01">January</option><option value="02">February</option><option value="03">March</option>
+                                        <option value="04">April</option><option value="05">May</option><option value="06">June</option>
+                                        <option value="07">July</option><option value="08">August</option><option value="09">September</option>
+                                        <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+                                    </select>
+                                </div>
+                                <div style="flex: 1; min-width: 100px;">
+                                    <label style="font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 5px; display: block;">Year</label>
+                                    <select id="payroll-filter-year" class="premium-select" style="width: 100%; height: 38px;">
+                                        <option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option>
+                                    </select>
+                                </div>
+                                <div style="flex: 2; min-width: 150px;">
+                                    <label style="font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 5px; display: block;">Department</label>
+                                    <select id="payroll-filter-dept" class="premium-select" style="width: 100%; height: 38px;">
+                                        <option value="All">All Departments</option>
+                                    </select>
+                                </div>
+                                <div style="flex: 2; min-width: 150px;">
+                                    <label style="font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 5px; display: block;">Employee</label>
+                                    <select id="payroll-filter-emp" class="premium-select" style="width: 100%; height: 38px;">
+                                        <option value="All">All Employees</option>
+                                    </select>
+                                </div>
+                                <div style="flex: 1.5; min-width: 140px;">
+                                    <label style="font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 5px; display: block;">Payroll Status</label>
+                                    <select id="payroll-filter-status" class="premium-select" style="width: 100%; height: 38px;">
+                                        <option value="All">All Status</option>
+                                        <option value="Paid">Paid</option>
+                                        <option value="Processing">Processing</option>
+                                        <option value="Pending">Pending</option>
+                                        <option value="On Hold">On Hold</option>
+                                    </select>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn-premium-primary" style="height: 38px; padding: 0 15px;" onclick="if(window.generatePayrollReport) window.generatePayrollReport()"><i class="fa-solid fa-filter me-2"></i>Generate</button>
+                                    <button class="btn-premium-outline" style="height: 38px; padding: 0 15px;" onclick="if(window.resetPayrollFilters) window.resetPayrollFilters()"><i class="fa-solid fa-rotate-right"></i></button>
+                                </div>
+                            </div>
+
+                            <!-- PAYROLL SUMMARY CARDS -->
+                            <div class="d-flex flex-wrap mb-4" style="gap: 15px;">
+                                <div class="premium-card p-3 d-flex align-items-center" style="flex: 1; min-width: 160px; margin-bottom: 0;">
+                                    <div style="width: 45px; height: 45px; border-radius: 10px; background: rgba(99, 102, 241, 0.1); color: #6366f1; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;"><i class="fa-solid fa-users"></i></div>
+                                    <div>
+                                        <div style="font-size: 12px; color: #64748b; font-weight: 500;">Total Employees</div>
+                                        <div id="pr-card-emp" style="font-size: 20px; font-weight: 700; color: #0f172a;">0</div>
                                     </div>
                                 </div>
-                                <div class="table-container printable-area" id="print-area-admin-payroll">
-                                    <div class="print-header hidden">
-                                        <h2>Company Payroll Report</h2>
-                                        <p id="print-subtitle-admin-payroll"></p>
+                                <div class="premium-card p-3 d-flex align-items-center" style="flex: 1; min-width: 160px; margin-bottom: 0;">
+                                    <div style="width: 45px; height: 45px; border-radius: 10px; background: rgba(16, 185, 129, 0.1); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;"><i class="fa-solid fa-user-check"></i></div>
+                                    <div>
+                                        <div style="font-size: 12px; color: #64748b; font-weight: 500;">Processed Payroll</div>
+                                        <div id="pr-card-processed" style="font-size: 20px; font-weight: 700; color: #0f172a;">0</div>
                                     </div>
-                                    <table class="data-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Period</th>
-                                                <th>Employee</th>
-                                                <th>Basic Salary</th>
-                                                <th>Allowances</th>
-                                                <th>Deductions</th>
-                                                <th>Net Salary</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="admin-rep-body-payroll">
-                                            <tr>
-                                                <td colspan="7" class="text-center text-muted">Click Generate to view
-                                                    data</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                </div>
+                                <div class="premium-card p-3 d-flex align-items-center" style="flex: 1; min-width: 160px; margin-bottom: 0;">
+                                    <div style="width: 45px; height: 45px; border-radius: 10px; background: rgba(245, 158, 11, 0.1); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;"><i class="fa-solid fa-hourglass-half"></i></div>
+                                    <div>
+                                        <div style="font-size: 12px; color: #64748b; font-weight: 500;">Pending Payroll</div>
+                                        <div id="pr-card-pending" style="font-size: 20px; font-weight: 700; color: #0f172a;">0</div>
+                                    </div>
+                                </div>
+                                <div class="premium-card p-3 d-flex align-items-center" style="flex: 1.5; min-width: 200px; margin-bottom: 0; border-left: 4px solid #3b82f6;">
+                                    <div>
+                                        <div style="font-size: 12px; color: #64748b; font-weight: 500;">Total Gross Salary</div>
+                                        <div id="pr-card-gross" style="font-size: 22px; font-weight: 800; color: #0f172a;">Rs. 0</div>
+                                    </div>
+                                </div>
+                                <div class="premium-card p-3 d-flex align-items-center" style="flex: 1.5; min-width: 200px; margin-bottom: 0; border-left: 4px solid #ef4444;">
+                                    <div>
+                                        <div style="font-size: 12px; color: #64748b; font-weight: 500;">Total Deductions</div>
+                                        <div id="pr-card-deductions" style="font-size: 22px; font-weight: 800; color: #0f172a;">Rs. 0</div>
+                                    </div>
+                                </div>
+                                <div class="premium-card p-3 d-flex align-items-center" style="flex: 1.5; min-width: 200px; margin-bottom: 0; border-left: 4px solid #10b981; background: #f8fafc;">
+                                    <div>
+                                        <div style="font-size: 12px; color: #64748b; font-weight: 500;">Total Net Payroll</div>
+                                        <div id="pr-card-net" style="font-size: 22px; font-weight: 800; color: #10b981;">Rs. 0</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- TAB CONTENT 1: PAYROLL SUMMARY -->
+                            <div id="payroll-summary-tab" class="payroll-tab-content">
+                                <div class="premium-card p-0" style="overflow: hidden;">
+                                    <div class="card-header-title p-3" style="border-bottom: 1px solid #e2e8f0; background: #f8fafc;">Payroll Summary Report</div>
+                                    <div class="table-responsive">
+                                        <table class="mini-rep-table" id="table-payroll-summary">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Employee ID</th>
+                                                    <th>Employee Name</th>
+                                                    <th>Department</th>
+                                                    <th class="text-end">Basic Salary</th>
+                                                    <th class="text-end">Allowances</th>
+                                                    <th class="text-end">Overtime</th>
+                                                    <th class="text-end">Bonuses</th>
+                                                    <th class="text-end" style="background: rgba(59, 130, 246, 0.05);">Gross Salary</th>
+                                                    <th class="text-end" style="color: #ef4444;">Deductions</th>
+                                                    <th class="text-end" style="background: rgba(16, 185, 129, 0.05); color: #10b981;">Net Salary</th>
+                                                    <th class="text-center">Status</th>
+                                                    <th class="text-center">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tbody-payroll-summary">
+                                                <tr><td colspan="13" class="text-center py-4 text-muted">No payroll data found for the selected period.</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- CHARTS ROW -->
+                                <div class="d-flex flex-wrap mt-4" style="gap: 20px;">
+                                    <div class="premium-card p-4" style="flex: 1; min-width: 300px;">
+                                        <div class="card-header-title mb-3">Salary Distribution</div>
+                                        <div style="position: relative; height: 250px; width: 100%; display: flex; justify-content: center;">
+                                            <canvas id="payrollDistributionChart"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="premium-card p-4" style="flex: 2; min-width: 400px;">
+                                        <div class="card-header-title mb-3">Payroll Trend Analytics (Current Year)</div>
+                                        <div style="position: relative; height: 250px; width: 100%;">
+                                            <canvas id="payrollTrendChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- INSIGHTS & ACTIVITIES ROW -->
+                                <div class="d-flex flex-wrap mt-4" style="gap: 20px;">
+                                    <div class="premium-card p-0" style="flex: 1; min-width: 300px;">
+                                        <div class="card-header-title p-3" style="border-bottom: 1px solid #e2e8f0; background: #f8fafc;">Payroll Insights</div>
+                                        <div class="p-3" id="payroll-insights-container">
+                                            <!-- Dynamically populated -->
+                                        </div>
+                                    </div>
+                                    <div class="premium-card p-0" style="flex: 2; min-width: 400px;">
+                                        <div class="card-header-title p-3" style="border-bottom: 1px solid #e2e8f0; background: #f8fafc;">Recent Payroll Activities</div>
+                                        <div class="table-responsive">
+                                            <table class="mini-rep-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Date</th>
+                                                        <th>Description</th>
+                                                        <th>Payroll Month</th>
+                                                        <th>Status</th>
+                                                        <th>Processed By</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="tbody-payroll-activities">
+                                                    <!-- Dynamic -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- TAB CONTENT 2: PAYROLL REGISTER -->
+                            <div id="payroll-register-tab" class="payroll-tab-content hidden">
+                                <div class="premium-card p-0">
+                                    <div class="card-header-title p-3" style="border-bottom: 1px solid #e2e8f0; background: #f8fafc;">Payroll Register</div>
+                                    <div class="table-responsive">
+                                        <table class="mini-rep-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Payroll Period</th>
+                                                    <th>Employee ID</th>
+                                                    <th>Employee Name</th>
+                                                    <th>Department</th>
+                                                    <th class="text-end">Gross Salary</th>
+                                                    <th class="text-end text-danger">Deductions</th>
+                                                    <th class="text-end text-success">Net Salary</th>
+                                                    <th>Payment Date</th>
+                                                    <th>Status</th>
+                                                    <th>Processed By</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tbody-payroll-register"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- TAB CONTENT 3: SALARY BREAKDOWN -->
+                            <div id="salary-breakdown-tab" class="payroll-tab-content hidden">
+                                <div class="premium-card p-0">
+                                    <div class="card-header-title p-3" style="border-bottom: 1px solid #e2e8f0; background: #f8fafc;">Salary Breakdown Structure</div>
+                                    <div class="table-responsive">
+                                        <table class="mini-rep-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Employee Name</th>
+                                                    <th class="text-end">Basic Salary</th>
+                                                    <th class="text-end">House Rent</th>
+                                                    <th class="text-end">Medical</th>
+                                                    <th class="text-end">Transport</th>
+                                                    <th class="text-end">Other Allw.</th>
+                                                    <th class="text-end">Overtime</th>
+                                                    <th class="text-end">Bonus</th>
+                                                    <th class="text-end" style="background: rgba(59, 130, 246, 0.05);">Gross Salary</th>
+                                                    <th class="text-end text-danger">Total Deductions</th>
+                                                    <th class="text-end" style="background: rgba(16, 185, 129, 0.05); color: #10b981;">Net Salary</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tbody-salary-breakdown"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- TAB CONTENT 4: DEPARTMENT ANALYSIS -->
+                            <div id="dept-analysis-tab" class="payroll-tab-content hidden">
+                                <div class="premium-card p-0">
+                                    <div class="card-header-title p-3" style="border-bottom: 1px solid #e2e8f0; background: #f8fafc;">Department Wise Payroll Analysis</div>
+                                    <div class="table-responsive">
+                                        <table class="mini-rep-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Department</th>
+                                                    <th class="text-center">Employees</th>
+                                                    <th class="text-end">Gross Payroll</th>
+                                                    <th class="text-end text-danger">Total Deductions</th>
+                                                    <th class="text-end text-success">Net Payroll</th>
+                                                    <th class="text-end">Average Salary</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tbody-dept-analysis"></tbody>
+                                            <tfoot id="tfoot-dept-analysis" style="font-weight: bold; background: #f1f5f9;"></tfoot>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Employee Payroll Detail Slide Panel -->
+                        <div id="payroll-detail-panel" class="payroll-slide-panel">
+                            <div class="panel-header d-flex justify-content-between align-items-center p-3" style="border-bottom: 1px solid #e2e8f0;">
+                                <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;">Employee Payroll Details</h4>
+                                <button onclick="closePayrollPanel()" style="background: none; border: none; font-size: 18px; color: #64748b; cursor: pointer;"><i class="fa-solid fa-times"></i></button>
+                            </div>
+                            <div class="panel-body p-4" style="overflow-y: auto; height: calc(100% - 60px);">
+                                <div class="d-flex align-items-center mb-4 pb-3" style="border-bottom: 1px dashed #cbd5e1;">
+                                    <div id="panel-emp-img" style="width: 50px; height: 50px; border-radius: 50%; background: #e2e8f0; color: #475569; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 18px; margin-right: 15px;"></div>
+                                    <div>
+                                        <div id="panel-emp-name" style="font-size: 16px; font-weight: 700; color: #0f172a;">Name</div>
+                                        <div id="panel-emp-id" style="font-size: 12px; color: #64748b;">ID</div>
+                                    </div>
+                                </div>
+                                <div class="mb-4">
+                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Department</span><span id="panel-emp-dept" style="font-weight: 500; font-size: 13px;">-</span></div>
+                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Designation</span><span id="panel-emp-desig" style="font-weight: 500; font-size: 13px;">-</span></div>
+                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Join Date</span><span id="panel-emp-join" style="font-weight: 500; font-size: 13px;">-</span></div>
+                                </div>
+                                <h5 style="font-size: 14px; font-weight: 700; color: #10b981; border-left: 3px solid #10b981; padding-left: 8px; margin-bottom: 15px;">Salary Structure</h5>
+                                <div class="mb-4">
+                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Basic Salary</span><span id="panel-basic" style="font-weight: 500; font-size: 13px;">0</span></div>
+                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">House Rent Allowance</span><span id="panel-hra" style="font-weight: 500; font-size: 13px;">0</span></div>
+                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Medical Allowance</span><span id="panel-medical" style="font-weight: 500; font-size: 13px;">0</span></div>
+                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Transport Allowance</span><span id="panel-transport" style="font-weight: 500; font-size: 13px;">0</span></div>
+                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Other Allowances</span><span id="panel-other-allow" style="font-weight: 500; font-size: 13px;">0</span></div>
+                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Overtime</span><span id="panel-overtime" style="font-weight: 500; font-size: 13px;">0</span></div>
+                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Bonus</span><span id="panel-bonus" style="font-weight: 500; font-size: 13px;">0</span></div>
+                                    <div class="d-flex justify-content-between mt-3 pt-2" style="border-top: 1px dashed #cbd5e1;"><span style="font-weight: 600; font-size: 14px; color: #0f172a;">Gross Salary</span><span id="panel-gross" style="font-weight: 700; font-size: 14px; color: #10b981;">0</span></div>
+                                </div>
+                                <h5 style="font-size: 14px; font-weight: 700; color: #ef4444; border-left: 3px solid #ef4444; padding-left: 8px; margin-bottom: 15px;">Deductions</h5>
+                                <div class="mb-4">
+                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Late Deduction</span><span id="panel-late-ded" style="font-weight: 500; font-size: 13px;">0</span></div>
+                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Absent Deduction</span><span id="panel-absent-ded" style="font-weight: 500; font-size: 13px;">0</span></div>
+                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Loan Deduction</span><span id="panel-loan-ded" style="font-weight: 500; font-size: 13px;">0</span></div>
+                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Tax Deduction</span><span id="panel-tax-ded" style="font-weight: 500; font-size: 13px;">0</span></div>
+                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Other Deduction</span><span id="panel-other-ded" style="font-weight: 500; font-size: 13px;">0</span></div>
+                                    <div class="d-flex justify-content-between mt-3 pt-2" style="border-top: 1px dashed #cbd5e1;"><span style="font-weight: 600; font-size: 14px; color: #0f172a;">Total Deduction</span><span id="panel-total-ded" style="font-weight: 700; font-size: 14px; color: #ef4444;">0</span></div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center p-3 mt-4" style="background: rgba(16, 185, 129, 0.1); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.3);">
+                                    <span style="font-weight: 700; font-size: 16px; color: #065f46;">Net Salary</span>
+                                    <span id="panel-net" style="font-weight: 800; font-size: 20px; color: #10b981;">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="payroll-panel-overlay" class="panel-overlay hidden" onclick="closePayrollPanel()"></div>
+                        
+                        <!-- PRINT LAYOUT FOR PAYROLL -->
+                        <div id="print-area-admin-payroll" class="printable-area hidden">
+                            <!-- Populated dynamically via JS when printing -->
+                        </div>
+
 
                         <!-- Sub Tab 6: Productivity Report -->
                         <div id="subtab-content-admin-report-productivity" class="sub-tab-content hidden">

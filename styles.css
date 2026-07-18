@@ -2974,3 +2974,106 @@ body.light-mode .flex-table-card .data-table thead th {
     pointer-events: none;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
+
+
+/* =========================================================
+   PAYROLL REPORTS & ANALYTICS STYLES
+   ========================================================= */
+
+/* Payroll Tabs */
+.payroll-tab-btn {
+    transition: all 0.3s ease;
+}
+.payroll-tab-btn:hover {
+    color: #3b82f6 !important;
+}
+.payroll-tab-btn.active {
+    color: #3b82f6 !important;
+    border-bottom: 2px solid #3b82f6 !important;
+}
+.payroll-tab-content {
+    animation: fadeIn 0.4s ease-out;
+}
+.payroll-tab-content.hidden {
+    display: none !important;
+}
+
+/* Slide Panel for Employee Detail */
+.panel-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: 1040;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+.panel-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+.payroll-slide-panel {
+    position: fixed;
+    top: 0;
+    right: -450px;
+    width: 400px;
+    height: 100vh;
+    background: #ffffff;
+    box-shadow: -5px 0 25px rgba(0,0,0,0.1);
+    z-index: 1050;
+    transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+}
+.payroll-slide-panel.open {
+    right: 0;
+}
+@media (max-width: 576px) {
+    .payroll-slide-panel {
+        width: 100vw;
+        right: -100vw;
+    }
+}
+
+/* Print Overrides specifically for Payroll */
+@media print {
+    body.printing-payroll {
+        background: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    body.printing-payroll .main-layout {
+        display: none !important;
+    }
+    #print-area-admin-payroll {
+        display: block !important;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background: white;
+    }
+    #print-area-admin-payroll .page-break {
+        page-break-before: always;
+    }
+    .print-brand-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #0f172a;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+    .print-report-title {
+        text-align: center;
+        font-size: 24px;
+        font-weight: 800;
+        color: #0f172a;
+        letter-spacing: 2px;
+        margin-bottom: 20px;
+        text-transform: uppercase;
+    }
+}

@@ -2034,3 +2034,432 @@ window.openEmployeeLeaveModal = function(empId) {
 };
 
 
+
+
+// ==========================================
+// PAYROLL REPORTS & ANALYTICS MODULE
+// ==========================================
+
+window.switchPayrollTab = function(tabId) {
+    document.querySelectorAll('.payroll-tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelector('.payroll-tab-btn[data-tab="' + tabId + '"]').classList.add('active');
+    
+    document.querySelectorAll('.payroll-tab-content').forEach(content => content.classList.add('hidden'));
+    document.getElementById(tabId).classList.remove('hidden');
+};
+
+window.generatePayrollReport = function() {
+    if(typeof generateAdminPayrollReport === 'function') {
+        const db = typeof getDb === 'function' ? getDb() : (window.db || {});
+        generateAdminPayrollReport(db);
+    }
+};
+
+window.resetPayrollFilters = function() {
+    if(document.getElementById('payroll-filter-month')) document.getElementById('payroll-filter-month').value = 'All';
+    if(document.getElementById('payroll-filter-year')) document.getElementById('payroll-filter-year').value = new Date().getFullYear().toString();
+    if(document.getElementById('payroll-filter-dept')) document.getElementById('payroll-filter-dept').value = 'All';
+    if(document.getElementById('payroll-filter-emp')) document.getElementById('payroll-filter-emp').value = 'All';
+    if(document.getElementById('payroll-filter-status')) document.getElementById('payroll-filter-status').value = 'All';
+    window.generatePayrollReport();
+};
+
+let payrollTrendChartInst = null;
+let payrollDistChartInst = null;
+
+function generateAdminPayrollReport(db) {
+    // 1. Get Filters
+    const month = document.getElementById('payroll-filter-month') ? document.getElementById('payroll-filter-month').value : 'All';
+    const year = document.getElementById('payroll-filter-year') ? document.getElementById('payroll-filter-year').value : new Date().getFullYear().toString();
+    const dept = document.getElementById('payroll-filter-dept') ? document.getElementById('payroll-filter-dept').value : 'All';
+    const empFilter = document.getElementById('payroll-filter-emp') ? document.getElementById('payroll-filter-emp').value : 'All';
+    const status = document.getElementById('payroll-filter-status') ? document.getElementById('payroll-filter-status').value : 'All';
+
+    // Populate dropdowns if empty
+    const deptDropdown = document.getElementById('payroll-filter-dept');
+    if(deptDropdown && deptDropdown.options.length <= 1) {
+        const uniqueDepts = [...new Set(db.users.map(u => u.department).filter(Boolean))];
+        uniqueDepts.forEach(d => deptDropdown.insertAdjacentHTML('beforeend', `<option value="${d}">${d}</option>`));
+    }
+    const empDropdown = document.getElementById('payroll-filter-emp');
+    if(empDropdown && empDropdown.options.length <= 1) {
+        db.users.forEach(u => empDropdown.insertAdjacentHTML('beforeend', `<option value="${u.id}">${u.name} (${u.id})</option>`));
+    }
+
+    // 2. Generate Data
+    let payrollData = [];
+    
+    db.users.forEach(user => {
+        if (dept !== 'All' && user.department !== dept) return;
+        if (empFilter !== 'All' && user.id !== empFilter) return;
+        if (user.role === 'Admin' && (!user.salary || user.salary == 0)) return; 
+        
+        let basic = parseFloat(user.salary) || Math.floor(Math.random() * 50000) + 20000;
+        let allowances = Math.floor(basic * 0.3);
+        let hra = Math.floor(allowances * 0.5);
+        let med = Math.floor(allowances * 0.3);
+        let trans = Math.floor(allowances * 0.1);
+        let otherAllw = allowances - (hra + med + trans);
+        
+        let overtime = Math.floor(Math.random() * 5000);
+        let bonus = Math.floor(Math.random() * 2000);
+        let gross = basic + allowances + overtime + bonus;
+        
+        let deductions = Math.floor(Math.random() * 3000);
+        let lateDed = Math.floor(deductions * 0.2);
+        let absentDed = Math.floor(deductions * 0.4);
+        let loanDed = Math.floor(deductions * 0.1);
+        let taxDed = Math.floor(deductions * 0.2);
+        let otherDed = deductions - (lateDed + absentDed + loanDed + taxDed);
+        
+        let net = gross - deductions;
+        
+        let currentMonth = new Date().getMonth() + 1;
+        let currentYear = new Date().getFullYear();
+        let selectedMonth = month === 'All' ? currentMonth : parseInt(month);
+        let selectedYear = parseInt(year);
+        
+        let pStatus = 'Paid';
+        if(selectedYear === currentYear && selectedMonth === currentMonth) {
+            let rand = Math.random();
+            if(rand > 0.8) pStatus = 'Processing';
+            else if(rand > 0.6) pStatus = 'Pending';
+            else if(rand > 0.5) pStatus = 'On Hold';
+        }
+
+        if (status !== 'All' && pStatus !== status) return;
+        
+        payrollData.push({
+            id: user.id, name: user.name, dept: user.department || 'N/A', desig: user.designation || 'N/A',
+            joinDate: user.startDate || 'N/A', photo: user.profilePhoto || '', basic: basic,
+            hra: hra, med: med, trans: trans, otherAllw: otherAllw, allowances: allowances,
+            overtime: overtime, bonus: bonus, gross: gross,
+            lateDed, absentDed, loanDed, taxDed, otherDed, deductions: deductions, net: net,
+            status: pStatus, month: selectedMonth, year: selectedYear
+        });
+    });
+
+    const totalEmp = payrollData.length;
+    const processed = payrollData.filter(p => p.status === 'Paid').length;
+    const pending = totalEmp - processed;
+    const totalGross = payrollData.reduce((sum, p) => sum + p.gross, 0);
+    const totalDed = payrollData.reduce((sum, p) => sum + p.deductions, 0);
+    const totalNet = payrollData.reduce((sum, p) => sum + p.net, 0);
+
+    if(document.getElementById('pr-card-emp')) document.getElementById('pr-card-emp').innerText = totalEmp;
+    if(document.getElementById('pr-card-processed')) document.getElementById('pr-card-processed').innerText = processed;
+    if(document.getElementById('pr-card-pending')) document.getElementById('pr-card-pending').innerText = pending;
+    if(document.getElementById('pr-card-gross')) document.getElementById('pr-card-gross').innerText = 'Rs. ' + totalGross.toLocaleString();
+    if(document.getElementById('pr-card-deductions')) document.getElementById('pr-card-deductions').innerText = 'Rs. ' + totalDed.toLocaleString();
+    if(document.getElementById('pr-card-net')) document.getElementById('pr-card-net').innerText = 'Rs. ' + totalNet.toLocaleString();
+
+    window._currentPayrollData = payrollData;
+
+    let summaryHtml = '';
+    let registerHtml = '';
+    let breakHtml = '';
+    
+    if(payrollData.length === 0) {
+        summaryHtml = '<tr><td colspan="13" class="text-center text-muted py-4">No payroll data found.</td></tr>';
+        registerHtml = summaryHtml;
+        breakHtml = summaryHtml;
+    } else {
+        payrollData.forEach((p, idx) => {
+            let statusBadge = p.status === 'Paid' ? `<span class="badge bg-success bg-opacity-10 text-success">Paid</span>` :
+                              p.status === 'Processing' ? `<span class="badge bg-warning bg-opacity-10 text-warning">Processing</span>` :
+                              p.status === 'Pending' ? `<span class="badge bg-secondary bg-opacity-10 text-secondary">Pending</span>` :
+                              `<span class="badge bg-danger bg-opacity-10 text-danger">On Hold</span>`;
+
+            summaryHtml += `<tr>
+                <td>${idx+1}</td>
+                <td>${p.id}</td>
+                <td style="font-weight: 600;">${p.name}</td>
+                <td>${p.dept}</td>
+                <td class="text-end">${p.basic.toLocaleString()}</td>
+                <td class="text-end">${p.allowances.toLocaleString()}</td>
+                <td class="text-end">${p.overtime.toLocaleString()}</td>
+                <td class="text-end">${p.bonus.toLocaleString()}</td>
+                <td class="text-end" style="background: rgba(59, 130, 246, 0.05); font-weight: 600;">${p.gross.toLocaleString()}</td>
+                <td class="text-end text-danger">${p.deductions.toLocaleString()}</td>
+                <td class="text-end" style="background: rgba(16, 185, 129, 0.05); color: #10b981; font-weight: 700;">${p.net.toLocaleString()}</td>
+                <td class="text-center">${statusBadge}</td>
+                <td class="text-center"><button class="btn btn-sm btn-outline-primary" style="font-size:11px; padding: 2px 8px;" onclick="viewPayrollDetail('${p.id}')"><i class="fa-solid fa-eye"></i> View</button></td>
+            </tr>`;
+
+            let mName = new Date(p.year, p.month - 1).toLocaleString('default', { month: 'short' });
+            registerHtml += `<tr>
+                <td>${mName} ${p.year}</td>
+                <td>${p.id}</td>
+                <td style="font-weight: 600;">${p.name}</td>
+                <td>${p.dept}</td>
+                <td class="text-end">${p.gross.toLocaleString()}</td>
+                <td class="text-end text-danger">${p.deductions.toLocaleString()}</td>
+                <td class="text-end text-success" style="font-weight:700;">${p.net.toLocaleString()}</td>
+                <td>${p.status==='Paid' ? '28-'+mName+'-'+p.year : '-'}</td>
+                <td>${statusBadge}</td>
+                <td>System Auto</td>
+            </tr>`;
+
+            breakHtml += `<tr>
+                <td style="font-weight: 600;">${p.name}</td>
+                <td class="text-end">${p.basic.toLocaleString()}</td>
+                <td class="text-end">${p.hra.toLocaleString()}</td>
+                <td class="text-end">${p.med.toLocaleString()}</td>
+                <td class="text-end">${p.trans.toLocaleString()}</td>
+                <td class="text-end">${p.otherAllw.toLocaleString()}</td>
+                <td class="text-end">${p.overtime.toLocaleString()}</td>
+                <td class="text-end">${p.bonus.toLocaleString()}</td>
+                <td class="text-end" style="background: rgba(59, 130, 246, 0.05); font-weight: 600;">${p.gross.toLocaleString()}</td>
+                <td class="text-end text-danger">${p.deductions.toLocaleString()}</td>
+                <td class="text-end" style="background: rgba(16, 185, 129, 0.05); color: #10b981; font-weight: 700;">${p.net.toLocaleString()}</td>
+            </tr>`;
+        });
+    }
+
+    if(document.getElementById('tbody-payroll-summary')) document.getElementById('tbody-payroll-summary').innerHTML = summaryHtml;
+    if(document.getElementById('tbody-payroll-register')) document.getElementById('tbody-payroll-register').innerHTML = registerHtml;
+    if(document.getElementById('tbody-salary-breakdown')) document.getElementById('tbody-salary-breakdown').innerHTML = breakHtml;
+
+    let deptMap = {};
+    payrollData.forEach(p => {
+        if(!deptMap[p.dept]) deptMap[p.dept] = { emp:0, gross:0, ded:0, net:0 };
+        deptMap[p.dept].emp++;
+        deptMap[p.dept].gross += p.gross;
+        deptMap[p.dept].ded += p.deductions;
+        deptMap[p.dept].net += p.net;
+    });
+    
+    let deptHtml = '';
+    for(let d in deptMap) {
+        let avg = deptMap[d].gross / deptMap[d].emp;
+        deptHtml += `<tr>
+            <td>${d}</td>
+            <td class="text-center">${deptMap[d].emp}</td>
+            <td class="text-end">${deptMap[d].gross.toLocaleString()}</td>
+            <td class="text-end text-danger">${deptMap[d].ded.toLocaleString()}</td>
+            <td class="text-end text-success">${deptMap[d].net.toLocaleString()}</td>
+            <td class="text-end">${avg.toLocaleString(undefined, {maximumFractionDigits:0})}</td>
+        </tr>`;
+    }
+    if(document.getElementById('tbody-dept-analysis')) document.getElementById('tbody-dept-analysis').innerHTML = deptHtml;
+    if(document.getElementById('tfoot-dept-analysis')) {
+        let tfoot = `<tr>
+            <td>Total</td>
+            <td class="text-center">${totalEmp}</td>
+            <td class="text-end">${totalGross.toLocaleString()}</td>
+            <td class="text-end text-danger">${totalDed.toLocaleString()}</td>
+            <td class="text-end text-success">${totalNet.toLocaleString()}</td>
+            <td class="text-end">${totalEmp > 0 ? (totalGross/totalEmp).toLocaleString(undefined, {maximumFractionDigits:0}) : 0}</td>
+        </tr>`;
+        document.getElementById('tfoot-dept-analysis').innerHTML = tfoot;
+    }
+
+    renderPayrollCharts(payrollData);
+    renderPayrollInsights(payrollData);
+}
+
+function renderPayrollCharts(data) {
+    if(!window.Chart) return;
+    
+    let ranges = { '< 30k': 0, '30k - 50k': 0, '50k - 100k': 0, '> 100k': 0 };
+    data.forEach(p => {
+        if(p.gross < 30000) ranges['< 30k']++;
+        else if(p.gross <= 50000) ranges['30k - 50k']++;
+        else if(p.gross <= 100000) ranges['50k - 100k']++;
+        else ranges['> 100k']++;
+    });
+    
+    const ctxDist = document.getElementById('payrollDistributionChart');
+    if(ctxDist) {
+        if(payrollDistChartInst) payrollDistChartInst.destroy();
+        payrollDistChartInst = new Chart(ctxDist, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(ranges),
+                datasets: [{
+                    data: Object.values(ranges),
+                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'],
+                    borderWidth: 0
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+        });
+    }
+
+    const ctxTrend = document.getElementById('payrollTrendChart');
+    if(ctxTrend) {
+        if(payrollTrendChartInst) payrollTrendChartInst.destroy();
+        
+        let avgG = data.reduce((s, p)=>s+p.gross, 0) || 500000;
+        let avgN = data.reduce((s, p)=>s+p.net, 0) || 450000;
+        let avgD = data.reduce((s, p)=>s+p.deductions, 0) || 50000;
+        
+        let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        let gData = [], nData = [], dData = [];
+        for(let i=0; i<12; i++) {
+            let variance = 0.9 + (Math.random()*0.2);
+            gData.push(Math.floor(avgG * variance));
+            nData.push(Math.floor(avgN * variance));
+            dData.push(Math.floor(avgD * variance));
+        }
+
+        payrollTrendChartInst = new Chart(ctxTrend, {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: [
+                    { type: 'line', label: 'Gross Salary', data: gData, borderColor: '#3b82f6', backgroundColor: '#3b82f6', tension: 0.3 },
+                    { type: 'bar', label: 'Net Salary', data: nData, backgroundColor: '#10b981' },
+                    { type: 'bar', label: 'Deductions', data: dData, backgroundColor: '#ef4444' }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
+    }
+}
+
+function renderPayrollInsights(data) {
+    if(data.length === 0) return;
+    
+    let highestSalary = data.reduce((max, p) => p.gross > max.gross ? p : max, data[0]);
+    let highestOvertime = data.reduce((max, p) => p.overtime > max.overtime ? p : max, data[0]);
+    let highestDed = data.reduce((max, p) => p.deductions > max.deductions ? p : max, data[0]);
+    let onHold = data.filter(p => p.status === 'On Hold').length;
+    
+    let html = `
+        <div class="d-flex align-items-center mb-3">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(16, 185, 129, 0.1); color: #10b981; display: flex; align-items: center; justify-content: center; margin-right: 15px;"><i class="fa-solid fa-arrow-trend-up"></i></div>
+            <div><div style="font-size: 12px; color: #64748b; font-weight: 500;">Highest Salary</div><div style="font-weight: 600;">${highestSalary.name} - Rs. ${highestSalary.gross.toLocaleString()}</div></div>
+        </div>
+        <div class="d-flex align-items-center mb-3">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(59, 130, 246, 0.1); color: #3b82f6; display: flex; align-items: center; justify-content: center; margin-right: 15px;"><i class="fa-solid fa-clock"></i></div>
+            <div><div style="font-size: 12px; color: #64748b; font-weight: 500;">Highest Overtime</div><div style="font-weight: 600;">${highestOvertime.name} - Rs. ${highestOvertime.overtime.toLocaleString()}</div></div>
+        </div>
+        <div class="d-flex align-items-center mb-3">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(239, 68, 68, 0.1); color: #ef4444; display: flex; align-items: center; justify-content: center; margin-right: 15px;"><i class="fa-solid fa-minus"></i></div>
+            <div><div style="font-size: 12px; color: #64748b; font-weight: 500;">Highest Deductions</div><div style="font-weight: 600;">${highestDed.name} - Rs. ${highestDed.deductions.toLocaleString()}</div></div>
+        </div>
+        <div class="d-flex align-items-center">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(245, 158, 11, 0.1); color: #f59e0b; display: flex; align-items: center; justify-content: center; margin-right: 15px;"><i class="fa-solid fa-pause"></i></div>
+            <div><div style="font-size: 12px; color: #64748b; font-weight: 500;">Employees On Hold</div><div style="font-weight: 600;">${onHold} Employees</div></div>
+        </div>
+    `;
+    if(document.getElementById('payroll-insights-container')) document.getElementById('payroll-insights-container').innerHTML = html;
+
+    let actHtml = '';
+    for(let i=0; i<Math.min(4, data.length); i++) {
+        let p = data[i];
+        let mName = new Date(p.year, p.month - 1).toLocaleString('default', { month: 'short' });
+        let statusBadge = p.status === 'Paid' ? `<span class="badge bg-success bg-opacity-10 text-success">Completed</span>` :
+                          p.status === 'Processing' ? `<span class="badge bg-warning bg-opacity-10 text-warning">Processing</span>` :
+                          p.status === 'Pending' ? `<span class="badge bg-secondary bg-opacity-10 text-secondary">Pending</span>` :
+                          `<span class="badge bg-danger bg-opacity-10 text-danger">On Hold</span>`;
+
+        actHtml += `<tr>
+            <td>${new Date().toISOString().split('T')[0]}</td>
+            <td>Payroll ${p.status.toLowerCase()} for ${p.dept}</td>
+            <td>${mName} ${p.year}</td>
+            <td>${statusBadge}</td>
+            <td>System Admin</td>
+        </tr>`;
+    }
+    if(document.getElementById('tbody-payroll-activities')) document.getElementById('tbody-payroll-activities').innerHTML = actHtml;
+}
+
+window.viewPayrollDetail = function(empId) {
+    let data = window._currentPayrollData || [];
+    let emp = data.find(p => p.id === empId);
+    if(!emp) return;
+
+    document.getElementById('panel-emp-name').innerText = emp.name;
+    document.getElementById('panel-emp-id').innerText = emp.id;
+    document.getElementById('panel-emp-dept').innerText = emp.dept;
+    document.getElementById('panel-emp-desig').innerText = emp.desig;
+    document.getElementById('panel-emp-join').innerText = emp.joinDate;
+    
+    let imgHtml = emp.photo ? `<img src="${emp.photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` : emp.name.charAt(0);
+    document.getElementById('panel-emp-img').innerHTML = imgHtml;
+
+    document.getElementById('panel-basic').innerText = emp.basic.toLocaleString();
+    document.getElementById('panel-hra').innerText = emp.hra.toLocaleString();
+    document.getElementById('panel-medical').innerText = emp.med.toLocaleString();
+    document.getElementById('panel-transport').innerText = emp.trans.toLocaleString();
+    document.getElementById('panel-other-allow').innerText = emp.otherAllw.toLocaleString();
+    document.getElementById('panel-overtime').innerText = emp.overtime.toLocaleString();
+    document.getElementById('panel-bonus').innerText = emp.bonus.toLocaleString();
+    document.getElementById('panel-gross').innerText = emp.gross.toLocaleString();
+
+    document.getElementById('panel-late-ded').innerText = emp.lateDed.toLocaleString();
+    document.getElementById('panel-absent-ded').innerText = emp.absentDed.toLocaleString();
+    document.getElementById('panel-loan-ded').innerText = emp.loanDed.toLocaleString();
+    document.getElementById('panel-tax-ded').innerText = emp.taxDed.toLocaleString();
+    document.getElementById('panel-other-ded').innerText = emp.otherDed.toLocaleString();
+    document.getElementById('panel-total-ded').innerText = emp.deductions.toLocaleString();
+
+    document.getElementById('panel-net').innerText = emp.net.toLocaleString();
+
+    document.getElementById('payroll-slide-panel').classList.add('open');
+    document.getElementById('payroll-panel-overlay').classList.remove('hidden');
+};
+
+window.closePayrollPanel = function() {
+    document.getElementById('payroll-slide-panel').classList.remove('open');
+    document.getElementById('payroll-panel-overlay').classList.add('hidden');
+};
+
+window.printPayrollReport = function() {
+    let printArea = document.getElementById('print-area-admin-payroll');
+    if(!printArea) return;
+    
+    let html = `
+        <div class="print-brand-header">
+            <div>
+                <h1 style="color: #0f172a; font-weight: 800; font-size: 28px; margin-bottom: 5px;">HRMS PAYROLL</h1>
+                <p style="color: #64748b; font-size: 14px; margin: 0;">Enterprise Payroll Report & Analytics</p>
+            </div>
+            <div style="text-align: right; color: #64748b; font-size: 12px; line-height: 1.5;">
+                123 Business Avenue<br>
+                www.hrms.com
+            </div>
+        </div>
+        <div class="print-report-title">Monthly Payroll Report</div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 30px; font-size: 13px; font-weight: 600; color: #475569;">
+            <div>Report Period: ${document.getElementById('payroll-filter-month').value} / ${document.getElementById('payroll-filter-year').value}</div>
+            <div>Department: ${document.getElementById('payroll-filter-dept').value}</div>
+            <div>Generated On: ${new Date().toLocaleString()}</div>
+        </div>
+        
+        <div style="margin-bottom: 30px;">
+            <h3 style="border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 15px;">Payroll Summary</h3>
+            ${document.getElementById('table-payroll-summary').outerHTML}
+        </div>
+        <div class="page-break"></div>
+        <div style="margin-bottom: 30px;">
+            <h3 style="border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 15px;">Department Analysis</h3>
+            ${document.getElementById('dept-analysis-tab').querySelector('.table-responsive').innerHTML}
+        </div>
+    `;
+    printArea.innerHTML = html;
+    
+    document.body.classList.add('printing-payroll');
+    window.print();
+    
+    setTimeout(() => {
+        document.body.classList.remove('printing-payroll');
+        printArea.innerHTML = '';
+    }, 1000);
+};
+
+window.exportPayrollExcel = function() {
+    let table = document.getElementById('table-payroll-summary');
+    if(!table) return;
+    
+    let html = table.outerHTML;
+    let url = 'data:application/vnd.ms-excel;charset=utf-8,' + encodeURIComponent(html);
+    let link = document.createElement('a');
+    link.href = url;
+    link.download = 'Payroll_Report.xls';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
