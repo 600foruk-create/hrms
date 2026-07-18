@@ -1962,6 +1962,31 @@ body.light-mode .report-preview-container {
     body.printing-modal {
         overflow: visible !important;
     }
+
+    /* Print Table Fixes */
+    .no-print { display: none !important; }
+    
+    #admin-report-leave .premium-card {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    #admin-report-leave .table-responsive {
+        overflow: visible !important;
+    }
+    #admin-report-leave .mini-rep-table {
+        table-layout: auto !important;
+        width: 100% !important;
+    }
+    #admin-report-leave .mini-rep-table th, 
+    #admin-report-leave .mini-rep-table td {
+        padding: 4px 6px !important;
+        font-size: 10px !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+    }
+
     
     /* Make the active modal with ID Card visible for printing */
     #modal-id-card:not(.hidden) {
