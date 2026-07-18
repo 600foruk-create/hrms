@@ -1824,7 +1824,7 @@ function generateAdminLeaveReport(db) {
             </div>
         `;
     });
-    document.getElementById('leave-insight-low-bal-list').innerHTML = lowBalHtml || '<div class="text-muted" style="font-size: 11px;">All healthy</div>';
+    let lbList = document.getElementById('leave-insight-low-bal-list'); if(lbList) lbList.innerHTML = lowBalHtml || '<div class="text-muted" style="font-size: 11px;">All healthy</div>';
 
     // Print Header Setup
     const activeUser = window.currentUser || JSON.parse(localStorage.getItem('current_user')) || {name: 'Admin'};
