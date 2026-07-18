@@ -2170,8 +2170,7 @@ function generateAdminPayrollReport(db) {
                               p.status === 'Pending' ? `<span class="badge bg-secondary bg-opacity-10 text-secondary">Pending</span>` :
                               `<span class="badge bg-danger bg-opacity-10 text-danger">On Hold</span>`;
 
-            summaryHtml += `<tr>
-                <td>${idx+1}</td>
+            summaryHtml += `<tr style="cursor:pointer; transition: all 0.2s;" onclick="viewPayrollDetail('${p.id}')" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
                 <td>${p.id}</td>
                 <td style="font-weight: 600;">${p.name}</td>
                 <td>${p.dept}</td>
@@ -2183,7 +2182,7 @@ function generateAdminPayrollReport(db) {
                 <td class="text-end text-danger">${p.deductions.toLocaleString()}</td>
                 <td class="text-end" style="background: rgba(16, 185, 129, 0.05); color: #10b981; font-weight: 700;">${p.net.toLocaleString()}</td>
                 <td class="text-center">${statusBadge}</td>
-                <td class="text-center"><button class="btn btn-sm btn-outline-primary" style="font-size:11px; padding: 2px 8px;" onclick="viewPayrollDetail('${p.id}')"><i class="fa-solid fa-eye"></i> View</button></td>
+                
             </tr>`;
 
             let mName = new Date(p.year, p.month - 1).toLocaleString('default', { month: 'short' });
@@ -2402,8 +2401,8 @@ window.viewPayrollDetail = function(empId) {
 
     document.getElementById('panel-net').innerText = emp.net.toLocaleString();
 
-    document.getElementById('payroll-slide-panel').classList.add('open');
-    document.getElementById('payroll-panel-overlay').classList.remove('hidden');
+    
+    
 };
 
 window.closePayrollPanel = function() {
