@@ -75,7 +75,7 @@ window.openFullLeaveReport = function(type) {
             name: u.name,
             dept: u.department || 'N/A',
             casual: 0, medical: 0, annual: 0, unpaid: 0, totalUsed: 0,
-            annualBal: annualAlloc, casualBal: casualAlloc, medicalBal: medicalAlloc
+            annualAlloc: annualAlloc, casualAlloc: casualAlloc, medicalAlloc: medicalAlloc, annualBal: annualAlloc, casualBal: casualAlloc, medicalBal: medicalAlloc
         };
     });
 
@@ -122,7 +122,7 @@ window.openFullLeaveReport = function(type) {
         `;
         let html = '';
         validEmps.sort((a,b) => b.totalUsed - a.totalUsed).forEach(st => {
-            const totalRem = Math.max(0, st.annualBal) + Math.max(0, st.casualBal) + Math.max(0, st.medicalBal);
+            const totalAlloc = (st.annualAlloc || 0) + (st.casualAlloc || 0) + (st.medicalAlloc || 0);
             html += `
                 <tr>
                     <td style="padding: 12px 10px; font-weight: 600; color: #0f172a; border-bottom: 1px solid #f1f5f9;">${st.name}</td>
@@ -141,22 +141,22 @@ window.openFullLeaveReport = function(type) {
         thead.innerHTML = `
             <tr>
                 <th style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Employee</th>
-                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Annual Leave Balance</th>
-                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Casual Leave Balance</th>
-                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Medical Leave Balance</th>
-                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Total Remaining</th>
+                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Annual Leave Allocated</th>
+                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Casual Leave Allocated</th>
+                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Medical Leave Allocated</th>
+                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Total Allocated</th>
             </tr>
         `;
         let html = '';
         validEmps.sort((a,b) => b.totalUsed - a.totalUsed).forEach(st => {
-            const totalRem = Math.max(0, st.annualBal) + Math.max(0, st.casualBal) + Math.max(0, st.medicalBal);
+            const totalAlloc = (st.annualAlloc || 0) + (st.casualAlloc || 0) + (st.medicalAlloc || 0);
             html += `
                 <tr>
                     <td style="padding: 12px 10px; font-weight: 600; color: #0f172a; border-bottom: 1px solid #f1f5f9;">${st.name}</td>
-                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.annualBal}</td>
-                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.casualBal}</td>
-                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.medicalBal}</td>
-                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;"><span class="${totalRem < 5 ? (totalRem <= 0 ? 'badge-pill-green bg-danger text-white' : 'badge-pill-green bg-warning text-dark') : 'badge-pill-green'}">${totalRem}</span></td>
+                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.annualAlloc}</td>
+                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.casualAlloc}</td>
+                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.medicalAlloc}</td>
+                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;"><span class="badge-pill-green">${totalAlloc}</span></td>
                 </tr>
             `;
         });
@@ -1609,7 +1609,7 @@ function generateAdminLeaveReport(db) {
             name: u.name,
             dept: u.department || 'N/A',
             casual: 0, medical: 0, annual: 0, unpaid: 0, totalUsed: 0,
-            annualBal: annualAlloc, casualBal: casualAlloc, medicalBal: medicalAlloc
+            annualAlloc: annualAlloc, casualAlloc: casualAlloc, medicalAlloc: medicalAlloc, annualBal: annualAlloc, casualBal: casualAlloc, medicalBal: medicalAlloc
         };
     });
     
@@ -1676,15 +1676,15 @@ function generateAdminLeaveReport(db) {
 
     } else {
         balEmps.forEach(st => {
-            const totalRem = Math.max(0, st.annualBal) + Math.max(0, st.casualBal) + Math.max(0, st.medicalBal);
+            const totalAlloc = (st.annualAlloc || 0) + (st.casualAlloc || 0) + (st.medicalAlloc || 0);
             
             htmlBalance += `
                 <tr>
                     <td style="font-weight: 600; color: #0f172a;">${st.name}</td>
-                    <td class="text-center" style="text-align: center !important;">${st.annualBal}</td>
-                    <td class="text-center" style="text-align: center !important;">${st.casualBal}</td>
-                    <td class="text-center" style="text-align: center !important;">${st.medicalBal}</td>
-                    <td class="text-center" style="text-align: center !important;"><span class="${totalRem < 5 ? (totalRem <= 0 ? 'badge-pill-green bg-danger text-white' : 'badge-pill-green bg-warning text-dark') : 'badge-pill-green'}">${totalRem}</span></td>
+                    <td class="text-center" style="text-align: center !important;">${st.annualAlloc}</td>
+                    <td class="text-center" style="text-align: center !important;">${st.casualAlloc}</td>
+                    <td class="text-center" style="text-align: center !important;">${st.medicalAlloc}</td>
+                    <td class="text-center" style="text-align: center !important;"><span class="badge-pill-green">${totalAlloc}</span></td>
                 </tr>
             `;
         });
