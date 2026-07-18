@@ -3835,15 +3835,15 @@
         .card-header-title { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 15px; }
         
         .donut-chart-box {
-            width: 120px; height: 120px; border-radius: 50%;
+            width: 90px; height: 90px; border-radius: 50%;
             position: relative; display: flex; align-items: center; justify-content: center;
             background: conic-gradient(#3b82f6 0% 47%, #22c55e 47% 67%, #a855f7 67% 96%, #eab308 96% 100%);
         }
         .donut-chart-box::after {
-            content: ""; width: 80px; height: 80px; border-radius: 50%; background: white; position: absolute;
+            content: ""; width: 60px; height: 60px; border-radius: 50%; background: white; position: absolute;
         }
         .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
-        .num-badge { width: 20px; height: 20px; border-radius: 4px; background: #eff6ff; color: #2563eb; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; margin-right: 8px;}
+        .num-badge { width: 18px; height: 18px; border-radius: 4px; background: #2563eb; color: #ffffff; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px;}
         
         /* Print Styles */
         @media print {
@@ -4099,9 +4099,9 @@
                 <!-- Most Used Leave Type (Donut) -->
                 <div style="flex: 1.5; min-width: 220px; display: flex; flex-direction: column;" class="border-end pe-3">
                     <div style="font-size: 12px; font-weight: 700; color: #0f172a; margin-bottom: 15px;">Most Used Leave Type</div>
-                    <div style="display: flex; align-items: center; justify-content: center; flex-grow: 1; gap: 15px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-grow: 1; gap: 10px;">
                         <div class="donut-chart-box" id="leave-donut-chart"></div>
-                        <div id="leave-donut-legend" style="display: flex; flex-direction: column; gap: 8px; font-size: 11px; color: #475569; min-width: 100px;">
+                        <div id="leave-donut-legend" style="display: flex; flex-direction: column; gap: 8px; font-size: 11px; color: #475569; flex: 1;">
                             <!-- JS injected -->
                         </div>
                     </div>

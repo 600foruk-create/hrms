@@ -1730,8 +1730,8 @@ function generateAdminLeaveReport(db) {
     validEmps.sort((a,b) => b.totalUsed - a.totalUsed).slice(0,3).forEach((st, idx) => { 
         if(st.totalUsed > 0) {
             mostLeavesHtml += `
-                <div class="d-flex align-items-center justify-content-between" style="font-size: 11px;">
-                    <div class="d-flex align-items-center"><span class="num-badge">${idx+1}</span> <span style="font-weight: 600; color: #0f172a;">${st.name}</span></div>
+                <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px;">
+                    <div style="display: flex; align-items: center;"><span class="num-badge">${idx+1}</span> <span style="font-weight: 600; color: #0f172a;">${st.name}</span></div>
                     <span style="color: #64748b;">${st.totalUsed} Days</span>
                 </div>
             `;
@@ -1762,8 +1762,8 @@ function generateAdminLeaveReport(db) {
         const color = cMap[k] || '#94a3b8';
         
         legendHtml += `
-            <div class="d-flex align-items-center justify-content-between" style="width: 100%;">
-                <div class="d-flex align-items-center"><span class="legend-dot" style="background: ${color};"></span> ${k}</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                <div style="display: flex; align-items: center;"><span class="legend-dot" style="background: ${color};"></span> ${k}</div>
                 <div style="font-weight: 600;">${val} <span style="color: #94a3b8; font-weight: 400;">(${pct}%)</span></div>
             </div>
         `;
@@ -1796,8 +1796,8 @@ function generateAdminLeaveReport(db) {
             let lReq = filtered.find(r => r.employeeId === empId && r.status === 'Approved' && (r.startDate || r.fromDate || r.date) <= todayStr && (r.endDate || r.toDate || r.date) >= todayStr);
             let lt = lReq ? (lReq.type || lReq.leaveType) : 'Leave';
             onLeaveHtml += `
-                <div class="d-flex align-items-center justify-content-between" style="font-size: 11px;">
-                    <div class="d-flex align-items-center">
+                <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px;">
+                    <div style="display: flex; align-items: center;">
                         <div style="width: 15px; font-weight: 600; color: #0f172a;">${idx+1}</div>
                         <img src="${emp.profileImage || 'https://via.placeholder.com/150'}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover; margin: 0 8px;">
                         <span style="font-weight: 600; color: #0f172a;">${emp.name}</span>
@@ -1815,9 +1815,9 @@ function generateAdminLeaveReport(db) {
         const bClass = lb.bal < 5 ? 'badge-out-orange' : 'badge-out-orange'; // mock logic
         const tText = lb.bal < 5 ? 'Low' : 'Medium';
         lowBalHtml += `
-            <div class="d-flex align-items-center justify-content-between" style="font-size: 11px;">
-                <div class="d-flex align-items-center"><div style="width: 15px; font-weight: 600; color: #0f172a;">${idx+1}</div> <span style="font-weight: 600; color: #0f172a; margin-left: 5px;">${lb.name}</span></div>
-                <div class="d-flex align-items-center gap-2">
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px;">
+                <div style="display: flex; align-items: center;"><div style="width: 15px; font-weight: 600; color: #0f172a;">${idx+1}</div> <span style="font-weight: 600; color: #0f172a; margin-left: 5px;">${lb.name}</span></div>
+                <div style="display: flex; align-items: center; gap: 15px;">
                     <span style="color: #94a3b8;">Total Balance: ${lb.bal} Days</span>
                     <span class="${bClass}" style="padding: 2px 8px;">${tText}</span>
                 </div>
