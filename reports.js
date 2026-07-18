@@ -9,16 +9,21 @@ window.openFullLeaveReport = function(type) {
     
     const db = typeof getDb === 'function' ? getDb() : (window.db || {});
     
-    // We need to re-run the filtering logic to get the full stats
-    const startObj = document.getElementById('report-start');
-    const endObj = document.getElementById('report-end');
-    const deptObj = document.getElementById('report-dept');
-    const empObj = document.getElementById('report-employee');
+    // Correctly fetch filters from the Admin Leave Reports tab
+    const startObj = document.getElementById('admin-rep-leave-start');
+    const endObj = document.getElementById('admin-rep-leave-end');
+    const deptObj = document.getElementById('admin-rep-leave-dept');
+    const empObj = document.getElementById('admin-rep-leave-emp');
     
-    const start = startObj ? startObj.value : '';
-    const end = endObj ? endObj.value : '';
+    let start = startObj ? startObj.value : '';
+    let end = endObj ? endObj.value : '';
     const dept = deptObj ? deptObj.value : 'All';
     const empId = empObj ? empObj.value : 'All';
+
+    if (!start || !end) {
+        start = '2000-01-01';
+        end = '2100-12-31';
+    }
 
     const allUsers = db.users || [];
     const empStats = {};
@@ -75,9 +80,13 @@ window.openFullLeaveReport = function(type) {
         };
     });
 
-    let filtered = db.leaveRequests || [];
-    if (start) { filtered = filtered.filter(r => new Date(r.startDate || r.start) >= new Date(start)); }
-    if (end) { filtered = filtered.filter(r => new Date(r.endDate || r.end) <= new Date(end)); }
+    let filtered = db.leaves || [];
+    if (start) { filtered = filtered.filter(r => new Date(r.startDate || r.start || r.date) >= new Date(start)); }
+    if (end) { 
+        const eDate = new Date(end);
+        eDate.setHours(23, 59, 59);
+        filtered = filtered.filter(r => new Date(r.endDate || r.end || r.date) <= eDate); 
+    }
 
     filtered.forEach(req => {
         if (req.status === 'Approved' && empStats[req.employeeId]) {
