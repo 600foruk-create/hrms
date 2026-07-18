@@ -2327,43 +2327,47 @@ function renderPayrollInsights(data) {
     let onHold = data.filter(p => p.status === 'On Hold').length;
     
     let html = `
-        <div class="d-flex align-items-center mb-3">
-            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(16, 185, 129, 0.1); color: #10b981; display: flex; align-items: center; justify-content: center; margin-right: 15px;"><i class="fa-solid fa-arrow-trend-up"></i></div>
-            <div><div style="font-size: 12px; color: #64748b; font-weight: 500;">Highest Salary</div><div style="font-weight: 600;">${highestSalary.name} - Rs. ${highestSalary.gross.toLocaleString()}</div></div>
+        <div class="col">
+            <div class="premium-card p-2 h-100 d-flex align-items-center" style="margin-bottom:0;">
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(16, 185, 129, 0.1); color: #10b981; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0;"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                <div style="overflow: hidden;">
+                    <div style="font-size: 11px; color: #64748b; font-weight: 500;">Highest Salary</div>
+                    <div style="font-weight: 600; font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${highestSalary.name}</div>
+                    <div style="font-weight: 700; font-size: 14px; color: #10b981;">Rs. ${highestSalary.gross.toLocaleString()}</div>
+                </div>
+            </div>
         </div>
-        <div class="d-flex align-items-center mb-3">
-            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(59, 130, 246, 0.1); color: #3b82f6; display: flex; align-items: center; justify-content: center; margin-right: 15px;"><i class="fa-solid fa-clock"></i></div>
-            <div><div style="font-size: 12px; color: #64748b; font-weight: 500;">Highest Overtime</div><div style="font-weight: 600;">${highestOvertime.name} - Rs. ${highestOvertime.overtime.toLocaleString()}</div></div>
+        <div class="col">
+            <div class="premium-card p-2 h-100 d-flex align-items-center" style="margin-bottom:0;">
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(59, 130, 246, 0.1); color: #3b82f6; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0;"><i class="fa-solid fa-clock"></i></div>
+                <div style="overflow: hidden;">
+                    <div style="font-size: 11px; color: #64748b; font-weight: 500;">Highest Overtime</div>
+                    <div style="font-weight: 600; font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${highestOvertime.name}</div>
+                    <div style="font-weight: 700; font-size: 14px; color: #3b82f6;">Rs. ${highestOvertime.overtime.toLocaleString()}</div>
+                </div>
+            </div>
         </div>
-        <div class="d-flex align-items-center mb-3">
-            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(239, 68, 68, 0.1); color: #ef4444; display: flex; align-items: center; justify-content: center; margin-right: 15px;"><i class="fa-solid fa-minus"></i></div>
-            <div><div style="font-size: 12px; color: #64748b; font-weight: 500;">Highest Deductions</div><div style="font-weight: 600;">${highestDed.name} - Rs. ${highestDed.deductions.toLocaleString()}</div></div>
+        <div class="col">
+            <div class="premium-card p-2 h-100 d-flex align-items-center" style="margin-bottom:0;">
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(239, 68, 68, 0.1); color: #ef4444; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0;"><i class="fa-solid fa-minus"></i></div>
+                <div style="overflow: hidden;">
+                    <div style="font-size: 11px; color: #64748b; font-weight: 500;">Highest Deductions</div>
+                    <div style="font-weight: 600; font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${highestDed.name}</div>
+                    <div style="font-weight: 700; font-size: 14px; color: #ef4444;">Rs. ${highestDed.deductions.toLocaleString()}</div>
+                </div>
+            </div>
         </div>
-        <div class="d-flex align-items-center">
-            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(245, 158, 11, 0.1); color: #f59e0b; display: flex; align-items: center; justify-content: center; margin-right: 15px;"><i class="fa-solid fa-pause"></i></div>
-            <div><div style="font-size: 12px; color: #64748b; font-weight: 500;">Employees On Hold</div><div style="font-weight: 600;">${onHold} Employees</div></div>
+        <div class="col">
+            <div class="premium-card p-2 h-100 d-flex align-items-center" style="margin-bottom:0;">
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(245, 158, 11, 0.1); color: #f59e0b; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0;"><i class="fa-solid fa-pause"></i></div>
+                <div style="overflow: hidden;">
+                    <div style="font-size: 11px; color: #64748b; font-weight: 500;">Employees On Hold</div>
+                    <div style="font-weight: 700; font-size: 16px; margin-top: 4px; color: #f59e0b;">${onHold} Emp</div>
+                </div>
+            </div>
         </div>
     `;
-    if(document.getElementById('payroll-insights-container')) document.getElementById('payroll-insights-container').innerHTML = html;
-
-    let actHtml = '';
-    for(let i=0; i<Math.min(4, data.length); i++) {
-        let p = data[i];
-        let mName = new Date(p.year, p.month - 1).toLocaleString('default', { month: 'short' });
-        let statusBadge = p.status === 'Paid' ? `<span class="badge bg-success bg-opacity-10 text-success">Completed</span>` :
-                          p.status === 'Processing' ? `<span class="badge bg-warning bg-opacity-10 text-warning">Processing</span>` :
-                          p.status === 'Pending' ? `<span class="badge bg-secondary bg-opacity-10 text-secondary">Pending</span>` :
-                          `<span class="badge bg-danger bg-opacity-10 text-danger">On Hold</span>`;
-
-        actHtml += `<tr>
-            <td>${new Date().toISOString().split('T')[0]}</td>
-            <td>Payroll ${p.status.toLowerCase()} for ${p.dept}</td>
-            <td>${mName} ${p.year}</td>
-            <td>${statusBadge}</td>
-            <td>System Admin</td>
-        </tr>`;
-    }
-    if(document.getElementById('tbody-payroll-activities')) document.getElementById('tbody-payroll-activities').innerHTML = actHtml;
+    if(document.getElementById('payroll-insights-horizontal-container')) document.getElementById('payroll-insights-horizontal-container').innerHTML = html;
 }
 
 window.viewPayrollDetail = function(empId) {
