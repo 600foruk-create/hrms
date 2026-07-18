@@ -2083,7 +2083,7 @@ function generateAdminPayrollReport(db) {
     }
     const empDropdown = document.getElementById('payroll-filter-emp');
     if(empDropdown && empDropdown.options.length <= 1) {
-        db.users.forEach(u => empDropdown.insertAdjacentHTML('beforeend', `<option value="${u.id}">${u.name} (${u.id})</option>`));
+        db.users.forEach(u => empDropdown.insertAdjacentHTML('beforeend', `<option value="${u.id}">${u.name}</option>`));
     }
 
     // 2. Generate Data
