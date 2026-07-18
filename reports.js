@@ -111,12 +111,12 @@ window.openFullLeaveReport = function(type) {
         thead.innerHTML = `
             <tr>
                 <th style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Employee</th>
-                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Casual Leave</th>
-                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Medical Leave</th>
-                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Annual Leave</th>
-                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Unpaid Leave</th>
-                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Total Used</th>
-                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Remaining Balance</th>
+                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Casual Leave</th>
+                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Medical Leave</th>
+                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Annual Leave</th>
+                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Unpaid Leave</th>
+                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Total Used</th>
+                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Remaining Balance</th>
             </tr>
         `;
         let html = '';
@@ -125,12 +125,12 @@ window.openFullLeaveReport = function(type) {
             html += `
                 <tr>
                     <td style="padding: 12px 10px; font-weight: 600; color: #0f172a; border-bottom: 1px solid #f1f5f9;">${st.name}</td>
-                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.casual}</td>
-                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.medical}</td>
-                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.annual}</td>
-                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.unpaid}</td>
-                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.totalUsed}</td>
-                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${totalRem}</td>
+                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.casual}</td>
+                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.medical}</td>
+                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.annual}</td>
+                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.unpaid}</td>
+                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.totalUsed}</td>
+                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${totalRem}</td>
                 </tr>
             `;
         });
@@ -140,10 +140,10 @@ window.openFullLeaveReport = function(type) {
         thead.innerHTML = `
             <tr>
                 <th style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Employee</th>
-                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Annual Leave Balance</th>
-                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Casual Leave Balance</th>
-                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Medical Leave Balance</th>
-                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Total Remaining</th>
+                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Annual Leave Balance</th>
+                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Casual Leave Balance</th>
+                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Medical Leave Balance</th>
+                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Total Remaining</th>
             </tr>
         `;
         let html = '';
@@ -152,10 +152,10 @@ window.openFullLeaveReport = function(type) {
             html += `
                 <tr>
                     <td style="padding: 12px 10px; font-weight: 600; color: #0f172a; border-bottom: 1px solid #f1f5f9;">${st.name}</td>
-                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.annualBal}</td>
-                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.casualBal}</td>
-                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.medicalBal}</td>
-                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;"><span class="${totalRem < 5 ? (totalRem <= 0 ? 'badge-pill-green bg-danger text-white' : 'badge-pill-green bg-warning text-dark') : 'badge-pill-green'}">${totalRem}</span></td>
+                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.annualBal}</td>
+                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.casualBal}</td>
+                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${st.medicalBal}</td>
+                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;"><span class="${totalRem < 5 ? (totalRem <= 0 ? 'badge-pill-green bg-danger text-white' : 'badge-pill-green bg-warning text-dark') : 'badge-pill-green'}">${totalRem}</span></td>
                 </tr>
             `;
         });
@@ -165,11 +165,11 @@ window.openFullLeaveReport = function(type) {
         thead.innerHTML = `
             <tr>
                 <th style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Department</th>
-                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Total Employees</th>
-                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Total Requests</th>
-                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Approved</th>
-                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Leave Days Used</th>
-                <th class="text-center" style="padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Avg Leave / Employee</th>
+                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Total Employees</th>
+                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Total Requests</th>
+                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Approved</th>
+                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Leave Days Used</th>
+                <th class="text-center" style="text-align: center !important; padding: 10px; border-bottom: 2px solid #e2e8f0; font-weight: 600; color: #475569;">Avg Leave / Employee</th>
             </tr>
         `;
         let html = '';
@@ -199,11 +199,11 @@ window.openFullLeaveReport = function(type) {
             html += `
                 <tr>
                     <td style="padding: 12px 10px; font-weight: 600; color: #0f172a; border-bottom: 1px solid #f1f5f9;">${d}</td>
-                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${ds.emps}</td>
-                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${ds.reqs}</td>
-                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${ds.approved}</td>
-                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${ds.daysUsed}</td>
-                    <td class="text-center" style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${avg}</td>
+                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${ds.emps}</td>
+                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${ds.reqs}</td>
+                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${ds.approved}</td>
+                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${ds.daysUsed}</td>
+                    <td class="text-center" style="text-align: center !important; padding: 12px 10px; border-bottom: 1px solid #f1f5f9;">${avg}</td>
                 </tr>
             `;
         });
@@ -1524,8 +1524,8 @@ function generateAdminLeaveReport(db) {
                     <td><span class="${bClass}">${displayType}</span></td>
                     <td>${displayFrom}</td>
                     <td>${displayTo}</td>
-                    <td class="text-center">${calculatedDays}</td>
-                    <td class="text-center"><span class="${sClass}">${req.status || 'Pending'}</span></td>
+                    <td class="text-center" style="text-align: center !important;">${calculatedDays}</td>
+                    <td class="text-center" style="text-align: center !important;"><span class="${sClass}">${req.status || 'Pending'}</span></td>
                     <td>${req.approvedBy || '-'}</td>
                     <td><div style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${req.reason || ''}">${req.reason || '-'}</div></td>
                 </tr>
@@ -1628,12 +1628,12 @@ function generateAdminLeaveReport(db) {
             htmlEmpSummary += `
                 <tr>
                     <td style="font-weight: 600; color: #0f172a;">${st.name}</td>
-                    <td class="text-center">${st.casual}</td>
-                    <td class="text-center">${st.medical}</td>
-                    <td class="text-center">${st.annual}</td>
-                    <td class="text-center">${st.unpaid}</td>
-                    <td class="text-center">${st.totalUsed}</td>
-                    <td class="text-center" style="font-weight: 600;">${rem}</td>
+                    <td class="text-center" style="text-align: center !important;">${st.casual}</td>
+                    <td class="text-center" style="text-align: center !important;">${st.medical}</td>
+                    <td class="text-center" style="text-align: center !important;">${st.annual}</td>
+                    <td class="text-center" style="text-align: center !important;">${st.unpaid}</td>
+                    <td class="text-center" style="text-align: center !important;">${st.totalUsed}</td>
+                    <td class="text-center" style="text-align: center !important; font-weight: 600;">${rem}</td>
                 </tr>
             `;
         });
@@ -1657,10 +1657,10 @@ function generateAdminLeaveReport(db) {
             htmlBalance += `
                 <tr>
                     <td style="font-weight: 600; color: #0f172a;">${st.name}</td>
-                    <td class="text-center">${st.annualBal}</td>
-                    <td class="text-center">${st.casualBal}</td>
-                    <td class="text-center">${st.medicalBal}</td>
-                    <td class="text-center"><span class="${totalRem < 5 ? (totalRem <= 0 ? 'badge-pill-green bg-danger text-white' : 'badge-pill-green bg-warning text-dark') : 'badge-pill-green'}">${totalRem}</span></td>
+                    <td class="text-center" style="text-align: center !important;">${st.annualBal}</td>
+                    <td class="text-center" style="text-align: center !important;">${st.casualBal}</td>
+                    <td class="text-center" style="text-align: center !important;">${st.medicalBal}</td>
+                    <td class="text-center" style="text-align: center !important;"><span class="${totalRem < 5 ? (totalRem <= 0 ? 'badge-pill-green bg-danger text-white' : 'badge-pill-green bg-warning text-dark') : 'badge-pill-green'}">${totalRem}</span></td>
                 </tr>
             `;
         });
@@ -1712,11 +1712,11 @@ function generateAdminLeaveReport(db) {
             htmlDept += `
                 <tr>
                     <td style="font-weight: 600; color: #0f172a;">${d}</td>
-                    <td class="text-center">${ds.emps}</td>
-                    <td class="text-center">${ds.reqs}</td>
-                    <td class="text-center">${ds.approved}</td>
-                    <td class="text-center">${ds.daysUsed}</td>
-                    <td class="text-center">${avg}</td>
+                    <td class="text-center" style="text-align: center !important;">${ds.emps}</td>
+                    <td class="text-center" style="text-align: center !important;">${ds.reqs}</td>
+                    <td class="text-center" style="text-align: center !important;">${ds.approved}</td>
+                    <td class="text-center" style="text-align: center !important;">${ds.daysUsed}</td>
+                    <td class="text-center" style="text-align: center !important;">${avg}</td>
                 </tr>
             `;
         });
