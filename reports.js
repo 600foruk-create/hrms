@@ -202,7 +202,8 @@ window.openFullLeaveReport = function(type) {
         tbody.innerHTML = html;
     }
     
-    document.getElementById('modal-full-leave-report').classList.remove('hidden');
+    const m = document.getElementById('modal-full-leave-report');
+    if (m) m.style.display = 'flex';
 };
 // Reports & Analytics Module Logic
 
