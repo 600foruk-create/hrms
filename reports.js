@@ -201,9 +201,17 @@ window.openFullLeaveReport = function(type) {
         });
         tbody.innerHTML = html;
     }
-    
     const m = document.getElementById('modal-full-leave-report');
-    if (m) m.style.display = 'flex';
+    if (m) {
+        if (typeof window.openModal === 'function') {
+            window.openModal('modal-full-leave-report');
+        } else {
+            const backdrop = document.getElementById('modal-backdrop');
+            if (backdrop) backdrop.classList.remove('hidden');
+            m.classList.remove('hidden');
+            m.style.display = '';
+        }
+    }
 };
 // Reports & Analytics Module Logic
 
