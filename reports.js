@@ -1751,7 +1751,7 @@ function generateAdminLeaveReport(db) {
             }
         } 
     });
-    const cMap = {'Casual Leave': '#3b82f6', 'Annual Leave': '#a855f7', 'Medical Leave': '#22c55e', 'Unpaid Leave': '#eab308'};
+    const cMap = {'Casual Leave': '#3b82f6', 'Casual Leaves': '#3b82f6', 'Annual Leave': '#a855f7', 'Annual Leaves': '#a855f7', 'Medical Leave': '#22c55e', 'Medical Leaves': '#22c55e', 'Unpaid Leave': '#eab308', 'Unpaid Leaves': '#eab308'};
     let legendHtml = '';
     let conicStr = [];
     let currentPct = 0;
@@ -1799,7 +1799,7 @@ function generateAdminLeaveReport(db) {
                 <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px;">
                     <div style="display: flex; align-items: center;">
                         <div style="width: 15px; font-weight: 600; color: #0f172a;">${idx+1}</div>
-                        <img src="${emp.profileImage || 'https://via.placeholder.com/150'}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover; margin: 0 8px;">
+                        <img src="${emp.profileImage || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(emp.name) + '&background=e2e8f0&color=475569')}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover; margin: 0 8px;">
                         <span style="font-weight: 600; color: #0f172a;">${emp.name}</span>
                     </div>
                     <span style="color: #64748b;">${lt}</span>
@@ -1816,8 +1816,8 @@ function generateAdminLeaveReport(db) {
         const tText = lb.bal < 5 ? 'Low' : 'Medium';
         lowBalHtml += `
             <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px;">
-                <div style="display: flex; align-items: center;"><div style="width: 15px; font-weight: 600; color: #0f172a;">${idx+1}</div> <span style="font-weight: 600; color: #0f172a; margin-left: 5px;">${lb.name}</span></div>
-                <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="display: flex; align-items: center;"><div style="width: 15px; font-weight: 600; color: #0f172a;">${idx+1}</div> <span style="font-weight: 600; color: #0f172a; margin-left: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;">${lb.name}</span></div>
+                <div style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
                     <span style="color: #94a3b8;">Total Balance: ${lb.bal} Days</span>
                     <span class="${bClass}" style="padding: 2px 8px;">${tText}</span>
                 </div>
