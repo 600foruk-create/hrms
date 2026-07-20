@@ -2378,6 +2378,10 @@ window.viewPayrollDetail = function(empId) {
     document.getElementById('panel-emp-name').innerText = emp.name;
     document.getElementById('panel-emp-id').innerText = emp.id;
     document.getElementById('panel-emp-dept').innerText = emp.dept;
+    // DEBUG INJECTION
+    let debugKeys = Object.keys(emp).filter(k => k.toLowerCase().includes('pic') || k.toLowerCase().includes('photo') || k.toLowerCase().includes('img') || k.toLowerCase().includes('image')).join(',');
+    let debugText = `<span style="font-size:9px; color:red;"> [Debug: ${emp.profilePic ? 'Has Pic' : 'No Pic'}, Keys: ${debugKeys || 'None'}]</span>`;
+    document.getElementById('panel-emp-dept').innerHTML = emp.dept + debugText;
     document.getElementById('panel-emp-desig').innerText = emp.desig;
     document.getElementById('panel-emp-join').innerText = emp.joinDate;
     
