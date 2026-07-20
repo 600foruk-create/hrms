@@ -2381,7 +2381,7 @@ window.viewPayrollDetail = function(empId) {
     document.getElementById('panel-emp-desig').innerText = emp.desig;
     document.getElementById('panel-emp-join').innerText = emp.joinDate;
     
-    let imgHtml = emp.profilePic ? `<img src="${emp.profilePic}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` : emp.name.charAt(0);
+    let imgHtml = `<img src="${emp.profilePic || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(emp.name) + '&background=e2e8f0&color=475569')}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
     document.getElementById('panel-emp-img').innerHTML = imgHtml;
 
     document.getElementById('panel-basic').innerText = emp.basic.toLocaleString();
