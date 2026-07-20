@@ -2380,7 +2380,7 @@ window.viewPayrollDetail = function(empId) {
     document.getElementById('panel-emp-desig').innerText = emp.desig;
     document.getElementById('panel-emp-join').innerText = emp.joinDate;
     
-    let imgHtml = emp.photo ? `<img src="${emp.photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` : emp.name.charAt(0);
+    let imgHtml = emp.profilePic ? `<img src="${emp.profilePic}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` : emp.name.charAt(0);
     document.getElementById('panel-emp-img').innerHTML = imgHtml;
 
     document.getElementById('panel-basic').innerText = emp.basic.toLocaleString();
