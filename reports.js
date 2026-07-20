@@ -2327,8 +2327,8 @@ function renderPayrollInsights(data) {
     
     let html = `
         <div class="col">
-            <div class="premium-card p-2 h-100 d-flex align-items-center" style="margin-bottom:0;">
-                <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(16, 185, 129, 0.1); color: #10b981; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0;"><i class="fa-solid fa-arrow-trend-up"></i></div>
+            <div class="premium-card p-2 h-100 d-flex flex-column justify-content-center align-items-start" style="margin-bottom:0; min-height: 80px;">
+                
                 <div style="overflow: hidden;">
                     <div style="font-size: 11px; color: #64748b; font-weight: 500;">Highest Salary</div>
                     <div style="font-weight: 600; font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${highestSalary.name}</div>
@@ -2337,8 +2337,8 @@ function renderPayrollInsights(data) {
             </div>
         </div>
         <div class="col">
-            <div class="premium-card p-2 h-100 d-flex align-items-center" style="margin-bottom:0;">
-                <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(59, 130, 246, 0.1); color: #3b82f6; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0;"><i class="fa-solid fa-clock"></i></div>
+            <div class="premium-card p-2 h-100 d-flex flex-column justify-content-center align-items-start" style="margin-bottom:0; min-height: 80px;">
+                
                 <div style="overflow: hidden;">
                     <div style="font-size: 11px; color: #64748b; font-weight: 500;">Highest Overtime</div>
                     <div style="font-weight: 600; font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${highestOvertime.name}</div>
@@ -2347,8 +2347,8 @@ function renderPayrollInsights(data) {
             </div>
         </div>
         <div class="col">
-            <div class="premium-card p-2 h-100 d-flex align-items-center" style="margin-bottom:0;">
-                <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(239, 68, 68, 0.1); color: #ef4444; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0;"><i class="fa-solid fa-minus"></i></div>
+            <div class="premium-card p-2 h-100 d-flex flex-column justify-content-center align-items-start" style="margin-bottom:0; min-height: 80px;">
+                
                 <div style="overflow: hidden;">
                     <div style="font-size: 11px; color: #64748b; font-weight: 500;">Highest Deductions</div>
                     <div style="font-weight: 600; font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${highestDed.name}</div>
@@ -2357,10 +2357,11 @@ function renderPayrollInsights(data) {
             </div>
         </div>
         <div class="col">
-            <div class="premium-card p-2 h-100 d-flex align-items-center" style="margin-bottom:0;">
-                <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(245, 158, 11, 0.1); color: #f59e0b; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0;"><i class="fa-solid fa-pause"></i></div>
+            <div class="premium-card p-2 h-100 d-flex flex-column justify-content-center align-items-start" style="margin-bottom:0; min-height: 80px;">
+                
                 <div style="overflow: hidden;">
                     <div style="font-size: 11px; color: #64748b; font-weight: 500;">Employees On Hold</div>
+                      <div style="font-weight: 600; font-size: 13px; color: transparent;">-</div>
                     <div style="font-weight: 700; font-size: 16px; margin-top: 4px; color: #f59e0b;">${onHold} Emp</div>
                 </div>
             </div>
