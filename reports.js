@@ -2378,14 +2378,17 @@ window.viewPayrollDetail = function(empId) {
     document.getElementById('panel-emp-name').innerText = emp.name;
     document.getElementById('panel-emp-id').innerText = emp.id;
     document.getElementById('panel-emp-dept').innerText = emp.dept;
-    // DEBUG INJECTION
-    let debugKeys = Object.keys(emp).filter(k => k.toLowerCase().includes('pic') || k.toLowerCase().includes('photo') || k.toLowerCase().includes('img') || k.toLowerCase().includes('image')).join(',');
-    let debugText = `<span style="font-size:9px; color:red;"> [Debug: ${emp.profilePic ? 'Has Pic' : 'No Pic'}, Keys: ${debugKeys || 'None'}]</span>`;
-    document.getElementById('panel-emp-dept').innerHTML = emp.dept + debugText;
+    
     document.getElementById('panel-emp-desig').innerText = emp.desig;
     document.getElementById('panel-emp-join').innerText = emp.joinDate;
     
     let profileImage = emp.profilePic || emp.profileImageBase64 || emp.photo;
+    try {
+        let cu = JSON.parse(localStorage.getItem('current_user'));
+        if (!profileImage && cu && String(emp.id) === String(cu.id)) {
+            profileImage = cu.profilePic || cu.profileImageBase64 || cu.photo;
+        }
+    } catch(e) {}
     let imgHtml = profileImage 
         ? `<img src="${profileImage}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` 
         : `<img src="https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=e2e8f0&color=475569" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
