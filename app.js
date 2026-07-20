@@ -156,7 +156,7 @@ async function syncServer() {
             try {
                 const cacheData = JSON.parse(JSON.stringify(result.data));
                 if (cacheData.users) {
-                    cacheData.users.forEach(u => { delete u.documents; delete u.profileImageBase64; delete u.profilePic; });
+                    cacheData.users.forEach(u => { delete u.documents; delete u.profileImageBase64; }); // Kept profilePic so avatars show up immediately
                 }
                 if (cacheData.companyProfile) {
                     delete cacheData.companyProfile.letterheadBase64;
@@ -275,7 +275,7 @@ async function saveDb(data) {
     try {
         const cacheData = JSON.parse(JSON.stringify(data));
         if (cacheData.users) {
-            cacheData.users.forEach(u => { delete u.documents; delete u.profileImageBase64; delete u.profilePic; });
+            cacheData.users.forEach(u => { delete u.documents; delete u.profileImageBase64; }); // Kept profilePic so avatars show up immediately
         }
         if (cacheData.companyProfile) {
             delete cacheData.companyProfile.letterheadBase64;
