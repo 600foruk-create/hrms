@@ -1877,7 +1877,7 @@ function generateAdminLeaveReport(db) {
                 <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px;">
                     <div style="display: flex; align-items: center;">
                         <div style="width: 15px; font-weight: 600; color: #0f172a;">${idx+1}</div>
-                        <img src="${emp.profilePic || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(emp.name) + '&background=e2e8f0&color=475569')}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover; margin: 0 8px;">
+                        <img src="${(emp.profilePic || emp.profileImageBase64 || emp.photo) || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(emp.name) + '&background=e2e8f0&color=475569')}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover; margin: 0 8px;">
                         <span style="font-weight: 600; color: #0f172a;">${emp.name}</span>
                     </div>
                     <span style="color: #64748b;">${lt}</span>
@@ -2381,9 +2381,10 @@ window.viewPayrollDetail = function(empId) {
     document.getElementById('panel-emp-desig').innerText = emp.desig;
     document.getElementById('panel-emp-join').innerText = emp.joinDate;
     
-    let imgHtml = emp.profilePic 
-        ? `<img src="${emp.profilePic}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` 
-        : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#f1f5f9;border-radius:50%;"><i class="fa-solid fa-user" style="font-size: 20px; color: #94a3b8;"></i></div>`;
+    let profileImage = emp.profilePic || emp.profileImageBase64 || emp.photo;
+    let imgHtml = profileImage 
+        ? `<img src="${profileImage}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` 
+        : `<img src="https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=e2e8f0&color=475569" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
     document.getElementById('panel-emp-img').innerHTML = imgHtml;
 
     document.getElementById('panel-basic').innerText = emp.basic.toLocaleString();
