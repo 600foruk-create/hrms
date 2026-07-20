@@ -2401,12 +2401,7 @@ window.viewPayrollDetail = function(empId) {
 
     document.getElementById('panel-net').innerText = emp.net.toLocaleString();
 
-    let tblCol = document.getElementById('payroll-table-col');
-    let detCol = document.getElementById('payroll-details-col');
-    if(tblCol && detCol) {
-        tblCol.className = 'col-lg-8';
-        detCol.style.display = 'block';
-    }
+    
 
     
     

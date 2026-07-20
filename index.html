@@ -17,7 +17,7 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <!-- Main Style -->
-    <link rel="stylesheet" href="styles.css?v=6.9.50">
+    <link rel="stylesheet" href="styles.css?v=6.9.54">
     <style id="team-widget-style">
         .team-member-card {
             position: relative;
@@ -4174,8 +4174,9 @@
                                     <button class="btn-premium-outline btn-sm" onclick="if(window.printPayrollReport) window.printPayrollReport()"><i class="fa-solid fa-print me-1"></i> Print</button>
                                 </div>
                             </div>
-
-                            <!-- FILTERS SECTION -->
+<div class="row g-3">
+    <div class="col-lg-9">
+        <!-- FILTERS SECTION -->
                             <div class="premium-card p-2 mb-3" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; z-index: 10;">
                                 <div style="flex: 1; min-width: 100px;">
                                     <label style="font-size: 11px; font-weight: 600; color: #475569; margin-bottom: 2px; display: block;">Month</label>
@@ -4220,8 +4221,7 @@
                                     <button class="btn-premium-outline" style="height: 28px; padding: 0 5px; padding: 0 10px; font-size: 12px;" onclick="if(window.resetPayrollFilters) window.resetPayrollFilters()"><i class="fa-solid fa-rotate-right"></i></button>
                                 </div>
                             </div>
-
-                            <!-- SUMMARY CARDS (ROW) -->
+        <!-- SUMMARY CARDS (ROW) -->
                             <div class="metrics-grid-6">
                                   <div class="premium-card d-flex align-items-center justify-content-center" style="padding: 4px !important; margin-bottom:0; min-height:45px; text-align:center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-radius: 8px;">
                                           <div style="overflow: hidden; width: 100%;">
@@ -4260,12 +4260,9 @@
                                           </div>
                                       </div>
                               </div>
-
-                            <!-- PAYROLL REPORT TABLE & DETAILS ROW -->
-                            <div class="row g-2 mb-3">
-                                <div class="col-12" id="payroll-table-col" style="transition: all 0.3s ease;">
-                                    <!-- PAYROLL REPORT TABLE -->
-                            <div class="premium-card p-0 h-100" style="overflow: hidden;">
+        <div class="row mb-3">
+            <div class="col-12" id="payroll-table-col">
+                <div class="premium-card p-0 h-100" style="overflow: hidden;">
                                 <div class="card-header-title p-2" style="border-bottom: 1px solid #e2e8f0; background: #f8fafc; font-size: 14px;">Payroll Report</div>
                                 <div class="table-responsive" style="max-height: 350px;">
                                     <table class="mini-rep-table" id="table-payroll-summary">
@@ -4291,65 +4288,14 @@
                                     </table>
                                 </div>
                             </div>
-                                </div>
-                                <div class="col-lg-4" id="payroll-details-col" style="display:none; transition: all 0.3s ease;">
-                                    <div class="premium-card h-100" style="padding: 15px; position: relative;">
-                                        
-                            <div class="panel-header d-flex justify-content-between align-items-center p-3" style="border-bottom: 1px solid #e2e8f0;">
-                                <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;">Employee Payroll Details</h4>
-                                <button onclick="hidePayrollDetails()" style="background: none; border: none; font-size: 18px; color: #64748b; cursor: pointer;"><i class="fa-solid fa-times"></i></button>
-                            </div>
-                            <div class="panel-body p-4" style="overflow-y: auto; height: calc(100% - 60px);">
-                                <div class="d-flex align-items-center mb-4 pb-3" style="border-bottom: 1px dashed #cbd5e1;">
-                                    <div id="panel-emp-img" style="width: 50px; height: 50px; border-radius: 50%; background: #e2e8f0; color: #475569; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 18px; margin-right: 15px;"></div>
-                                    <div>
-                                        <div id="panel-emp-name" style="font-size: 16px; font-weight: 700; color: #0f172a;">Name</div>
-                                        <div id="panel-emp-id" style="font-size: 12px; color: #64748b;">ID</div>
-                                    </div>
-                                </div>
-                                <div class="mb-4">
-                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Department</span><span id="panel-emp-dept" style="font-weight: 500; font-size: 13px;">-</span></div>
-                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Designation</span><span id="panel-emp-desig" style="font-weight: 500; font-size: 13px;">-</span></div>
-                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Join Date</span><span id="panel-emp-join" style="font-weight: 500; font-size: 13px;">-</span></div>
-                                </div>
-                                <h5 style="font-size: 14px; font-weight: 700; color: #10b981; border-left: 3px solid #10b981; padding-left: 8px; margin-bottom: 15px;">Salary Structure</h5>
-                                <div class="mb-4">
-                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Basic Salary</span><span id="panel-basic" style="font-weight: 500; font-size: 13px;">0</span></div>
-                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">House Rent Allowance</span><span id="panel-hra" style="font-weight: 500; font-size: 13px;">0</span></div>
-                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Medical Allowance</span><span id="panel-medical" style="font-weight: 500; font-size: 13px;">0</span></div>
-                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Transport Allowance</span><span id="panel-transport" style="font-weight: 500; font-size: 13px;">0</span></div>
-                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Other Allowances</span><span id="panel-other-allow" style="font-weight: 500; font-size: 13px;">0</span></div>
-                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Overtime</span><span id="panel-overtime" style="font-weight: 500; font-size: 13px;">0</span></div>
-                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Bonus</span><span id="panel-bonus" style="font-weight: 500; font-size: 13px;">0</span></div>
-                                    <div class="d-flex justify-content-between mt-3 pt-2" style="border-top: 1px dashed #cbd5e1;"><span style="font-weight: 600; font-size: 14px; color: #0f172a;">Gross Salary</span><span id="panel-gross" style="font-weight: 700; font-size: 14px; color: #10b981;">0</span></div>
-                                </div>
-                                <h5 style="font-size: 14px; font-weight: 700; color: #ef4444; border-left: 3px solid #ef4444; padding-left: 8px; margin-bottom: 15px;">Deductions</h5>
-                                <div class="mb-4">
-                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Late Deduction</span><span id="panel-late-ded" style="font-weight: 500; font-size: 13px;">0</span></div>
-                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Absent Deduction</span><span id="panel-absent-ded" style="font-weight: 500; font-size: 13px;">0</span></div>
-                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Loan Deduction</span><span id="panel-loan-ded" style="font-weight: 500; font-size: 13px;">0</span></div>
-                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Tax Deduction</span><span id="panel-tax-ded" style="font-weight: 500; font-size: 13px;">0</span></div>
-                                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Other Deduction</span><span id="panel-other-ded" style="font-weight: 500; font-size: 13px;">0</span></div>
-                                    <div class="d-flex justify-content-between mt-3 pt-2" style="border-top: 1px dashed #cbd5e1;"><span style="font-weight: 600; font-size: 14px; color: #0f172a;">Total Deduction</span><span id="panel-total-ded" style="font-weight: 700; font-size: 14px; color: #ef4444;">0</span></div>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center p-3 mt-4" style="background: rgba(16, 185, 129, 0.1); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.3);">
-                                    <span style="font-weight: 700; font-size: 16px; color: #065f46;">Net Salary</span>
-                                    <span id="panel-net" style="font-weight: 800; font-size: 20px; color: #10b981;">0</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="payroll-panel-overlay" class="panel-overlay hidden" onclick="hidePayrollDetails()">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- PAYROLL INSIGHTS (Horizontal Row) -->
+            </div>
+        </div>
+        <!-- PAYROLL INSIGHTS (Horizontal Row) -->
                             <div class="metrics-grid-4" id="payroll-insights-horizontal-container">
                                 <!-- Populated via JS -->
                             </div>
-
-                            <!-- DEPARTMENT PAYROLL & TREND CHART ROW -->
-                            <div class="grid-2-col">
+        <!-- DEPARTMENT PAYROLL & TREND CHART ROW -->
+        <div class="grid-2-col">
                                 <!-- Dept Analysis -->
                                 <div>
                                     <div class="premium-card p-0 h-100">
@@ -4382,18 +4328,59 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+    </div>
+    
+    <div class="col-lg-3" id="payroll-global-sidebar">
+        <div class="premium-card h-100" style="padding: 15px; position: sticky; top: 15px; overflow-y: auto; max-height: calc(100vh - 30px);">
+            <div class="panel-header d-flex justify-content-between align-items-center p-3" style="border-bottom: 1px solid #e2e8f0;">
+                <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;">Employee Payroll Details</h4>
+            </div>
+            <div class="panel-body p-4">
+                <div class="d-flex align-items-center mb-4 pb-3" style="border-bottom: 1px dashed #cbd5e1;">
+                    <div id="panel-emp-img" style="width: 50px; height: 50px; border-radius: 50%; background: #e2e8f0; color: #475569; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 18px; margin-right: 15px;"></div>
+                    <div>
+                        <div id="panel-emp-name" style="font-size: 16px; font-weight: 700; color: #0f172a;">Name</div>
+                        <div id="panel-emp-id" style="font-size: 12px; color: #64748b;">ID</div>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Department</span><span id="panel-emp-dept" style="font-weight: 500; font-size: 13px;">-</span></div>
+                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Designation</span><span id="panel-emp-desig" style="font-weight: 500; font-size: 13px;">-</span></div>
+                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Join Date</span><span id="panel-emp-join" style="font-weight: 500; font-size: 13px;">-</span></div>
+                </div>
+                <h5 style="font-size: 14px; font-weight: 700; color: #10b981; border-left: 3px solid #10b981; padding-left: 8px; margin-bottom: 15px;">Salary Structure</h5>
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Basic Salary</span><span id="panel-basic" style="font-weight: 500; font-size: 13px;">0</span></div>
+                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">House Rent Allowance</span><span id="panel-hra" style="font-weight: 500; font-size: 13px;">0</span></div>
+                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Medical Allowance</span><span id="panel-medical" style="font-weight: 500; font-size: 13px;">0</span></div>
+                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Transport Allowance</span><span id="panel-transport" style="font-weight: 500; font-size: 13px;">0</span></div>
+                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Other Allowances</span><span id="panel-other-allow" style="font-weight: 500; font-size: 13px;">0</span></div>
+                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Overtime</span><span id="panel-overtime" style="font-weight: 500; font-size: 13px;">0</span></div>
+                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Bonus</span><span id="panel-bonus" style="font-weight: 500; font-size: 13px;">0</span></div>
+                    <div class="d-flex justify-content-between mt-3 pt-2" style="border-top: 1px dashed #cbd5e1;"><span style="font-weight: 600; font-size: 14px; color: #0f172a;">Gross Salary</span><span id="panel-gross" style="font-weight: 700; font-size: 14px; color: #10b981;">0</span></div>
+                </div>
+                <h5 style="font-size: 14px; font-weight: 700; color: #ef4444; border-left: 3px solid #ef4444; padding-left: 8px; margin-bottom: 15px;">Deductions</h5>
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Late Deduction</span><span id="panel-late-ded" style="font-weight: 500; font-size: 13px;">0</span></div>
+                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Absent Deduction</span><span id="panel-absent-ded" style="font-weight: 500; font-size: 13px;">0</span></div>
+                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Loan Deduction</span><span id="panel-loan-ded" style="font-weight: 500; font-size: 13px;">0</span></div>
+                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Tax Deduction</span><span id="panel-tax-ded" style="font-weight: 500; font-size: 13px;">0</span></div>
+                    <div class="d-flex justify-content-between mb-2"><span class="text-muted" style="font-size: 13px;">Other Deduction</span><span id="panel-other-ded" style="font-weight: 500; font-size: 13px;">0</span></div>
+                    <div class="d-flex justify-content-between mt-3 pt-2" style="border-top: 1px dashed #cbd5e1;"><span style="font-weight: 600; font-size: 14px; color: #0f172a;">Total Deduction</span><span id="panel-total-ded" style="font-weight: 700; font-size: 14px; color: #ef4444;">0</span></div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center p-3 mt-4" style="background: rgba(16, 185, 129, 0.1); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.3);">
+                    <span style="font-weight: 700; font-size: 16px; color: #065f46;">Net Salary</span>
+                    <span id="panel-net" style="font-weight: 800; font-size: 20px; color: #10b981;">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                        <!-- Employee Payroll Detail Slide Panel -->
-<!-- Employee Payroll Detail Slide Panel -->
-                        <!-- PRINT LAYOUT FOR PAYROLL -->
-                        <div id="print-area-admin-payroll" class="printable-area hidden">
-                            <!-- Populated dynamically via JS when printing -->
-                        </div>
-
-
-                        <!-- Sub Tab 6: Productivity Report -->
-                        <div id="subtab-content-admin-report-productivity" class="sub-tab-content hidden">
+</div>
+<!-- PRINT LAYOUT FOR PAYROLL -->
+<div id="print-area-admin-payroll" class="printable-area hidden"></div>
+</div>
+<div id="subtab-content-admin-report-productivity" class="sub-tab-content hidden">
                             <div class="section-card bg-glass flex-table-card">
                                 <div class="section-card-header report-filters-header"
                                     style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 15px;">
