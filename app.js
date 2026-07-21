@@ -121,7 +121,19 @@ async function syncServer() {
                 ];
             }
 
+            
+            // --- Merge existing profile pictures from local cache to prevent them from disappearing ---
+            if (window.hrmsDatabase && window.hrmsDatabase.users && result.data && result.data.users) {
+                result.data.users.forEach(newU => {
+                    const oldU = window.hrmsDatabase.users.find(ou => String(ou.id) === String(newU.id));
+                    if (oldU && oldU.profilePic && !newU.profilePic) {
+                        newU.profilePic = oldU.profilePic;
+                    }
+                });
+            }
+            
             window.hrmsDatabase = result.data;
+
             if (currentUser && window.hrmsDatabase.users) {
                 const updatedMe = window.hrmsDatabase.users.find(u => String(u.id) === String(currentUser.id));
                 if (updatedMe) {
