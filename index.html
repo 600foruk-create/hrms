@@ -339,10 +339,11 @@
         @media print {
             @page {
                 size: A4 portrait;
-                margin: 0; /* Margin 0 removes browser headers/footers */
+                margin: 15mm; /* Proper A4 margins - prevents edge cut-off */
             }
             body.printing-report {
-                padding: 15mm !important; /* Uniform 15mm margin for all sides to prevent edge cut-offs */
+                padding: 0 !important;
+                margin: 0 !important;
                 box-sizing: border-box;
             }
 
