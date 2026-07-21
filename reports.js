@@ -2326,8 +2326,7 @@ function renderPayrollInsights(data) {
     let onHold = data.filter(p => p.status === 'On Hold').length;
     
     let html = `
-        <div class="col">
-            <div class="premium-card p-2 h-100 d-flex flex-column justify-content-center align-items-start" style="margin-bottom:0; min-height: 80px;">
+        <div class="premium-card p-2 h-100 d-flex flex-column justify-content-center align-items-start" style="margin-bottom:0; min-height: 80px;">
                 
                 <div style="overflow: hidden;">
                     <div style="font-size: 11px; color: #64748b; font-weight: 500;">Highest Salary</div>
@@ -2335,9 +2334,7 @@ function renderPayrollInsights(data) {
                     <div style="font-weight: 700; font-size: 14px; color: #10b981;">Rs. ${highestSalary.gross.toLocaleString()}</div>
                 </div>
             </div>
-        </div>
-        <div class="col">
-            <div class="premium-card p-2 h-100 d-flex flex-column justify-content-center align-items-start" style="margin-bottom:0; min-height: 80px;">
+        <div class="premium-card p-2 h-100 d-flex flex-column justify-content-center align-items-start" style="margin-bottom:0; min-height: 80px;">
                 
                 <div style="overflow: hidden;">
                     <div style="font-size: 11px; color: #64748b; font-weight: 500;">Highest Overtime</div>
@@ -2345,9 +2342,7 @@ function renderPayrollInsights(data) {
                     <div style="font-weight: 700; font-size: 14px; color: #3b82f6;">Rs. ${highestOvertime.overtime.toLocaleString()}</div>
                 </div>
             </div>
-        </div>
-        <div class="col">
-            <div class="premium-card p-2 h-100 d-flex flex-column justify-content-center align-items-start" style="margin-bottom:0; min-height: 80px;">
+        <div class="premium-card p-2 h-100 d-flex flex-column justify-content-center align-items-start" style="margin-bottom:0; min-height: 80px;">
                 
                 <div style="overflow: hidden;">
                     <div style="font-size: 11px; color: #64748b; font-weight: 500;">Highest Deductions</div>
@@ -2355,9 +2350,7 @@ function renderPayrollInsights(data) {
                     <div style="font-weight: 700; font-size: 14px; color: #ef4444;">Rs. ${highestDed.deductions.toLocaleString()}</div>
                 </div>
             </div>
-        </div>
-        <div class="col">
-            <div class="premium-card p-2 h-100 d-flex flex-column justify-content-center align-items-start" style="margin-bottom:0; min-height: 80px;">
+        <div class="premium-card p-2 h-100 d-flex flex-column justify-content-center align-items-start" style="margin-bottom:0; min-height: 80px;">
                 
                 <div style="overflow: hidden;">
                     <div style="font-size: 11px; color: #64748b; font-weight: 500;">Employees On Hold</div>
@@ -2365,7 +2358,6 @@ function renderPayrollInsights(data) {
                     <div style="font-weight: 700; font-size: 16px; margin-top: 4px; color: #f59e0b;">${onHold} Emp</div>
                 </div>
             </div>
-        </div>
     `;
     if(document.getElementById('payroll-insights-horizontal-container')) document.getElementById('payroll-insights-horizontal-container').innerHTML = html;
 }

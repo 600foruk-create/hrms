@@ -4276,7 +4276,7 @@
             <div class="col-12" id="payroll-table-col">
                 <div class="premium-card p-0 h-100" style="overflow: hidden;">
                                 <div class="card-header-title p-2" style="border-bottom: 1px solid #e2e8f0; background: #f8fafc; font-size: 14px;">Payroll Report</div>
-                                <div class="table-responsive" style="max-height: 350px;">
+                                <div class="table-responsive" style="height: 480px; overflow-y: auto;">
                                     <table class="mini-rep-table" id="table-payroll-summary">
                                         <thead style="position: sticky; top: 0; background: white; z-index: 1;">
                                             <tr>
@@ -4302,10 +4302,7 @@
                             </div>
             </div>
         </div>
-        <!-- PAYROLL INSIGHTS (Horizontal Row) -->
-                            <div class="metrics-grid-4" id="payroll-insights-horizontal-container">
-                                <!-- Populated via JS -->
-                            </div>
+
         <!-- DEPARTMENT PAYROLL & TREND CHART ROW -->
         <div class="grid-2-col">
                                 <!-- Dept Analysis -->
@@ -4386,6 +4383,9 @@
                     <span id="panel-net" style="font-weight: 800; font-size: 16px; color: #10b981;">0</span>
                 </div>
             </div>
+        </div>
+        <div id="payroll-insights-horizontal-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px;">
+            <!-- Populated via JS -->
         </div>
     </div>
 
