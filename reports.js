@@ -2513,7 +2513,6 @@ let prodStatusChartInstance = null;
 window.prodActualData = []; // Store globally for modal access
 
 window.generateAdminProductivityReport = function(db) {
-    try {
     db = typeof getDb === "function" ? getDb() : (window.db || window.hrmsDatabase || {});
     
     // Populate Department Filter if empty
@@ -2542,14 +2541,20 @@ window.generateAdminProductivityReport = function(db) {
     }
 
     // Get filter values
-    const startDate = document.getElementById('admin-rep-prod-start').value;
-    const endDate = document.getElementById('admin-rep-prod-end').value;
-    const selectedEmp = document.getElementById('admin-rep-prod-emp').value;
-    const selectedDept = document.getElementById('admin-rep-prod-dept').value;
+    const startInput = document.getElementById('admin-rep-prod-start');
+    const endInput = document.getElementById('admin-rep-prod-end');
+    const startDate = startInput ? startInput.value : '';
+    const endDate = endInput ? endInput.value : '';
+    
+    const empInput = document.getElementById('admin-rep-prod-emp');
+    const selectedEmp = empInput ? empInput.value : 'All';
+    
+    const deptInput = document.getElementById('admin-rep-prod-dept');
+    const selectedDept = deptInput ? deptInput.value : 'All';
 
     let filteredUsers = db.users || [];
-    if(selectedEmp !== 'All') filteredUsers = filteredUsers.filter(u => u.id === selectedEmp);
-    if(selectedDept !== 'All') filteredUsers = filteredUsers.filter(u => u.department === selectedDept);
+    if(selectedEmp !== 'All' && selectedEmp !== '') filteredUsers = filteredUsers.filter(u => u.id === selectedEmp);
+    if(selectedDept !== 'All' && selectedDept !== '') filteredUsers = filteredUsers.filter(u => u.department === selectedDept);
 
     let allProductivity = db.productivity || [];
     if (startDate) allProductivity = allProductivity.filter(p => p.date >= startDate);
@@ -2567,7 +2572,7 @@ window.generateAdminProductivityReport = function(db) {
         const totalAssigned = userTasks.length || 0;
         const completed = userTasks.filter(p => p.status === 'Approved').length;
         const pending = userTasks.filter(p => p.status === 'Pending').length;
-        const overdue = userTasks.filter(p => p.status === 'Rejected').length; // using rejected as overdue for now
+        const overdue = userTasks.filter(p => p.status === 'Rejected').length;
 
         globalTotal += totalAssigned;
         globalCompleted += completed;
@@ -2583,7 +2588,7 @@ window.generateAdminProductivityReport = function(db) {
         else if (totalAssigned === 0) { statusText = 'No Tasks'; statusClass = 'prod-badge-avg'; }
 
         actualData.push({
-            name: user.name,
+            name: user.name || 'Unknown',
             empId: user.id,
             dept: user.department || 'N/A',
             mgr: user.managerId || 'N/A',
@@ -2597,12 +2602,11 @@ window.generateAdminProductivityReport = function(db) {
             tasks: userTasks
         });
 
-        // Add to Task Register list
         userTasks.forEach(t => {
             allTaskRows.push({
                 id: t.id || 'TSK-'+Math.floor(Math.random()*1000),
                 name: t.description || 'Productivity Log',
-                empName: user.name,
+                empName: user.name || 'Unknown',
                 dept: user.department || 'N/A',
                 priority: 'Normal',
                 date: t.date,
@@ -2614,55 +2618,67 @@ window.generateAdminProductivityReport = function(db) {
     window.prodActualData = actualData;
 
     // Update Summary Cards
-    document.getElementById('prod-sum-total').innerText = globalTotal;
-    document.getElementById('prod-sum-completed').innerText = globalCompleted;
-    document.getElementById('prod-sum-pending').innerText = globalPending;
-    document.getElementById('prod-sum-overdue').innerText = globalOverdue;
+    const elSumTot = document.getElementById('prod-sum-total');
+    if (elSumTot) elSumTot.innerText = globalTotal;
     
-    document.getElementById('prod-pct-completed').innerText = globalTotal > 0 ? Math.round((globalCompleted/globalTotal)*100)+'%' : '0%';
-    document.getElementById('prod-pct-pending').innerText = globalTotal > 0 ? Math.round((globalPending/globalTotal)*100)+'%' : '0%';
-    document.getElementById('prod-pct-overdue').innerText = globalTotal > 0 ? Math.round((globalOverdue/globalTotal)*100)+'%' : '0%';
+    const elSumComp = document.getElementById('prod-sum-completed');
+    if (elSumComp) elSumComp.innerText = globalCompleted;
+    
+    const elSumPend = document.getElementById('prod-sum-pending');
+    if (elSumPend) elSumPend.innerText = globalPending;
+    
+    const elSumOver = document.getElementById('prod-sum-overdue');
+    if (elSumOver) elSumOver.innerText = globalOverdue;
+    
+    const pctComp = document.getElementById('prod-pct-completed');
+    if (pctComp) pctComp.innerText = globalTotal > 0 ? Math.round((globalCompleted/globalTotal)*100)+'%' : '0%';
+    
+    const pctPend = document.getElementById('prod-pct-pending');
+    if (pctPend) pctPend.innerText = globalTotal > 0 ? Math.round((globalPending/globalTotal)*100)+'%' : '0%';
+    
+    const pctOver = document.getElementById('prod-pct-overdue');
+    if (pctOver) pctOver.innerText = globalTotal > 0 ? Math.round((globalOverdue/globalTotal)*100)+'%' : '0%';
 
     // Populate Overview Table
     const tbody = document.getElementById('prod-tbody-overview');
     if (tbody) {
         tbody.innerHTML = '';
         if(actualData.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4">No data found</td></tr>';
+            tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">No data found</td></tr>`;
         } else {
             actualData.forEach((row, index) => {
                 let barColor = row.compPct >= 90 ? '#22c55e' : (row.compPct >= 70 ? '#f59e0b' : '#ef4444');
                 let initial = row.name ? row.name.substring(0, 2).toUpperCase() : 'U';
-                tbody.innerHTML += 
+                tbody.innerHTML += `
                     <tr>
-                        <td>+(index + 1)+</td>
+                        <td>${index + 1}</td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 28px; height: 28px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #64748b;">+initial+</div>
+                                <div style="width: 28px; height: 28px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #64748b;">${initial}</div>
                                 <div>
-                                    <div style="font-weight: 600; color: #0f172a; font-size: 13px;">+row.name+</div>
-                                    <div style="font-size: 11px; color: #64748b;">+row.empId+</div>
+                                    <div style="font-weight: 600; color: #0f172a; font-size: 13px;">${row.name}</div>
+                                    <div style="font-size: 11px; color: #64748b;">${row.empId}</div>
                                 </div>
                             </div>
                         </td>
-                        <td class="text-center font-weight-bold">+row.assigned+</td>
-                        <td class="text-center font-weight-bold" style="color:#22c55e">+row.completed+</td>
-                        <td class="text-center font-weight-bold" style="color:#f59e0b">+row.pending+</td>
-                        <td class="text-center font-weight-bold" style="color:#ef4444">+row.overdue+</td>
+                        <td class="text-center font-weight-bold">${row.assigned}</td>
+                        <td class="text-center font-weight-bold" style="color:#22c55e">${row.completed}</td>
+                        <td class="text-center font-weight-bold" style="color:#f59e0b">${row.pending}</td>
+                        <td class="text-center font-weight-bold" style="color:#ef4444">${row.overdue}</td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <span style="font-weight: 700; font-size: 12px; width: 35px;">+row.compPct+%</span>
+                                <span style="font-weight: 700; font-size: 12px; width: 35px;">${row.compPct}%</span>
                                 <div class="prod-progress-wrapper">
-                                    <div class="prod-progress-bg"><div class="prod-progress-bar" style="width: +row.compPct+%; background: +barColor+;"></div></div>
+                                    <div class="prod-progress-bg"><div class="prod-progress-bar" style="width: ${row.compPct}%; background: ${barColor};"></div></div>
                                 </div>
                             </div>
                         </td>
-                        <td class="text-center"><span class="prod-badge +row.statusClass+">+row.status+</span></td>
+                        <td class="text-center"><span class="prod-badge ${row.statusClass}">${row.status}</span></td>
                         <td class="text-center print-hide">
-                            <button class="prod-action-btn" onclick="window.viewProductivityDetails('+row.empId+')"><i class="fa-regular fa-eye"></i> View Details</button>
+                            <button class="prod-action-btn" onclick="window.viewProductivityDetails('${row.empId}')"><i class="fa-regular fa-eye"></i> View Details</button>
                         </td>
                     </tr>
-                ;
+                `;
             });
         }
     }
@@ -2672,21 +2688,21 @@ window.generateAdminProductivityReport = function(db) {
     if (topPerfContainer) {
         topPerfContainer.innerHTML = '';
         const sortedPerf = [...actualData].sort((a,b) => b.compPct - a.compPct).slice(0,5);
-        if(sortedPerf.length === 0) topPerfContainer.innerHTML = '<div class="text-muted text-center" style="font-size:12px;">No data</div>';
+        if(sortedPerf.length === 0) topPerfContainer.innerHTML = `<div class="text-muted text-center" style="font-size:12px;">No data</div>`;
         sortedPerf.forEach((row, index) => {
             let barColor = row.compPct >= 90 ? '#22c55e' : (row.compPct >= 70 ? '#f59e0b' : '#ef4444');
-            topPerfContainer.innerHTML += 
+            topPerfContainer.innerHTML += `
                 <div class="prod-rank-item">
-                    <div class="prod-rank-num">+(index + 1)+</div>
-                    <div class="prod-rank-name">+row.name+</div>
+                    <div class="prod-rank-num">${index + 1}</div>
+                    <div class="prod-rank-name">${row.name}</div>
                     <div class="prod-rank-bar">
-                        <div class="prod-progress-bg"><div class="prod-progress-bar" style="width: +row.compPct+%; background: +barColor+;"></div></div>
+                        <div class="prod-progress-bg"><div class="prod-progress-bar" style="width: ${row.compPct}%; background: ${barColor};"></div></div>
                     </div>
-                    <div class="prod-rank-val">+row.compPct+%</div>
+                    <div class="prod-rank-val">${row.compPct}%</div>
                 </div>
-            ;
+            `;
         });
-        topPerfContainer.innerHTML += <div style="text-align: right; margin-top: 10px;"><a href="#" style="font-size: 12px; font-weight: 600; color: #2563EB; text-decoration: none;" onclick="window.switchProdTab('performance'); return false;">View All</a></div>;
+        topPerfContainer.innerHTML += `<div style="text-align: right; margin-top: 10px;"><a href="#" style="font-size: 12px; font-weight: 600; color: #2563EB; text-decoration: none;" onclick="window.switchProdTab('performance'); return false;">View All</a></div>`;
     }
 
     // Populate Attention Required
@@ -2694,31 +2710,39 @@ window.generateAdminProductivityReport = function(db) {
     if (attReqContainer) {
         attReqContainer.innerHTML = '';
         const attData = actualData.filter(r => r.pending > 0 || r.overdue > 0).sort((a,b) => (b.pending + b.overdue) - (a.pending + a.overdue)).slice(0,3);
-        if(attData.length === 0) attReqContainer.innerHTML = '<div class="text-muted text-center" style="font-size:12px;">All good!</div>';
+        if(attData.length === 0) attReqContainer.innerHTML = `<div class="text-muted text-center" style="font-size:12px;">All good!</div>`;
         attData.forEach((row, index) => {
-            attReqContainer.innerHTML += 
+            attReqContainer.innerHTML += `
                 <div class="prod-warn-item">
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <div class="prod-rank-num">+(index + 1)+</div>
-                        <div class="prod-warn-name">+row.name+</div>
+                        <div class="prod-rank-num">${index + 1}</div>
+                        <div class="prod-warn-name">${row.name}</div>
                     </div>
-                    <div class="prod-warn-badge">+row.pending+ Pending / +row.overdue+ Overdue</div>
+                    <div class="prod-warn-badge">${row.pending} Pending / ${row.overdue} Overdue</div>
                 </div>
-            ;
+            `;
         });
-        attReqContainer.innerHTML += <div style="text-align: right; margin-top: 10px;"><a href="#" style="font-size: 12px; font-weight: 600; color: #2563EB; text-decoration: none;" onclick="window.switchProdTab('register'); return false;">View All</a></div>;
+        attReqContainer.innerHTML += `<div style="text-align: right; margin-top: 10px;"><a href="#" style="font-size: 12px; font-weight: 600; color: #2563EB; text-decoration: none;" onclick="window.switchProdTab('register'); return false;">View All</a></div>`;
     }
 
     // Initialize Chart
     const ctx = document.getElementById('prodStatusChart');
-    if (ctx) {
+    if (ctx && typeof Chart !== 'undefined') {
         if (prodStatusChartInstance) {
             prodStatusChartInstance.destroy();
         }
-        document.getElementById('prod-chart-center-val').innerText = globalTotal;
-        document.getElementById('prod-legend-comp').innerText = globalCompleted;
-        document.getElementById('prod-legend-pend').innerText = globalPending;
-        document.getElementById('prod-legend-over').innerText = globalOverdue;
+        
+        const chartCen = document.getElementById('prod-chart-center-val');
+        if (chartCen) chartCen.innerText = globalTotal;
+        
+        const lgComp = document.getElementById('prod-legend-comp');
+        if (lgComp) lgComp.innerText = globalCompleted;
+        
+        const lgPend = document.getElementById('prod-legend-pend');
+        if (lgPend) lgPend.innerText = globalPending;
+        
+        const lgOver = document.getElementById('prod-legend-over');
+        if (lgOver) lgOver.innerText = globalOverdue;
 
         prodStatusChartInstance = new Chart(ctx, {
             type: 'doughnut',
@@ -2753,7 +2777,7 @@ window.generateAdminProductivityReport = function(db) {
     if(tbReg) {
         tbReg.innerHTML = '';
         if(allTaskRows.length === 0) {
-            tbReg.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4">No tasks found</td></tr>';
+            tbReg.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">No tasks found</td></tr>`;
         } else {
             allTaskRows.forEach(t => {
                 let badgeClass = 'prod-badge-avg';
@@ -2761,13 +2785,13 @@ window.generateAdminProductivityReport = function(db) {
                 if(st === 'Approved') badgeClass = 'prod-badge-good';
                 if(st === 'Rejected') badgeClass = 'prod-badge-poor';
 
-                tbReg.innerHTML += 
+                tbReg.innerHTML += `
                     <tr>
-                        <td>+t.id+</td><td>+t.name+</td><td>+t.empName+</td><td>+t.dept+</td><td>+t.priority+</td><td>+t.date+</td><td>+t.date+</td>
-                        <td class="text-center"><span class="prod-badge +badgeClass+">+st+</span></td>
+                        <td>${t.id}</td><td>${t.name}</td><td>${t.empName}</td><td>${t.dept}</td><td>${t.priority}</td><td>${t.date || '-'}</td><td>${t.date || '-'}</td>
+                        <td class="text-center"><span class="prod-badge ${badgeClass}">${st}</span></td>
                         <td class="text-center print-hide"><button class="prod-action-btn"><i class="fa-regular fa-eye"></i> View</button></td>
                     </tr>
-                ;
+                `;
             });
         }
     }
@@ -2777,74 +2801,99 @@ window.generateAdminProductivityReport = function(db) {
     if(tbPerf) {
         tbPerf.innerHTML = '';
         if(actualData.length === 0) {
-            tbPerf.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No data found</td></tr>';
+            tbPerf.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No data found</td></tr>`;
         } else {
             actualData.forEach(row => {
-                tbPerf.innerHTML += 
+                tbPerf.innerHTML += `
                     <tr>
-                        <td><div style="font-weight: 600;">+row.name+</div><div style="font-size:11px; color:#64748b;">+row.empId+</div></td>
-                        <td class="text-center">+row.assigned+</td>
-                        <td class="text-center text-success">+row.completed+</td>
-                        <td class="text-center text-warning">+row.pending+</td>
-                        <td class="text-center text-danger">+row.overdue+</td>
+                        <td><div style="font-weight: 600;">${row.name}</div><div style="font-size:11px; color:#64748b;">${row.empId}</div></td>
+                        <td class="text-center">${row.assigned}</td>
+                        <td class="text-center text-success">${row.completed}</td>
+                        <td class="text-center text-warning">${row.pending}</td>
+                        <td class="text-center text-danger">${row.overdue}</td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <span style="font-weight: 700; font-size: 12px; width: 35px;">+row.compPct+%</span>
+                                <span style="font-weight: 700; font-size: 12px; width: 35px;">${row.compPct}%</span>
                                 <div class="prod-progress-wrapper" style="max-width:80px;">
-                                    <div class="prod-progress-bg"><div class="prod-progress-bar" style="width: +row.compPct+%; background: #2563EB;"></div></div>
+                                    <div class="prod-progress-bg"><div class="prod-progress-bar" style="width: ${row.compPct}%; background: #2563EB;"></div></div>
                                 </div>
                             </div>
                         </td>
                         <td class="text-center font-weight-bold">-</td>
                     </tr>
-                ;
+                `;
             });
         }
     }
-} catch(e) { console.error('Prod Report Error:', e); }
 };
 
-
 window.viewProductivityDetails = function(empId) {
-    const emp = (window.prodActualData || []).find(e => e.empId === empId);
+    const emp = (window.prodActualData || []).find(e => String(e.empId) === String(empId));
     if(!emp) return;
     
-    document.getElementById('prod-modal-avatar').innerText = emp.name ? emp.name.substring(0, 2).toUpperCase() : 'U';
-    document.getElementById('prod-modal-name').innerText = emp.name;
-    document.getElementById('prod-modal-dept').innerText = emp.dept;
-    document.getElementById('prod-modal-mgr').innerText = emp.mgr;
+    const avatarEl = document.getElementById('prod-modal-avatar');
+    if (avatarEl) avatarEl.innerText = emp.name ? emp.name.substring(0, 2).toUpperCase() : 'U';
     
-    document.getElementById('prod-modal-assigned').innerText = emp.assigned;
-    document.getElementById('prod-modal-completed').innerText = emp.completed;
-    document.getElementById('prod-modal-pending').innerText = emp.pending;
-    document.getElementById('prod-modal-overdue').innerText = emp.overdue;
+    const nameEl = document.getElementById('prod-modal-name');
+    if (nameEl) nameEl.innerText = emp.name;
     
-    document.getElementById('prod-modal-status-text').innerText = emp.status;
-    document.getElementById('prod-modal-pct-val').innerText = emp.compPct + '%';
+    const deptEl = document.getElementById('prod-modal-dept');
+    if (deptEl) deptEl.innerText = emp.dept;
+    
+    const mgrEl = document.getElementById('prod-modal-mgr');
+    if (mgrEl) mgrEl.innerText = emp.mgr;
+    
+    const assEl = document.getElementById('prod-modal-assigned');
+    if (assEl) assEl.innerText = emp.assigned;
+    
+    const compEl = document.getElementById('prod-modal-completed');
+    if (compEl) compEl.innerText = emp.completed;
+    
+    const pendEl = document.getElementById('prod-modal-pending');
+    if (pendEl) pendEl.innerText = emp.pending;
+    
+    const overEl = document.getElementById('prod-modal-overdue');
+    if (overEl) overEl.innerText = emp.overdue;
+    
+    const statTextEl = document.getElementById('prod-modal-status-text');
+    if (statTextEl) statTextEl.innerText = emp.status;
+    
+    const pctValEl = document.getElementById('prod-modal-pct-val');
+    if (pctValEl) pctValEl.innerText = emp.compPct + '%';
     
     let barColor = emp.compPct >= 90 ? '#22c55e' : (emp.compPct >= 70 ? '#f59e0b' : '#ef4444');
-    document.getElementById('prod-modal-pct-bar').style.width = emp.compPct + '%';
-    document.getElementById('prod-modal-pct-bar').style.background = barColor;
-    document.getElementById('prod-modal-pct-val').style.color = barColor;
+    
+    const pctBar = document.getElementById('prod-modal-pct-bar');
+    if (pctBar) {
+        pctBar.style.width = emp.compPct + '%';
+        pctBar.style.background = barColor;
+    }
+    
+    if (pctValEl) pctValEl.style.color = barColor;
     
     let recentTasksHtml = '';
     const recent = (emp.tasks || []).slice(0,5);
     if(recent.length === 0) {
-        recentTasksHtml = '<tr><td colspan="3" class="text-center py-2 text-muted">No recent tasks</td></tr>';
+        recentTasksHtml = `<tr><td colspan="3" class="text-center py-2 text-muted">No recent tasks</td></tr>`;
     } else {
         recent.forEach(t => {
             let stClass = 'prod-badge-avg';
             let st = t.status || 'Pending';
             if(st === 'Approved') stClass = 'prod-badge-good';
             if(st === 'Rejected') stClass = 'prod-badge-poor';
-            recentTasksHtml += 
-                <tr><td style="padding: 10px; border-bottom: 1px solid #f1f5f9;">+(t.description || 'Log Entry')+</td><td style="padding: 10px; border-bottom: 1px solid #f1f5f9;">+(t.date || 'N/A')+</td><td style="padding: 10px; text-align: center; border-bottom: 1px solid #f1f5f9;"><span class="prod-badge +stClass+">+st+</span></td></tr>
-            ;
+            recentTasksHtml += `
+                <tr><td style="padding: 10px; border-bottom: 1px solid #f1f5f9;">${t.description || 'Log Entry'}</td><td style="padding: 10px; border-bottom: 1px solid #f1f5f9;">${t.date || 'N/A'}</td><td style="padding: 10px; text-align: center; border-bottom: 1px solid #f1f5f9;"><span class="prod-badge ${stClass}">${st}</span></td></tr>
+            `;
         });
     }
-    document.getElementById('prod-modal-recent-tasks').innerHTML = recentTasksHtml;
+    
+    const rTasksEl = document.getElementById('prod-modal-recent-tasks');
+    if (rTasksEl) rTasksEl.innerHTML = recentTasksHtml;
     
     // Show Modal
-    document.getElementById('modal-prod-details').classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
+    const modalEl = document.getElementById('modal-prod-details');
+    if (modalEl) {
+        modalEl.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
 };
