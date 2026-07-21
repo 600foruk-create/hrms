@@ -9859,11 +9859,11 @@
 
 <!-- Tasks & Productivity Modal -->
 <div id="modal-prod-details" class="modal hidden">
-    <div class="modal-backdrop" onclick="document.getElementById('modal-prod-details').classList.add('hidden'); document.body.style.overflow='';"></div>
+    <div class="modal-backdrop" onclick="document.getElementById('modal-prod-details').classList.add('hidden'); document.getElementById('modal-prod-details').style.removeProperty('display'); document.body.style.overflow='';"></div>
     <div class="modal-window modal-company" style="max-width: 600px !important;">
         <div class="modal-header">
             <h3>Employee Productivity Details</h3>
-            <button class="modal-close" onclick="document.getElementById('modal-prod-details').classList.add('hidden'); document.body.style.overflow='';"><i class="fa-solid fa-xmark"></i></button>
+            <button class="modal-close" onclick="document.getElementById('modal-prod-details').classList.add('hidden'); document.getElementById('modal-prod-details').style.removeProperty('display'); document.body.style.overflow='';"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="modal-body" style="padding: 20px;">
             <div class="prod-modal-header">
@@ -9920,7 +9920,7 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-outline" onclick="document.getElementById('modal-prod-details').classList.add('hidden'); document.body.style.overflow='';">Close</button>
+            <button type="button" class="btn btn-outline" onclick="document.getElementById('modal-prod-details').classList.add('hidden'); document.getElementById('modal-prod-details').style.removeProperty('display'); document.body.style.overflow='';">Close</button>
         </div>
     </div>
 </div>

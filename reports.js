@@ -2400,7 +2400,7 @@ function renderPayrollInsights(data) {
 window.viewPayrollDetail = function(empId) {
     let data = window._currentPayrollData || [];
     let emp = data.find(p => p.id === empId);
-    if(!emp) return;
+    if(!emp) { alert('Data mismatch. Employee ID: ' + empId); return; }
 
     document.getElementById('panel-emp-name').innerText = emp.name;
     document.getElementById('panel-emp-id').innerText = emp.id;
@@ -2829,7 +2829,7 @@ window.generateAdminProductivityReport = function(db) {
 
 window.viewProductivityDetails = function(empId) {
     const emp = (window.prodActualData || []).find(e => String(e.empId) === String(empId));
-    if(!emp) return;
+    if(!emp) { alert('Data mismatch. Employee ID: ' + empId); return; }
     
     const avatarEl = document.getElementById('prod-modal-avatar');
     if (avatarEl) avatarEl.innerText = emp.name ? emp.name.substring(0, 2).toUpperCase() : 'U';
@@ -2894,6 +2894,7 @@ window.viewProductivityDetails = function(empId) {
     const modalEl = document.getElementById('modal-prod-details');
     if (modalEl) {
         modalEl.classList.remove('hidden');
+        modalEl.style.setProperty('display', 'flex', 'important');
         document.body.style.overflow = 'hidden';
     }
 };
