@@ -2497,3 +2497,230 @@ window.exportPayrollExcel = function() {
     link.click();
     document.body.removeChild(link);
 };
+
+
+// ==================== TASKS & PRODUCTIVITY REPORT LOGIC ====================
+
+window.switchProdTab = function(tabId) {
+    document.querySelectorAll('.prod-dash-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.prod-tab-content').forEach(c => c.classList.add('hidden'));
+    
+    document.getElementById(`tab-btn-prod-${tabId}`).classList.add('active');
+    document.getElementById(`prod-tab-${tabId}`).classList.remove('hidden');
+};
+
+let prodStatusChartInstance = null;
+
+window.generateAdminProductivityReport = function(db) {
+    // Hardcoded mock data based on user request
+    const mockData = [
+        { name: 'Faisal Saeed', empId: 'EMP-001', assigned: 20, completed: 18, pending: 1, overdue: 1, compPct: 90, status: 'Good', statusClass: 'prod-badge-good' },
+        { name: 'Naimat Ullah', empId: 'EMP-002', assigned: 25, completed: 22, pending: 2, overdue: 1, compPct: 88, status: 'Good', statusClass: 'prod-badge-good' },
+        { name: 'Suhail Ahmad', empId: 'EMP-003', assigned: 18, completed: 14, pending: 3, overdue: 1, compPct: 78, status: 'Average', statusClass: 'prod-badge-avg' },
+        { name: 'Ahmad Ali', empId: 'EMP-004', assigned: 22, completed: 15, pending: 5, overdue: 2, compPct: 68, status: 'Average', statusClass: 'prod-badge-avg' },
+        { name: 'Usman Qureshi', empId: 'EMP-005', assigned: 15, completed: 8, pending: 5, overdue: 2, compPct: 53, status: 'Needs Improvement', statusClass: 'prod-badge-poor' }
+    ];
+
+    // Populate Overview Table
+    const tbody = document.getElementById('prod-tbody-overview');
+    if (tbody) {
+        tbody.innerHTML = '';
+        mockData.forEach((row, index) => {
+            let barColor = row.compPct >= 90 ? '#22c55e' : (row.compPct >= 70 ? '#f59e0b' : '#ef4444');
+            tbody.innerHTML += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 28px; height: 28px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #64748b;">${row.name.substring(0, 2).toUpperCase()}</div>
+                            <div>
+                                <div style="font-weight: 600; color: #0f172a; font-size: 13px;">${row.name}</div>
+                                <div style="font-size: 11px; color: #64748b;">${row.empId}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-center font-weight-bold">${row.assigned}</td>
+                    <td class="text-center font-weight-bold" style="color:#22c55e">${row.completed}</td>
+                    <td class="text-center font-weight-bold" style="color:#f59e0b">${row.pending}</td>
+                    <td class="text-center font-weight-bold" style="color:#ef4444">${row.overdue}</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-weight: 700; font-size: 12px; width: 35px;">${row.compPct}%</span>
+                            <div class="prod-progress-wrapper">
+                                <div class="prod-progress-bg"><div class="prod-progress-bar" style="width: ${row.compPct}%; background: ${barColor};"></div></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-center"><span class="prod-badge ${row.statusClass}">${row.status}</span></td>
+                    <td class="text-center print-hide">
+                        <button class="prod-action-btn" onclick="window.viewProductivityDetails('${row.name}')"><i class="fa-regular fa-eye"></i> View Details</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    // Populate Top Performers
+    const topPerfContainer = document.getElementById('prod-top-performers');
+    if (topPerfContainer) {
+        topPerfContainer.innerHTML = '';
+        mockData.forEach((row, index) => {
+            let barColor = row.compPct >= 90 ? '#22c55e' : (row.compPct >= 70 ? '#f59e0b' : '#ef4444');
+            topPerfContainer.innerHTML += `
+                <div class="prod-rank-item">
+                    <div class="prod-rank-num">${index + 1}</div>
+                    <div class="prod-rank-name">${row.name}</div>
+                    <div class="prod-rank-bar">
+                        <div class="prod-progress-bg"><div class="prod-progress-bar" style="width: ${row.compPct}%; background: ${barColor};"></div></div>
+                    </div>
+                    <div class="prod-rank-val">${row.compPct}%</div>
+                </div>
+            `;
+        });
+        topPerfContainer.innerHTML += `<div style="text-align: right; margin-top: 10px;"><a href="#" style="font-size: 12px; font-weight: 600; color: #2563EB; text-decoration: none;" onclick="window.switchProdTab('performance'); return false;">View All</a></div>`;
+    }
+
+    // Populate Attention Required
+    const attReqContainer = document.getElementById('prod-attention-required');
+    if (attReqContainer) {
+        attReqContainer.innerHTML = '';
+        const attData = mockData.filter(r => r.pending > 2 || r.overdue > 0).sort((a,b) => (b.pending + b.overdue) - (a.pending + a.overdue)).slice(0,3);
+        attData.forEach((row, index) => {
+            attReqContainer.innerHTML += `
+                <div class="prod-warn-item">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="prod-rank-num">${index + 1}</div>
+                        <div class="prod-warn-name">${row.name}</div>
+                    </div>
+                    <div class="prod-warn-badge">${row.pending} Pending / ${row.overdue} Overdue</div>
+                </div>
+            `;
+        });
+        attReqContainer.innerHTML += `<div style="text-align: right; margin-top: 10px;"><a href="#" style="font-size: 12px; font-weight: 600; color: #2563EB; text-decoration: none;" onclick="window.switchProdTab('register'); return false;">View All</a></div>`;
+    }
+
+    // Initialize Chart
+    const ctx = document.getElementById('prodStatusChart');
+    if (ctx) {
+        if (prodStatusChartInstance) {
+            prodStatusChartInstance.destroy();
+        }
+        prodStatusChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Completed', 'Pending', 'Overdue'],
+                datasets: [{
+                    data: [95, 20, 5],
+                    backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'],
+                    borderWidth: 0,
+                    cutout: '75%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ' ' + context.label + ': ' + context.raw;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Populate Task Register Tab (Mock)
+    const tbReg = document.getElementById('prod-tbody-register');
+    if(tbReg) {
+        tbReg.innerHTML = `
+            <tr>
+                <td>TSK-1042</td><td>Update Homepage UI</td><td>Naimat Ullah</td><td>Coding</td><td>High</td><td>01-Jul-2026</td><td>05-Jul-2026</td>
+                <td class="text-center"><span class="prod-badge prod-badge-good">Completed</span></td>
+                <td class="text-center print-hide"><button class="prod-action-btn"><i class="fa-regular fa-eye"></i> View</button></td>
+            </tr>
+            <tr>
+                <td>TSK-1043</td><td>Prepare Q3 Report</td><td>Ahmad Ali</td><td>Accounts</td><td>Medium</td><td>02-Jul-2026</td><td>10-Jul-2026</td>
+                <td class="text-center"><span class="prod-badge prod-badge-avg">Pending</span></td>
+                <td class="text-center print-hide"><button class="prod-action-btn"><i class="fa-regular fa-eye"></i> View</button></td>
+            </tr>
+            <tr>
+                <td>TSK-1044</td><td>Server Maintenance</td><td>Usman Qureshi</td><td>IT</td><td>Critical</td><td>05-Jul-2026</td><td>06-Jul-2026</td>
+                <td class="text-center"><span class="prod-badge prod-badge-poor">Overdue</span></td>
+                <td class="text-center print-hide"><button class="prod-action-btn"><i class="fa-regular fa-eye"></i> View</button></td>
+            </tr>
+        `;
+    }
+
+    // Populate Performance Tab (Mock)
+    const tbPerf = document.getElementById('prod-tbody-performance');
+    if(tbPerf) {
+        tbPerf.innerHTML = '';
+        mockData.forEach(row => {
+            tbPerf.innerHTML += `
+                <tr>
+                    <td><div style="font-weight: 600;">${row.name}</div><div style="font-size:11px; color:#64748b;">${row.empId}</div></td>
+                    <td class="text-center">${row.assigned}</td>
+                    <td class="text-center text-success">${row.completed}</td>
+                    <td class="text-center text-warning">${row.pending}</td>
+                    <td class="text-center text-danger">${row.overdue}</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-weight: 700; font-size: 12px; width: 35px;">${row.compPct}%</span>
+                            <div class="prod-progress-wrapper" style="max-width:80px;">
+                                <div class="prod-progress-bg"><div class="prod-progress-bar" style="width: ${row.compPct}%; background: #2563EB;"></div></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-center font-weight-bold">142h 30m</td>
+                </tr>
+            `;
+        });
+    }
+};
+
+window.viewProductivityDetails = function(empName) {
+    // Mock data lookup based on hardcoded values
+    const mockData = [
+        { name: 'Faisal Saeed', empId: 'EMP-001', dept: 'Coding', mgr: 'Naimat Ullah', assigned: 20, completed: 18, pending: 1, overdue: 1, compPct: 90, status: 'Good Standing' },
+        { name: 'Naimat Ullah', empId: 'EMP-002', dept: 'Coding', mgr: 'Irfan Ullah', assigned: 25, completed: 22, pending: 2, overdue: 1, compPct: 88, status: 'Good Standing' },
+        { name: 'Suhail Ahmad', empId: 'EMP-003', dept: 'Accounts', mgr: 'Faisal Saeed', assigned: 18, completed: 14, pending: 3, overdue: 1, compPct: 78, status: 'Average Standing' },
+        { name: 'Ahmad Ali', empId: 'EMP-004', dept: 'HR', mgr: 'Irfan Ullah', assigned: 22, completed: 15, pending: 5, overdue: 2, compPct: 68, status: 'Needs Improvement' },
+        { name: 'Usman Qureshi', empId: 'EMP-005', dept: 'IT', mgr: 'Naimat Ullah', assigned: 15, completed: 8, pending: 5, overdue: 2, compPct: 53, status: 'Needs Improvement' }
+    ];
+    
+    const emp = mockData.find(e => e.name === empName) || mockData[0];
+    
+    document.getElementById('prod-modal-avatar').innerText = emp.name.substring(0, 2).toUpperCase();
+    document.getElementById('prod-modal-name').innerText = emp.name;
+    document.getElementById('prod-modal-dept').innerText = emp.dept;
+    document.getElementById('prod-modal-mgr').innerText = emp.mgr;
+    
+    document.getElementById('prod-modal-assigned').innerText = emp.assigned;
+    document.getElementById('prod-modal-completed').innerText = emp.completed;
+    document.getElementById('prod-modal-pending').innerText = emp.pending;
+    document.getElementById('prod-modal-overdue').innerText = emp.overdue;
+    
+    document.getElementById('prod-modal-status-text').innerText = emp.status;
+    document.getElementById('prod-modal-pct-val').innerText = emp.compPct + '%';
+    
+    let barColor = emp.compPct >= 90 ? '#22c55e' : (emp.compPct >= 70 ? '#f59e0b' : '#ef4444');
+    document.getElementById('prod-modal-pct-bar').style.width = emp.compPct + '%';
+    document.getElementById('prod-modal-pct-bar').style.background = barColor;
+    document.getElementById('prod-modal-pct-val').style.color = barColor;
+    
+    // Mock recent tasks
+    const recentTasksHtml = `
+        <tr><td style="padding: 10px; border-bottom: 1px solid #f1f5f9;">Weekly Standup Prep</td><td style="padding: 10px; border-bottom: 1px solid #f1f5f9;">15-Jul-2026</td><td style="padding: 10px; text-align: center; border-bottom: 1px solid #f1f5f9;"><span class="prod-badge prod-badge-good">Completed</span></td></tr>
+        <tr><td style="padding: 10px; border-bottom: 1px solid #f1f5f9;">Client Onboarding</td><td style="padding: 10px; border-bottom: 1px solid #f1f5f9;">22-Jul-2026</td><td style="padding: 10px; text-align: center; border-bottom: 1px solid #f1f5f9;"><span class="prod-badge prod-badge-avg">Pending</span></td></tr>
+        <tr><td style="padding: 10px;">Security Audit</td><td style="padding: 10px;">10-Jul-2026</td><td style="padding: 10px; text-align: center;"><span class="prod-badge prod-badge-poor">Overdue</span></td></tr>
+    `;
+    document.getElementById('prod-modal-recent-tasks').innerHTML = recentTasksHtml;
+    
+    // Show Modal
+    document.getElementById('modal-prod-details').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+};
