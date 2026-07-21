@@ -4307,32 +4307,10 @@
                                 <!-- Populated via JS -->
                             </div>
         <!-- DEPARTMENT PAYROLL & TREND CHART ROW -->
-        <div class="grid-2-col">
-                                <!-- Dept Analysis -->
-                                <div>
-                                    <div class="premium-card p-0 h-100">
-                                        <div class="card-header-title p-2" style="border-bottom: 1px solid #e2e8f0; background: #f8fafc; font-size: 14px;">Department Payroll Analysis</div>
-                                        <div class="table-responsive">
-                                            <table class="mini-rep-table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Department</th>
-                                                        <th class="text-center">Emp</th>
-                                                        <th class="text-end">Gross</th>
-                                                        <th class="text-end text-danger">Deductions</th>
-                                                        <th class="text-end text-success">Net Payroll</th>
-                                                        <th class="text-end">Avg. Salary</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="tbody-dept-analysis"></tbody>
-                                                <tfoot id="tfoot-dept-analysis" style="font-weight: bold; background: #f1f5f9;"></tfoot>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
+        <div>
                                 <!-- Trend Chart -->
                                 <div>
-                                    <div class="premium-card p-3 h-100">
+                                    <div class="premium-card p-3">
                                         <div class="card-header-title mb-2" style="font-size: 14px;">Payroll Trend Analytics</div>
                                         <div style="position: relative; height: 250px; width: 100%;">
                                             <canvas id="payrollTrendChart"></canvas>
@@ -4385,6 +4363,27 @@
                     <span style="font-weight: 700; font-size: 14px; color: #065f46;">Net Salary</span>
                     <span id="panel-net" style="font-weight: 800; font-size: 16px; color: #10b981;">0</span>
                 </div>
+            </div>
+        </div>
+        
+        <!-- Dept Analysis -->
+        <div class="premium-card p-0 mt-3">
+            <div class="card-header-title p-2" style="border-bottom: 1px solid #e2e8f0; background: #f8fafc; font-size: 14px;">Department Payroll Analysis</div>
+            <div class="table-responsive">
+                <table class="mini-rep-table">
+                    <thead>
+                        <tr>
+                            <th>Department</th>
+                            <th class="text-center">Emp</th>
+                            <th class="text-end">Gross</th>
+                            <th class="text-end text-danger">Deductions</th>
+                            <th class="text-end text-success">Net Payroll</th>
+                            <th class="text-end">Avg. Salary</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-dept-analysis"></tbody>
+                    <tfoot id="tfoot-dept-analysis" style="font-weight: bold; background: #f1f5f9;"></tfoot>
+                </table>
             </div>
         </div>
     </div>
