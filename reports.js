@@ -2899,7 +2899,7 @@ window.viewProductivityDetails = function(empId) {
             modalEl.style.removeProperty('display');
             const backdropEl = document.getElementById('modal-backdrop');
             if (backdropEl) backdropEl.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
+            
         } else {
             alert('Modal HTML element not found!');
         }
