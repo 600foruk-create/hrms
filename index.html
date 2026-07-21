@@ -342,7 +342,8 @@
                 margin: 0; /* Margin 0 removes browser headers/footers */
             }
             body.printing-report {
-                padding: 0 10mm !important; /* Removed top padding to fix empty space */
+                padding: 15mm !important; /* Uniform 15mm margin for all sides to prevent edge cut-offs */
+                box-sizing: border-box;
             }
 
             * {
