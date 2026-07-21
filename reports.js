@@ -2505,8 +2505,8 @@ window.switchProdTab = function(tabId) {
     document.querySelectorAll('.prod-dash-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.prod-tab-content').forEach(c => c.classList.add('hidden'));
     
-    document.getElementById(	ab-btn-prod-+tabId).classList.add('active');
-    document.getElementById(prod-tab-+tabId).classList.remove('hidden');
+    document.getElementById('tab-btn-prod-' + tabId).classList.add('active');
+    document.getElementById('prod-tab-' + tabId).classList.remove('hidden');
 };
 
 let prodStatusChartInstance = null;
