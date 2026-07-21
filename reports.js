@@ -461,17 +461,9 @@ window.printReport = function(reportId) {
         el.style.setProperty('display', 'none', 'important');
     });
 
-    // Apply inline padding to the active print area so content has safe margins from paper edges
-    targetArea.style.padding = '14mm 15mm';
-    targetArea.style.boxSizing = 'border-box';
-
     document.body.classList.add('printing-report');
     window.print();
     
-    // Remove inline padding after printing
-    targetArea.style.padding = '';
-    targetArea.style.boxSizing = '';
-
     document.body.classList.remove('printing-report');
     
     // Restore hidden elements
