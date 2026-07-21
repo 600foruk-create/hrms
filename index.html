@@ -444,18 +444,18 @@
                 border-collapse: collapse !important;
                 border: none !important;
                 box-shadow: none !important;
-                margin-top: 15px !important;
-                font-size: 11px !important;
-            }
-            
-            body:not(.printing-modal) table.data-table thead {
-                display: table-header-group !important; /* Show table column headers in print */
+            body.printing-report table thead {
+                display: table-header-group !important; /* Force show table column headers in print */
                 background-color: #0f2e53 !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+                visibility: visible !important;
+                opacity: 1 !important;
             }
 
-            body:not(.printing-modal) table.data-table thead th {
+            body.printing-report table thead th,
+            body.printing-report table thead tr th {
+                display: table-cell !important;
                 color: #ffffff !important;
                 font-size: 9px !important;
                 font-weight: 700 !important;
@@ -465,6 +465,8 @@
                 background-color: #0f2e53 !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+                visibility: visible !important;
+                opacity: 1 !important;
             }
 
             body:not(.printing-modal) table.data-table tbody tr {
