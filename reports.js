@@ -2452,43 +2452,34 @@ window.printPayrollReport = function() {
     let printArea = document.getElementById('print-area-admin-payroll');
     if(!printArea) return;
     
+    let m = document.getElementById('payroll-filter-month').value;
+    let y = document.getElementById('payroll-filter-year').value;
+    let d = document.getElementById('payroll-filter-dept').value;
+
+    let mName = m === 'All' ? 'All Months' : new Date(y, parseInt(m) - 1).toLocaleString('default', { month: 'long' });
+    let subtitle = `Period: ${mName} ${y} | Department: ${d}`;
+
     let html = `
-        <div class="print-brand-header">
-            <div>
-                <h1 style="color: #0f172a; font-weight: 800; font-size: 28px; margin-bottom: 5px;">HRMS PAYROLL</h1>
-                <p style="color: #64748b; font-size: 14px; margin: 0;">Enterprise Payroll Report & Analytics</p>
-            </div>
-            <div style="text-align: right; color: #64748b; font-size: 12px; line-height: 1.5;">
-                123 Business Avenue<br>
-                www.hrms.com
-            </div>
+        <div class="print-header hidden">
+            <h2>Payroll Report</h2>
+            <p id="print-subtitle-admin-payroll">${subtitle}</p>
         </div>
-        <div class="print-report-title">Monthly Payroll Report</div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 30px; font-size: 13px; font-weight: 600; color: #475569;">
-            <div>Report Period: ${document.getElementById('payroll-filter-month').value} / ${document.getElementById('payroll-filter-year').value}</div>
-            <div>Department: ${document.getElementById('payroll-filter-dept').value}</div>
-            <div>Generated On: ${new Date().toLocaleString()}</div>
-        </div>
-        
-        <div style="margin-bottom: 30px;">
-            <h3 style="border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 15px;">Payroll Summary</h3>
+        <div class="table-container" style="margin-bottom: 30px;">
             ${document.getElementById('table-payroll-summary').outerHTML}
-        </div>
-        <div class="page-break"></div>
-        <div style="margin-bottom: 30px;">
-            <h3 style="border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 15px;">Department Analysis</h3>
-            ${document.getElementById('dept-analysis-tab').querySelector('.table-responsive').innerHTML}
         </div>
     `;
     printArea.innerHTML = html;
     
-    document.body.classList.add('printing-payroll');
-    window.print();
-    
-    setTimeout(() => {
-        document.body.classList.remove('printing-payroll');
-        printArea.innerHTML = '';
-    }, 1000);
+    if (window.printReport) {
+        window.printReport('admin-payroll');
+    } else {
+        document.body.classList.add('printing-report');
+        window.print();
+        setTimeout(() => {
+            document.body.classList.remove('printing-report');
+            printArea.innerHTML = '';
+        }, 1000);
+    }
 };
 
 window.exportPayrollExcel = function() {
