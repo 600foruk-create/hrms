@@ -4391,6 +4391,29 @@
 </div>
                             </div>
 <!-- PRINT LAYOUT FOR PAYROLL -->
+<style>
+@media print {
+    #print-area-admin-payroll .mini-rep-table {
+        width: 100% !important;
+        min-width: 100% !important;
+        table-layout: auto !important;
+        white-space: normal !important;
+        font-size: 10px !important;
+    }
+    #print-area-admin-payroll .mini-rep-table th,
+    #print-area-admin-payroll .mini-rep-table td {
+        padding: 8px 4px !important;
+        font-size: 10px !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+    }
+    #print-area-admin-payroll .table-container,
+    #print-area-admin-payroll .table-responsive {
+        overflow: visible !important;
+        width: 100% !important;
+    }
+}
+</style>
 <div id="print-area-admin-payroll" class="printable-area hidden"></div>
 </div>
 <div id="subtab-content-admin-report-productivity" class="sub-tab-content hidden">
