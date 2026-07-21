@@ -2513,7 +2513,8 @@ let prodStatusChartInstance = null;
 window.prodActualData = []; // Store globally for modal access
 
 window.generateAdminProductivityReport = function(db) {
-    db = db || window.getDb();
+    try {
+    db = typeof getDb === "function" ? getDb() : (window.db || window.hrmsDatabase || {});
     
     // Populate Department Filter if empty
     const deptSelect = document.getElementById('admin-rep-prod-dept');
@@ -2800,7 +2801,9 @@ window.generateAdminProductivityReport = function(db) {
             });
         }
     }
+} catch(e) { console.error('Prod Report Error:', e); }
 };
+
 
 window.viewProductivityDetails = function(empId) {
     const emp = (window.prodActualData || []).find(e => e.empId === empId);
