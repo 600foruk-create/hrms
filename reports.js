@@ -2086,62 +2086,58 @@ function generateAdminPayrollReport(db) {
         db.users.forEach(u => empDropdown.insertAdjacentHTML('beforeend', `<option value="${u.id}">${u.name}</option>`));
     }
 
-    // 2. Generate Data
+    // 2. Extract Data from actual database (db.payrollHistory)
     let payrollData = [];
+    const history = db.payrollHistory || [];
     
-    db.users.forEach(user => {
-        if (dept !== 'All' && user.department !== dept) return;
-        if (empFilter !== 'All' && user.id !== empFilter) return;
-        if (user.role === 'Admin' && (!user.salary || user.salary == 0)) return; 
+    history.forEach(record => {
+        let rDate = new Date(record.startDate || record.processedAt);
+        let rMonth = rDate.getMonth() + 1;
+        let rYear = rDate.getFullYear();
         
-        let basic = parseFloat(user.salary) || Math.floor(Math.random() * 50000) + 20000;
-        let allowances = Math.floor(basic * 0.3);
+        if (month !== 'All' && rMonth !== parseInt(month)) return;
+        if (year !== 'All' && rYear !== parseInt(year)) return;
+        
+        let user = db.users.find(u => String(u.id) === String(record.userId)) || {};
+        
+        if (dept !== 'All' && user.department !== dept) return;
+        if (empFilter !== 'All' && String(user.id) !== String(empFilter)) return;
+        
+        let pStatus = 'Paid'; // History records are already processed/paid
+        if (status !== 'All' && pStatus !== status) return;
+        
+        let basic = parseFloat(user.salary) || 0;
+        let allowances = parseFloat(record.fixedAllowances) || 0;
         let hra = Math.floor(allowances * 0.5);
         let med = Math.floor(allowances * 0.3);
         let trans = Math.floor(allowances * 0.1);
         let otherAllw = allowances - (hra + med + trans);
         
-        let overtime = Math.floor(Math.random() * 5000);
-        let bonus = Math.floor(Math.random() * 2000);
+        let overtime = parseFloat(record.otPay) || 0;
+        let bonus = parseFloat(record.bonus) || 0;
+        
+        let taxDed = parseFloat(record.fixedDeductions) || 0;
+        let absentDed = parseFloat(record.absencyDeduction) || 0;
+        let loanDed = parseFloat(record.loanDeduction) || 0;
+        let otherDed = parseFloat(record.otherDeduction) || 0;
+        let deductions = taxDed + absentDed + loanDed + otherDed;
+        
         let gross = basic + allowances + overtime + bonus;
-        
-        let deductions = Math.floor(Math.random() * 3000);
-        let lateDed = Math.floor(deductions * 0.2);
-        let absentDed = Math.floor(deductions * 0.4);
-        let loanDed = Math.floor(deductions * 0.1);
-        let taxDed = Math.floor(deductions * 0.2);
-        let otherDed = deductions - (lateDed + absentDed + loanDed + taxDed);
-        
-        let net = gross - deductions;
-        
-        let currentMonth = new Date().getMonth() + 1;
-        let currentYear = new Date().getFullYear();
-        let selectedMonth = month === 'All' ? currentMonth : parseInt(month);
-        let selectedYear = parseInt(year);
-        
-        let pStatus = 'Paid';
-        if(selectedYear === currentYear && selectedMonth === currentMonth) {
-            let rand = Math.random();
-            if(rand > 0.8) pStatus = 'Processing';
-            else if(rand > 0.6) pStatus = 'Pending';
-            else if(rand > 0.5) pStatus = 'On Hold';
-        }
-
-        if (status !== 'All' && pStatus !== status) return;
+        let net = parseFloat(record.netPay) || 0;
         
         payrollData.push({
-            id: user.id, name: user.name, dept: user.department || 'N/A', desig: user.designation || 'N/A',
+            id: user.id || record.userId, name: user.name || 'Unknown', dept: user.department || 'N/A', desig: user.designation || 'N/A',
             joinDate: user.startDate || 'N/A', photo: user.profilePic || user.profileImageBase64 || user.photo || user.profilePhoto || '', profilePic: user.profilePic, profileImageBase64: user.profileImageBase64, basic: basic,
             hra: hra, med: med, trans: trans, otherAllw: otherAllw, allowances: allowances,
             overtime: overtime, bonus: bonus, gross: gross,
-            lateDed, absentDed, loanDed, taxDed, otherDed, deductions: deductions, net: net,
-            status: pStatus, month: selectedMonth, year: selectedYear
+            lateDed: 0, absentDed: absentDed, loanDed: loanDed, taxDed: taxDed, otherDed: otherDed, deductions: deductions, net: net,
+            status: pStatus, month: rMonth, year: rYear
         });
     });
 
     const totalEmp = payrollData.length;
     const processed = payrollData.filter(p => p.status === 'Paid').length;
-    const pending = totalEmp - processed;
+    const pending = 0; // History only contains processed payrolls
     const totalGross = payrollData.reduce((sum, p) => sum + p.gross, 0);
     const totalDed = payrollData.reduce((sum, p) => sum + p.deductions, 0);
     const totalNet = payrollData.reduce((sum, p) => sum + p.net, 0);
@@ -2253,11 +2249,11 @@ function generateAdminPayrollReport(db) {
         document.getElementById('tfoot-dept-analysis').innerHTML = tfoot;
     }
 
-    renderPayrollCharts(payrollData);
+    renderPayrollCharts(payrollData, db);
     renderPayrollInsights(payrollData);
 }
 
-function renderPayrollCharts(data) {
+function renderPayrollCharts(data, db) {
     if(!window.Chart) return;
     
     let ranges = { '< 30k': 0, '30k - 50k': 0, '50k - 100k': 0, '> 100k': 0 };
@@ -2289,18 +2285,49 @@ function renderPayrollCharts(data) {
     if(ctxTrend) {
         if(payrollTrendChartInst) payrollTrendChartInst.destroy();
         
-        let avgG = data.reduce((s, p)=>s+p.gross, 0) || 500000;
-        let avgN = data.reduce((s, p)=>s+p.net, 0) || 450000;
-        let avgD = data.reduce((s, p)=>s+p.deductions, 0) || 50000;
-        
         let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        let gData = [], nData = [], dData = [];
-        for(let i=0; i<12; i++) {
-            let variance = 0.9 + (Math.random()*0.2);
-            gData.push(Math.floor(avgG * variance));
-            nData.push(Math.floor(avgN * variance));
-            dData.push(Math.floor(avgD * variance));
-        }
+        let gData = Array(12).fill(0);
+        let nData = Array(12).fill(0);
+        let dData = Array(12).fill(0);
+        
+        // Ensure trend chart shows all data for the selected year, not just the selected month filter!
+        // We need to fetch from db.payrollHistory directly for the trend chart to ignore the month filter.
+        const year = document.getElementById('payroll-filter-year') ? document.getElementById('payroll-filter-year').value : new Date().getFullYear().toString();
+        const dept = document.getElementById('payroll-filter-dept') ? document.getElementById('payroll-filter-dept').value : 'All';
+        const empFilter = document.getElementById('payroll-filter-emp') ? document.getElementById('payroll-filter-emp').value : 'All';
+
+        const history = db ? (db.payrollHistory || []) : [];
+        history.forEach(record => {
+            let rDate = new Date(record.startDate || record.processedAt);
+            let rMonth = rDate.getMonth(); // 0-11
+            let rYear = rDate.getFullYear();
+            
+            if (year !== 'All' && rYear !== parseInt(year)) return;
+            
+            let user = db.users.find(u => String(u.id) === String(record.userId)) || {};
+            if (dept !== 'All' && user.department !== dept) return;
+            if (empFilter !== 'All' && String(user.id) !== String(empFilter)) return;
+            
+            let basic = parseFloat(user.salary) || 0;
+            let allowances = parseFloat(record.fixedAllowances) || 0;
+            let overtime = parseFloat(record.otPay) || 0;
+            let bonus = parseFloat(record.bonus) || 0;
+            let gross = basic + allowances + overtime + bonus;
+            
+            let taxDed = parseFloat(record.fixedDeductions) || 0;
+            let absentDed = parseFloat(record.absencyDeduction) || 0;
+            let loanDed = parseFloat(record.loanDeduction) || 0;
+            let otherDed = parseFloat(record.otherDeduction) || 0;
+            let deductions = taxDed + absentDed + loanDed + otherDed;
+            
+            let net = parseFloat(record.netPay) || 0;
+
+            if (rMonth >= 0 && rMonth < 12) {
+                gData[rMonth] += gross;
+                nData[rMonth] += net;
+                dData[rMonth] += deductions;
+            }
+        });
 
         payrollTrendChartInst = new Chart(ctxTrend, {
             type: 'bar',
@@ -2316,7 +2343,6 @@ function renderPayrollCharts(data) {
         });
     }
 }
-
 function renderPayrollInsights(data) {
     if(data.length === 0) return;
     
