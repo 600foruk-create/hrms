@@ -339,7 +339,7 @@
         @media print {
             @page {
                 size: A4 portrait;
-                margin: 0 15mm; /* 0 top/bottom removes yellow browser bar, 15mm left/right prevents side cut-off */
+                margin: 0; /* 0 margin completely forces the browser to hide its yellow header/footer text */
             }
             body.printing-report {
                 padding: 0 !important;
@@ -415,7 +415,8 @@
                 margin: 0 !important;
             }
 
-            body:not(.printing-modal) .section-card {
+            body:not(.printing-modal) .section-card,
+            body:not(.printing-modal) .premium-card {
                 background: transparent !important;
                 border: none !important;
                 box-shadow: none !important;
@@ -425,10 +426,11 @@
 
             body:not(.printing-modal) .printable-area {
                 margin: 0 !important;
-                padding: 0 !important;
+                padding: 10mm 15mm !important; /* Safe padding restored here since @page margin is 0 */
                 width: 100% !important;
                 border: none !important;
                 box-shadow: none !important;
+                box-sizing: border-box !important;
             }
 
             body:not(.printing-modal) #main-content {
