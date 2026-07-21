@@ -4187,7 +4187,7 @@
                                 </div>
                             </div>
 <div style="display: flex; gap: 15px; align-items: flex-start; flex-wrap: nowrap;" id="payroll-desktop-flex">
-    <div style="flex: 1; min-width: 0;">
+    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
         <!-- FILTERS SECTION -->
                             <div class="premium-card p-2 mb-3" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; z-index: 10;">
                                 <div style="flex: 1; min-width: 100px;">
@@ -4309,8 +4309,8 @@
         <!-- DEPARTMENT PAYROLL & TREND CHART ROW -->
         <div>
                                 <!-- Trend Chart -->
-                                <div>
-                                    <div class="premium-card p-3">
+                                <div style="flex-grow: 1; display: flex; flex-direction: column; margin-top: 15px;">
+                                    <div class="premium-card p-3" style="flex-grow: 1;">
                                         <div class="card-header-title mb-2" style="font-size: 14px;">Payroll Trend Analytics</div>
                                         <div style="position: relative; height: 220px; width: 100%;">
                                             <canvas id="payrollTrendChart"></canvas>
@@ -4320,8 +4320,8 @@
                             </div>
     </div>
     
-    <div style="width: 320px; flex-shrink: 0;" id="payroll-global-sidebar">
-        <div class="premium-card h-100" style="padding: 15px;">
+    <div style="width: 320px; flex-shrink: 0; display: flex; flex-direction: column;" id="payroll-global-sidebar">
+        <div class="premium-card" style="padding: 15px;">
             <div class="panel-header d-flex justify-content-between align-items-center p-2" style="border-bottom: 1px solid #e2e8f0;">
                 <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #0f172a;">Employee Payroll Details</h4>
             </div>
@@ -4367,7 +4367,7 @@
         </div>
         
         <!-- Dept Analysis -->
-        <div class="premium-card p-0 mt-3" style="min-height: 290px; display: flex; flex-direction: column;">
+        <div class="premium-card p-0 mt-3" style="flex-grow: 1; display: flex; flex-direction: column;">
             <div class="card-header-title p-2" style="border-bottom: 1px solid #e2e8f0; background: #f8fafc; font-size: 14px;">Department Payroll Analysis</div>
             <div class="table-responsive">
                 <table class="mini-rep-table">
