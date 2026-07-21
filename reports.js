@@ -2156,7 +2156,7 @@ function generateAdminPayrollReport(db) {
     let breakHtml = '';
     
     if(payrollData.length === 0) {
-        summaryHtml = '<tr><td colspan="13" class="text-center text-muted py-4">No payroll data found.</td></tr>';
+        summaryHtml = '<tr><td colspan="10" class="text-center text-muted py-4">No payroll data found.</td></tr>';
         registerHtml = summaryHtml;
         breakHtml = summaryHtml;
     } else {
@@ -2177,7 +2177,6 @@ function generateAdminPayrollReport(db) {
                 <td class="text-end" style="background: rgba(59, 130, 246, 0.05); font-weight: 600;">${p.gross.toLocaleString()}</td>
                 <td class="text-end text-danger">${p.deductions.toLocaleString()}</td>
                 <td class="text-end" style="background: rgba(16, 185, 129, 0.05); color: #10b981; font-weight: 700;">${p.net.toLocaleString()}</td>
-                <td class="text-center">${statusBadge}</td>
                 
             </tr>`;
 
