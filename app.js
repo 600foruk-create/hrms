@@ -6668,6 +6668,7 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
                 await saveDb(db);
             } else {
                 await saveUserOnServer(user);
+                await saveDb(db); // FIXED: Save to local storage so profilePic survives refresh
             }
 
             showToast("Success", `Profile updated successfully for ${name}.`);
@@ -6725,6 +6726,7 @@ document.getElementById('employee-form').addEventListener('submit', async (e) =>
         // RESTful API Sync
         const saved = await saveUserOnServer(newUser);
         if (saved) {
+            await saveDb(db); // FIXED: Save to local storage so profilePic survives refresh
             showToast("Created", `New user profile created for ${name} (ID: ${actualId}).`);
             logAudit(`Created new employee profile: ${name} (${role}, ID: ${actualId}).`);
             closeAllModals();
