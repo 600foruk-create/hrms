@@ -2131,7 +2131,7 @@ function generateAdminPayrollReport(db) {
         
         payrollData.push({
             id: user.id, name: user.name, dept: user.department || 'N/A', desig: user.designation || 'N/A',
-            joinDate: user.startDate || 'N/A', photo: user.profilePhoto || '', basic: basic,
+            joinDate: user.startDate || 'N/A', photo: user.profilePic || user.profileImageBase64 || user.photo || user.profilePhoto || '', profilePic: user.profilePic, profileImageBase64: user.profileImageBase64, basic: basic,
             hra: hra, med: med, trans: trans, otherAllw: otherAllw, allowances: allowances,
             overtime: overtime, bonus: bonus, gross: gross,
             lateDed, absentDed, loanDed, taxDed, otherDed, deductions: deductions, net: net,
