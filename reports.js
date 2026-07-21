@@ -2828,73 +2828,78 @@ window.generateAdminProductivityReport = function(db) {
 };
 
 window.viewProductivityDetails = function(empId) {
-    const emp = (window.prodActualData || []).find(e => String(e.empId) === String(empId));
-    if(!emp) { alert('Data mismatch. Employee ID: ' + empId); return; }
-    
-    const avatarEl = document.getElementById('prod-modal-avatar');
-    if (avatarEl) avatarEl.innerText = emp.name ? emp.name.substring(0, 2).toUpperCase() : 'U';
-    
-    const nameEl = document.getElementById('prod-modal-name');
-    if (nameEl) nameEl.innerText = emp.name;
-    
-    const deptEl = document.getElementById('prod-modal-dept');
-    if (deptEl) deptEl.innerText = emp.dept;
-    
-    const mgrEl = document.getElementById('prod-modal-mgr');
-    if (mgrEl) mgrEl.innerText = emp.mgr;
-    
-    const assEl = document.getElementById('prod-modal-assigned');
-    if (assEl) assEl.innerText = emp.assigned;
-    
-    const compEl = document.getElementById('prod-modal-completed');
-    if (compEl) compEl.innerText = emp.completed;
-    
-    const pendEl = document.getElementById('prod-modal-pending');
-    if (pendEl) pendEl.innerText = emp.pending;
-    
-    const overEl = document.getElementById('prod-modal-overdue');
-    if (overEl) overEl.innerText = emp.overdue;
-    
-    const statTextEl = document.getElementById('prod-modal-status-text');
-    if (statTextEl) statTextEl.innerText = emp.status;
-    
-    const pctValEl = document.getElementById('prod-modal-pct-val');
-    if (pctValEl) pctValEl.innerText = emp.compPct + '%';
-    
-    let barColor = emp.compPct >= 90 ? '#22c55e' : (emp.compPct >= 70 ? '#f59e0b' : '#ef4444');
-    
-    const pctBar = document.getElementById('prod-modal-pct-bar');
-    if (pctBar) {
-        pctBar.style.width = emp.compPct + '%';
-        pctBar.style.background = barColor;
-    }
-    
-    if (pctValEl) pctValEl.style.color = barColor;
-    
-    let recentTasksHtml = '';
-    const recent = (emp.tasks || []).slice(0,5);
-    if(recent.length === 0) {
-        recentTasksHtml = `<tr><td colspan="3" class="text-center py-2 text-muted">No recent tasks</td></tr>`;
-    } else {
-        recent.forEach(t => {
-            let stClass = 'prod-badge-avg';
-            let st = t.status || 'Pending';
-            if(st === 'Approved') stClass = 'prod-badge-good';
-            if(st === 'Rejected') stClass = 'prod-badge-poor';
-            recentTasksHtml += `
-                <tr><td style="padding: 10px; border-bottom: 1px solid #f1f5f9;">${t.description || 'Log Entry'}</td><td style="padding: 10px; border-bottom: 1px solid #f1f5f9;">${t.date || 'N/A'}</td><td style="padding: 10px; text-align: center; border-bottom: 1px solid #f1f5f9;"><span class="prod-badge ${stClass}">${st}</span></td></tr>
-            `;
-        });
-    }
-    
-    const rTasksEl = document.getElementById('prod-modal-recent-tasks');
-    if (rTasksEl) rTasksEl.innerHTML = recentTasksHtml;
-    
-    // Show Modal
-    const modalEl = document.getElementById('modal-prod-details');
-    if (modalEl) {
-        modalEl.classList.remove('hidden');
-        modalEl.style.setProperty('display', 'flex', 'important');
-        document.body.style.overflow = 'hidden';
+    try {
+        const emp = (window.prodActualData || []).find(e => String(e.empId) === String(empId));
+        if(!emp) { alert('Employee not found in data for ID: ' + empId); return; }
+        
+        const avatarEl = document.getElementById('prod-modal-avatar');
+        if (avatarEl) avatarEl.innerText = emp.name ? emp.name.substring(0, 2).toUpperCase() : 'U';
+        
+        const nameEl = document.getElementById('prod-modal-name');
+        if (nameEl) nameEl.innerText = emp.name;
+        
+        const deptEl = document.getElementById('prod-modal-dept');
+        if (deptEl) deptEl.innerText = emp.dept;
+        
+        const mgrEl = document.getElementById('prod-modal-mgr');
+        if (mgrEl) mgrEl.innerText = emp.mgr;
+        
+        const assEl = document.getElementById('prod-modal-assigned');
+        if (assEl) assEl.innerText = emp.assigned;
+        
+        const compEl = document.getElementById('prod-modal-completed');
+        if (compEl) compEl.innerText = emp.completed;
+        
+        const pendEl = document.getElementById('prod-modal-pending');
+        if (pendEl) pendEl.innerText = emp.pending;
+        
+        const overEl = document.getElementById('prod-modal-overdue');
+        if (overEl) overEl.innerText = emp.overdue;
+        
+        const statTextEl = document.getElementById('prod-modal-status-text');
+        if (statTextEl) statTextEl.innerText = emp.status;
+        
+        const pctValEl = document.getElementById('prod-modal-pct-val');
+        if (pctValEl) pctValEl.innerText = emp.compPct + '%';
+        
+        let barColor = emp.compPct >= 90 ? '#22c55e' : (emp.compPct >= 70 ? '#f59e0b' : '#ef4444');
+        
+        const pctBar = document.getElementById('prod-modal-pct-bar');
+        if (pctBar) {
+            pctBar.style.width = emp.compPct + '%';
+            pctBar.style.background = barColor;
+        }
+        
+        if (pctValEl) pctValEl.style.color = barColor;
+        
+        let recentTasksHtml = '';
+        const recent = (emp.tasks || []).slice(0,5);
+        if(recent.length === 0) {
+            recentTasksHtml = '<tr><td colspan="3" class="text-center py-2 text-muted">No recent tasks</td></tr>';
+        } else {
+            recent.forEach(t => {
+                let stClass = 'prod-badge-avg';
+                let st = t.status || 'Pending';
+                if(st === 'Approved') stClass = 'prod-badge-good';
+                if(st === 'Rejected') stClass = 'prod-badge-poor';
+                recentTasksHtml += '<tr><td style="padding: 10px; border-bottom: 1px solid #f1f5f9;">' + (t.description || 'Log Entry') + '</td><td style="padding: 10px; border-bottom: 1px solid #f1f5f9;">' + (t.date || 'N/A') + '</td><td style="padding: 10px; text-align: center; border-bottom: 1px solid #f1f5f9;"><span class="prod-badge ' + stClass + '">' + st + '</span></td></tr>';
+            });
+        }
+        
+        const rTasksEl = document.getElementById('prod-modal-recent-tasks');
+        if (rTasksEl) rTasksEl.innerHTML = recentTasksHtml;
+        
+        // Show Modal
+        const modalEl = document.getElementById('modal-prod-details');
+        if (modalEl) {
+            modalEl.classList.remove('hidden');
+            modalEl.style.cssText = 'display: flex !important; z-index: 99999 !important; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; align-items: center; justify-content: center;';
+            document.body.style.overflow = 'hidden';
+        } else {
+            alert('Modal HTML element not found!');
+        }
+    } catch(e) {
+        alert('Error showing details: ' + e.message);
+        console.error(e);
     }
 };
