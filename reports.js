@@ -2896,7 +2896,9 @@ window.viewProductivityDetails = function(empId) {
         const modalEl = document.getElementById('modal-prod-details');
         if (modalEl) {
             modalEl.classList.remove('hidden');
-            modalEl.style.cssText = 'display: flex !important; z-index: 99999 !important; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; align-items: center; justify-content: center;';
+            modalEl.style.removeProperty('display');
+            const backdropEl = document.getElementById('modal-backdrop');
+            if (backdropEl) backdropEl.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         } else {
             alert('Modal HTML element not found!');
