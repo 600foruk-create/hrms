@@ -2881,18 +2881,19 @@ window.viewProductivityDetails = function(empId) {
         setEl('prod-popup-pending', emp.pending);
         setEl('prod-popup-overdue', emp.overdue);
         
-        // Calculated fields for middle section
-        let compRate = emp.assigned > 0 ? Math.round((emp.completed / emp.assigned) * 100) : 0;
-        let onTimeRate = emp.assigned > 0 ? Math.round(((emp.completed) / (emp.assigned)) * 100) : 0; // Simplified for now
-        let totalHours = (emp.completed * 8) || 0; // Dummy calculation for hours logged since not in DB
         
-        setEl('prod-popup-prodscore', emp.compPct + '%');
-        setEl('prod-popup-comprate', compRate + '%');
-        setEl('prod-popup-ontime', onTimeRate + '%');
-        setEl('prod-popup-hours', totalHours + ' <span style="font-size:16px;font-weight:600;">hrs</span>');
+        setEl('dyn-popup-initial', initial);
+        setEl('dyn-popup-name', emp.name || 'Unknown User');
+        setEl('dyn-popup-empid', emp.empId || 'N/A');
+        setEl('dyn-popup-dept', emp.dept || 'General');
+        setEl('dyn-popup-score', (emp.compPct || 0) + '%');
+        
+        setEl('dyn-popup-stat-assigned', emp.assigned || 0);
+        setEl('dyn-popup-stat-completed', emp.completed || 0);
+        setEl('dyn-popup-stat-pending', emp.pending || 0);
+        setEl('dyn-popup-stat-overdue', emp.overdue || 0);
 
-        // Fill tasks table
-        const tasksEl = document.getElementById('prod-popup-tasks');
+        const tasksEl = document.getElementById('dyn-popup-tasks');
         if(tasksEl) {
             const tasks = emp.tasks || [];
             if(tasks.length === 0) {
@@ -2904,11 +2905,11 @@ window.viewProductivityDetails = function(empId) {
                     let stColor = st === 'Approved' || st === 'Completed' ? '#16a34a' : (st === 'Rejected' || st === 'Overdue' ? '#dc2626' : '#d97706');
                     let stBg   = st === 'Approved' || st === 'Completed' ? '#dcfce7' : (st === 'Rejected' || st === 'Overdue' ? '#fee2e2' : '#fef3c7');
                     
-                    let priority = t.priority || 'Medium';
+                    let priority = t.priority || 'Normal';
                     let pColor = priority === 'High' ? '#ef4444' : (priority === 'Medium' ? '#f59e0b' : '#3b82f6');
                     
                     let compDate = st === 'Approved' || st === 'Completed' ? (t.date || '-') : '-';
-                    let dueDate = t.date || '-'; // Assuming log date is due date for now
+                    let dueDate = t.date || '-'; 
                     let assignedDate = t.date || '-';
 
                     return `<tr style="border-bottom: 1px solid #f1f5f9;">
@@ -2925,23 +2926,12 @@ window.viewProductivityDetails = function(empId) {
             }
         }
 
-        // Show the standalone popup overlay
-        const overlay = document.getElementById('prod-popup-overlay');
-        if(overlay) {
-            console.log("Successfully prepared popup for:", emp.name);
-            overlay.classList.add('open');
-            overlay.style.display = 'flex';
-            overlay.style.setProperty('display', 'flex', 'important');
-            overlay.style.setProperty('visibility', 'visible', 'important');
-            overlay.style.setProperty('opacity', '1', 'important');
-            overlay.style.setProperty('z-index', '99999999', 'important');
-            if (typeof $ !== 'undefined') {
-                $('#prod-popup-overlay').show().css('display', 'flex');
-            }
-        } else {
-            console.error('Popup overlay element not found in DOM!');
-            alert('Popup overlay element not found! Please refresh and try again.');
-        }
+        // Show the newly generated standalone popup overlay
+        overlay.style.display = 'flex';
+        overlay.style.setProperty('display', 'flex', 'important');
+        overlay.style.setProperty('visibility', 'visible', 'important');
+        overlay.style.setProperty('opacity', '1', 'important');
+        overlay.style.setProperty('z-index', '99999999', 'important');
     } catch(e) {
         console.error('Error in viewProductivityDetails:', e);
         alert('Error showing details: ' + e.message);
