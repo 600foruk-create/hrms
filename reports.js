@@ -2828,13 +2828,16 @@ window.generateAdminProductivityReport = function(db) {
     }
 };
 
-// Bind click events using event delegation for robustness
-$(document).on('click', '.prod-action-btn', function(e) {
-    e.preventDefault();
-    let empid = $(this).attr('data-empid');
-    console.log('View Details clicked for empId:', empid);
-    if(empid && window.viewProductivityDetails) {
-        window.viewProductivityDetails(empid);
+// Bind click events using event delegation for robustness (Vanilla JS)
+document.addEventListener('click', function(e) {
+    let btn = e.target.closest('.prod-action-btn');
+    if(btn) {
+        e.preventDefault();
+        let empid = btn.getAttribute('data-empid');
+        console.log('View Details clicked for empId:', empid);
+        if(empid && window.viewProductivityDetails) {
+            window.viewProductivityDetails(empid);
+        }
     }
 });
 
