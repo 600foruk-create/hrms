@@ -2676,7 +2676,7 @@ window.generateAdminProductivityReport = function(db) {
                         </td>
                         <td class="text-center"><span class="prod-badge ${row.statusClass}">${row.status}</span></td>
                         <td class="text-center print-hide">
-                            <button class="prod-action-btn" onclick="window.viewProductivityDetails('${row.empId}')"><i class="fa-regular fa-eye"></i> View Details</button>
+                            <button type="button" class="prod-action-btn" data-empid="${row.empId}"><i class="fa-regular fa-eye"></i> View Details</button>
                         </td>
                     </tr>
                 `;
@@ -2790,7 +2790,7 @@ window.generateAdminProductivityReport = function(db) {
                     <tr>
                         <td>${t.id}</td><td>${t.name}</td><td>${t.empName}</td><td>${t.dept}</td><td>${t.priority}</td><td>${t.date || '-'}</td><td>${t.date || '-'}</td>
                         <td class="text-center"><span class="prod-badge ${badgeClass}">${st}</span></td>
-                        <td class="text-center print-hide"><button class="prod-action-btn" onclick="window.viewProductivityDetails('${t.empId}')"><i class="fa-regular fa-eye"></i> View</button></td>
+                        <td class="text-center print-hide"><button type="button" class="prod-action-btn" data-empid="${t.empId}"><i class="fa-regular fa-eye"></i> View</button></td>
                     </tr>
                 `;
             });
@@ -2820,13 +2820,23 @@ window.generateAdminProductivityReport = function(db) {
                                 </div>
                             </div>
                         </td>
-                        <td class="text-center font-weight-bold"><button class="prod-action-btn" onclick="window.viewProductivityDetails('${row.empId}')"><i class="fa-regular fa-eye"></i> View</button></td>
+                        <td class="text-center font-weight-bold"><button type="button" class="prod-action-btn" data-empid="${row.empId}"><i class="fa-regular fa-eye"></i> View</button></td>
                     </tr>
                 `;
             });
         }
     }
 };
+
+// Bind click events using event delegation for robustness
+$(document).on('click', '.prod-action-btn', function(e) {
+    e.preventDefault();
+    let empid = $(this).attr('data-empid');
+    console.log('View Details clicked for empId:', empid);
+    if(empid && window.viewProductivityDetails) {
+        window.viewProductivityDetails(empid);
+    }
+});
 
 window.viewProductivityDetails = function(empId) {
     try {
