@@ -2914,8 +2914,11 @@ window.viewProductivityDetails = function(empId) {
         // Show the standalone popup overlay
         const overlay = document.getElementById('prod-popup-overlay');
         if(overlay) {
+            console.log("Opening popup for:", emp.name);
             overlay.classList.add('open');
+            overlay.style.setProperty('display', 'flex', 'important');
         } else {
+            console.error('Popup overlay element not found!');
             alert('Popup overlay element not found! Please refresh and try again.');
         }
     } catch(e) {
