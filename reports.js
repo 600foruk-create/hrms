@@ -2835,73 +2835,52 @@ window.viewProductivityDetails = function(empId) {
         const emp = (window.prodActualData || []).find(e => String(e.empId) === String(empId));
         if(!emp) { alert('Employee not found in data for ID: ' + empId); return; }
         
-        const avatarEl = document.getElementById('prod-modal-avatar');
-        if (avatarEl) avatarEl.innerText = emp.name ? emp.name.substring(0, 2).toUpperCase() : 'U';
-        
-        const nameEl = document.getElementById('prod-modal-name');
-        if (nameEl) nameEl.innerText = emp.name;
-        
-        const deptEl = document.getElementById('prod-modal-dept');
-        if (deptEl) deptEl.innerText = emp.dept;
-        
-        const mgrEl = document.getElementById('prod-modal-mgr');
-        if (mgrEl) mgrEl.innerText = emp.mgr;
-        
-        const assEl = document.getElementById('prod-modal-assigned');
-        if (assEl) assEl.innerText = emp.assigned;
-        
-        const compEl = document.getElementById('prod-modal-completed');
-        if (compEl) compEl.innerText = emp.completed;
-        
-        const pendEl = document.getElementById('prod-modal-pending');
-        if (pendEl) pendEl.innerText = emp.pending;
-        
-        const overEl = document.getElementById('prod-modal-overdue');
-        if (overEl) overEl.innerText = emp.overdue;
-        
-        const statTextEl = document.getElementById('prod-modal-status-text');
-        if (statTextEl) statTextEl.innerText = emp.status;
-        
-        const pctValEl = document.getElementById('prod-modal-pct-val');
-        if (pctValEl) pctValEl.innerText = emp.compPct + '%';
-        
         let barColor = emp.compPct >= 90 ? '#22c55e' : (emp.compPct >= 70 ? '#f59e0b' : '#ef4444');
+
+        // Fill the standalone popup
+        const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
+        setEl('prod-popup-avatar', emp.name ? emp.name.substring(0,2).toUpperCase() : 'U');
+        setEl('prod-popup-name', emp.name);
+        setEl('prod-popup-dept', emp.dept);
+        setEl('prod-popup-mgr', emp.mgr);
+        setEl('prod-popup-assigned', emp.assigned);
+        setEl('prod-popup-completed', emp.completed);
+        setEl('prod-popup-pending', emp.pending);
+        setEl('prod-popup-overdue', emp.overdue);
+        setEl('prod-popup-status-text', emp.status);
         
-        const pctBar = document.getElementById('prod-modal-pct-bar');
-        if (pctBar) {
-            pctBar.style.width = emp.compPct + '%';
-            pctBar.style.background = barColor;
+        const pctEl = document.getElementById('prod-popup-pct-val');
+        if(pctEl) { pctEl.innerText = emp.compPct + '%'; pctEl.style.color = barColor; }
+        
+        const barEl = document.getElementById('prod-popup-pct-bar');
+        if(barEl) { barEl.style.width = emp.compPct + '%'; barEl.style.background = barColor; }
+
+        // Fill tasks table
+        const tasksEl = document.getElementById('prod-popup-tasks');
+        if(tasksEl) {
+            const tasks = emp.tasks || [];
+            if(tasks.length === 0) {
+                tasksEl.innerHTML = '<tr><td colspan="3" style="padding:20px;text-align:center;color:#94a3b8;">No tasks found for this employee</td></tr>';
+            } else {
+                tasksEl.innerHTML = tasks.map(t => {
+                    let st = t.status || 'Pending';
+                    let stColor = st === 'Approved' ? '#16a34a' : (st === 'Rejected' ? '#dc2626' : '#d97706');
+                    let stBg   = st === 'Approved' ? '#f0fdf4' : (st === 'Rejected' ? '#fef2f2' : '#fffbeb');
+                    return `<tr>
+                        <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;">${t.description || 'Productivity Log'}</td>
+                        <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;color:#64748b;">${t.date || 'N/A'}</td>
+                        <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;text-align:center;"><span style="background:${stBg};color:${stColor};padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;">${st}</span></td>
+                    </tr>`;
+                }).join('');
+            }
         }
-        
-        if (pctValEl) pctValEl.style.color = barColor;
-        
-        let recentTasksHtml = '';
-        const recent = (emp.tasks || []).slice(0,5);
-        if(recent.length === 0) {
-            recentTasksHtml = '<tr><td colspan="3" class="text-center py-2 text-muted">No recent tasks</td></tr>';
+
+        // Show the standalone popup overlay
+        const overlay = document.getElementById('prod-popup-overlay');
+        if(overlay) {
+            overlay.classList.add('open');
         } else {
-            recent.forEach(t => {
-                let stClass = 'prod-badge-avg';
-                let st = t.status || 'Pending';
-                if(st === 'Approved') stClass = 'prod-badge-good';
-                if(st === 'Rejected') stClass = 'prod-badge-poor';
-                recentTasksHtml += '<tr><td style="padding: 10px; border-bottom: 1px solid #f1f5f9;">' + (t.description || 'Log Entry') + '</td><td style="padding: 10px; border-bottom: 1px solid #f1f5f9;">' + (t.date || 'N/A') + '</td><td style="padding: 10px; text-align: center; border-bottom: 1px solid #f1f5f9;"><span class="prod-badge ' + stClass + '">' + st + '</span></td></tr>';
-            });
-        }
-        
-        const rTasksEl = document.getElementById('prod-modal-recent-tasks');
-        if (rTasksEl) rTasksEl.innerHTML = recentTasksHtml;
-        
-        // Show Modal
-        const modalEl = document.getElementById('modal-prod-details');
-        if (modalEl) {
-            modalEl.classList.remove('hidden');
-            modalEl.style.removeProperty('display');
-            const backdropEl = document.getElementById('modal-backdrop');
-            if (backdropEl) backdropEl.classList.remove('hidden');
-            
-        } else {
-            alert('Modal HTML element not found!');
+            alert('Popup overlay element not found! Please refresh and try again.');
         }
     } catch(e) {
         alert('Error showing details: ' + e.message);
