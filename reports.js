@@ -2607,6 +2607,7 @@ window.generateAdminProductivityReport = function(db) {
                 id: t.id || 'TSK-'+Math.floor(Math.random()*1000),
                 name: t.description || 'Productivity Log',
                 empName: user.name || 'Unknown',
+                empId: user.id,
                 dept: user.department || 'N/A',
                 priority: 'Normal',
                 date: t.date,
@@ -2675,7 +2676,7 @@ window.generateAdminProductivityReport = function(db) {
                         </td>
                         <td class="text-center"><span class="prod-badge ${row.statusClass}">${row.status}</span></td>
                         <td class="text-center print-hide">
-                            <button class="prod-action-btn" onclick="event.stopPropagation(); window.viewProductivityDetails('${row.empId}')"><i class="fa-regular fa-eye"></i> View Details</button>
+                            <button class="prod-action-btn" onclick="window.viewProductivityDetails('${row.empId}')"><i class="fa-regular fa-eye"></i> View Details</button>
                         </td>
                     </tr>
                 `;
@@ -2789,7 +2790,7 @@ window.generateAdminProductivityReport = function(db) {
                     <tr>
                         <td>${t.id}</td><td>${t.name}</td><td>${t.empName}</td><td>${t.dept}</td><td>${t.priority}</td><td>${t.date || '-'}</td><td>${t.date || '-'}</td>
                         <td class="text-center"><span class="prod-badge ${badgeClass}">${st}</span></td>
-                        <td class="text-center print-hide"><button class="prod-action-btn"><i class="fa-regular fa-eye"></i> View</button></td>
+                        <td class="text-center print-hide"><button class="prod-action-btn" onclick="window.viewProductivityDetails('${t.empId}')"><i class="fa-regular fa-eye"></i> View</button></td>
                     </tr>
                 `;
             });
@@ -2819,7 +2820,7 @@ window.generateAdminProductivityReport = function(db) {
                                 </div>
                             </div>
                         </td>
-                        <td class="text-center font-weight-bold">-</td>
+                        <td class="text-center font-weight-bold"><button class="prod-action-btn" onclick="window.viewProductivityDetails('${row.empId}')"><i class="fa-regular fa-eye"></i> View</button></td>
                     </tr>
                 `;
             });
