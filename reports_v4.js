@@ -2676,7 +2676,7 @@ window.generateAdminProductivityReport = function(db) {
                         </td>
                         <td class="text-center"><span class="prod-badge ${row.statusClass}">${row.status}</span></td>
                         <td class="text-center print-hide">
-                            <button type="button" class="prod-action-btn" data-empid="${row.empId}" onclick="alert('CLICK DETECTED for ID: ' + '${row.empId}'); if(window.viewProductivityDetails) { window.viewProductivityDetails('${row.empId}'); } else { alert('Wait for scripts to load'); }"><i class="fa-regular fa-eye"></i> View Details</button>
+                            <button type="button" class="prod-action-btn" data-empid="${row.empId}" onclick="if(window.viewProductivityDetails) { window.viewProductivityDetails('${row.empId}'); } else { alert('Wait for scripts to load'); }"><i class="fa-regular fa-eye"></i> View Details</button>
                         </td>
                     </tr>
                 `;
@@ -2842,7 +2842,6 @@ document.addEventListener('click', function(e) {
 });
 
 window.viewProductivityDetails = function(empId) {
-    alert('viewProductivityDetails function started for ID: ' + empId);
     try {
         const emp = (window.prodActualData || []).find(e => String(e.empId) === String(empId));
         if(!emp) { alert('Employee not found in data for ID: ' + empId); return; }
