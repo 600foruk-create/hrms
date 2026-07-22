@@ -2675,12 +2675,11 @@ window.generateAdminProductivityReport = function(db) {
                         </td>
                         <td class="text-center"><span class="prod-badge ${row.statusClass}">${row.status}</span></td>
                         <td class="text-center print-hide">
-                            <button class="prod-action-btn btn-view-prod-details" data-emp-id="${row.empId}"><i class="fa-regular fa-eye"></i> View Details</button>
+                            <button class="prod-action-btn" onclick="event.stopPropagation(); window.viewProductivityDetails('${row.empId}')"><i class="fa-regular fa-eye"></i> View Details</button>
                         </td>
                     </tr>
                 `;
             });
-            document.querySelectorAll('.btn-view-prod-details').forEach(btn => { btn.addEventListener('click', function(e) { e.preventDefault(); window.viewProductivityDetails(this.getAttribute('data-emp-id')); }); });
         }
     }
 
@@ -2794,7 +2793,6 @@ window.generateAdminProductivityReport = function(db) {
                     </tr>
                 `;
             });
-            document.querySelectorAll('.btn-view-prod-details').forEach(btn => { btn.addEventListener('click', function(e) { e.preventDefault(); window.viewProductivityDetails(this.getAttribute('data-emp-id')); }); });
         }
     }
 
@@ -2825,7 +2823,6 @@ window.generateAdminProductivityReport = function(db) {
                     </tr>
                 `;
             });
-            document.querySelectorAll('.btn-view-prod-details').forEach(btn => { btn.addEventListener('click', function(e) { e.preventDefault(); window.viewProductivityDetails(this.getAttribute('data-emp-id')); }); });
         }
     }
 };
