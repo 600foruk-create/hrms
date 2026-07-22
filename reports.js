@@ -2703,7 +2703,7 @@ window.generateAdminProductivityReport = function(db) {
                 </div>
             `;
         });
-        topPerfContainer.innerHTML += `<div style="text-align: right; margin-top: 10px;"><a href="#" style="font-size: 12px; font-weight: 600; color: #2563EB; text-decoration: none;" onclick="window.switchProdTab('performance'); return false;">View All</a></div>`;
+        // View All link removed per user request
     }
 
     // Populate Attention Required
@@ -2723,7 +2723,7 @@ window.generateAdminProductivityReport = function(db) {
                 </div>
             `;
         });
-        attReqContainer.innerHTML += `<div style="text-align: right; margin-top: 10px;"><a href="#" style="font-size: 12px; font-weight: 600; color: #2563EB; text-decoration: none;" onclick="window.switchProdTab('register'); return false;">View All</a></div>`;
+        // View All link removed per user request
     }
 
     // Initialize Chart
@@ -2886,6 +2886,7 @@ window.viewProductivityDetails = function(empId) {
                 tasksEl.innerHTML = '<tr><td colspan="8" style="padding:24px;text-align:center;color:#64748b;">No tasks found</td></tr>';
             } else {
                 tasksEl.innerHTML = tasks.map((t, idx) => {
+                    if(!t) return '';
                     let st = t.status || 'Pending';
                     let stColor = st === 'Approved' || st === 'Completed' ? '#16a34a' : (st === 'Rejected' || st === 'Overdue' ? '#dc2626' : '#d97706');
                     let stBg   = st === 'Approved' || st === 'Completed' ? '#dcfce7' : (st === 'Rejected' || st === 'Overdue' ? '#fee2e2' : '#fef3c7');
@@ -2914,15 +2915,16 @@ window.viewProductivityDetails = function(empId) {
         // Show the standalone popup overlay
         const overlay = document.getElementById('prod-popup-overlay');
         if(overlay) {
-            console.log("Opening popup for:", emp.name);
+            console.log("Successfully prepared popup for:", emp.name);
             overlay.classList.add('open');
+            overlay.style.display = 'flex';
             overlay.style.setProperty('display', 'flex', 'important');
         } else {
-            console.error('Popup overlay element not found!');
+            console.error('Popup overlay element not found in DOM!');
             alert('Popup overlay element not found! Please refresh and try again.');
         }
     } catch(e) {
+        console.error('Error in viewProductivityDetails:', e);
         alert('Error showing details: ' + e.message);
-        console.error(e);
     }
 };
