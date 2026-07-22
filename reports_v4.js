@@ -2846,7 +2846,7 @@ window.viewProductivityDetails = function(empId) {
         const emp = (window.prodActualData || []).find(e => String(e.empId) === String(empId));
         if(!emp) { alert('Employee not found in data for ID: ' + empId); return; }
         
-        let db = typeof getDb === "function" ? getDb() : (window.db || window.hrmsDatabase || {});
+        let db = typeof window.getDb === "function" ? window.getDb() : (window.db || window.hrmsDatabase || {});
         let user = (db.users || []).find(u => String(u.id) === String(empId)) || {};
 
         // Dynamically create or find the popup
@@ -2856,67 +2856,111 @@ window.viewProductivityDetails = function(empId) {
             overlay.id = 'prod-popup-overlay-dynamic';
             overlay.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.55); z-index: 99999999; align-items: center; justify-content: center;';
             overlay.innerHTML = `
-                <div style="width: 900px; max-width: 95vw; max-height: 90vh; background: #ffffff; border-radius: 12px; font-family: 'Inter', sans-serif; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+                <div style="width: 1000px; max-width: 95vw; max-height: 90vh; background: #f8fafc; border-radius: 12px; font-family: 'Inter', sans-serif; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+                    
                     <!-- Header -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid #f1f5f9;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; background: #ffffff; border-bottom: 1px solid #e2e8f0;">
                         <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: #0f172a;">Employee Task Details</h2>
                         <button onclick="document.getElementById('prod-popup-overlay-dynamic').style.display = 'none';" style="background: transparent; border: none; font-size: 20px; color: #64748b; cursor: pointer; padding: 4px;">&times;</button>
                     </div>
 
                     <!-- Scrollable Body -->
-                    <div style="flex: 1; overflow-y: auto; padding: 24px; background: #f8fafc;">
-                        <!-- Profile Header -->
-                        <div style="display: flex; gap: 20px; align-items: center; background: #ffffff; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 24px;">
-                            <div id="dyn-popup-initial" style="width: 60px; height: 60px; border-radius: 50%; background: #0ea5e9; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.3);">U</div>
-                            <div>
-                                <h3 id="dyn-popup-name" style="margin: 0 0 4px 0; font-size: 18px; color: #0f172a; font-weight: 700;">Employee Name</h3>
-                                <div style="display: flex; gap: 16px; font-size: 13px; color: #64748b;">
-                                    <span><i class="fa-solid fa-id-badge" style="color: #94a3b8; margin-right: 4px;"></i> <span id="dyn-popup-empid">EMP-000</span></span>
-                                    <span><i class="fa-solid fa-briefcase" style="color: #94a3b8; margin-right: 4px;"></i> <span id="dyn-popup-dept">Department</span></span>
+                    <div style="flex: 1; overflow-y: auto; padding: 24px;">
+                        
+                        <!-- Top Section: Profile and Task Summary -->
+                        <div style="display: flex; gap: 24px; margin-bottom: 24px; flex-wrap: wrap;">
+                            <!-- Profile Info -->
+                            <div style="flex: 1; min-width: 300px; display: flex; gap: 20px; align-items: flex-start; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px;">
+                                <!-- Avatar -->
+                                <div id="dyn-popup-avatar-box" style="width: 80px; height: 80px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: #64748b; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                                   <div id="dyn-popup-initial">U</div>
+                                </div>
+                                <!-- Details -->
+                                <div style="flex: 1;">
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                                        <h3 id="dyn-popup-name" style="margin: 0; font-size: 18px; color: #0f172a; font-weight: 700;">Employee Name</h3>
+                                        <span style="background: #dcfce7; color: #16a34a; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600;">Active</span>
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; font-size: 13px; color: #475569;">
+                                        <div style="color: #64748b; white-space: nowrap;">Employee ID :</div> <div id="dyn-popup-empid" style="font-weight: 500; color: #0f172a;">EMP-000</div>
+                                        <div style="color: #64748b; white-space: nowrap;">Department :</div> <div id="dyn-popup-dept" style="font-weight: 500; color: #0f172a;">Department</div>
+                                        <div style="color: #64748b; white-space: nowrap;">Designation :</div> <div id="dyn-popup-desig" style="font-weight: 500; color: #0f172a;">Designation</div>
+                                        <div style="color: #64748b; white-space: nowrap;">Reporting To :</div> <div id="dyn-popup-mgr" style="font-weight: 500; color: #0f172a;">Manager</div>
+                                        <div style="color: #64748b; white-space: nowrap;">Email :</div> <div id="dyn-popup-email" style="font-weight: 500; color: #0f172a; word-break: break-all;">email@company.com</div>
+                                    </div>
                                 </div>
                             </div>
-                            <div style="margin-left: auto; text-align: right;">
-                                <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 4px;">COMPLETION SCORE</div>
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <div style="font-size: 24px; font-weight: 800; color: #0f172a;" id="dyn-popup-score">0%</div>
+                            
+                            <!-- Task Summary Box -->
+                            <div style="flex: 1; min-width: 350px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px;">
+                                <h4 style="margin: 0 0 20px 0; font-size: 14px; color: #0f172a; font-weight: 700;">Task Summary</h4>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 12px; color: #64748b; margin-bottom: 12px;">Assigned</div>
+                                        <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                            <div style="width: 28px; height: 28px; border-radius: 6px; background: #e0f2fe; color: #0ea5e9; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-briefcase" style="font-size: 14px;"></i></div>
+                                            <span id="dyn-popup-stat-assigned" style="font-size: 20px; font-weight: 700; color: #0f172a;">0</span>
+                                        </div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 12px; color: #64748b; margin-bottom: 12px;">Completed</div>
+                                        <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                            <div style="width: 28px; height: 28px; border-radius: 6px; background: #dcfce7; color: #22c55e; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-check-circle" style="font-size: 14px;"></i></div>
+                                            <span id="dyn-popup-stat-completed" style="font-size: 20px; font-weight: 700; color: #0f172a;">0</span>
+                                        </div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 12px; color: #64748b; margin-bottom: 12px;">Pending</div>
+                                        <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                            <div style="width: 28px; height: 28px; border-radius: 6px; background: #fef3c7; color: #f59e0b; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-clock" style="font-size: 14px;"></i></div>
+                                            <span id="dyn-popup-stat-pending" style="font-size: 20px; font-weight: 700; color: #0f172a;">0</span>
+                                        </div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 12px; color: #64748b; margin-bottom: 12px;">Overdue</div>
+                                        <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                            <div style="width: 28px; height: 28px; border-radius: 6px; background: #fee2e2; color: #ef4444; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-triangle-exclamation" style="font-size: 14px;"></i></div>
+                                            <span id="dyn-popup-stat-overdue" style="font-size: 20px; font-weight: 700; color: #0f172a;">0</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Stats Grid -->
+                        <!-- Middle Stats Row -->
                         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
-                            <div style="background: #ffffff; padding: 16px; border-radius: 10px; border: 1px solid #e2e8f0; border-left: 4px solid #3b82f6;">
-                                <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 4px;">ASSIGNED</div>
-                                <div style="font-size: 20px; font-weight: 700; color: #0f172a;" id="dyn-popup-stat-assigned">0</div>
+                            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center;">
+                                <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">Productivity Score</div>
+                                <div id="dyn-popup-score" style="font-size: 24px; font-weight: 700; color: #0f172a;">0%</div>
                             </div>
-                            <div style="background: #ffffff; padding: 16px; border-radius: 10px; border: 1px solid #e2e8f0; border-left: 4px solid #22c55e;">
-                                <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 4px;">COMPLETED</div>
-                                <div style="font-size: 20px; font-weight: 700; color: #0f172a;" id="dyn-popup-stat-completed">0</div>
+                            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center;">
+                                <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">Completion Rate</div>
+                                <div id="dyn-popup-comprate" style="font-size: 24px; font-weight: 700; color: #0f172a;">0%</div>
                             </div>
-                            <div style="background: #ffffff; padding: 16px; border-radius: 10px; border: 1px solid #e2e8f0; border-left: 4px solid #f59e0b;">
-                                <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 4px;">PENDING</div>
-                                <div style="font-size: 20px; font-weight: 700; color: #0f172a;" id="dyn-popup-stat-pending">0</div>
+                            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center;">
+                                <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">On Time Completion</div>
+                                <div id="dyn-popup-ontime" style="font-size: 24px; font-weight: 700; color: #0f172a;">0%</div>
                             </div>
-                            <div style="background: #ffffff; padding: 16px; border-radius: 10px; border: 1px solid #e2e8f0; border-left: 4px solid #ef4444;">
-                                <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 4px;">OVERDUE</div>
-                                <div style="font-size: 20px; font-weight: 700; color: #0f172a;" id="dyn-popup-stat-overdue">0</div>
+                            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center;">
+                                <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">Total Hours Logged</div>
+                                <div id="dyn-popup-hours" style="font-size: 24px; font-weight: 700; color: #0f172a;">0 <span style="font-size: 14px; font-weight: 500; color: #64748b;">hrs</span></div>
                             </div>
                         </div>
 
-                        <!-- Task List -->
-                        <h4 style="margin: 0 0 12px 0; font-size: 14px; color: #0f172a; font-weight: 700;">Task Breakdown</h4>
-                        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden;">
+                        <!-- Task Details -->
+                        <h4 style="margin: 0 0 16px 0; font-size: 16px; color: #0f172a; font-weight: 700;">Task Details</h4>
+                        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; margin-bottom: 24px;">
                             <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
-                                <thead style="background: #f8fafc; color: #475569; font-weight: 600; text-transform: uppercase; font-size: 11px; border-bottom: 1px solid #e2e8f0;">
+                                <thead style="background: #f8fafc; color: #0f172a; font-weight: 600; font-size: 12px; border-bottom: 1px solid #e2e8f0;">
                                     <tr>
-                                        <th style="padding: 12px 16px;">#</th>
-                                        <th style="padding: 12px 16px;">Task Description</th>
-                                        <th style="padding: 12px 16px;">Project</th>
-                                        <th style="padding: 12px 16px;">Priority</th>
-                                        <th style="padding: 12px 16px;">Assigned</th>
-                                        <th style="padding: 12px 16px;">Due Date</th>
-                                        <th style="padding: 12px 16px;">Status</th>
-                                        <th style="padding: 12px 16px;">Completed On</th>
+                                        <th style="padding: 16px 20px;">#</th>
+                                        <th style="padding: 16px 20px;">Task Name</th>
+                                        <th style="padding: 16px 20px;">Project</th>
+                                        <th style="padding: 16px 20px;">Priority</th>
+                                        <th style="padding: 16px 20px;">Assigned Date</th>
+                                        <th style="padding: 16px 20px;">Due Date</th>
+                                        <th style="padding: 16px 20px;">Status</th>
+                                        <th style="padding: 16px 20px;">Completed Date</th>
                                     </tr>
                                 </thead>
                                 <tbody id="dyn-popup-tasks">
@@ -2924,10 +2968,38 @@ window.viewProductivityDetails = function(empId) {
                                 </tbody>
                             </table>
                         </div>
+
+                        <!-- Task Status Explanation -->
+                        <div style="background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px;">
+                            <h4 style="margin: 0 0 16px 0; font-size: 14px; color: #0f172a; font-weight: 700;">Task Status Explanation</h4>
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                                <div>
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                                        <div style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e;"></div>
+                                        <span style="font-weight: 700; font-size: 13px; color: #0f172a;">Completed</span>
+                                    </div>
+                                    <div style="font-size: 12px; color: #64748b;">Task has been completed successfully.</div>
+                                </div>
+                                <div>
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                                        <div style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b;"></div>
+                                        <span style="font-weight: 700; font-size: 13px; color: #0f172a;">Pending</span>
+                                    </div>
+                                    <div style="font-size: 12px; color: #64748b;">Task is in progress and not yet completed.</div>
+                                </div>
+                                <div>
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                                        <div style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444;"></div>
+                                        <span style="font-weight: 700; font-size: 13px; color: #0f172a;">Overdue</span>
+                                    </div>
+                                    <div style="font-size: 12px; color: #64748b;">Task is not completed and past the due date.</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Footer -->
-                    <div style="padding: 16px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
+                    <div style="padding: 16px 24px; background: #ffffff; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end;">
                         <button onclick="document.getElementById('prod-popup-overlay-dynamic').style.display = 'none';" style="padding: 8px 24px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-weight: 600; color: #0f172a; cursor: pointer; transition: all 0.2s;">Close</button>
                     </div>
                 </div>
@@ -2938,17 +3010,42 @@ window.viewProductivityDetails = function(empId) {
         const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.innerHTML = val; };
         
         let initial = emp.name ? emp.name.substring(0,2).toUpperCase() : 'U';
+        let avatarImg = user.profilePic || user.profileImageBase64 || user.photo || '';
         
-        setEl('dyn-popup-initial', initial);
+        const avatarBox = document.getElementById('dyn-popup-avatar-box');
+        if (avatarBox) {
+            if (avatarImg) {
+                avatarBox.style.backgroundImage = `url(${avatarImg})`;
+                avatarBox.style.backgroundSize = 'cover';
+                avatarBox.style.backgroundPosition = 'center';
+                document.getElementById('dyn-popup-initial').style.display = 'none';
+            } else {
+                avatarBox.style.backgroundImage = 'none';
+                document.getElementById('dyn-popup-initial').style.display = 'block';
+                document.getElementById('dyn-popup-initial').innerText = initial;
+            }
+        }
+        
         setEl('dyn-popup-name', emp.name || 'Unknown User');
         setEl('dyn-popup-empid', emp.empId || 'N/A');
         setEl('dyn-popup-dept', emp.dept || 'General');
-        setEl('dyn-popup-score', (emp.compPct || 0) + '%');
+        setEl('dyn-popup-desig', user.designation || 'Employee');
+        setEl('dyn-popup-mgr', emp.mgr || 'Manager');
+        setEl('dyn-popup-email', user.email || 'employee@company.com');
         
         setEl('dyn-popup-stat-assigned', emp.assigned || 0);
         setEl('dyn-popup-stat-completed', emp.completed || 0);
         setEl('dyn-popup-stat-pending', emp.pending || 0);
         setEl('dyn-popup-stat-overdue', emp.overdue || 0);
+        
+        let compRate = emp.assigned > 0 ? Math.round((emp.completed / emp.assigned) * 100) : 0;
+        let onTimeRate = emp.assigned > 0 ? Math.round(((emp.completed) / (emp.assigned)) * 100) : 0; // Simplified
+        let totalHours = (emp.completed * 8) || 0; 
+        
+        setEl('dyn-popup-score', (emp.compPct || 0) + '%');
+        setEl('dyn-popup-comprate', compRate + '%');
+        setEl('dyn-popup-ontime', onTimeRate + '%');
+        setEl('dyn-popup-hours', totalHours + ' <span style="font-size:14px;font-weight:500;color:#64748b;">hrs</span>');
 
         const tasksEl = document.getElementById('dyn-popup-tasks');
         if(tasksEl) {
@@ -2959,8 +3056,7 @@ window.viewProductivityDetails = function(empId) {
                 tasksEl.innerHTML = tasks.map((t, idx) => {
                     if(!t) return '';
                     let st = t.status || 'Pending';
-                    let stColor = st === 'Approved' || st === 'Completed' ? '#16a34a' : (st === 'Rejected' || st === 'Overdue' ? '#dc2626' : '#d97706');
-                    let stBg   = st === 'Approved' || st === 'Completed' ? '#dcfce7' : (st === 'Rejected' || st === 'Overdue' ? '#fee2e2' : '#fef3c7');
+                    let stColor = st === 'Approved' || st === 'Completed' ? '#22c55e' : (st === 'Rejected' || st === 'Overdue' ? '#ef4444' : '#f59e0b');
                     
                     let priority = t.priority || 'Normal';
                     let pColor = priority === 'High' ? '#ef4444' : (priority === 'Medium' ? '#f59e0b' : '#3b82f6');
@@ -2970,14 +3066,14 @@ window.viewProductivityDetails = function(empId) {
                     let assignedDate = t.date || '-';
 
                     return `<tr style="border-bottom: 1px solid #f1f5f9;">
-                        <td style="padding:12px 16px;color:#475569;">${idx + 1}</td>
-                        <td style="padding:12px 16px;color:#0f172a;font-weight:500;">${t.description || 'Productivity Log'}</td>
-                        <td style="padding:12px 16px;color:#64748b;">${t.project || 'General'}</td>
-                        <td style="padding:12px 16px;"><span style="color:${pColor};font-weight:600;">${priority}</span></td>
-                        <td style="padding:12px 16px;color:#64748b;">${assignedDate}</td>
-                        <td style="padding:12px 16px;color:#64748b;">${dueDate}</td>
-                        <td style="padding:12px 16px;"><span style="background:${stBg};color:${stColor};padding:4px 12px;border-radius:99px;font-size:11px;font-weight:700;">${st === 'Approved' ? 'Completed' : (st === 'Rejected' ? 'Overdue' : st)}</span></td>
-                        <td style="padding:12px 16px;color:#16a34a;font-weight:500;">${compDate}</td>
+                        <td style="padding:16px 20px;color:#475569;">${idx + 1}</td>
+                        <td style="padding:16px 20px;color:#0f172a;font-weight:500;">${t.description || 'Productivity Log'}</td>
+                        <td style="padding:16px 20px;color:#64748b;">${t.project || 'General'}</td>
+                        <td style="padding:16px 20px;"><span style="border: 1px solid ${pColor}; color:${pColor}; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600;">${priority}</span></td>
+                        <td style="padding:16px 20px;color:#64748b;">${assignedDate}</td>
+                        <td style="padding:16px 20px;color:#64748b;">${dueDate}</td>
+                        <td style="padding:16px 20px;"><span style="border: 1px solid ${stColor}; color:${stColor}; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600;">${st === 'Approved' ? 'Completed' : (st === 'Rejected' ? 'Overdue' : st)}</span></td>
+                        <td style="padding:16px 20px;color:#16a34a;font-weight:500;">${compDate}</td>
                     </tr>`;
                 }).join('');
             }
