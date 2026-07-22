@@ -2833,41 +2833,79 @@ window.viewProductivityDetails = function(empId) {
         const emp = (window.prodActualData || []).find(e => String(e.empId) === String(empId));
         if(!emp) { alert('Employee not found in data for ID: ' + empId); return; }
         
-        let barColor = emp.compPct >= 90 ? '#22c55e' : (emp.compPct >= 70 ? '#f59e0b' : '#ef4444');
+        let db = typeof getDb === "function" ? getDb() : (window.db || window.hrmsDatabase || {});
+        let user = (db.users || []).find(u => String(u.id) === String(empId)) || {};
 
         // Fill the standalone popup
-        const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
-        setEl('prod-popup-avatar', emp.name ? emp.name.substring(0,2).toUpperCase() : 'U');
+        const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.innerHTML = val; };
+        
+        let initial = emp.name ? emp.name.substring(0,2).toUpperCase() : 'U';
+        let avatarImg = user.profilePic || user.profileImageBase64 || user.photo || '';
+        
+        const avatarBox = document.getElementById('prod-popup-avatar-img');
+        if (avatarBox) {
+            if (avatarImg) {
+                avatarBox.style.backgroundImage = `url(${avatarImg})`;
+                avatarBox.style.backgroundSize = 'cover';
+                avatarBox.style.backgroundPosition = 'center';
+                document.getElementById('prod-popup-avatar').style.display = 'none';
+            } else {
+                avatarBox.style.backgroundImage = 'none';
+                document.getElementById('prod-popup-avatar').style.display = 'block';
+                document.getElementById('prod-popup-avatar').innerText = initial;
+            }
+        }
+        
         setEl('prod-popup-name', emp.name);
-        setEl('prod-popup-dept', emp.dept);
-        setEl('prod-popup-mgr', emp.mgr);
+        setEl('prod-popup-empid', emp.empId || 'EMP-000');
+        setEl('prod-popup-dept', emp.dept || 'N/A');
+        setEl('prod-popup-desig', user.designation || 'N/A');
+        setEl('prod-popup-mgr', emp.mgr || 'N/A');
+        setEl('prod-popup-email', user.email || 'N/A');
+        
         setEl('prod-popup-assigned', emp.assigned);
         setEl('prod-popup-completed', emp.completed);
         setEl('prod-popup-pending', emp.pending);
         setEl('prod-popup-overdue', emp.overdue);
-        setEl('prod-popup-status-text', emp.status);
         
-        const pctEl = document.getElementById('prod-popup-pct-val');
-        if(pctEl) { pctEl.innerText = emp.compPct + '%'; pctEl.style.color = barColor; }
+        // Calculated fields for middle section
+        let compRate = emp.assigned > 0 ? Math.round((emp.completed / emp.assigned) * 100) : 0;
+        let onTimeRate = emp.assigned > 0 ? Math.round(((emp.completed) / (emp.assigned)) * 100) : 0; // Simplified for now
+        let totalHours = (emp.completed * 8) || 0; // Dummy calculation for hours logged since not in DB
         
-        const barEl = document.getElementById('prod-popup-pct-bar');
-        if(barEl) { barEl.style.width = emp.compPct + '%'; barEl.style.background = barColor; }
+        setEl('prod-popup-prodscore', emp.compPct + '%');
+        setEl('prod-popup-comprate', compRate + '%');
+        setEl('prod-popup-ontime', onTimeRate + '%');
+        setEl('prod-popup-hours', totalHours + ' <span style="font-size:16px;font-weight:600;">hrs</span>');
 
         // Fill tasks table
         const tasksEl = document.getElementById('prod-popup-tasks');
         if(tasksEl) {
             const tasks = emp.tasks || [];
             if(tasks.length === 0) {
-                tasksEl.innerHTML = '<tr><td colspan="3" style="padding:20px;text-align:center;color:#94a3b8;">No tasks found for this employee</td></tr>';
+                tasksEl.innerHTML = '<tr><td colspan="8" style="padding:24px;text-align:center;color:#64748b;">No tasks found</td></tr>';
             } else {
-                tasksEl.innerHTML = tasks.map(t => {
+                tasksEl.innerHTML = tasks.map((t, idx) => {
                     let st = t.status || 'Pending';
-                    let stColor = st === 'Approved' ? '#16a34a' : (st === 'Rejected' ? '#dc2626' : '#d97706');
-                    let stBg   = st === 'Approved' ? '#f0fdf4' : (st === 'Rejected' ? '#fef2f2' : '#fffbeb');
-                    return `<tr>
-                        <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;">${t.description || 'Productivity Log'}</td>
-                        <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;color:#64748b;">${t.date || 'N/A'}</td>
-                        <td style="padding:10px 14px;border-bottom:1px solid #f1f5f9;text-align:center;"><span style="background:${stBg};color:${stColor};padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;">${st}</span></td>
+                    let stColor = st === 'Approved' || st === 'Completed' ? '#16a34a' : (st === 'Rejected' || st === 'Overdue' ? '#dc2626' : '#d97706');
+                    let stBg   = st === 'Approved' || st === 'Completed' ? '#dcfce7' : (st === 'Rejected' || st === 'Overdue' ? '#fee2e2' : '#fef3c7');
+                    
+                    let priority = t.priority || 'Medium';
+                    let pColor = priority === 'High' ? '#ef4444' : (priority === 'Medium' ? '#f59e0b' : '#3b82f6');
+                    
+                    let compDate = st === 'Approved' || st === 'Completed' ? (t.date || '-') : '-';
+                    let dueDate = t.date || '-'; // Assuming log date is due date for now
+                    let assignedDate = t.date || '-';
+
+                    return `<tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding:12px 16px;color:#475569;">${idx + 1}</td>
+                        <td style="padding:12px 16px;color:#0f172a;font-weight:500;">${t.description || 'Productivity Log'}</td>
+                        <td style="padding:12px 16px;color:#64748b;">${t.project || 'General'}</td>
+                        <td style="padding:12px 16px;"><span style="color:${pColor};font-weight:600;">${priority}</span></td>
+                        <td style="padding:12px 16px;color:#64748b;">${assignedDate}</td>
+                        <td style="padding:12px 16px;color:#64748b;">${dueDate}</td>
+                        <td style="padding:12px 16px;"><span style="background:${stBg};color:${stColor};padding:4px 12px;border-radius:99px;font-size:11px;font-weight:700;">${st === 'Approved' ? 'Completed' : (st === 'Rejected' ? 'Overdue' : st)}</span></td>
+                        <td style="padding:12px 16px;color:#16a34a;font-weight:500;">${compDate}</td>
                     </tr>`;
                 }).join('');
             }
