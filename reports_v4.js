@@ -2849,38 +2849,95 @@ window.viewProductivityDetails = function(empId) {
         let db = typeof getDb === "function" ? getDb() : (window.db || window.hrmsDatabase || {});
         let user = (db.users || []).find(u => String(u.id) === String(empId)) || {};
 
-        // Fill the standalone popup
+        // Dynamically create or find the popup
+        let overlay = document.getElementById('prod-popup-overlay-dynamic');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'prod-popup-overlay-dynamic';
+            overlay.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.55); z-index: 99999999; align-items: center; justify-content: center;';
+            overlay.innerHTML = `
+                <div style="width: 900px; max-width: 95vw; max-height: 90vh; background: #ffffff; border-radius: 12px; font-family: 'Inter', sans-serif; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+                    <!-- Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid #f1f5f9;">
+                        <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: #0f172a;">Employee Task Details</h2>
+                        <button onclick="document.getElementById('prod-popup-overlay-dynamic').style.display = 'none';" style="background: transparent; border: none; font-size: 20px; color: #64748b; cursor: pointer; padding: 4px;">&times;</button>
+                    </div>
+
+                    <!-- Scrollable Body -->
+                    <div style="flex: 1; overflow-y: auto; padding: 24px; background: #f8fafc;">
+                        <!-- Profile Header -->
+                        <div style="display: flex; gap: 20px; align-items: center; background: #ffffff; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 24px;">
+                            <div id="dyn-popup-initial" style="width: 60px; height: 60px; border-radius: 50%; background: #0ea5e9; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.3);">U</div>
+                            <div>
+                                <h3 id="dyn-popup-name" style="margin: 0 0 4px 0; font-size: 18px; color: #0f172a; font-weight: 700;">Employee Name</h3>
+                                <div style="display: flex; gap: 16px; font-size: 13px; color: #64748b;">
+                                    <span><i class="fa-solid fa-id-badge" style="color: #94a3b8; margin-right: 4px;"></i> <span id="dyn-popup-empid">EMP-000</span></span>
+                                    <span><i class="fa-solid fa-briefcase" style="color: #94a3b8; margin-right: 4px;"></i> <span id="dyn-popup-dept">Department</span></span>
+                                </div>
+                            </div>
+                            <div style="margin-left: auto; text-align: right;">
+                                <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 4px;">COMPLETION SCORE</div>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="font-size: 24px; font-weight: 800; color: #0f172a;" id="dyn-popup-score">0%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stats Grid -->
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+                            <div style="background: #ffffff; padding: 16px; border-radius: 10px; border: 1px solid #e2e8f0; border-left: 4px solid #3b82f6;">
+                                <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 4px;">ASSIGNED</div>
+                                <div style="font-size: 20px; font-weight: 700; color: #0f172a;" id="dyn-popup-stat-assigned">0</div>
+                            </div>
+                            <div style="background: #ffffff; padding: 16px; border-radius: 10px; border: 1px solid #e2e8f0; border-left: 4px solid #22c55e;">
+                                <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 4px;">COMPLETED</div>
+                                <div style="font-size: 20px; font-weight: 700; color: #0f172a;" id="dyn-popup-stat-completed">0</div>
+                            </div>
+                            <div style="background: #ffffff; padding: 16px; border-radius: 10px; border: 1px solid #e2e8f0; border-left: 4px solid #f59e0b;">
+                                <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 4px;">PENDING</div>
+                                <div style="font-size: 20px; font-weight: 700; color: #0f172a;" id="dyn-popup-stat-pending">0</div>
+                            </div>
+                            <div style="background: #ffffff; padding: 16px; border-radius: 10px; border: 1px solid #e2e8f0; border-left: 4px solid #ef4444;">
+                                <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 4px;">OVERDUE</div>
+                                <div style="font-size: 20px; font-weight: 700; color: #0f172a;" id="dyn-popup-stat-overdue">0</div>
+                            </div>
+                        </div>
+
+                        <!-- Task List -->
+                        <h4 style="margin: 0 0 12px 0; font-size: 14px; color: #0f172a; font-weight: 700;">Task Breakdown</h4>
+                        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+                                <thead style="background: #f8fafc; color: #475569; font-weight: 600; text-transform: uppercase; font-size: 11px; border-bottom: 1px solid #e2e8f0;">
+                                    <tr>
+                                        <th style="padding: 12px 16px;">#</th>
+                                        <th style="padding: 12px 16px;">Task Description</th>
+                                        <th style="padding: 12px 16px;">Project</th>
+                                        <th style="padding: 12px 16px;">Priority</th>
+                                        <th style="padding: 12px 16px;">Assigned</th>
+                                        <th style="padding: 12px 16px;">Due Date</th>
+                                        <th style="padding: 12px 16px;">Status</th>
+                                        <th style="padding: 12px 16px;">Completed On</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dyn-popup-tasks">
+                                    <!-- Tasks go here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div style="padding: 16px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
+                        <button onclick="document.getElementById('prod-popup-overlay-dynamic').style.display = 'none';" style="padding: 8px 24px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-weight: 600; color: #0f172a; cursor: pointer; transition: all 0.2s;">Close</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        }
+
         const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.innerHTML = val; };
         
         let initial = emp.name ? emp.name.substring(0,2).toUpperCase() : 'U';
-        let avatarImg = user.profilePic || user.profileImageBase64 || user.photo || '';
-        
-        const avatarBox = document.getElementById('prod-popup-avatar-img');
-        if (avatarBox) {
-            if (avatarImg) {
-                avatarBox.style.backgroundImage = `url(${avatarImg})`;
-                avatarBox.style.backgroundSize = 'cover';
-                avatarBox.style.backgroundPosition = 'center';
-                document.getElementById('prod-popup-avatar').style.display = 'none';
-            } else {
-                avatarBox.style.backgroundImage = 'none';
-                document.getElementById('prod-popup-avatar').style.display = 'block';
-                document.getElementById('prod-popup-avatar').innerText = initial;
-            }
-        }
-        
-        setEl('prod-popup-name', emp.name);
-        setEl('prod-popup-empid', emp.empId || 'EMP-000');
-        setEl('prod-popup-dept', emp.dept || 'N/A');
-        setEl('prod-popup-desig', user.designation || 'N/A');
-        setEl('prod-popup-mgr', emp.mgr || 'N/A');
-        setEl('prod-popup-email', user.email || 'N/A');
-        
-        setEl('prod-popup-assigned', emp.assigned);
-        setEl('prod-popup-completed', emp.completed);
-        setEl('prod-popup-pending', emp.pending);
-        setEl('prod-popup-overdue', emp.overdue);
-        
         
         setEl('dyn-popup-initial', initial);
         setEl('dyn-popup-name', emp.name || 'Unknown User');
