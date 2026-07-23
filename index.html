@@ -4957,7 +4957,7 @@
                         <!-- Sub Tab 8: Loans Report -->
                         <div id="subtab-content-admin-report-loans" class="sub-tab-content hidden">
                             <!-- Header & Top Actions -->
-                            <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                            <div class="print-hide" style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
                                 <div style="display: flex; gap: 10px;">
                                     <button class="btn btn-outline btn-sm" onclick="if(window.exportAdminLoansExcel) window.exportAdminLoansExcel()"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
                                     <button class="btn btn-outline btn-sm" onclick="if(window.printReport) window.printReport('admin-report-loans')"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
@@ -4966,7 +4966,7 @@
                             </div>
 
                             <!-- Filter Section -->
-                            <div class="section-card bg-glass mb-4" style="padding: 15px;">
+                            <div class="section-card bg-glass mb-4 print-hide" style="padding: 15px;">
                                 <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;">
                                     <div class="form-group" style="margin-bottom: 0; flex: 1;">
                                         <label style="font-size: 12px; font-weight: 600;">Date Range</label>
@@ -5013,7 +5013,7 @@
                             </div>
 
                             <!-- Summary Cards -->
-                            <div class="metrics-grid mb-4" style="grid-template-columns: repeat(4, 1fr); gap: 15px;">
+                            <div class="metrics-grid mb-4 print-hide" style="grid-template-columns: repeat(4, 1fr); gap: 15px;">
                                 <div class="metric-card bg-glass" style="padding: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
                                     <div class="text-secondary" style="font-size: 12px; font-weight: 600; text-transform: uppercase;">Total Loans Issued</div>
                                     <div class="metric-value text-primary" id="admin-rep-loans-total-issued" style="font-size: 24px; font-weight: 700; margin-top: 5px;">Rs 0</div>
@@ -5034,7 +5034,7 @@
 
                             <!-- Main Report Table -->
                             <div class="section-card bg-glass flex-table-card">
-                                <div class="section-card-header" style="border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 0;">
+                                <div class="section-card-header print-hide" style="border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 0;">
                                     <h3 style="margin: 0; font-size: 16px;">Employee Loan Register</h3>
                                 </div>
                                 <div class="table-container printable-area" id="print-table-admin-loans" style="max-height: 400px; overflow-y: auto; overflow-x: auto;">
