@@ -4516,8 +4516,11 @@
         .prod-modal-info p { margin: 0; font-size: 13px; color: #64748b; }
         
         @media print {
-            .prod-dash-tabs, .prod-filter-card, .prod-action-btn, .prod-footer-note { display: none !important; }
-            .prod-summary-card, .prod-table-card, .prod-bottom-card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
+            .prod-dash-tabs, .prod-filter-card, .prod-action-btn, .prod-footer-note, .prod-bottom-grid { display: none !important; }
+            .prod-summary-card, .prod-bottom-card { box-shadow: none !important; border: none !important; }
+            .prod-table-card { box-shadow: none !important; border: none !important; margin: 0 !important; padding: 0 !important; }
+            .prod-table-header { padding: 5px 0 !important; border: none !important; }
+            .prod-table th, .prod-table td { padding: 6px 10px !important; }
         }
     </style>
 
