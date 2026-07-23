@@ -4882,22 +4882,24 @@
 
                                     <div class="ast-grid-2 print-hide">
                                         <!-- Company Assets Overview Table -->
-                                        <div class="assets-rep-section">
+                                        <div class="assets-rep-section" style="max-height: 280px;">
                                             <h3 class="assets-rep-section-title">Company Assets Overview</h3>
-                                            <table class="assets-rep-table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>#</th>
-                                                        <th>Asset Category</th>
-                                                        <th class="text-center">Total Assets</th>
-                                                        <th class="text-center">Assigned</th>
-                                                        <th class="text-center">Available</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="admin-rep-assets-tbody-summary">
-                                                    <tr><td colspan="5" class="text-center text-muted">Click Generate Report</td></tr>
-                                                </tbody>
-                                            </table>
+                                            <div style="flex: 1; overflow-y: auto;">
+                                                <table class="assets-rep-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="position: sticky; top: 0; background: #fff; z-index: 1;">#</th>
+                                                            <th style="position: sticky; top: 0; background: #fff; z-index: 1;">Asset Category</th>
+                                                            <th class="text-center" style="position: sticky; top: 0; background: #fff; z-index: 1;">Total Assets</th>
+                                                            <th class="text-center" style="position: sticky; top: 0; background: #fff; z-index: 1;">Assigned</th>
+                                                            <th class="text-center" style="position: sticky; top: 0; background: #fff; z-index: 1;">Available</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="admin-rep-assets-tbody-summary">
+                                                        <tr><td colspan="5" class="text-center text-muted">Click Generate Report</td></tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
 
                                         <!-- Assets Assigned to Employees Table -->
@@ -4907,11 +4909,11 @@
                                                 <table class="assets-rep-table">
                                                     <thead>
                                                         <tr>
-                                                            <th>#</th>
-                                                            <th>Employee</th>
-                                                            <th class="text-center">Total Assets</th>
-                                                            <th class="text-right">Total Value (Rs.)</th>
-                                                            <th class="print-hide text-center" style="width: 100px;">Action</th>
+                                                            <th style="position: sticky; top: 0; background: #fff; z-index: 1;">#</th>
+                                                            <th style="position: sticky; top: 0; background: #fff; z-index: 1;">Employee</th>
+                                                            <th class="text-center" style="position: sticky; top: 0; background: #fff; z-index: 1;">Total Assets</th>
+                                                            <th class="text-right" style="position: sticky; top: 0; background: #fff; z-index: 1;">Total Value (Rs.)</th>
+                                                            <th class="text-center print-hide" style="position: sticky; top: 0; background: #fff; z-index: 1;">Action</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody id="admin-rep-assets-tbody-employee">
