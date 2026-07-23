@@ -3685,7 +3685,7 @@ window.viewLoanDetails = function(loanId) {
     document.getElementById('loan-det-end-date').textContent = endD.toLocaleDateString();
     
     const isCompleted = loan.remainingAmount <= 0;
-    document.getElementById('loan-det-status').innerHTML = isCompleted ? `<span class="badge bg-primary">Completed</span>` : `<span class="badge bg-success">Active</span>`;
+    document.getElementById('loan-det-status').innerHTML = isCompleted ? `<span style="display:inline-block; border: 1px solid #3b82f6; color: #3b82f6; background: #eff6ff; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 600;">Completed</span>` : `<span style="display:inline-block; border: 1px solid #16a34a; color: #16a34a; background: #f0fdf4; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 600;">Active</span>`;
     
     // Show Modal
     document.getElementById('modal-report-loan-details').classList.remove('hidden');
