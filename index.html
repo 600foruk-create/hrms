@@ -5228,55 +5228,7 @@
                                 </div>
                             </div>
 
-                            <!-- Details View (Hidden by default) -->
-                            <div id="ot-report-details-view" class="hidden">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                                    <h2 style="margin: 0; font-size: 20px; font-weight: 600;">Overtime Details</h2>
-                                    <div class="print-hide" style="display: flex; gap: 10px;">
-                                        <button class="btn btn-outline btn-sm" onclick="if(window.printOtSlip) window.printOtSlip()"><i class="fa-solid fa-print"></i> Print OT Slip</button>
-                                        <button class="btn btn-outline btn-sm" onclick="if(window.hideOtReportDetails) window.hideOtReportDetails()"><i class="fa-solid fa-arrow-left"></i> Back to Report</button>
-                                    </div>
-                                </div>
-                                
-                                <div class="section-card bg-glass" style="padding: 20px;">
-                                    <div class="printable-area" id="print-area-ot-slip">
-                                        <div class="print-header hidden" style="text-align: center; margin-bottom: 20px;">
-                                            <h1 style="margin: 0 0 10px 0;">Employee Overtime Slip</h1>
-                                        </div>
-                                        
-                                        <h4 style="font-size: 14px; color: #3b82f6; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 15px;">Employee Information</h4>
-                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; font-size: 13px;">
-                                            <div style="display: flex;"><div style="width: 150px; font-weight: 600; color: #64748b;">Employee Name</div><div style="color: #1e293b;" id="det-ot-emp-name">-</div></div>
-                                            <div style="display: flex;"><div style="width: 150px; font-weight: 600; color: #64748b;">Employee ID</div><div style="color: #1e293b;" id="det-ot-emp-id">-</div></div>
-                                            <div style="display: flex;"><div style="width: 150px; font-weight: 600; color: #64748b;">Department</div><div style="color: #1e293b;" id="det-ot-dept">-</div></div>
-                                            <div style="display: flex;"><div style="width: 150px; font-weight: 600; color: #64748b;">Designation</div><div style="color: #1e293b;" id="det-ot-desig">-</div></div>
-                                        </div>
 
-                                        <h4 style="font-size: 14px; color: #3b82f6; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 15px;">Overtime Information</h4>
-                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; font-size: 13px;">
-                                            <div style="display: flex;"><div style="width: 150px; font-weight: 600; color: #64748b;">OT Date</div><div style="color: #1e293b;" id="det-ot-date">-</div></div>
-                                            <div style="display: flex;"><div style="width: 150px; font-weight: 600; color: #64748b;">Shift</div><div style="color: #1e293b;" id="det-ot-shift">-</div></div>
-                                            <div style="display: flex;"><div style="width: 150px; font-weight: 600; color: #64748b;">Check In Time</div><div style="color: #1e293b;" id="det-ot-in">-</div></div>
-                                            <div style="display: flex;"><div style="width: 150px; font-weight: 600; color: #64748b;">Check Out Time</div><div style="color: #1e293b;" id="det-ot-out">-</div></div>
-                                            <div style="display: flex;"><div style="width: 150px; font-weight: 600; color: #64748b;">Normal Working Hours</div><div style="color: #1e293b;" id="det-ot-normal">-</div></div>
-                                            <div style="display: flex;"><div style="width: 150px; font-weight: 600; color: #64748b;">Overtime Hours</div><div style="color: #1e293b; font-weight: 700;" id="det-ot-hours">-</div></div>
-                                        </div>
-
-                                        <h4 style="font-size: 14px; color: #3b82f6; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 15px;">Approval Information</h4>
-                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; font-size: 13px;">
-                                            <div style="display: flex;"><div style="width: 150px; font-weight: 600; color: #64748b;">Status</div><div style="color: #1e293b;" id="det-ot-status">-</div></div>
-                                            <div style="display: flex;"><div style="width: 150px; font-weight: 600; color: #64748b;">Approved By</div><div style="color: #1e293b;" id="det-ot-appr-by">-</div></div>
-                                            <div style="display: flex;"><div style="width: 150px; font-weight: 600; color: #64748b;">Approval Date</div><div style="color: #1e293b;" id="det-ot-appr-date">-</div></div>
-                                        </div>
-
-                                        <h4 style="font-size: 14px; color: #3b82f6; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 15px;">Reason & Remarks</h4>
-                                        <div style="display: grid; grid-template-columns: 1fr; gap: 15px; font-size: 13px;">
-                                            <div style="display: flex;"><div style="width: 150px; font-weight: 600; color: #64748b;">Employee Reason</div><div style="color: #1e293b; flex: 1;" id="det-ot-reason">-</div></div>
-                                            <div style="display: flex;"><div style="width: 150px; font-weight: 600; color: #64748b;">Manager Remarks</div><div style="color: #1e293b; flex: 1;" id="det-ot-remarks">-</div></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
                     <!-- Admin Announcements Tab -->
@@ -9521,7 +9473,6 @@
         </div>
         <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px;">
             <button class="btn btn-outline modal-close" onclick="closeModal('modal-report-ot-details')">Close</button>
-            <button class="btn btn-primary" onclick="if(window.printOtSlip) window.printOtSlip()"><i class="fa-solid fa-print"></i> Print</button>
         </div>
     </div>
 
