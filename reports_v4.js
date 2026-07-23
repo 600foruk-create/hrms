@@ -3207,9 +3207,9 @@ window.generateAdminAssetsReport = function(passedDb) {
         filteredAssets.forEach(a => {
             if (a.status === 'Assigned' || a.status === 'Issued') {
                 const empId = a.assigned_to;
-                if (!empId) return; // Skip if no assigned employee is mapped
+                if (!empId || !userMap[empId]) return; // Skip if no assigned employee is mapped or user is deleted
                 if (!empAssetCount[empId]) {
-                    empAssetCount[empId] = { count: 0, val: 0, user: userMap[empId] || { name: 'Unknown Employee', id: empId, department: 'Unknown' } };
+                    empAssetCount[empId] = { count: 0, val: 0, user: userMap[empId] };
                 }
                 empAssetCount[empId].count++;
                 empAssetCount[empId].val += parseFloat(a.purchase_cost || 0);
@@ -3265,19 +3265,19 @@ window.viewEmployeeAssignedAssetsReport = function(empId) {
     const user = db.users.find(u => u.id == empId);
     if (!user) return;
 
-    document.getElementById('rep-ast-emp-id-val').innerText = user.employee_id || user.id || '-';
-    document.getElementById('rep-ast-emp-name').innerText = user.name || '-';
-    document.getElementById('rep-ast-emp-dept').innerText = user.department || '-';
-    document.getElementById('rep-ast-emp-desig').innerText = user.designation || '-';
+    if (document.getElementById('rep-ast-emp-id-val')) document.getElementById('rep-ast-emp-id-val').innerText = user.employee_id || user.id || '-';
+    if (document.getElementById('rep-ast-emp-name')) document.getElementById('rep-ast-emp-name').innerText = user.name || '-';
+    if (document.getElementById('rep-ast-emp-dept')) document.getElementById('rep-ast-emp-dept').innerText = user.department || '-';
+    if (document.getElementById('rep-ast-emp-desig')) document.getElementById('rep-ast-emp-desig').innerText = user.designation || '-';
 
     const myIssues = (db.assetIssues || []).filter(ai => ai.employee_id === empId && ai.status === 'Active');
     const myAssetIds = myIssues.map(ai => ai.asset_id);
     const empAssets = (db.assets || []).filter(a => myAssetIds.includes(a.id));
     
-    document.getElementById('rep-ast-emp-total-qty').innerText = empAssets.length;
+    if (document.getElementById('rep-ast-emp-total-qty')) document.getElementById('rep-ast-emp-total-qty').innerText = empAssets.length;
     let totalVal = 0;
     empAssets.forEach(a => totalVal += parseFloat(a.purchase_cost || 0));
-    document.getElementById('rep-ast-emp-total-val').innerText = totalVal.toLocaleString();
+    if (document.getElementById('rep-ast-emp-total-val')) document.getElementById('rep-ast-emp-total-val').innerText = totalVal.toLocaleString();
 
     const tbody = document.getElementById('rep-ast-emp-tbody');
     tbody.innerHTML = empAssets.map((a, i) => {
