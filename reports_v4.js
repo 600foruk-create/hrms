@@ -2655,7 +2655,7 @@ window.generateAdminProductivityReport = function(db) {
                         <td>${index + 1}</td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 28px; height: 28px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #64748b;">${initial}</div>
+                                <div class="print-hide" style="width: 28px; height: 28px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #64748b;">${initial}</div>
                                 <div>
                                     <div style="font-weight: 600; color: #0f172a; font-size: 13px;">${row.name}</div>
                                     <div style="font-size: 11px; color: #64748b;">${row.empId}</div>
@@ -2669,12 +2669,12 @@ window.generateAdminProductivityReport = function(db) {
                         <td>
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <span style="font-weight: 700; font-size: 12px; width: 35px;">${row.compPct}%</span>
-                                <div class="prod-progress-wrapper">
+                                <div class="prod-progress-wrapper print-hide">
                                     <div class="prod-progress-bg"><div class="prod-progress-bar" style="width: ${row.compPct}%; background: ${barColor};"></div></div>
                                 </div>
                             </div>
                         </td>
-                        <td class="text-center"><span class="prod-badge ${row.statusClass}">${row.status}</span></td>
+                        <td class="text-center"><span class="prod-badge ${row.statusClass} print-plain">${row.status}</span></td>
                         <td class="text-center print-hide">
                             <button type="button" class="prod-action-btn" data-empid="${row.empId}" onclick="if(window.viewProductivityDetails) { window.viewProductivityDetails('${row.empId}'); } else { alert('Wait for scripts to load'); }"><i class="fa-regular fa-eye"></i> View Details</button>
                         </td>
@@ -2815,7 +2815,7 @@ window.generateAdminProductivityReport = function(db) {
                         <td>
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <span style="font-weight: 700; font-size: 12px; width: 35px;">${row.compPct}%</span>
-                                <div class="prod-progress-wrapper" style="max-width:80px;">
+                                <div class="prod-progress-wrapper print-hide" style="max-width:80px;">
                                     <div class="prod-progress-bg"><div class="prod-progress-bar" style="width: ${row.compPct}%; background: #2563EB;"></div></div>
                                 </div>
                             </div>
