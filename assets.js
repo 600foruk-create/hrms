@@ -304,15 +304,24 @@ window.editInlineMainCat = async function() {
 window.deleteInlineMainCat = async function() {
     if (!window.selectedMainCategory) return window.showToast && window.showToast('Select a category to delete', 'warning');
     const catName = window.selectedMainCategory;
+    const db = window.getDb();
+    
+    const assetsInCat = (db.assets || []).filter(a => a.category === catName);
+    const issuedAssets = assetsInCat.filter(a => db.assetIssues && db.assetIssues.some(ai => ai.asset_id === a.id && ai.status === 'Active'));
+    
+    if (issuedAssets.length > 0) {
+        return Swal.fire('Cannot Delete', `There are ${issuedAssets.length} issued assets in this category. Please return them first.`, 'error');
+    }
+    
     const { isConfirmed } = await Swal.fire({
-        title: 'Delete Category?',
-        text: `Are you sure you want to delete '${catName}'? Assets under this category will lose their main category.`,
+        title: 'Delete Category & Assets?',
+        text: `Are you sure you want to delete '${catName}' AND all its ${assetsInCat.length} assets? This action cannot be undone.`,
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'Yes, delete it'
+        confirmButtonText: 'Yes, delete all'
     });
+    
     if (isConfirmed) {
-        const db = window.getDb();
         db.systemSettings = db.systemSettings || {};
         if (db.systemSettings.assetCategories) {
             db.systemSettings.assetCategories = db.systemSettings.assetCategories.filter(c => c !== catName);
@@ -321,18 +330,13 @@ window.deleteInlineMainCat = async function() {
             delete db.systemSettings.assetSubCategories[catName];
         }
         if (db.assets) {
-            db.assets.forEach(a => {
-                if (a.category === catName) {
-                    a.category = '';
-                    a.sub_category = '';
-                }
-            });
+            db.assets = db.assets.filter(a => a.category !== catName);
         }
         window.selectedMainCategory = null;
         window.selectedSubCategory = null;
         window.saveDb(db);
         if (window.renderAdminAssetsTab) window.renderAdminAssetsTab('inventory');
-        if (window.showToast) window.showToast('Main Category deleted', 'success');
+        if (window.showToast) window.showToast('Category and its assets deleted', 'success');
     }
 };
 
@@ -394,30 +398,35 @@ window.deleteInlineSubCat = async function() {
     if (!window.selectedMainCategory || !window.selectedSubCategory) return window.showToast && window.showToast('Select a sub category to delete', 'warning');
     const subCatName = window.selectedSubCategory;
     const mainCat = window.selectedMainCategory;
+    const db = window.getDb();
+    
+    const assetsInSubCat = (db.assets || []).filter(a => a.category === mainCat && a.sub_category === subCatName);
+    const issuedAssets = assetsInSubCat.filter(a => db.assetIssues && db.assetIssues.some(ai => ai.asset_id === a.id && ai.status === 'Active'));
+    
+    if (issuedAssets.length > 0) {
+        return Swal.fire('Cannot Delete', `There are ${issuedAssets.length} issued assets in this sub category. Please return them first.`, 'error');
+    }
+    
     const { isConfirmed } = await Swal.fire({
-        title: 'Delete Sub Category?',
-        text: `Are you sure you want to delete '${subCatName}'? Assets under this sub category will lose it.`,
+        title: 'Delete Sub Category & Assets?',
+        text: `Are you sure you want to delete '${subCatName}' AND all its ${assetsInSubCat.length} assets?`,
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonText: 'Yes, delete it'
+        confirmButtonText: 'Yes, delete all'
     });
+    
     if (isConfirmed) {
-        const db = window.getDb();
         db.systemSettings = db.systemSettings || {};
         if (db.systemSettings.assetSubCategories && db.systemSettings.assetSubCategories[mainCat]) {
             db.systemSettings.assetSubCategories[mainCat] = db.systemSettings.assetSubCategories[mainCat].filter(c => c !== subCatName);
         }
         if (db.assets) {
-            db.assets.forEach(a => {
-                if (a.category === mainCat && a.sub_category === subCatName) {
-                    a.sub_category = '';
-                }
-            });
+            db.assets = db.assets.filter(a => !(a.category === mainCat && a.sub_category === subCatName));
         }
         window.selectedSubCategory = null;
         window.saveDb(db);
         if (window.renderAdminAssetsTab) window.renderAdminAssetsTab('inventory');
-        if (window.showToast) window.showToast('Sub Category deleted', 'success');
+        if (window.showToast) window.showToast('Sub Category and its assets deleted', 'success');
     }
 };
 window.addInlineAsset = function(prefillName = null) {
