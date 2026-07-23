@@ -3193,7 +3193,7 @@
                                 <i class="fa-solid fa-box-open"></i> Assets
                             </button>
                             <button class="btn-sub-tab" data-subtab="admin-report-loans"
-                                onclick="if(window.generateAdminReport) window.generateAdminReport('loans')">
+                                onclick="if(window.resetAdminLoansFilters) window.resetAdminLoansFilters(); if(window.generateAdminReport) window.generateAdminReport('loans')">
                                 <i class="fa-solid fa-hand-holding-dollar"></i> Loans
                             </button>
                             <button class="btn-sub-tab" data-subtab="admin-report-overtime"
@@ -4954,95 +4954,119 @@
                         </div>
 
                         <!-- Sub Tab 8: Loans Report -->
+                        <!-- Sub Tab 8: Loans Report -->
                         <div id="subtab-content-admin-report-loans" class="sub-tab-content hidden">
+                            <!-- Header & Top Actions -->
+                            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;">
+                                <div>
+                                    <h2 style="margin: 0; font-size: 24px; color: var(--text-primary);">Loan Reports & Analytics</h2>
+                                    <p style="margin: 5px 0 0; color: var(--text-secondary); font-size: 14px;">View employee loans, repayments, outstanding balances, and loan status across the company.</p>
+                                </div>
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="btn btn-outline btn-sm" onclick="if(window.exportAdminLoansExcel) window.exportAdminLoansExcel()"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
+                                    <button class="btn btn-outline btn-sm" onclick="if(window.printReport) window.printReport('admin-report-loans')"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
+                                    <button class="btn btn-primary btn-sm" onclick="if(window.printReport) window.printReport('admin-report-loans')"><i class="fa-solid fa-print"></i> Print Report</button>
+                                </div>
+                            </div>
+
+                            <!-- Filter Section -->
+                            <div class="section-card bg-glass mb-4" style="padding: 15px;">
+                                <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+                                    <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+                                        <label style="font-size: 12px; font-weight: 600;">Date Range</label>
+                                        <div style="display: flex; gap: 5px; align-items: center;">
+                                            <input type="date" id="admin-rep-loan-start" class="form-control" style="font-size: 13px;">
+                                            <span class="text-muted">-</span>
+                                            <input type="date" id="admin-rep-loan-end" class="form-control" style="font-size: 13px;">
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 150px;">
+                                        <label style="font-size: 12px; font-weight: 600;">Department</label>
+                                        <select id="admin-rep-loan-dept" class="form-control" style="font-size: 13px;">
+                                            <option value="All">All Departments</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 150px;">
+                                        <label style="font-size: 12px; font-weight: 600;">Employee</label>
+                                        <select id="admin-rep-loan-emp" class="form-control" style="font-size: 13px;">
+                                            <option value="All">All Employees</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 150px;">
+                                        <label style="font-size: 12px; font-weight: 600;">Loan Type</label>
+                                        <select id="admin-rep-loan-type" class="form-control" style="font-size: 13px;">
+                                            <option value="All">All Loan Types</option>
+                                            <option value="Loan">Long-term Loan</option>
+                                            <option value="Advance">Salary Advance</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 150px;">
+                                        <label style="font-size: 12px; font-weight: 600;">Loan Status</label>
+                                        <select id="admin-rep-loan-status" class="form-control" style="font-size: 13px;">
+                                            <option value="All">All</option>
+                                            <option value="Active">Active</option>
+                                            <option value="Completed">Completed</option>
+                                            <option value="Overdue">Overdue</option>
+                                        </select>
+                                    </div>
+                                    <div style="display: flex; gap: 10px;">
+                                        <button class="btn btn-primary" style="height: 38px; font-size: 14px;" onclick="if(window.generateAdminLoansReport) window.generateAdminLoansReport(window.getDb())"><i class="fa-solid fa-filter"></i> Generate Report</button>
+                                        <button class="btn btn-outline" style="height: 38px; font-size: 14px;" onclick="if(window.resetAdminLoansFilters) window.resetAdminLoansFilters()"><i class="fa-solid fa-rotate-right"></i> Reset Filters</button>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Summary Cards -->
-                            <div class="metrics-grid mb-4"
-                                style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                                <div class="metric-card bg-glass" style="padding: 15px;">
-                                    <div class="text-secondary" style="font-size: 13px;">Total Loan Issued</div>
-                                    <div class="metric-value text-primary" id="admin-rep-loans-total-issued"
-                                        style="font-size: 20px;">Rs 0</div>
+                            <div class="metrics-grid mb-4" style="grid-template-columns: repeat(4, 1fr); gap: 15px;">
+                                <div class="metric-card bg-glass" style="padding: 15px; border-left: 4px solid var(--primary);">
+                                    <div class="text-secondary" style="font-size: 12px; font-weight: 600; text-transform: uppercase;">Total Loans Issued</div>
+                                    <div class="metric-value text-primary" id="admin-rep-loans-total-issued" style="font-size: 24px; font-weight: 700; margin-top: 5px;">Rs 0</div>
                                 </div>
-                                <div class="metric-card bg-glass" style="padding: 15px;">
-                                    <div class="text-secondary" style="font-size: 13px;">Total Monthly EMI</div>
-                                    <div class="metric-value text-warning" id="admin-rep-loans-total-emi"
-                                        style="font-size: 20px;">Rs 0</div>
+                                <div class="metric-card bg-glass" style="padding: 15px; border-left: 4px solid #10b981;">
+                                    <div class="text-secondary" style="font-size: 12px; font-weight: 600; text-transform: uppercase;">Total Recovered Amount</div>
+                                    <div class="metric-value" id="admin-rep-loans-total-recovered" style="font-size: 24px; font-weight: 700; margin-top: 5px; color: #10b981;">Rs 0</div>
                                 </div>
-                                <div class="metric-card bg-glass" style="padding: 15px;">
-                                    <div class="text-secondary" style="font-size: 13px;">Outstanding Balance</div>
-                                    <div class="metric-value text-danger" id="admin-rep-loans-total-remaining"
-                                        style="font-size: 20px;">Rs 0</div>
+                                <div class="metric-card bg-glass" style="padding: 15px; border-left: 4px solid #f59e0b;">
+                                    <div class="text-secondary" style="font-size: 12px; font-weight: 600; text-transform: uppercase;">Outstanding Balance</div>
+                                    <div class="metric-value" id="admin-rep-loans-total-remaining" style="font-size: 24px; font-weight: 700; margin-top: 5px; color: #f59e0b;">Rs 0</div>
+                                </div>
+                                <div class="metric-card bg-glass" style="padding: 15px; border-left: 4px solid #6366f1;">
+                                    <div class="text-secondary" style="font-size: 12px; font-weight: 600; text-transform: uppercase;">Active Loans</div>
+                                    <div class="metric-value" id="admin-rep-loans-active-count" style="font-size: 24px; font-weight: 700; margin-top: 5px; color: #6366f1;">0</div>
                                 </div>
                             </div>
 
-                            <!-- Inner Tabs (Active vs Cleared) -->
-                            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                                <button type="button" class="btn btn-primary btn-sm loan-inner-tab active"
-                                    id="admin-loan-tab-Active" onclick="window.switchLoanInnerTab('admin', 'Active')">
-                                    <i class="fa-solid fa-clock-rotate-left"></i> Active Loans
-                                </button>
-                                <button type="button" class="btn btn-outline btn-sm loan-inner-tab"
-                                    id="admin-loan-tab-Cleared" onclick="window.switchLoanInnerTab('admin', 'Cleared')">
-                                    <i class="fa-solid fa-check-circle"></i> Cleared Loans
-                                </button>
-                                <button type="button" class="btn btn-outline btn-sm loan-inner-tab"
-                                    id="admin-loan-tab-All" onclick="window.switchLoanInnerTab('admin', 'All')">
-                                    <i class="fa-solid fa-list"></i> All Loans
-                                </button>
-                            </div>
-
+                            <!-- Main Report Table -->
                             <div class="section-card bg-glass flex-table-card">
-                                <div class="section-card-header report-filters-header"
-                                    style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 15px;">
-                                    <div style="display: flex; gap: 15px; flex-wrap: wrap; flex: 1;">
-                                        <div class="form-group" style="margin-bottom: 0;">
-                                            <label>Employee</label>
-                                            <select id="admin-rep-loan-emp" class="form-control">
-                                                <option value="All">All Employees</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group" style="display: none;">
-                                            <label>Status</label>
-                                            <select id="admin-rep-loan-status" class="form-control">
-                                                <option value="Active">Active</option>
-                                                <option value="All">All Statuses</option>
-                                                <option value="Cleared">Cleared</option>
-                                            </select>
-                                        </div>
-                                        <div style="display: flex; align-items: flex-end;">
-                                            <button class="btn btn-primary"
-                                                onclick="if(window.generateAdminReport) window.generateAdminReport('loans')"><i
-                                                    class="fa-solid fa-filter"></i> Generate</button>
-                                        </div>
-                                    </div>
-                                    <div style="margin-left: 15px;">
-                                        <button class="btn btn-outline"
-                                            onclick="if(window.printReport) window.printReport('admin-report-loans')"><i
-                                                class="fa-solid fa-print"></i> Print</button>
-                                    </div>
+                                <div class="section-card-header" style="border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 0;">
+                                    <h3 style="margin: 0; font-size: 16px;">Employee Loan Register</h3>
                                 </div>
                                 <div class="table-container printable-area" id="print-area-admin-report-loans">
-                                    <div class="print-header hidden">
-                                        <h2>Company Loans & Advances Report</h2>
-                                        <p id="print-subtitle-admin-loans"></p>
+                                    <!-- Print Header -->
+                                    <div class="print-header hidden" style="text-align: center; margin-bottom: 20px;">
+                                        <h1 style="margin: 0 0 10px 0;">Employee Loan Report</h1>
+                                        <p id="print-subtitle-admin-loans" style="color: #666; font-size: 14px; margin: 0;"></p>
                                     </div>
-                                    <table class="data-table">
+                                    <table class="data-table" style="width: 100%; font-size: 13px;">
                                         <thead>
                                             <tr>
-                                                <th>Loan ID</th>
+                                                <th style="white-space: nowrap;">Loan ID</th>
                                                 <th>Employee Name</th>
+                                                <th>Department</th>
                                                 <th>Loan Type</th>
-                                                <th>Total Issued</th>
-                                                <th>Monthly EMI</th>
-                                                <th>Remaining Balance</th>
+                                                <th class="text-right">Loan Amount</th>
+                                                <th class="text-right">Monthly EMI</th>
+                                                <th class="text-right">Paid Amount</th>
+                                                <th class="text-right">Remaining Balance</th>
                                                 <th>Status</th>
-                                                <th>Issued Date</th>
+                                                <th>Issue Date</th>
+                                                <th>End Date</th>
+                                                <th class="text-center print-hide">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody id="admin-rep-body-loans">
                                             <tr>
-                                                <td colspan="8" class="text-center text-muted">Click Generate to view
-                                                    data</td>
+                                                <td colspan="12" class="text-center text-muted" style="padding: 30px;">Click Generate Report to view data</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -9279,6 +9303,54 @@
         <div class="modal-footer">
             <button type="button" class="btn btn-outline modal-close">Cancel</button>
             <button type="submit" form="edit-salary-profile-form" class="btn btn-primary">Save Structure</button>
+        </div>
+    </div>
+
+    <!-- Loan Details Report Modal -->
+    <div id="modal-report-loan-details" class="modal hidden" style="z-index: 10000;">
+        <div class="modal-header" style="border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px;">
+            <h3 style="margin: 0;">Loan Details</h3>
+            <button onclick="closeModal('modal-report-loan-details')" class="close-btn" style="background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 20px 0;">
+            <div id="print-area-loan-details" class="printable-area">
+                <div class="print-header hidden" style="text-align: center; margin-bottom: 20px;">
+                    <h1 style="margin: 0 0 10px 0;">Loan Details Report</h1>
+                </div>
+                
+                <h4 style="margin: 0 0 15px 0; font-size: 14px; text-transform: uppercase; color: var(--primary); border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 5px;">Employee Information</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; font-size: 13px;">
+                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Employee Name:</span> <strong id="loan-det-emp-name">-</strong></div>
+                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Employee ID:</span> <strong id="loan-det-emp-id">-</strong></div>
+                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Department:</span> <strong id="loan-det-dept">-</strong></div>
+                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Designation:</span> <strong id="loan-det-desig">-</strong></div>
+                </div>
+
+                <h4 style="margin: 0 0 15px 0; font-size: 14px; text-transform: uppercase; color: var(--primary); border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 5px;">Loan Information</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; font-size: 13px;">
+                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Loan ID:</span> <strong id="loan-det-id">-</strong></div>
+                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Loan Type:</span> <strong id="loan-det-type">-</strong></div>
+                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Loan Amount:</span> <strong id="loan-det-amount">-</strong></div>
+                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Monthly EMI:</span> <strong id="loan-det-emi">-</strong></div>
+                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Total EMI Count:</span> <strong id="loan-det-total-emi-count">-</strong></div>
+                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Paid EMI Count:</span> <strong id="loan-det-paid-emi-count">-</strong></div>
+                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Remaining EMI:</span> <strong id="loan-det-rem-emi-count">-</strong></div>
+                </div>
+
+                <h4 style="margin: 0 0 15px 0; font-size: 14px; text-transform: uppercase; color: var(--primary); border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 5px;">Financial Information</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 13px;">
+                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Paid Amount:</span> <strong id="loan-det-paid-amt" class="text-success">-</strong></div>
+                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Remaining Balance:</span> <strong id="loan-det-rem-amt" class="text-danger">-</strong></div>
+                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Issue Date:</span> <strong id="loan-det-issue-date">-</strong></div>
+                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">End Date:</span> <strong id="loan-det-end-date">-</strong></div>
+                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Status:</span> <span id="loan-det-status">-</span></div>
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 30px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
+                <button class="btn btn-outline" onclick="closeModal('modal-report-loan-details')">Close</button>
+                <button class="btn btn-primary" onclick="window.printReport('loan-details')"><i class="fa-solid fa-print"></i> Print Loan</button>
+            </div>
         </div>
     </div>
 

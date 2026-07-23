@@ -507,7 +507,7 @@ window.initAdminReportsTab = function() {
     }
 
     // Populate Departments
-    const deptSelects = ['admin-rep-att-sum-dept', 'admin-rep-emp-dept', 'admin-rep-leave-dept'];
+    const deptSelects = ['admin-rep-att-sum-dept', 'admin-rep-emp-dept', 'admin-rep-leave-dept', 'admin-rep-loan-dept'];
     const departments = [...new Set(db.users.map(u => u.department).filter(d => d))];
     deptSelects.forEach(id => {
         const el = document.getElementById(id);
@@ -3513,3 +3513,221 @@ window.exportAdminAssetsPDF = function() {
     alert("Please use the 'Print Report' button and select 'Save as PDF' to generate the professional report.");
 };
 
+
+
+// =============== LOANS REPORT ADMIN =============== //
+
+window.resetAdminLoansFilters = function() {
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    
+    document.getElementById('admin-rep-loan-start').value = firstDay.toISOString().split('T')[0];
+    document.getElementById('admin-rep-loan-end').value = today.toISOString().split('T')[0];
+    document.getElementById('admin-rep-loan-dept').value = 'All';
+    document.getElementById('admin-rep-loan-emp').value = 'All';
+    document.getElementById('admin-rep-loan-type').value = 'All';
+    document.getElementById('admin-rep-loan-status').value = 'All';
+    
+    if (window.generateAdminLoansReport) {
+        window.generateAdminLoansReport(window.getDb ? window.getDb() : window.db);
+    }
+};
+
+window.generateAdminLoansReport = function(db) {
+    if (!db || !db.loans) return;
+    
+    const startObj = document.getElementById('admin-rep-loan-start');
+    const endObj = document.getElementById('admin-rep-loan-end');
+    
+    // Set default dates if empty
+    if (!startObj.value || !endObj.value) {
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        if(!startObj.value) startObj.value = firstDay.toISOString().split('T')[0];
+        if(!endObj.value) endObj.value = today.toISOString().split('T')[0];
+    }
+    
+    const startDate = new Date(startObj.value);
+    const endDate = new Date(endObj.value);
+    endDate.setHours(23, 59, 59, 999);
+    
+    const dept = document.getElementById('admin-rep-loan-dept').value;
+    const empId = document.getElementById('admin-rep-loan-emp').value;
+    const type = document.getElementById('admin-rep-loan-type').value;
+    const status = document.getElementById('admin-rep-loan-status').value;
+    
+    let totalIssued = 0;
+    let totalRecovered = 0;
+    let totalRemaining = 0;
+    let activeCount = 0;
+    
+    let html = '';
+    let filteredLoans = db.loans.filter(loan => {
+        const user = db.users.find(u => u.id === loan.userId);
+        if(!user) return false;
+        
+        // Date filter based on issuedAt
+        const issueDate = new Date(loan.issuedAt);
+        if(issueDate < startDate || issueDate > endDate) return false;
+        
+        // Department filter
+        if(dept !== 'All' && user.department !== dept) return false;
+        
+        // Employee filter
+        if(empId !== 'All' && user.id !== empId) return false;
+        
+        // Type filter
+        if(type !== 'All' && loan.type !== type) return false;
+        
+        // Status filter
+        const isCompleted = loan.remainingAmount <= 0;
+        const currentStatus = isCompleted ? 'Completed' : 'Active';
+        if(status !== 'All' && currentStatus !== status) return false;
+        
+        return true;
+    });
+    
+    filteredLoans.forEach(loan => {
+        const user = db.users.find(u => u.id === loan.userId) || {};
+        const paidAmount = loan.totalAmount - loan.remainingAmount;
+        const isCompleted = loan.remainingAmount <= 0;
+        const statusBadge = isCompleted ? `<span class="badge bg-primary">Completed</span>` : `<span class="badge bg-success">Active</span>`;
+        
+        totalIssued += loan.totalAmount;
+        totalRecovered += paidAmount;
+        totalRemaining += loan.remainingAmount;
+        if (!isCompleted) activeCount++;
+        
+        const issueD = new Date(loan.issuedAt);
+        
+        // Calculate End Date roughly
+        const totalMonths = Math.ceil(loan.totalAmount / loan.monthlyInstallment);
+        const endD = new Date(issueD);
+        endD.setMonth(endD.getMonth() + totalMonths);
+        
+        html += `
+            <tr>
+                <td>${loan.id}</td>
+                <td>
+                    <div style="font-weight: 500;">${user.name || 'Unknown'}</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">${user.id || '-'}</div>
+                </td>
+                <td>${user.department || '-'}</td>
+                <td>${loan.type}</td>
+                <td class="text-right">Rs ${loan.totalAmount.toLocaleString()}</td>
+                <td class="text-right">Rs ${loan.monthlyInstallment.toLocaleString()}</td>
+                <td class="text-right text-success">Rs ${paidAmount.toLocaleString()}</td>
+                <td class="text-right text-danger">Rs ${loan.remainingAmount.toLocaleString()}</td>
+                <td>${statusBadge}</td>
+                <td>${issueD.toLocaleDateString()}</td>
+                <td>${endD.toLocaleDateString()}</td>
+                <td class="text-center print-hide">
+                    <button class="btn btn-sm btn-outline" onclick="window.viewLoanDetails('${loan.id}')">View Details</button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    if (filteredLoans.length === 0) {
+        html = `<tr><td colspan="12" class="text-center text-muted" style="padding: 30px;">No loans found matching the filters</td></tr>`;
+    }
+    
+    document.getElementById('admin-rep-body-loans').innerHTML = html;
+    
+    // Update Summaries
+    document.getElementById('admin-rep-loans-total-issued').textContent = 'Rs ' + totalIssued.toLocaleString();
+    document.getElementById('admin-rep-loans-total-recovered').textContent = 'Rs ' + totalRecovered.toLocaleString();
+    document.getElementById('admin-rep-loans-total-remaining').textContent = 'Rs ' + totalRemaining.toLocaleString();
+    document.getElementById('admin-rep-loans-active-count').textContent = activeCount;
+    
+    // Update Print Subtitle
+    let subtitle = `Date: ${startObj.value} to ${endObj.value}`;
+    if (dept !== 'All') subtitle += ` | Dept: ${dept}`;
+    if (empId !== 'All') subtitle += ` | Employee ID: ${empId}`;
+    document.getElementById('print-subtitle-admin-loans').textContent = subtitle;
+};
+
+window.viewLoanDetails = function(loanId) {
+    const db = window.getDb ? window.getDb() : window.db;
+    const loan = db.loans.find(l => l.id === loanId);
+    if (!loan) return;
+    
+    const user = db.users.find(u => u.id === loan.userId) || {};
+    
+    // Populate Modal
+    document.getElementById('loan-det-emp-name').textContent = user.name || '-';
+    document.getElementById('loan-det-emp-id').textContent = user.id || '-';
+    document.getElementById('loan-det-dept').textContent = user.department || '-';
+    document.getElementById('loan-det-desig').textContent = user.designation || '-';
+    
+    document.getElementById('loan-det-id').textContent = loan.id;
+    document.getElementById('loan-det-type').textContent = loan.type;
+    document.getElementById('loan-det-amount').textContent = 'Rs ' + loan.totalAmount.toLocaleString();
+    document.getElementById('loan-det-emi').textContent = 'Rs ' + loan.monthlyInstallment.toLocaleString();
+    
+    const totalEmiCount = Math.ceil(loan.totalAmount / loan.monthlyInstallment);
+    const paidAmount = loan.totalAmount - loan.remainingAmount;
+    const paidEmiCount = Math.floor(paidAmount / loan.monthlyInstallment);
+    const remEmiCount = totalEmiCount - paidEmiCount;
+    
+    document.getElementById('loan-det-total-emi-count').textContent = totalEmiCount;
+    document.getElementById('loan-det-paid-emi-count').textContent = paidEmiCount;
+    document.getElementById('loan-det-rem-emi-count').textContent = remEmiCount;
+    
+    document.getElementById('loan-det-paid-amt').textContent = 'Rs ' + paidAmount.toLocaleString();
+    document.getElementById('loan-det-rem-amt').textContent = 'Rs ' + loan.remainingAmount.toLocaleString();
+    
+    const issueD = new Date(loan.issuedAt);
+    const endD = new Date(issueD);
+    endD.setMonth(endD.getMonth() + totalEmiCount);
+    
+    document.getElementById('loan-det-issue-date').textContent = issueD.toLocaleDateString();
+    document.getElementById('loan-det-end-date').textContent = endD.toLocaleDateString();
+    
+    const isCompleted = loan.remainingAmount <= 0;
+    document.getElementById('loan-det-status').innerHTML = isCompleted ? `<span class="badge bg-primary">Completed</span>` : `<span class="badge bg-success">Active</span>`;
+    
+    // Show Modal
+    document.getElementById('modal-report-loan-details').classList.remove('hidden');
+};
+
+window.exportAdminLoansExcel = function() {
+    const table = document.querySelector('#print-area-admin-report-loans table');
+    if (!table) return;
+    
+    let csv = [];
+    const rows = table.querySelectorAll('tr');
+    
+    for (let i = 0; i < rows.length; i++) {
+        let row = [], cols = rows[i].querySelectorAll('td, th');
+        
+        // Skip last column (Action)
+        const colLength = i === 0 ? cols.length - 1 : cols.length - 1;
+        
+        for (let j = 0; j < colLength; j++) {
+            let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, ' ').trim();
+            // Escape double quotes
+            data = data.replace(/"/g, '""');
+            row.push('"' + data + '"');
+        }
+        
+        // If it's a "No data" row, it only has 1 colspan col
+        if(cols.length === 1 && cols[0].colSpan > 1) {
+             row = ['"' + cols[0].innerText + '"'];
+        }
+        
+        csv.push(row.join(','));
+    }
+    
+    const csvString = csv.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'Loan_Reports_' + new Date().toISOString().split('T')[0] + '.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
