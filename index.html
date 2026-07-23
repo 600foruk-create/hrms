@@ -4957,11 +4957,7 @@
                         <!-- Sub Tab 8: Loans Report -->
                         <div id="subtab-content-admin-report-loans" class="sub-tab-content hidden">
                             <!-- Header & Top Actions -->
-                            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;">
-                                <div>
-                                    <h2 style="margin: 0; font-size: 24px; color: var(--text-primary);">Loan Reports & Analytics</h2>
-                                    <p style="margin: 5px 0 0; color: var(--text-secondary); font-size: 14px;">View employee loans, repayments, outstanding balances, and loan status across the company.</p>
-                                </div>
+                            <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
                                 <div style="display: flex; gap: 10px;">
                                     <button class="btn btn-outline btn-sm" onclick="if(window.exportAdminLoansExcel) window.exportAdminLoansExcel()"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
                                     <button class="btn btn-outline btn-sm" onclick="if(window.printReport) window.printReport('admin-report-loans')"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
@@ -4971,66 +4967,66 @@
 
                             <!-- Filter Section -->
                             <div class="section-card bg-glass mb-4" style="padding: 15px;">
-                                <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
-                                    <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;">
+                                    <div class="form-group" style="margin-bottom: 0; flex: 1;">
                                         <label style="font-size: 12px; font-weight: 600;">Date Range</label>
                                         <div style="display: flex; gap: 5px; align-items: center;">
-                                            <input type="date" id="admin-rep-loan-start" class="form-control" style="font-size: 13px;">
+                                            <input type="date" id="admin-rep-loan-start" class="form-control" style="font-size: 12px; padding: 5px;">
                                             <span class="text-muted">-</span>
-                                            <input type="date" id="admin-rep-loan-end" class="form-control" style="font-size: 13px;">
+                                            <input type="date" id="admin-rep-loan-end" class="form-control" style="font-size: 12px; padding: 5px;">
                                         </div>
                                     </div>
-                                    <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 150px;">
+                                    <div class="form-group" style="margin-bottom: 0; flex: 1;">
                                         <label style="font-size: 12px; font-weight: 600;">Department</label>
-                                        <select id="admin-rep-loan-dept" class="form-control" style="font-size: 13px;">
+                                        <select id="admin-rep-loan-dept" class="form-control" style="font-size: 12px; padding: 5px;">
                                             <option value="All">All Departments</option>
                                         </select>
                                     </div>
-                                    <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 150px;">
+                                    <div class="form-group" style="margin-bottom: 0; flex: 1;">
                                         <label style="font-size: 12px; font-weight: 600;">Employee</label>
-                                        <select id="admin-rep-loan-emp" class="form-control" style="font-size: 13px;">
+                                        <select id="admin-rep-loan-emp" class="form-control" style="font-size: 12px; padding: 5px;">
                                             <option value="All">All Employees</option>
                                         </select>
                                     </div>
-                                    <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 150px;">
+                                    <div class="form-group" style="margin-bottom: 0; flex: 1;">
                                         <label style="font-size: 12px; font-weight: 600;">Loan Type</label>
-                                        <select id="admin-rep-loan-type" class="form-control" style="font-size: 13px;">
+                                        <select id="admin-rep-loan-type" class="form-control" style="font-size: 12px; padding: 5px;">
                                             <option value="All">All Loan Types</option>
                                             <option value="Loan">Long-term Loan</option>
                                             <option value="Advance">Salary Advance</option>
                                         </select>
                                     </div>
-                                    <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 150px;">
+                                    <div class="form-group" style="margin-bottom: 0; flex: 1;">
                                         <label style="font-size: 12px; font-weight: 600;">Loan Status</label>
-                                        <select id="admin-rep-loan-status" class="form-control" style="font-size: 13px;">
+                                        <select id="admin-rep-loan-status" class="form-control" style="font-size: 12px; padding: 5px;">
                                             <option value="All">All</option>
                                             <option value="Active">Active</option>
                                             <option value="Completed">Completed</option>
                                             <option value="Overdue">Overdue</option>
                                         </select>
                                     </div>
-                                    <div style="display: flex; gap: 10px;">
-                                        <button class="btn btn-primary" style="height: 38px; font-size: 14px;" onclick="if(window.generateAdminLoansReport) window.generateAdminLoansReport(window.getDb())"><i class="fa-solid fa-filter"></i> Generate Report</button>
-                                        <button class="btn btn-outline" style="height: 38px; font-size: 14px;" onclick="if(window.resetAdminLoansFilters) window.resetAdminLoansFilters()"><i class="fa-solid fa-rotate-right"></i> Reset Filters</button>
+                                    <div style="display: flex; gap: 5px;">
+                                        <button class="btn btn-primary" style="height: 31px; font-size: 12px; padding: 0 10px;" onclick="if(window.generateAdminLoansReport) window.generateAdminLoansReport(window.getDb())"><i class="fa-solid fa-filter"></i> Generate</button>
+                                        <button class="btn btn-outline" style="height: 31px; font-size: 12px; padding: 0 10px;" onclick="if(window.resetAdminLoansFilters) window.resetAdminLoansFilters()"><i class="fa-solid fa-rotate-right"></i> Reset</button>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Summary Cards -->
                             <div class="metrics-grid mb-4" style="grid-template-columns: repeat(4, 1fr); gap: 15px;">
-                                <div class="metric-card bg-glass" style="padding: 15px; border-left: 4px solid var(--primary);">
+                                <div class="metric-card bg-glass" style="padding: 15px;">
                                     <div class="text-secondary" style="font-size: 12px; font-weight: 600; text-transform: uppercase;">Total Loans Issued</div>
                                     <div class="metric-value text-primary" id="admin-rep-loans-total-issued" style="font-size: 24px; font-weight: 700; margin-top: 5px;">Rs 0</div>
                                 </div>
-                                <div class="metric-card bg-glass" style="padding: 15px; border-left: 4px solid #10b981;">
+                                <div class="metric-card bg-glass" style="padding: 15px;">
                                     <div class="text-secondary" style="font-size: 12px; font-weight: 600; text-transform: uppercase;">Total Recovered Amount</div>
                                     <div class="metric-value" id="admin-rep-loans-total-recovered" style="font-size: 24px; font-weight: 700; margin-top: 5px; color: #10b981;">Rs 0</div>
                                 </div>
-                                <div class="metric-card bg-glass" style="padding: 15px; border-left: 4px solid #f59e0b;">
+                                <div class="metric-card bg-glass" style="padding: 15px;">
                                     <div class="text-secondary" style="font-size: 12px; font-weight: 600; text-transform: uppercase;">Outstanding Balance</div>
                                     <div class="metric-value" id="admin-rep-loans-total-remaining" style="font-size: 24px; font-weight: 700; margin-top: 5px; color: #f59e0b;">Rs 0</div>
                                 </div>
-                                <div class="metric-card bg-glass" style="padding: 15px; border-left: 4px solid #6366f1;">
+                                <div class="metric-card bg-glass" style="padding: 15px;">
                                     <div class="text-secondary" style="font-size: 12px; font-weight: 600; text-transform: uppercase;">Active Loans</div>
                                     <div class="metric-value" id="admin-rep-loans-active-count" style="font-size: 24px; font-weight: 700; margin-top: 5px; color: #6366f1;">0</div>
                                 </div>
