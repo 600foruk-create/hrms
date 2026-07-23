@@ -3296,8 +3296,10 @@ window.viewEmployeeAssignedAssetsReport = function(empId) {
         </tr>`;
     }).join('') || '<tr><td colspan="8" class="text-center text-muted" style="padding: 15px;">No assets assigned</td></tr>';
 
-    if (!document.getElementById('modal-employee-assigned-assets')) {
-        const modalHtml = `
+    const oldModal = document.getElementById('modal-employee-assigned-assets');
+    if (oldModal) oldModal.remove();
+
+    const modalHtml = `
     <div id="modal-employee-assigned-assets" class="modal hidden" style="width: 850px; max-width: 95vw; z-index: 10005; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
         <div class="modal-header" style="background: #fff; border-bottom: none; padding: 25px 25px 15px 25px; display: flex; justify-content: space-between; align-items: center;">
             <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 0;">Employee Assets</h3>
@@ -3352,13 +3354,12 @@ window.viewEmployeeAssignedAssetsReport = function(empId) {
             <button type="button" class="btn btn-outline" onclick="closeModal('modal-employee-assigned-assets')" style="border: 1px solid #e2e8f0; color: #475569; font-weight: 600; padding: 8px 25px; border-radius: 6px;">Close</button>
         </div>
     </div>`;
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-    }
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
 
-    if (document.getElementById('rep-ast-emp-id-val')) document.getElementById('rep-ast-emp-id-val').innerText = user.employee_id || user.id || '-';
-    if (document.getElementById('rep-ast-emp-name')) document.getElementById('rep-ast-emp-name').innerText = user.name || '-';
-    if (document.getElementById('rep-ast-emp-dept')) document.getElementById('rep-ast-emp-dept').innerText = user.department || '-';
-    if (document.getElementById('rep-ast-emp-desig')) document.getElementById('rep-ast-emp-desig').innerText = user.designation || '-';
+    document.getElementById('rep-ast-emp-id-val').innerText = user.employee_id || user.id || '-';
+    document.getElementById('rep-ast-emp-name').innerText = user.name || '-';
+    document.getElementById('rep-ast-emp-dept').innerText = user.department || '-';
+    document.getElementById('rep-ast-emp-desig').innerText = user.designation || '-';
 
     document.getElementById('rep-ast-emp-total-qty').innerText = empAssets.length;
     document.getElementById('rep-ast-emp-total-val').innerText = totalVal.toLocaleString();
