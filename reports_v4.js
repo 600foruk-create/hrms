@@ -3409,7 +3409,7 @@ window.viewAssetDetailsReport = function(assetId) {
     }
 
     const modalHtml = `
-    <div id="modal-asset-details-report" class="modal hidden" style="width: 750px; max-width: 95vw; z-index: 10005;">
+    <div id="modal-asset-details-report" class="modal hidden" style="width: 750px; max-width: 95vw; z-index: 10005; border-radius: 12px; overflow: hidden;">
         <div class="modal-header">
             <h3>Asset Details</h3>
             <div class="modal-header-controls">
@@ -3468,8 +3468,8 @@ window.viewAssetDetailsReport = function(assetId) {
                 </table>
             </div>
         </div>
-        <div class="modal-footer" style="padding: 15px 25px; border-top: none; background: #fff; display: flex; justify-content: flex-end;">
-            <button type="button" class="btn btn-outline" onclick="closeModal('modal-asset-details-report')" style="border: 1px solid #e2e8f0; color: #475569; font-weight: 600; padding: 8px 25px; border-radius: 6px;">Close</button>
+        <div class="modal-footer" style="padding: 10px 20px; border-top: none; background: #fff; display: flex; justify-content: flex-end;">
+            <button type="button" class="btn btn-outline" onclick="closeModal('modal-asset-details-report')" style="border: 1px solid #e2e8f0; color: #475569; font-weight: 600; padding: 6px 20px; border-radius: 6px;">Close</button>
         </div>
     </div>`;
 
