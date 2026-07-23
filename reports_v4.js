@@ -3409,17 +3409,19 @@ window.viewAssetDetailsReport = function(assetId) {
     }
 
     const modalHtml = `
-    <div id="modal-asset-details-report" class="modal hidden" style="width: 750px; max-width: 95vw; z-index: 10005; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
-        <div class="modal-header" style="background: #fff; border-bottom: none; padding: 25px 25px 15px 25px; display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 0;">Asset Details</h3>
-            <button class="btn-close" onclick="closeModal('modal-asset-details-report')" style="color: #64748b; background: none; border: none; font-size: 18px; cursor: pointer;"><i class="fa-solid fa-times"></i></button>
+    <div id="modal-asset-details-report" class="modal hidden" style="width: 750px; max-width: 95vw; z-index: 10005;">
+        <div class="modal-header">
+            <h3>Asset Details</h3>
+            <div class="modal-header-controls">
+                <button type="button" class="modal-close" onclick="closeModal('modal-asset-details-report')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
         </div>
         <div class="modal-body" style="padding: 0 25px 25px 25px;">
-            <div style="display: flex; gap: 30px; margin-bottom: 25px;">
+            <div style="display: flex; gap: 30px; margin-bottom: 25px; margin-top: 15px;">
                 <div style="width: 220px; height: 180px; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; background: #f8fafc; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 50px; color: #cbd5e1;">
                     <i class="fa-solid fa-laptop"></i>
                 </div>
-                <div style="display: grid; grid-template-columns: 160px 1fr; gap: 12px; font-size: 13px; font-weight: 700; width: 100%;">
+                <div style="display: grid; grid-template-columns: 160px 1fr; gap: 12px; font-size: 13px; font-weight: 700; width: 100%; align-content: start;">
                     <div style="color: #475569;">Asset ID</div>
                     <div style="color: #0f172a;">: ${asset.id || '-'}</div>
                     <div style="color: #475569;">Asset Name</div>
@@ -3434,12 +3436,6 @@ window.viewAssetDetailsReport = function(assetId) {
                     <div style="color: #0f172a;">: ${asset.barcode || '-'}</div>
                     <div style="color: #475569;">Purchase Date</div>
                     <div style="color: #0f172a;">: ${asset.purchase_date || '-'}</div>
-                    <div style="color: #475569;">Purchase Cost (Rs.)</div>
-                    <div style="color: #0f172a;">: ${asset.purchase_cost ? parseFloat(asset.purchase_cost).toLocaleString() : '-'}</div>
-                    <div style="color: #475569;">Current Value (Rs.)</div>
-                    <div style="color: #0f172a;">: ${asset.current_value ? parseFloat(asset.current_value).toLocaleString() : '-'}</div>
-                    <div style="color: #475569;">Warranty Expiry</div>
-                    <div style="color: #0f172a;">: ${asset.warranty_expiry || '-'}</div>
                 </div>
             </div>
             
@@ -3451,12 +3447,10 @@ window.viewAssetDetailsReport = function(assetId) {
                  <div style="color: #0f172a;">: ${asset.assigned_date || '-'}</div>
                  <div style="color: #475569;">Department</div>
                  <div style="color: #0f172a;">: ${deptName}</div>
-                 <div style="color: #475569;">Expected Return</div>
-                 <div style="color: #0f172a;">: -</div>
-                 <div style="color: #475569;">Designation</div>
-                 <div style="color: #0f172a;">: ${user.designation || '-'}</div>
                  <div style="color: #475569;">Status</div>
                  <div style="color: #0f172a;">: <span class="ast-badge ${asset.status || 'Available'}" style="background: #dcfce7; color: #16a34a; padding: 2px 8px; border-radius: 4px; font-size: 11px;">${asset.status || 'Available'}</span></div>
+                 <div style="color: #475569;">Designation</div>
+                 <div style="color: #0f172a;">: ${user.designation || '-'}</div>
             </div>
             
             <h4 style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 15px;">Asset History</h4>
