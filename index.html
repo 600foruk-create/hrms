@@ -4794,13 +4794,14 @@
                                     @media print {
                                         .assets-rep-actions, .assets-rep-filter-row { display: none !important; }
                                         .ast-card { box-shadow: none !important; border: 1px solid #ccc !important; }
-                                        .assets-rep-section { border: 1px solid #ccc !important; page-break-inside: avoid; }
+                                        .assets-rep-section { border: none !important; margin-bottom: 20px !important; display: block !important; page-break-inside: auto !important; }
                                         .ast-table-footer { display: none !important; }
                                         .ast-badge { background: transparent !important; border: none !important; padding: 0 !important; color: #000 !important; font-weight: normal !important; }
                                         #print-area-admin-assets-report { padding: 0 !important; margin: 0 !important; }
                                         .print-header { display: block !important; margin-bottom: 20px !important; text-align: center; }
-                                        .assets-rep-section { border: none !important; margin-bottom: 20px !important; }
-                                        .ast-table-scroll { max-height: none !important; overflow: visible !important; }
+                                        .ast-table-scroll { max-height: none !important; overflow: visible !important; display: block !important; }
+                                        .assets-rep-table { page-break-inside: auto; }
+                                        .assets-rep-table tr { page-break-inside: avoid; page-break-after: auto; }
                                         .assets-rep-table th { position: static !important; }
                                     }
                                 </style>
