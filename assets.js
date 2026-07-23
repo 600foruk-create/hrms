@@ -45,7 +45,9 @@ window.selectedSubCategory = null;
 window.renderAssetsInventory = function() {
     const db = window.getDb ? window.getDb() : window.db;
     
-    const uniqueCats = [...new Set((db.assets || []).map(a => a.category).filter(Boolean))];
+    const dynamicCats = [...new Set((db.assets || []).map(a => a.category).filter(Boolean))];
+    const sysCats = (db.systemSettings && db.systemSettings.assetCategories) ? db.systemSettings.assetCategories : [];
+    const uniqueCats = [...new Set([...dynamicCats, ...sysCats])].sort();
     
     // Auto-select first Main Category if none selected
     if (!window.selectedMainCategory && uniqueCats.length > 0) {
@@ -54,7 +56,11 @@ window.renderAssetsInventory = function() {
     
     // Auto-select first Sub Category if Main is selected but Sub is not
     if (window.selectedMainCategory && !window.selectedSubCategory) {
-        const uniqueSubs = [...new Set((db.assets || []).filter(a => a.category === window.selectedMainCategory).map(a => a.sub_category).filter(Boolean))];
+        const dynamicSubs = [...new Set((db.assets || []).filter(a => a.category === window.selectedMainCategory).map(a => a.sub_category).filter(Boolean))];
+        const sysSubsObj = (db.systemSettings && db.systemSettings.assetSubCategories) ? db.systemSettings.assetSubCategories : {};
+        const sysSubs = sysSubsObj[window.selectedMainCategory] || [];
+        const uniqueSubs = [...new Set([...dynamicSubs, ...sysSubs])].sort();
+        
         if (uniqueSubs.length > 0) {
             window.selectedSubCategory = uniqueSubs[0];
         }
@@ -94,20 +100,8 @@ function renderSubPane() {
     const subPane = document.getElementById('inventory-pane-sub-cat');
     if (!subPane) return;
     
-    if (!window.selectedMainCategory) {
-        subPane.innerHTML = '<li style="padding: 15px; text-align: center; color: #999; font-style: italic;">Select a Main Category</li>';
-        return;
-    }
-
-    const uniqueSubs = [...new Set((db.assets || []).filter(a => a.category === window.selectedMainCategory).map(a => a.sub_category).filter(Boolean))];
     let html = '';
-    
-    if (uniqueSubs.length > 0) {
-        uniqueSubs.forEach(sub => {
-            const isActive = window.selectedSubCategory === sub;
-            const bg = isActive ? 'var(--primary)' : '';
-            const color = isActive ? '#fff' : 'var(--text-primary)';
-            const iconColor = isActive ? '#fff' : 'var(--text-secondary)';
+    if (!window.selectedMainCategory) {
             const hover = isActive ? '' : `onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background=''"`;
 
             let availableCount = 0;
@@ -237,8 +231,179 @@ window.selectSubCategoryBox = function(mainCat, subCat) {
 };
 
 // --- Inline Management Functions ---
-// Inline functions have been removed as categories are now derived dynamically from the `assets` table.
+// Inline Category Management Functions
+window.addInlineMainCat = async function() {
+    const { value: catName } = await Swal.fire({
+        title: 'Add Main Category',
+        input: 'text',
+        inputPlaceholder: 'Enter category name',
+        showCancelButton: true
+    });
+    if (catName) {
+        const db = window.getDb();
+        db.systemSettings = db.systemSettings || {};
+        db.systemSettings.assetCategories = db.systemSettings.assetCategories || [];
+        if (!db.systemSettings.assetCategories.includes(catName)) {
+            db.systemSettings.assetCategories.push(catName);
+            window.saveDb();
+            window.selectedMainCategory = catName;
+            if (window.renderAdminAssetsTab) window.renderAdminAssetsTab('inventory');
+            if (window.showToast) window.showToast('Main Category added', 'success');
+        }
+    }
+};
 
+window.editInlineMainCat = async function() {
+    if (!window.selectedMainCategory) return window.showToast && window.showToast('Select a category to edit', 'warning');
+    const oldName = window.selectedMainCategory;
+    const { value: newName } = await Swal.fire({
+        title: 'Edit Main Category',
+        input: 'text',
+        inputValue: oldName,
+        showCancelButton: true
+    });
+    if (newName && newName !== oldName) {
+        const db = window.getDb();
+        db.systemSettings = db.systemSettings || {};
+        db.systemSettings.assetCategories = db.systemSettings.assetCategories || [];
+        const idx = db.systemSettings.assetCategories.indexOf(oldName);
+        if (idx !== -1) db.systemSettings.assetCategories[idx] = newName;
+        else db.systemSettings.assetCategories.push(newName);
+        
+        if (db.systemSettings.assetSubCategories && db.systemSettings.assetSubCategories[oldName]) {
+            db.systemSettings.assetSubCategories[newName] = db.systemSettings.assetSubCategories[oldName];
+            delete db.systemSettings.assetSubCategories[oldName];
+        }
+
+        if (db.assets) {
+            db.assets.forEach(a => { if (a.category === oldName) a.category = newName; });
+        }
+        window.selectedMainCategory = newName;
+        window.saveDb();
+        if (window.renderAdminAssetsTab) window.renderAdminAssetsTab('inventory');
+        if (window.showToast) window.showToast('Main Category updated', 'success');
+    }
+};
+
+window.deleteInlineMainCat = async function() {
+    if (!window.selectedMainCategory) return window.showToast && window.showToast('Select a category to delete', 'warning');
+    const catName = window.selectedMainCategory;
+    const { isConfirmed } = await Swal.fire({
+        title: 'Delete Category?',
+        text: `Are you sure you want to delete '${catName}'? Assets under this category will lose their main category.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it'
+    });
+    if (isConfirmed) {
+        const db = window.getDb();
+        db.systemSettings = db.systemSettings || {};
+        if (db.systemSettings.assetCategories) {
+            db.systemSettings.assetCategories = db.systemSettings.assetCategories.filter(c => c !== catName);
+        }
+        if (db.systemSettings.assetSubCategories) {
+            delete db.systemSettings.assetSubCategories[catName];
+        }
+        if (db.assets) {
+            db.assets.forEach(a => {
+                if (a.category === catName) {
+                    a.category = '';
+                    a.sub_category = '';
+                }
+            });
+        }
+        window.selectedMainCategory = null;
+        window.selectedSubCategory = null;
+        window.saveDb();
+        if (window.renderAdminAssetsTab) window.renderAdminAssetsTab('inventory');
+        if (window.showToast) window.showToast('Main Category deleted', 'success');
+    }
+};
+
+window.addInlineSubCat = async function() {
+    if (!window.selectedMainCategory) return window.showToast && window.showToast('Select a Main Category first', 'warning');
+    const { value: subCatName } = await Swal.fire({
+        title: 'Add Sub Category',
+        input: 'text',
+        inputPlaceholder: 'Enter sub category name',
+        showCancelButton: true
+    });
+    if (subCatName) {
+        const db = window.getDb();
+        db.systemSettings = db.systemSettings || {};
+        db.systemSettings.assetSubCategories = db.systemSettings.assetSubCategories || {};
+        if (!db.systemSettings.assetSubCategories[window.selectedMainCategory]) {
+            db.systemSettings.assetSubCategories[window.selectedMainCategory] = [];
+        }
+        if (!db.systemSettings.assetSubCategories[window.selectedMainCategory].includes(subCatName)) {
+            db.systemSettings.assetSubCategories[window.selectedMainCategory].push(subCatName);
+            window.saveDb();
+            window.selectedSubCategory = subCatName;
+            if (window.renderAdminAssetsTab) window.renderAdminAssetsTab('inventory');
+            if (window.showToast) window.showToast('Sub Category added', 'success');
+        }
+    }
+};
+
+window.editInlineSubCat = async function() {
+    if (!window.selectedMainCategory || !window.selectedSubCategory) return window.showToast && window.showToast('Select a sub category to edit', 'warning');
+    const oldName = window.selectedSubCategory;
+    const mainCat = window.selectedMainCategory;
+    const { value: newName } = await Swal.fire({
+        title: 'Edit Sub Category',
+        input: 'text',
+        inputValue: oldName,
+        showCancelButton: true
+    });
+    if (newName && newName !== oldName) {
+        const db = window.getDb();
+        db.systemSettings = db.systemSettings || {};
+        db.systemSettings.assetSubCategories = db.systemSettings.assetSubCategories || {};
+        if (!db.systemSettings.assetSubCategories[mainCat]) db.systemSettings.assetSubCategories[mainCat] = [];
+        const idx = db.systemSettings.assetSubCategories[mainCat].indexOf(oldName);
+        if (idx !== -1) db.systemSettings.assetSubCategories[mainCat][idx] = newName;
+        else db.systemSettings.assetSubCategories[mainCat].push(newName);
+
+        if (db.assets) {
+            db.assets.forEach(a => { if (a.category === mainCat && a.sub_category === oldName) a.sub_category = newName; });
+        }
+        window.selectedSubCategory = newName;
+        window.saveDb();
+        if (window.renderAdminAssetsTab) window.renderAdminAssetsTab('inventory');
+        if (window.showToast) window.showToast('Sub Category updated', 'success');
+    }
+};
+
+window.deleteInlineSubCat = async function() {
+    if (!window.selectedMainCategory || !window.selectedSubCategory) return window.showToast && window.showToast('Select a sub category to delete', 'warning');
+    const subCatName = window.selectedSubCategory;
+    const mainCat = window.selectedMainCategory;
+    const { isConfirmed } = await Swal.fire({
+        title: 'Delete Sub Category?',
+        text: `Are you sure you want to delete '${subCatName}'? Assets under this sub category will lose it.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it'
+    });
+    if (isConfirmed) {
+        const db = window.getDb();
+        db.systemSettings = db.systemSettings || {};
+        if (db.systemSettings.assetSubCategories && db.systemSettings.assetSubCategories[mainCat]) {
+            db.systemSettings.assetSubCategories[mainCat] = db.systemSettings.assetSubCategories[mainCat].filter(c => c !== subCatName);
+        }
+        if (db.assets) {
+            db.assets.forEach(a => {
+                if (a.category === mainCat && a.sub_category === subCatName) {
+                    a.sub_category = '';
+                }
+            });
+        }
+        window.selectedSubCategory = null;
+        window.saveDb();
+        if (window.renderAdminAssetsTab) window.renderAdminAssetsTab('inventory');
+        if (window.showToast) window.showToast('Sub Category deleted', 'success');
+    }
+};
 window.addInlineAsset = function(prefillName = null) {
     if (!window.selectedMainCategory || !window.selectedSubCategory) {
         if (window.showToast) window.showToast('Please select a Main and Sub Category first to add an asset', 'warning');
