@@ -3238,7 +3238,6 @@ window.generateAdminAssetsReport = function(passedDb) {
             const deptName = u.department || '-';
             const status = a.status || 'Available';
             const assignName = u.name || (status === 'Available' ? 'Store / Available' : '-');
-            const cost = a.purchase_cost ? parseFloat(a.purchase_cost).toLocaleString() : '-';
             
             return `<tr>
                 <td>${i+1}</td>
@@ -3250,7 +3249,6 @@ window.generateAdminAssetsReport = function(passedDb) {
                 <td>${status === 'Available' ? '-' : deptName}</td>
                 <td><span class="ast-badge ${status}">${status}</span></td>
                 <td>${a.purchase_date || '-'}</td>
-                <td class="text-right">${cost}</td>
                 <td class="print-hide text-center"><button class="btn btn-outline btn-sm" onclick="viewAssetDetailsReport('${a.id}')" style="font-size: 11px; padding: 4px 10px; color:#2563eb; border-color:#2563eb;">View</button></td>
             </tr>`;
         }).join('');
