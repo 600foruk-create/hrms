@@ -4799,6 +4799,9 @@
                                         .ast-badge { background: transparent !important; border: none !important; padding: 0 !important; color: #000 !important; font-weight: normal !important; }
                                         #print-area-admin-assets-report { padding: 0 !important; margin: 0 !important; }
                                         .print-header { display: block !important; margin-bottom: 20px !important; text-align: center; }
+                                        .assets-rep-section { border: none !important; margin-bottom: 20px !important; }
+                                        .ast-table-scroll { max-height: none !important; overflow: visible !important; }
+                                        .assets-rep-table th { position: static !important; }
                                     }
                                 </style>
 
@@ -4852,7 +4855,7 @@
                                     </div>
 
                                     <!-- Summary Cards -->
-                                    <div class="ast-summary-cards">
+                                    <div class="ast-summary-cards print-hide">
                                         <div class="ast-card">
                                             <div class="ast-card-content">
                                                 <h4>Total Assets</h4>
@@ -4876,7 +4879,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="ast-grid-2">
+                                    <div class="ast-grid-2 print-hide">
                                         <!-- Company Assets Overview Table -->
                                         <div class="assets-rep-section">
                                             <h3 class="assets-rep-section-title">Company Assets Overview</h3>
@@ -4920,8 +4923,8 @@
 
                                     <!-- Asset Register (All Assets) Table -->
                                     <div class="assets-rep-section">
-                                        <h3 class="assets-rep-section-title">Asset Register (All Assets)</h3>
-                                        <div style="max-height: 280px; overflow-y: auto;">
+                                        <h3 class="assets-rep-section-title print-hide">Asset Register (All Assets)</h3>
+                                        <div class="ast-table-scroll" style="max-height: 280px; overflow-y: auto;">
                                             <table class="assets-rep-table">
                                                 <thead>
                                                     <tr style="position: sticky; top: 0; background: #f8fafc; z-index: 1;">
