@@ -3192,12 +3192,13 @@ window.generateAdminAssetsReport = function(passedDb) {
     if (empSummaryTbody) {
         const empAssetCount = {};
         filteredAssets.forEach(a => {
-            if (a.assigned_to && (a.status === 'Assigned' || a.status === 'Issued')) {
-                if (!empAssetCount[a.assigned_to]) {
-                    empAssetCount[a.assigned_to] = { count: 0, val: 0, user: userMap[a.assigned_to] };
+            if (a.status === 'Assigned' || a.status === 'Issued') {
+                const empId = a.assigned_to || 'Unknown';
+                if (!empAssetCount[empId]) {
+                    empAssetCount[empId] = { count: 0, val: 0, user: userMap[empId] || { name: 'Unknown Employee', id: empId, department: 'Unknown' } };
                 }
-                empAssetCount[a.assigned_to].count++;
-                empAssetCount[a.assigned_to].val += parseFloat(a.purchase_cost || 0);
+                empAssetCount[empId].count++;
+                empAssetCount[empId].val += parseFloat(a.purchase_cost || 0);
             }
         });
 
