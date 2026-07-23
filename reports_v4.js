@@ -3851,7 +3851,8 @@ window.generateAdminOtReport = function() {
     document.getElementById('ot-summary-approved').innerText = appHours.toFixed(2) + ' hrs';
     document.getElementById('ot-summary-pending').innerText = penHours.toFixed(2) + ' hrs';
     
-    document.getElementById('ot-rep-footer-text').innerText = `Showing 1 to ${logs.length} of ${logs.length} entries`;
+    let footerTextEl = document.getElementById('ot-rep-footer-text');
+    if(footerTextEl) footerTextEl.innerText = `Showing 1 to ${logs.length} of ${logs.length} entries`;
     
     // Set subtitle
     let subtitle = `Report Date: ${new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})}`;
