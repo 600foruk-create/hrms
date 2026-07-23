@@ -9314,42 +9314,48 @@
                     <h1 style="margin: 0 0 10px 0;">Loan Details Report</h1>
                 </div>
                 
-                <h4 style="margin: 0 0 15px 0; font-size: 14px; text-transform: uppercase; color: var(--primary); border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 5px;">Employee Information</h4>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; font-size: 13px;">
-                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Employee Name:</span> <strong id="loan-det-emp-name">-</strong></div>
-                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Employee ID:</span> <strong id="loan-det-emp-id">-</strong></div>
-                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Department:</span> <strong id="loan-det-dept">-</strong></div>
-                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Designation:</span> <strong id="loan-det-desig">-</strong></div>
+                <div style="background-color: #f8fafc; color: #1d4ed8; padding: 10px 15px; border-radius: 6px; font-weight: 600; font-size: 14px; margin-bottom: 15px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-address-card"></i> Employee Information
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 25px; font-size: 13px; color: #334155; padding-left: 5px;">
+                    <div style="display: flex;"><div style="width: 150px; font-weight: 600; color: #1e293b;">Employee Name</div><div style="width: 20px; color: #1e293b;">:</div><div id="loan-det-emp-name" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 150px; font-weight: 600; color: #1e293b;">Employee ID</div><div style="width: 20px; color: #1e293b;">:</div><div id="loan-det-emp-id" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 150px; font-weight: 600; color: #1e293b;">Department</div><div style="width: 20px; color: #1e293b;">:</div><div id="loan-det-dept" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 150px; font-weight: 600; color: #1e293b;">Designation</div><div style="width: 20px; color: #1e293b;">:</div><div id="loan-det-desig" style="flex: 1;">-</div></div>
                 </div>
 
-                <h4 style="margin: 0 0 15px 0; font-size: 14px; text-transform: uppercase; color: var(--primary); border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 5px;">Loan Information</h4>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; font-size: 13px;">
-                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Loan ID:</span> <strong id="loan-det-id">-</strong></div>
-                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Loan Type:</span> <strong id="loan-det-type">-</strong></div>
-                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Loan Amount:</span> <strong id="loan-det-amount">-</strong></div>
-                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Monthly EMI:</span> <strong id="loan-det-emi">-</strong></div>
-                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Total EMI Count:</span> <strong id="loan-det-total-emi-count">-</strong></div>
-                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Paid EMI Count:</span> <strong id="loan-det-paid-emi-count">-</strong></div>
-                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Remaining EMI:</span> <strong id="loan-det-rem-emi-count">-</strong></div>
+                <div style="background-color: #f8fafc; color: #1d4ed8; padding: 10px 15px; border-radius: 6px; font-weight: 600; font-size: 14px; margin-bottom: 15px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-hand-holding-dollar"></i> Loan Information
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px 30px; margin-bottom: 25px; font-size: 13px; color: #334155; padding-left: 5px;">
+                    <div style="display: flex;"><div style="width: 120px; font-weight: 600; color: #1e293b;">Loan ID</div><div style="width: 20px; color: #1e293b;">:</div><div id="loan-det-id" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 140px; font-weight: 600; color: #1e293b;">Total EMI Count</div><div style="width: 20px; color: #1e293b;">:</div><div id="loan-det-total-emi-count" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 120px; font-weight: 600; color: #1e293b;">Loan Type</div><div style="width: 20px; color: #1e293b;">:</div><div id="loan-det-type" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 140px; font-weight: 600; color: #1e293b;">Paid EMI Count</div><div style="width: 20px; color: #1e293b;">:</div><div id="loan-det-paid-emi-count" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 120px; font-weight: 600; color: #1e293b;">Loan Amount</div><div style="width: 20px; color: #1e293b;">:</div><div id="loan-det-amount" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 140px; font-weight: 600; color: #1e293b;">Remaining EMI Count</div><div style="width: 20px; color: #1e293b;">:</div><div id="loan-det-rem-emi-count" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 120px; font-weight: 600; color: #1e293b;">Monthly EMI</div><div style="width: 20px; color: #1e293b;">:</div><div id="loan-det-emi" style="flex: 1;">-</div></div>
                 </div>
 
-                <h4 style="margin: 0 0 15px 0; font-size: 14px; text-transform: uppercase; color: var(--primary); border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 5px;">Financial Information</h4>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 13px;">
-                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Paid Amount:</span> <strong id="loan-det-paid-amt" class="text-success">-</strong></div>
-                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Remaining Balance:</span> <strong id="loan-det-rem-amt" class="text-danger">-</strong></div>
-                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Issue Date:</span> <strong id="loan-det-issue-date">-</strong></div>
-                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">End Date:</span> <strong id="loan-det-end-date">-</strong></div>
-                    <div><span class="text-secondary" style="display: inline-block; width: 120px;">Status:</span> <span id="loan-det-status">-</span></div>
+                <div style="background-color: #f8fafc; color: #1d4ed8; padding: 10px 15px; border-radius: 6px; font-weight: 600; font-size: 14px; margin-bottom: 15px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-file-invoice-dollar"></i> Financial Information
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px 30px; font-size: 13px; color: #334155; padding-left: 5px;">
+                    <div style="display: flex;"><div style="width: 120px; font-weight: 600; color: #1e293b;">Paid Amount</div><div style="width: 20px; color: #1e293b;">:</div><div id="loan-det-paid-amt" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 140px; font-weight: 600; color: #1e293b;">Issue Date</div><div style="width: 20px; color: #1e293b;">:</div><div id="loan-det-issue-date" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 120px; font-weight: 600; color: #1e293b;">Remaining Balance</div><div style="width: 20px; color: #1e293b;">:</div><div id="loan-det-rem-amt" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 140px; font-weight: 600; color: #1e293b;">End Date</div><div style="width: 20px; color: #1e293b;">:</div><div id="loan-det-end-date" style="flex: 1;">-</div></div>
+                    <div style="display: flex; align-items: center;"><div style="width: 120px; font-weight: 600; color: #1e293b;">Status</div><div style="width: 20px; color: #1e293b;">:</div><div id="loan-det-status" style="flex: 1;">-</div></div>
                 </div>
             </div>
             
             <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 30px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px;">
-                <button class="btn btn-outline" onclick="closeModal('modal-report-loan-details')">Close</button>
-                <button class="btn btn-primary" onclick="window.printReport('loan-details')"><i class="fa-solid fa-print"></i> Print Loan</button>
+                <button class="btn btn-outline" style="color: #334155; border-color: #cbd5e1;" onclick="window.printReport('loan-details')"><i class="fa-solid fa-print"></i> Print Loan</button>
+                <button class="btn btn-primary" onclick="closeModal('modal-report-loan-details')">Close</button>
             </div>
         </div>
     </div>
-
+    
     <!-- 11. Issue Loan Modal -->
     <div id="modal-issue-loan" class="modal hidden">
         <div class="modal-header">
