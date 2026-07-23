@@ -3591,7 +3591,7 @@ window.generateAdminLoansReport = function(db) {
         const user = db.users.find(u => u.id === loan.userId) || {};
         const paidAmount = loan.totalAmount - loan.remainingAmount;
         const isCompleted = loan.remainingAmount <= 0;
-        const statusBadge = isCompleted ? `<span class="badge bg-primary">Completed</span>` : `<span class="badge bg-success">Active</span>`;
+        const statusBadge = isCompleted ? `<span style="display:inline-block; border: 1px solid #3b82f6; color: #3b82f6; background: #eff6ff; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 600;">Completed</span>` : `<span style="display:inline-block; border: 1px solid #16a34a; color: #16a34a; background: #f0fdf4; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 600;">Active</span>`;
         
         totalIssued += loan.totalAmount;
         totalRecovered += paidAmount;
