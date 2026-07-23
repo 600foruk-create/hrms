@@ -3374,22 +3374,115 @@ window.viewAssetDetailsReport = function(assetId) {
     const asset = (db.assets || []).find(a => a.id == assetId);
     if (!asset) return;
 
+    const oldModal = document.getElementById('modal-asset-details-report');
+    if (oldModal) oldModal.remove();
+
     const user = db.users.find(u => u.id == asset.assigned_to) || {};
     const deptName = (db.departments || []).find(d => d.id == user.department)?.name || '-';
 
-    document.getElementById('rep-ast-det-id').innerText = asset.id || '-';
-    document.getElementById('rep-ast-det-name').innerText = asset.name || '-';
-    document.getElementById('rep-ast-det-cat').innerText = asset.category || '-';
-    document.getElementById('rep-ast-det-brand').innerText = asset.brand || '-';
-    document.getElementById('rep-ast-det-serial').innerText = asset.serial_number || '-';
-    document.getElementById('rep-ast-det-pdate').innerText = asset.purchase_date || '-';
-    document.getElementById('rep-ast-det-pcost').innerText = asset.purchase_cost ? 'Rs ' + parseFloat(asset.purchase_cost).toLocaleString() : '-';
+    const myIssues = (db.assetIssues || []).filter(ai => ai.asset_id === assetId);
+    let historyHtml = '';
+    let hCount = 1;
+    myIssues.forEach(issue => {
+        const issueEmp = db.users.find(u => u.id == issue.employee_id);
+        const empName = issueEmp ? issueEmp.name : 'Unknown Employee';
+        historyHtml += `<tr>
+            <td style="padding: 10px 15px; border-bottom: 1px solid #e2e8f0;">${hCount++}</td>
+            <td style="padding: 10px 15px; border-bottom: 1px solid #e2e8f0;">${issue.issue_date || '-'}</td>
+            <td style="padding: 10px 15px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #0f172a;">Assigned to Employee</td>
+            <td style="padding: 10px 15px; border-bottom: 1px solid #e2e8f0;">HR Admin</td>
+            <td style="padding: 10px 15px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Asset assigned to ${empName}</td>
+        </tr>`;
+        if (issue.return_date) {
+            historyHtml += `<tr>
+                <td style="padding: 10px 15px; border-bottom: 1px solid #e2e8f0;">${hCount++}</td>
+                <td style="padding: 10px 15px; border-bottom: 1px solid #e2e8f0;">${issue.return_date || '-'}</td>
+                <td style="padding: 10px 15px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #0f172a;">Returned</td>
+                <td style="padding: 10px 15px; border-bottom: 1px solid #e2e8f0;">HR Admin</td>
+                <td style="padding: 10px 15px; border-bottom: 1px solid #e2e8f0; color: #64748b;">Asset returned by ${empName}</td>
+            </tr>`;
+        }
+    });
 
-    document.getElementById('rep-ast-det-emp').innerText = user.name || '-';
-    document.getElementById('rep-ast-det-edept').innerText = deptName;
-    document.getElementById('rep-ast-det-adate').innerText = asset.assigned_date || '-';
-    document.getElementById('rep-ast-det-status').innerText = asset.status || 'Available';
+    if (!historyHtml) {
+        historyHtml = '<tr><td colspan="5" class="text-center text-muted" style="padding: 15px;">No history available</td></tr>';
+    }
 
+    const modalHtml = `
+    <div id="modal-asset-details-report" class="modal hidden" style="width: 750px; max-width: 95vw; z-index: 10005; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
+        <div class="modal-header" style="background: #fff; border-bottom: none; padding: 25px 25px 15px 25px; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 0;">Asset Details</h3>
+            <button class="btn-close" onclick="closeModal('modal-asset-details-report')" style="color: #64748b; background: none; border: none; font-size: 18px; cursor: pointer;"><i class="fa-solid fa-times"></i></button>
+        </div>
+        <div class="modal-body" style="padding: 0 25px 25px 25px;">
+            <div style="display: flex; gap: 30px; margin-bottom: 25px;">
+                <div style="width: 220px; height: 180px; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; background: #f8fafc; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 50px; color: #cbd5e1;">
+                    <i class="fa-solid fa-laptop"></i>
+                </div>
+                <div style="display: grid; grid-template-columns: 160px 1fr; gap: 12px; font-size: 13px; font-weight: 700; width: 100%;">
+                    <div style="color: #475569;">Asset ID</div>
+                    <div style="color: #0f172a;">: ${asset.id || '-'}</div>
+                    <div style="color: #475569;">Asset Name</div>
+                    <div style="color: #0f172a;">: ${asset.name || '-'}</div>
+                    <div style="color: #475569;">Category</div>
+                    <div style="color: #0f172a;">: ${asset.category || '-'}</div>
+                    <div style="color: #475569;">Brand</div>
+                    <div style="color: #0f172a;">: ${asset.brand || '-'}</div>
+                    <div style="color: #475569;">Serial Number</div>
+                    <div style="color: #0f172a;">: ${asset.serial_number || '-'}</div>
+                    <div style="color: #475569;">Barcode</div>
+                    <div style="color: #0f172a;">: ${asset.barcode || '-'}</div>
+                    <div style="color: #475569;">Purchase Date</div>
+                    <div style="color: #0f172a;">: ${asset.purchase_date || '-'}</div>
+                    <div style="color: #475569;">Purchase Cost (Rs.)</div>
+                    <div style="color: #0f172a;">: ${asset.purchase_cost ? parseFloat(asset.purchase_cost).toLocaleString() : '-'}</div>
+                    <div style="color: #475569;">Current Value (Rs.)</div>
+                    <div style="color: #0f172a;">: ${asset.current_value ? parseFloat(asset.current_value).toLocaleString() : '-'}</div>
+                    <div style="color: #475569;">Warranty Expiry</div>
+                    <div style="color: #0f172a;">: ${asset.warranty_expiry || '-'}</div>
+                </div>
+            </div>
+            
+            <h4 style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 15px; border-top: 1px solid #e2e8f0; padding-top: 25px;">Assignment Information</h4>
+            <div style="display: grid; grid-template-columns: 120px 1fr 120px 1fr; gap: 14px; font-size: 13px; font-weight: 700; margin-bottom: 25px;">
+                 <div style="color: #475569;">Assigned To</div>
+                 <div style="color: #0f172a;">: ${user.name || '-'}</div>
+                 <div style="color: #475569;">Assign Date</div>
+                 <div style="color: #0f172a;">: ${asset.assigned_date || '-'}</div>
+                 <div style="color: #475569;">Department</div>
+                 <div style="color: #0f172a;">: ${deptName}</div>
+                 <div style="color: #475569;">Expected Return</div>
+                 <div style="color: #0f172a;">: -</div>
+                 <div style="color: #475569;">Designation</div>
+                 <div style="color: #0f172a;">: ${user.designation || '-'}</div>
+                 <div style="color: #475569;">Status</div>
+                 <div style="color: #0f172a;">: <span class="ast-badge ${asset.status || 'Available'}" style="background: #dcfce7; color: #16a34a; padding: 2px 8px; border-radius: 4px; font-size: 11px;">${asset.status || 'Available'}</span></div>
+            </div>
+            
+            <h4 style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 15px;">Asset History</h4>
+            <div style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; max-height: 200px; overflow-y: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 12px;">
+                    <thead style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; color: #475569; font-weight: 700;">
+                        <tr>
+                            <th style="padding: 10px 15px; position: sticky; top: 0; background: #f8fafc; z-index: 1;">#</th>
+                            <th style="padding: 10px 15px; position: sticky; top: 0; background: #f8fafc; z-index: 1;">Date</th>
+                            <th style="padding: 10px 15px; position: sticky; top: 0; background: #f8fafc; z-index: 1;">Action</th>
+                            <th style="padding: 10px 15px; position: sticky; top: 0; background: #f8fafc; z-index: 1;">Performed By</th>
+                            <th style="padding: 10px 15px; position: sticky; top: 0; background: #f8fafc; z-index: 1;">Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${historyHtml}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-footer" style="padding: 15px 25px; border-top: none; background: #fff; display: flex; justify-content: flex-end;">
+            <button type="button" class="btn btn-outline" onclick="closeModal('modal-asset-details-report')" style="border: 1px solid #e2e8f0; color: #475569; font-weight: 600; padding: 8px 25px; border-radius: 6px;">Close</button>
+        </div>
+    </div>`;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
     openModal('modal-asset-details-report');
 };
 
