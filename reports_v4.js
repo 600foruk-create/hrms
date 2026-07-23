@@ -1,4 +1,4 @@
-
+﻿
 window.openFullLeaveReport = function(type) {
     const thead = document.getElementById('full-leave-report-thead');
     const tbody = document.getElementById('full-leave-report-tbody');
@@ -3125,10 +3125,12 @@ window.generateAdminAssetsReport = function(passedDb) {
     // Apply Filters
     const filteredAssets = assets.filter(a => {
         let matchCat = filterCat === 'All' || a.category === filterCat;
-        let matchStatus = filterStatus === 'All' || (a.status || 'Available') === filterStatus;
-        if (filterStatus === 'Assigned') matchStatus = matchStatus || a.status === 'Issued';
         
-        // Employee matching logic
+        let aStatus = a.status || 'Available';
+        let matchStatus = filterStatus === 'All' || aStatus === filterStatus;
+        if (filterStatus === 'Assigned' && aStatus === 'Issued') matchStatus = true;
+        if (filterStatus === 'Damaged' && aStatus === 'Lost') matchStatus = true;
+        
         let assignedUser = userMap[a.assigned_to];
         let assetDeptId = assignedUser ? assignedUser.department : null;
 
@@ -3138,21 +3140,56 @@ window.generateAdminAssetsReport = function(passedDb) {
         return matchCat && matchStatus && matchEmp && matchDept;
     });
 
-    // Populate Section 1: Company Assets Summary
+    // Cards
+    let total = filteredAssets.length;
+    let assigned = filteredAssets.filter(a => a.status === 'Assigned' || a.status === 'Issued').length;
+    let available = filteredAssets.filter(a => !a.status || a.status === 'Available').length;
+    let maintenance = filteredAssets.filter(a => a.status === 'Maintenance').length;
+    let damaged = filteredAssets.filter(a => a.status === 'Damaged' || a.status === 'Lost').length;
+
+    if (document.getElementById('ast-card-total')) {
+        document.getElementById('ast-card-total').innerText = total;
+        document.getElementById('ast-card-assigned').innerText = assigned;
+        document.getElementById('ast-card-available').innerText = available;
+        document.getElementById('ast-card-maintenance').innerText = maintenance;
+        document.getElementById('ast-card-damaged').innerText = damaged;
+    }
+
+    // Populate Section 1: Company Assets Overview
     const summaryTbody = document.getElementById('admin-rep-assets-tbody-summary');
     if (summaryTbody) {
-        let total = filteredAssets.length;
-        let assigned = filteredAssets.filter(a => a.status === 'Assigned' || a.status === 'Issued').length;
-        let available = filteredAssets.filter(a => !a.status || a.status === 'Available').length;
-        let damaged = filteredAssets.filter(a => a.status === 'Damaged').length;
-        let lost = filteredAssets.filter(a => a.status === 'Lost').length;
+        const catStats = {};
+        filteredAssets.forEach(a => {
+            let cat = a.category || 'Uncategorized';
+            if (!catStats[cat]) catStats[cat] = { total: 0, assigned: 0, available: 0, maintenance: 0, damaged: 0 };
+            catStats[cat].total++;
+            if (a.status === 'Assigned' || a.status === 'Issued') catStats[cat].assigned++;
+            else if (!a.status || a.status === 'Available') catStats[cat].available++;
+            else if (a.status === 'Maintenance') catStats[cat].maintenance++;
+            else catStats[cat].damaged++;
+        });
 
-        summaryTbody.innerHTML = `
-            <tr><td>Total Assets</td><td>${total}</td></tr>
-            <tr><td>Assigned Assets</td><td>${assigned}</td></tr>
-            <tr><td>Available Assets</td><td>${available}</td></tr>
-            <tr><td>Damaged Assets</td><td>${damaged}</td></tr>
-            <tr><td>Lost Assets</td><td>${lost}</td></tr>
+        const rows = Object.keys(catStats).sort().map((cat, i) => `
+            <tr>
+                <td>${i+1}</td>
+                <td>${cat}</td>
+                <td class="text-center">${catStats[cat].total}</td>
+                <td class="text-center">${catStats[cat].assigned}</td>
+                <td class="text-center">${catStats[cat].available}</td>
+                <td class="text-center">${catStats[cat].maintenance}</td>
+                <td class="text-center">${catStats[cat].damaged}</td>
+            </tr>
+        `).join('');
+
+        summaryTbody.innerHTML = rows + `
+            <tr style="background: #f8fafc; font-weight: 700;">
+                <td colspan="2">Total</td>
+                <td class="text-center">${total}</td>
+                <td class="text-center">${assigned}</td>
+                <td class="text-center">${available}</td>
+                <td class="text-center">${maintenance}</td>
+                <td class="text-center">${damaged}</td>
+            </tr>
         `;
     }
 
@@ -3163,21 +3200,21 @@ window.generateAdminAssetsReport = function(passedDb) {
         filteredAssets.forEach(a => {
             if (a.assigned_to && (a.status === 'Assigned' || a.status === 'Issued')) {
                 if (!empAssetCount[a.assigned_to]) {
-                    empAssetCount[a.assigned_to] = { count: 0, user: userMap[a.assigned_to] };
+                    empAssetCount[a.assigned_to] = { count: 0, val: 0, user: userMap[a.assigned_to] };
                 }
                 empAssetCount[a.assigned_to].count++;
+                empAssetCount[a.assigned_to].val += parseFloat(a.purchase_cost || 0);
             }
         });
 
-        const empRows = Object.values(empAssetCount).map(data => {
+        const empRows = Object.values(empAssetCount).map((data, i) => {
             const u = data.user || { name: 'Unknown', id: 'Unknown', department: 'Unknown' };
-            const deptName = departments.find(d => d.id == u.department)?.name || 'Unknown';
             return `<tr>
-                <td>${u.id || '-'}</td>
+                <td>${i+1}</td>
                 <td><strong style="color: #0f172a;">${u.name || '-'}</strong></td>
-                <td>${deptName}</td>
-                <td>${data.count}</td>
-                <td class="print-hide"><button class="btn btn-outline btn-sm" onclick="viewEmployeeAssignedAssetsReport('${u.id}')" style="font-size: 11px; padding: 4px 10px;"><i class="fa-solid fa-eye"></i> View Assets</button></td>
+                <td class="text-center">${data.count}</td>
+                <td class="text-right">${data.val ? data.val.toLocaleString() : '0'}</td>
+                <td class="print-hide text-center"><button class="btn btn-outline btn-sm" onclick="viewEmployeeAssignedAssetsReport('${u.id}')" style="font-size: 11px; padding: 4px 10px; color:#2563eb; border-color:#2563eb;"><i class="fa-solid fa-eye"></i> View Assets</button></td>
             </tr>`;
         }).join('');
 
@@ -3187,43 +3224,32 @@ window.generateAdminAssetsReport = function(passedDb) {
     // Populate Section 3: Asset Register
     const regTbody = document.getElementById('admin-rep-assets-tbody-register');
     if (regTbody) {
-        const regRows = filteredAssets.map(a => {
+        const regRows = filteredAssets.map((a, i) => {
             const u = userMap[a.assigned_to] || {};
             const deptName = departments.find(d => d.id == u.department)?.name || '-';
             const status = a.status || 'Available';
-            const assignName = u.name || '-';
-            const aDate = a.assigned_date || '-';
+            const assignName = u.name || (status === 'Available' ? 'Store / Available' : '-');
+            const cost = a.purchase_cost ? parseFloat(a.purchase_cost).toLocaleString() : '-';
             
             return `<tr>
+                <td>${i+1}</td>
                 <td>${a.id}</td>
                 <td><strong style="color: #0f172a;">${a.name || '-'}</strong></td>
                 <td>${a.category || '-'}</td>
+                <td>${a.serial_number || '-'}</td>
                 <td>${assignName}</td>
-                <td>${deptName}</td>
-                <td>${aDate}</td>
+                <td>${status === 'Available' ? '-' : deptName}</td>
                 <td><span class="ast-badge ${status}">${status}</span></td>
-                <td class="print-hide"><button class="btn btn-outline btn-sm" onclick="viewAssetDetailsReport('${a.id}')" style="font-size: 11px; padding: 4px 10px;">View Details</button></td>
+                <td>${a.purchase_date || '-'}</td>
+                <td class="text-right">${cost}</td>
+                <td class="print-hide text-center"><button class="btn btn-outline btn-sm" onclick="viewAssetDetailsReport('${a.id}')" style="font-size: 11px; padding: 4px 10px; color:#2563eb; border-color:#2563eb;">View</button></td>
             </tr>`;
         }).join('');
 
-        regTbody.innerHTML = regRows || '<tr><td colspan="8" class="text-center text-muted py-4">No assets found matching criteria.</td></tr>';
-    }
-
-    // Populate Section 4: Available Assets
-    const availTbody = document.getElementById('admin-rep-assets-tbody-available');
-    if (availTbody) {
-        const availAssets = filteredAssets.filter(a => !a.status || a.status === 'Available');
-        const availRows = availAssets.map(a => {
-            return `<tr>
-                <td>${a.id}</td>
-                <td><strong style="color: #0f172a;">${a.name || '-'}</strong></td>
-                <td>${a.category || '-'}</td>
-            </tr>`;
-        }).join('');
-
-        availTbody.innerHTML = availRows || '<tr><td colspan="3" class="text-center text-muted py-4">No available assets found.</td></tr>';
+        regTbody.innerHTML = regRows || '<tr><td colspan="11" class="text-center text-muted py-4">No assets found matching criteria.</td></tr>';
     }
 };
+
 
 window.viewEmployeeAssignedAssetsReport = function(empId) {
     const db = getDb();
@@ -3312,3 +3338,4 @@ window.exportAdminAssetsExcel = function() {
 window.exportAdminAssetsPDF = function() {
     alert("Please use the 'Print Report' button and select 'Save as PDF' to generate the professional report.");
 };
+
