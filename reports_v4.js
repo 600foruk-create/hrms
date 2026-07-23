@@ -1,4 +1,4 @@
-﻿
+
 window.openFullLeaveReport = function(type) {
     const thead = document.getElementById('full-leave-report-thead');
     const tbody = document.getElementById('full-leave-report-tbody');
@@ -3151,8 +3151,6 @@ window.generateAdminAssetsReport = function(passedDb) {
         document.getElementById('ast-card-total').innerText = total;
         document.getElementById('ast-card-assigned').innerText = assigned;
         document.getElementById('ast-card-available').innerText = available;
-        document.getElementById('ast-card-maintenance').innerText = maintenance;
-        document.getElementById('ast-card-damaged').innerText = damaged;
     }
 
     // Populate Section 1: Company Assets Overview
@@ -3176,8 +3174,6 @@ window.generateAdminAssetsReport = function(passedDb) {
                 <td class="text-center">${catStats[cat].total}</td>
                 <td class="text-center">${catStats[cat].assigned}</td>
                 <td class="text-center">${catStats[cat].available}</td>
-                <td class="text-center">${catStats[cat].maintenance}</td>
-                <td class="text-center">${catStats[cat].damaged}</td>
             </tr>
         `).join('');
 
@@ -3187,8 +3183,6 @@ window.generateAdminAssetsReport = function(passedDb) {
                 <td class="text-center">${total}</td>
                 <td class="text-center">${assigned}</td>
                 <td class="text-center">${available}</td>
-                <td class="text-center">${maintenance}</td>
-                <td class="text-center">${damaged}</td>
             </tr>
         `;
     }

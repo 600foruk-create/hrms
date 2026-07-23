@@ -4767,9 +4767,8 @@
                                     .assets-rep-filter-row { display: flex; gap: 15px; flex-wrap: wrap; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; align-items: flex-end; }
                                     
                                     /* Dashboard Cards */
-                                    .ast-summary-cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-bottom: 25px; }
+                                    .ast-summary-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
                                     .ast-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; display: flex; align-items: center; gap: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
-                                    .ast-card-icon { width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
                                     .ast-card-icon.blue { background: #e0e7ff; color: #4f46e5; }
                                     .ast-card-icon.green { background: #dcfce7; color: #16a34a; }
                                     .ast-card-icon.orange { background: #ffedd5; color: #f97316; }
@@ -4851,8 +4850,6 @@
                                                 <option value="All">All Status</option>
                                                 <option value="Assigned">Assigned</option>
                                                 <option value="Available">Available</option>
-                                                <option value="Maintenance">Under Maintenance</option>
-                                                <option value="Damaged">Damaged / Lost</option>
                                             </select>
                                         </div>
                                         <div style="display: flex; gap: 8px;">
@@ -4864,7 +4861,6 @@
                                     <!-- Summary Cards -->
                                     <div class="ast-summary-cards">
                                         <div class="ast-card">
-                                            <div class="ast-card-icon blue"><i class="fa-solid fa-box"></i></div>
                                             <div class="ast-card-content">
                                                 <h4>Total Assets</h4>
                                                 <h2 id="ast-card-total">0</h2>
@@ -4872,7 +4868,6 @@
                                             </div>
                                         </div>
                                         <div class="ast-card">
-                                            <div class="ast-card-icon green"><i class="fa-solid fa-user-check"></i></div>
                                             <div class="ast-card-content">
                                                 <h4>Assigned Assets</h4>
                                                 <h2 id="ast-card-assigned">0</h2>
@@ -4880,27 +4875,10 @@
                                             </div>
                                         </div>
                                         <div class="ast-card">
-                                            <div class="ast-card-icon orange"><i class="fa-solid fa-box-open"></i></div>
                                             <div class="ast-card-content">
                                                 <h4>Available Assets</h4>
                                                 <h2 id="ast-card-available">0</h2>
                                                 <p>Assets in Store / Available</p>
-                                            </div>
-                                        </div>
-                                        <div class="ast-card">
-                                            <div class="ast-card-icon purple"><i class="fa-solid fa-wrench"></i></div>
-                                            <div class="ast-card-content">
-                                                <h4>Under Maintenance</h4>
-                                                <h2 id="ast-card-maintenance">0</h2>
-                                                <p>Assets Under Maintenance</p>
-                                            </div>
-                                        </div>
-                                        <div class="ast-card">
-                                            <div class="ast-card-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                                            <div class="ast-card-content">
-                                                <h4>Damaged / Lost</h4>
-                                                <h2 id="ast-card-damaged">0</h2>
-                                                <p>Damaged or Lost Assets</p>
                                             </div>
                                         </div>
                                     </div>
@@ -4917,12 +4895,10 @@
                                                         <th class="text-center">Total Assets</th>
                                                         <th class="text-center">Assigned</th>
                                                         <th class="text-center">Available</th>
-                                                        <th class="text-center">Maintenance</th>
-                                                        <th class="text-center">Damaged / Lost</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody id="admin-rep-assets-tbody-summary">
-                                                    <tr><td colspan="7" class="text-center text-muted">Click Generate Report</td></tr>
+                                                    <tr><td colspan="5" class="text-center text-muted">Click Generate Report</td></tr>
                                                 </tbody>
                                             </table>
                                         </div>
