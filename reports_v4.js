@@ -3098,7 +3098,7 @@ window.generateAdminAssetsReport = function(passedDb) {
     const db = passedDb || getDb();
     const assets = db.assets || [];
     const users = db.users || [];
-    const departments = db.departments || [];
+    const departments = [...new Set(users.map(u => u.department).filter(Boolean))].sort();
 
     // Setup filter dropdowns if not populated
     const catSelect = document.getElementById('admin-rep-assets-filter-cat');
@@ -3109,7 +3109,7 @@ window.generateAdminAssetsReport = function(passedDb) {
 
     const deptSelect = document.getElementById('admin-rep-assets-filter-dept');
     if (deptSelect && deptSelect.options.length <= 1) {
-        departments.forEach(d => deptSelect.innerHTML += `<option value="${d.id}">${d.name}</option>`);
+        departments.forEach(d => deptSelect.innerHTML += `<option value="${d}">${d}</option>`);
     }
 
     // Get filter values
@@ -3121,6 +3121,19 @@ window.generateAdminAssetsReport = function(passedDb) {
     // Map user data for fast lookup
     const userMap = {};
     users.forEach(u => userMap[u.id] = u);
+
+    // Map active asset issues for assignment info
+    const issueMap = {};
+    (db.assetIssues || []).forEach(ai => {
+        if (ai.status === 'Active') {
+            issueMap[ai.asset_id] = ai.employee_id;
+        }
+    });
+
+    // Decorate assets with their assigned_to value
+    assets.forEach(a => {
+        a.assigned_to = issueMap[a.id];
+    });
 
     // Apply Filters
     const filteredAssets = assets.filter(a => {
@@ -3221,7 +3234,7 @@ window.generateAdminAssetsReport = function(passedDb) {
     if (regTbody) {
         const regRows = filteredAssets.map((a, i) => {
             const u = userMap[a.assigned_to] || {};
-            const deptName = departments.find(d => d.id == u.department)?.name || '-';
+            const deptName = u.department || '-';
             const status = a.status || 'Available';
             const assignName = u.name || (status === 'Available' ? 'Store / Available' : '-');
             const cost = a.purchase_cost ? parseFloat(a.purchase_cost).toLocaleString() : '-';
