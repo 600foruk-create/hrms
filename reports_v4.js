@@ -3731,3 +3731,238 @@ window.exportAdminLoansExcel = function() {
     link.click();
     document.body.removeChild(link);
 };
+
+window.generateAdminOtReport = function() {
+    const db = typeof getDb === 'function' ? getDb() : (window.db || {users: [], overtimeLogs: []});
+    
+    // Populate dropdowns if empty
+    const empSel = document.getElementById('admin-rep-ot-emp');
+    if (empSel && empSel.options.length <= 1) {
+        (db.users || []).forEach(u => {
+            empSel.innerHTML += `<option value="${u.id}">${u.name}</option>`;
+        });
+    }
+    const deptSel = document.getElementById('admin-rep-ot-dept');
+    if (deptSel && deptSel.options.length <= 1) {
+        const depts = [...new Set((db.users || []).map(u => u.department || ''))].filter(Boolean);
+        depts.forEach(d => {
+            deptSel.innerHTML += `<option value="${d}">${d}</option>`;
+        });
+    }
+
+    const startDate = document.getElementById('admin-rep-ot-start')?.value || '';
+    const endDate = document.getElementById('admin-rep-ot-end')?.value || '';
+    const empFilter = document.getElementById('admin-rep-ot-emp')?.value || 'All';
+    const deptFilter = document.getElementById('admin-rep-ot-dept')?.value || 'All';
+    const statFilter = document.getElementById('admin-rep-ot-status')?.value || 'All';
+
+    // Mock data based on user prompt if db is empty or just generate mock data for demo
+    let logs = [];
+    if (db.overtimeLogs && db.overtimeLogs.length > 0) {
+        logs = db.overtimeLogs;
+    } else {
+        logs = [
+            { id: 1, date: '2026-07-08', employeeId: 3, shift: 'Morning', hours: 8, reason: 'Public Holiday Duty', status: 'Approved', approvedBy: 'Naimat Ullah', managerRemarks: 'Approved for public holiday' },
+            { id: 2, date: '2026-07-08', employeeId: 4, shift: 'Evening', hours: 2, reason: 'Urgent Work', status: 'Pending', approvedBy: '-', managerRemarks: '' },
+            { id: 3, date: '2026-07-07', employeeId: 5, shift: 'Evening', hours: 3.5, reason: 'Project Deadline', status: 'Approved', approvedBy: 'Naimat Ullah', managerRemarks: 'Good work' },
+            { id: 4, date: '2026-07-06', employeeId: 6, shift: 'Morning', hours: 2, reason: 'Month End Closing', status: 'Approved', approvedBy: 'Naimat Ullah', managerRemarks: 'Approved' },
+            { id: 5, date: '2026-07-05', employeeId: 7, shift: 'Night', hours: 4, reason: 'Machine Breakdown', status: 'Pending', approvedBy: '-', managerRemarks: '' },
+            { id: 6, date: '2026-07-05', employeeId: 8, shift: 'Evening', hours: 3, reason: 'Server Maintenance', status: 'Approved', approvedBy: 'Naimat Ullah', managerRemarks: 'Critical task completed' }
+        ];
+        // Mock users
+        const mockUsers = [
+            { id: 3, name: 'Faisal Saeed', department: 'IT Department', designation: 'Developer' },
+            { id: 4, name: 'Irfan Ullah', department: 'Operations', designation: 'Executive' },
+            { id: 5, name: 'Suhail Ahmad', department: 'IT Department', designation: 'Designer' },
+            { id: 6, name: 'Ahmad Ali', department: 'Accounts', designation: 'Accountant' },
+            { id: 7, name: 'Usman Qureshi', department: 'Operations', designation: 'Supervisor' },
+            { id: 8, name: 'Hamza Khan', department: 'IT Department', designation: 'Admin' }
+        ];
+        logs.forEach(log => {
+            const u = mockUsers.find(mu => mu.id === log.employeeId);
+            if (u) {
+                log.employeeName = u.name;
+                log.department = u.department;
+                log.designation = u.designation;
+            }
+        });
+    }
+
+    // Filter
+    logs = logs.filter(log => {
+        let u = db.users?.find(x => x.id == log.employeeId) || {name: log.employeeName, department: log.department};
+        if (empFilter !== 'All' && String(log.employeeId) !== String(empFilter)) return false;
+        if (deptFilter !== 'All' && String(u.department) !== String(deptFilter)) return false;
+        if (statFilter !== 'All' && log.status !== statFilter) return false;
+        if (startDate && log.date < startDate) return false;
+        if (endDate && log.date > endDate) return false;
+        return true;
+    });
+
+    let html = '';
+    let totHours = 0, appHours = 0, penHours = 0;
+    
+    // Sort
+    logs.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+    logs.forEach((log, idx) => {
+        let u = db.users?.find(x => x.id == log.employeeId) || {name: log.employeeName, department: log.department};
+        let hrs = parseFloat(log.hours || 0);
+        totHours += hrs;
+        if (log.status === 'Approved') appHours += hrs;
+        if (log.status === 'Pending') penHours += hrs;
+
+        let bClass = log.status === 'Approved' ? 'bg-success' : (log.status === 'Rejected' ? 'bg-danger' : 'bg-warning text-dark');
+        let shiftStr = log.shift || 'General';
+        
+        // Escape quotes for json string
+        let logJson = JSON.stringify({
+            ...log,
+            employeeName: u.name,
+            department: u.department,
+            designation: u.designation || '-'
+        }).replace(/"/g, '&quot;');
+
+        html += `
+            <tr>
+                <td>${idx + 1}</td>
+                <td>${new Date(log.date).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'})}</td>
+                <td>${u.name}</td>
+                <td>${u.department || '-'}</td>
+                <td>${shiftStr}</td>
+                <td>${hrs.toFixed(2)} hrs</td>
+                <td>${log.reason || '-'}</td>
+                <td><span class="badge ${bClass}">${log.status}</span></td>
+                <td>${log.approvedBy || '-'}</td>
+                <td class="print-hide text-center"><button class="btn btn-outline-primary btn-sm" style="font-size: 11px; padding: 2px 8px;" onclick="window.showOtReportDetails(this)" data-log="${logJson}"><i class="fa-solid fa-eye"></i> View</button></td>
+            </tr>
+        `;
+    });
+
+    if (logs.length === 0) {
+        html = `<tr><td colspan="10" class="text-center text-muted">No overtime records found</td></tr>`;
+    }
+    
+    document.getElementById('admin-rep-body-overtime').innerHTML = html;
+    
+    // Summary
+    document.getElementById('ot-summary-records').innerText = logs.length;
+    document.getElementById('ot-summary-hours').innerText = totHours.toFixed(2) + ' hrs';
+    document.getElementById('ot-summary-approved').innerText = appHours.toFixed(2) + ' hrs';
+    document.getElementById('ot-summary-pending').innerText = penHours.toFixed(2) + ' hrs';
+    
+    document.getElementById('ot-rep-footer-text').innerText = `Showing 1 to ${logs.length} of ${logs.length} entries`;
+    
+    // Set subtitle
+    let subtitle = `Report Date: ${new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})}`;
+    if (startDate || endDate) subtitle += ` | Date Range: ${startDate || 'Any'} to ${endDate || 'Any'}`;
+    if (deptFilter !== 'All') subtitle += ` | Department: ${deptFilter}`;
+    if (empFilter !== 'All') {
+        const es = document.getElementById('admin-rep-ot-emp');
+        subtitle += ` | Employee: ${es.options[es.selectedIndex].text}`;
+    }
+    if (statFilter !== 'All') subtitle += ` | Status: ${statFilter}`;
+    subtitle += ` | Total Records: ${logs.length} | Total Hours: ${totHours.toFixed(2)}`;
+    const stEl = document.getElementById('print-subtitle-admin-ot');
+    if(stEl) stEl.innerText = subtitle;
+
+    // Calc Bottom stats
+    if (logs.length > 0) {
+        let empMap = {};
+        let deptMap = {};
+        logs.forEach(l => {
+            let u = db.users?.find(x => x.id == l.employeeId) || {name: l.employeeName, department: l.department};
+            let h = parseFloat(l.hours||0);
+            
+            if(!empMap[u.name]) empMap[u.name] = 0;
+            empMap[u.name] += h;
+            
+            if(u.department) {
+                if(!deptMap[u.department]) deptMap[u.department] = 0;
+                deptMap[u.department] += h;
+            }
+        });
+        
+        let numEmps = Object.keys(empMap).length;
+        let avg = totHours / (numEmps || 1);
+        document.getElementById('stat-avg-ot').innerText = avg.toFixed(2) + ' hrs';
+        
+        let highestEmp = '', highestHrs = -1;
+        let lowestEmp = '', lowestHrs = 999999;
+        
+        Object.keys(empMap).forEach(e => {
+            if(empMap[e] > highestHrs) { highestHrs = empMap[e]; highestEmp = e; }
+            if(empMap[e] < lowestHrs) { lowestHrs = empMap[e]; lowestEmp = e; }
+        });
+        
+        document.getElementById('stat-high-ot-emp').innerText = highestEmp;
+        document.getElementById('stat-high-ot-hrs').innerText = `(${highestHrs.toFixed(2)} hrs)`;
+        document.getElementById('stat-low-ot-emp').innerText = lowestEmp;
+        document.getElementById('stat-low-ot-hrs').innerText = `(${lowestHrs.toFixed(2)} hrs)`;
+        
+        let highDept = '', highDHrs = -1;
+        Object.keys(deptMap).forEach(d => {
+            if(deptMap[d] > highDHrs) { highDHrs = deptMap[d]; highDept = d; }
+        });
+        document.getElementById('stat-dept-ot').innerText = highDept || '-';
+        document.getElementById('stat-dept-ot-hrs').innerText = highDHrs > -1 ? `(${highDHrs.toFixed(2)} hrs)` : '';
+    }
+};
+
+window.resetAdminOtFilters = function() {
+    document.getElementById('admin-rep-ot-start').value = '';
+    document.getElementById('admin-rep-ot-end').value = '';
+    document.getElementById('admin-rep-ot-emp').value = 'All';
+    document.getElementById('admin-rep-ot-dept').value = 'All';
+    document.getElementById('admin-rep-ot-status').value = 'All';
+    if(window.generateAdminOtReport) window.generateAdminOtReport();
+};
+
+window.showOtReportDetails = function(btn) {
+    const logStr = btn.getAttribute('data-log');
+    if (!logStr) return;
+    const log = JSON.parse(logStr);
+    
+    // Set data
+    document.getElementById('det-ot-emp-name').innerText = log.employeeName || '-';
+    document.getElementById('det-ot-emp-id').innerText = log.employeeId || '-';
+    document.getElementById('det-ot-dept').innerText = log.department || '-';
+    document.getElementById('det-ot-desig').innerText = log.designation || '-';
+    
+    document.getElementById('det-ot-date').innerText = new Date(log.date).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'});
+    document.getElementById('det-ot-shift').innerText = log.shift || 'General';
+    document.getElementById('det-ot-in').innerText = log.checkIn || '09:00 AM'; // mocked
+    document.getElementById('det-ot-out').innerText = log.checkOut || '06:00 PM'; // mocked
+    document.getElementById('det-ot-normal').innerText = '8.00 hrs'; // mocked
+    document.getElementById('det-ot-hours').innerText = parseFloat(log.hours||0).toFixed(2) + ' hrs';
+    
+    document.getElementById('det-ot-status').innerHTML = `<span class="badge ${log.status === 'Approved' ? 'bg-success' : (log.status === 'Rejected' ? 'bg-danger' : 'bg-warning text-dark')}">${log.status}</span>`;
+    document.getElementById('det-ot-appr-by').innerText = log.approvedBy || '-';
+    document.getElementById('det-ot-appr-date').innerText = log.status === 'Approved' ? new Date(log.date).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'}) : '-';
+    
+    document.getElementById('det-ot-reason').innerText = log.reason || '-';
+    document.getElementById('det-ot-remarks').innerText = log.managerRemarks || '-';
+    
+    // Toggle views
+    document.getElementById('ot-report-main-view').classList.add('hidden');
+    document.getElementById('ot-report-details-view').classList.remove('hidden');
+};
+
+window.hideOtReportDetails = function() {
+    document.getElementById('ot-report-details-view').classList.add('hidden');
+    document.getElementById('ot-report-main-view').classList.remove('hidden');
+};
+
+window.printOtSlip = function() {
+    if(window.printReport) {
+        window.printReport('print-area-ot-slip');
+    }
+};
+
+window.exportOtExcel = function() {
+    if(window.exportTableToExcel) {
+        window.exportTableToExcel('print-table-admin-ot', 'Employee_Overtime_Report');
+    } else {
+        alert("Export functionality not implemented in this demo.");
+    }
+};
