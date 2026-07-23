@@ -4777,8 +4777,8 @@
                                     .assets-rep-section { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
                                     .assets-rep-section-title { padding: 15px 20px; margin: 0; font-size: 14px; font-weight: 700; color: #0f172a; border-bottom: 1px solid #e2e8f0; background: #fff; }
                                     .assets-rep-table { width: 100%; border-collapse: collapse; }
-                                    .assets-rep-table th, .assets-rep-table td { padding: 12px 20px; border-bottom: 1px solid #e2e8f0; font-size: 12px; text-align: left; color: #334155; }
-                                    .assets-rep-table th { font-weight: 600; color: #0f172a; background: #f8fafc; }
+                                    .assets-rep-table th, .assets-rep-table td { padding: 8px 15px; border-bottom: 1px solid #e2e8f0; font-size: 12px; text-align: left; color: #334155; }
+                                    .assets-rep-table th { font-weight: 600; color: #0f172a; background: #f8fafc; position: sticky; top: 0; z-index: 1; }
                                     .assets-rep-table tbody tr:hover { background: #f8fafc; }
                                     .assets-rep-table tbody tr:last-child td { border-bottom: none; }
                                     .ast-table-footer { padding: 12px 20px; font-size: 12px; font-weight: 600; color: #2563eb; cursor: pointer; background: #fff; border-top: 1px solid #e2e8f0; margin-top: auto; }
@@ -4897,24 +4897,23 @@
                                         </div>
 
                                         <!-- Assets Assigned to Employees Table -->
-                                        <div class="assets-rep-section">
+                                        <div class="assets-rep-section" style="max-height: 280px;">
                                             <h3 class="assets-rep-section-title">Assets Assigned to Employees</h3>
-                                            <table class="assets-rep-table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>#</th>
-                                                        <th>Employee</th>
-                                                        <th class="text-center">Total Assets</th>
-                                                        <th class="text-right">Total Value (Rs.)</th>
-                                                        <th class="print-hide text-center" style="width: 100px;">Action</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="admin-rep-assets-tbody-employee">
-                                                    <tr><td colspan="5" class="text-center text-muted">Click Generate Report</td></tr>
-                                                </tbody>
-                                            </table>
-                                            <div class="ast-table-footer" onclick="document.getElementById('admin-rep-assets-filter-status').value='Assigned'; generateAdminAssetsReport();">
-                                                View All Employees
+                                            <div style="flex: 1; overflow-y: auto;">
+                                                <table class="assets-rep-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>#</th>
+                                                            <th>Employee</th>
+                                                            <th class="text-center">Total Assets</th>
+                                                            <th class="text-right">Total Value (Rs.)</th>
+                                                            <th class="print-hide text-center" style="width: 100px;">Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="admin-rep-assets-tbody-employee">
+                                                        <tr><td colspan="5" class="text-center text-muted">Click Generate Report</td></tr>
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
                                     </div>
