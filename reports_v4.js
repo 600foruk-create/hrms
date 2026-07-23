@@ -3280,7 +3280,7 @@ window.viewEmployeeAssignedAssetsReport = function(empId) {
     if (document.getElementById('rep-ast-emp-total-val')) document.getElementById('rep-ast-emp-total-val').innerText = totalVal.toLocaleString();
 
     const tbody = document.getElementById('rep-ast-emp-tbody');
-    tbody.innerHTML = empAssets.map((a, i) => {
+    const tbodyHtml = empAssets.map((a, i) => {
         const status = a.status || 'Available';
         const issueRec = myIssues.find(ai => ai.asset_id === a.id);
         const assignDate = issueRec ? (issueRec.issue_date || '-') : '-';
@@ -3295,6 +3295,75 @@ window.viewEmployeeAssignedAssetsReport = function(empId) {
             <td style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0;" class="text-center"><button class="btn btn-outline btn-sm" onclick="viewAssetDetailsReport('${a.id}')" style="font-size: 11px; padding: 4px 10px; color:#2563eb; border-color:#bfdbfe; background: #eff6ff; font-weight:600;"><i class="fa-solid fa-eye"></i> View Details</button></td>
         </tr>`;
     }).join('') || '<tr><td colspan="8" class="text-center text-muted" style="padding: 15px;">No assets assigned</td></tr>';
+
+    if (!document.getElementById('modal-employee-assigned-assets')) {
+        const modalHtml = `
+    <div id="modal-employee-assigned-assets" class="modal hidden" style="width: 850px; max-width: 95vw; z-index: 10005; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
+        <div class="modal-header" style="background: #fff; border-bottom: none; padding: 25px 25px 15px 25px; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 0;">Employee Assets</h3>
+            <button class="btn-close" onclick="closeModal('modal-employee-assigned-assets')" style="color: #64748b; background: none; border: none; font-size: 18px; cursor: pointer;"><i class="fa-solid fa-times"></i></button>
+        </div>
+        <div class="modal-body" style="padding: 0 25px 25px 25px;">
+            <div style="display: flex; gap: 30px; align-items: center; margin-bottom: 25px;">
+                <div style="width: 110px; height: 110px; border-radius: 50%; overflow: hidden; border: 1px solid #e2e8f0; background: #f8fafc; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #cbd5e1;" id="rep-ast-emp-img">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <div style="display: grid; grid-template-columns: 140px 1fr; gap: 14px; font-size: 14px; font-weight: 700;">
+                    <div style="color: #475569;">Employee ID</div>
+                    <div style="color: #0f172a;">: <span id="rep-ast-emp-id-val">-</span></div>
+                    <div style="color: #475569;">Employee Name</div>
+                    <div style="color: #0f172a;">: <span id="rep-ast-emp-name">-</span></div>
+                    <div style="color: #475569;">Department</div>
+                    <div style="color: #0f172a;">: <span id="rep-ast-emp-dept">-</span></div>
+                    <div style="color: #475569;">Designation</div>
+                    <div style="color: #0f172a;">: <span id="rep-ast-emp-desig">-</span></div>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; margin-bottom: 25px; color: #0369a1; font-weight: 600; font-size: 14px;">
+                <div><i class="fa-solid fa-circle-info" style="margin-right: 8px;"></i> Total Assets Assigned: <span id="rep-ast-emp-total-qty">0</span></div>
+                <div>Total Value (Rs.): <span id="rep-ast-emp-total-val">0</span></div>
+            </div>
+            <div style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; margin-bottom: 25px;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                    <thead style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; color: #475569; font-weight: 700;">
+                        <tr>
+                            <th style="padding: 12px 15px;">#</th>
+                            <th style="padding: 12px 15px;">Asset ID</th>
+                            <th style="padding: 12px 15px;">Asset Name</th>
+                            <th style="padding: 12px 15px;">Category</th>
+                            <th style="padding: 12px 15px;">Assign Date</th>
+                            <th style="padding: 12px 15px;">Status</th>
+                            <th style="padding: 12px 15px;">Condition</th>
+                            <th style="padding: 12px 15px;" class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rep-ast-emp-tbody"></tbody>
+                </table>
+            </div>
+            <div style="background: #f8fafc; border-left: 4px solid #cbd5e1; padding: 15px 20px; border-radius: 4px; font-size: 13px; color: #475569;">
+                <div style="font-weight: 700; color: #0f172a; margin-bottom: 5px;">Note:</div>
+                <ul style="margin: 0; padding-left: 20px; line-height: 1.6;">
+                    <li>Please ensure all assigned assets are maintained in good condition.</li>
+                    <li>Contact admin if any asset is not in use or require return.</li>
+                </ul>
+            </div>
+        </div>
+        <div class="modal-footer" style="padding: 15px 25px; border-top: none; background: #fff; display: flex; justify-content: flex-end;">
+            <button type="button" class="btn btn-outline" onclick="closeModal('modal-employee-assigned-assets')" style="border: 1px solid #e2e8f0; color: #475569; font-weight: 600; padding: 8px 25px; border-radius: 6px;">Close</button>
+        </div>
+    </div>`;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    if (document.getElementById('rep-ast-emp-id-val')) document.getElementById('rep-ast-emp-id-val').innerText = user.employee_id || user.id || '-';
+    if (document.getElementById('rep-ast-emp-name')) document.getElementById('rep-ast-emp-name').innerText = user.name || '-';
+    if (document.getElementById('rep-ast-emp-dept')) document.getElementById('rep-ast-emp-dept').innerText = user.department || '-';
+    if (document.getElementById('rep-ast-emp-desig')) document.getElementById('rep-ast-emp-desig').innerText = user.designation || '-';
+
+    document.getElementById('rep-ast-emp-total-qty').innerText = empAssets.length;
+    document.getElementById('rep-ast-emp-total-val').innerText = totalVal.toLocaleString();
+    
+    document.getElementById('rep-ast-emp-tbody').innerHTML = tbodyHtml || '<tr><td colspan="8" class="text-center text-muted" style="padding: 15px;">No assets assigned</td></tr>';
 
     openModal('modal-employee-assigned-assets');
 };
