@@ -113,9 +113,12 @@ try {
             `created_at` TEXT,
             `status` TEXT DEFAULT 'Pending'
         )");
-        try { $pdo->exec("ALTER TABLE `productivity` ADD COLUMN `status` TEXT DEFAULT 'Pending'"); } catch (Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE `productivity` ADD COLUMN `status` TEXT DEFAULT 'Approved'"); } catch (Exception $ex) {}
     } catch (Exception $e2) {}
 }
+// Auto-approve old pending tasks to remove the "Pending" logic completely
+try { $pdo->exec("UPDATE `productivity` SET `status` = 'Approved' WHERE `status` = 'Pending'"); } catch (Exception $e) {}
+
 
 // Ensure hasCustomLeaveBalances exists
 try { $pdo->exec("ALTER TABLE `users` ADD COLUMN `hasCustomLeaveBalances` TINYINT(1) DEFAULT 0"); } catch (Exception $ex) {}
@@ -2330,7 +2333,7 @@ elseif ($action === 'save_all') {
     
     try {
         $pdo->beginTransaction();
-        $stmt = $pdo->prepare("INSERT INTO productivity (id, employee_id, date, category, sub_category, electronic_mins, manual_mins, total_mins, score_percentage, notes, doc_path, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO productivity (id, employee_id, date, category, sub_category, electronic_mins, manual_mins, total_mins, score_percentage, notes, doc_path, created_at, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Approved')");
         
         foreach ($data['logs'] as $p) {
             $stmt->execute([
