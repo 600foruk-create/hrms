@@ -77,7 +77,9 @@ function renderMainPane() {
     if (!mainPane) return;
     
     let html = '';
-    const uniqueCats = [...new Set((db.assets || []).map(a => a.category).filter(Boolean))];
+    const dynamicCats = [...new Set((db.assets || []).map(a => a.category).filter(Boolean))];
+    const sysCats = (db.systemSettings && db.systemSettings.assetCategories) ? db.systemSettings.assetCategories : [];
+    const uniqueCats = [...new Set([...dynamicCats, ...sysCats])].sort();
     
     if (uniqueCats.length > 0) {
         uniqueCats.forEach(catName => {
@@ -102,18 +104,32 @@ function renderSubPane() {
     
     let html = '';
     if (!window.selectedMainCategory) {
-            const hover = isActive ? '' : `onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background=''"`;
-
-            let availableCount = 0;
-            if (db.assets) {
-                availableCount = db.assets.filter(a => a.category === window.selectedMainCategory && a.sub_category === sub && a.status === 'Available').length;
-            }
-            const countBadge = `<span style="background: ${isActive ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}; color: ${isActive ? '#fff' : 'var(--text-primary)'}; font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700;" title="Available Quantity">${availableCount}</span>`;
-
-            html += `<li style="padding: 8px 12px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s; background: ${bg}; color: ${color}; display: flex; justify-content: space-between; align-items: center;" ${hover} onclick="selectSubCategoryBox('${window.selectedMainCategory}', '${sub}')"><div><i class="fa-solid fa-folder-open" style="color: ${iconColor}; margin-right: 8px;"></i> ${sub}</div>${countBadge}</li>`;
-        });
+        html = '<li style="padding: 15px; text-align: center; color: #999; font-style: italic;">Select a Main Category</li>';
     } else {
-        html = '<li style="padding: 15px; text-align: center; color: #999;">No sub-categories</li>';
+        const dynamicSubs = [...new Set((db.assets || []).filter(a => a.category === window.selectedMainCategory).map(a => a.sub_category).filter(Boolean))];
+        const sysSubsObj = (db.systemSettings && db.systemSettings.assetSubCategories) ? db.systemSettings.assetSubCategories : {};
+        const sysSubs = sysSubsObj[window.selectedMainCategory] || [];
+        const uniqueSubs = [...new Set([...dynamicSubs, ...sysSubs])].sort();
+        
+        if (uniqueSubs.length > 0) {
+            uniqueSubs.forEach(sub => {
+                const isActive = window.selectedSubCategory === sub;
+                const bg = isActive ? 'var(--primary)' : '';
+                const color = isActive ? '#fff' : 'var(--text-primary)';
+                const iconColor = isActive ? '#fff' : 'var(--text-secondary)';
+                const hover = isActive ? '' : `onmouseover="this.style.background='rgba(0,0,0,0.02)'" onmouseout="this.style.background=''"`;
+
+                let availableCount = 0;
+                if (db.assets) {
+                    availableCount = db.assets.filter(a => a.category === window.selectedMainCategory && a.sub_category === sub && a.status === 'Available').length;
+                }
+                const countBadge = `<span style="background: ${isActive ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}; color: ${isActive ? '#fff' : 'var(--text-primary)'}; font-size: 10px; padding: 2px 8px; border-radius: 12px; font-weight: 700;" title="Available Quantity">${availableCount}</span>`;
+
+                html += `<li style="padding: 8px 12px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; transition: background 0.2s; background: ${bg}; color: ${color}; display: flex; justify-content: space-between; align-items: center;" ${hover} onclick="selectSubCategoryBox('${window.selectedMainCategory}', '${sub}')"><div><i class="fa-solid fa-folder-open" style="color: ${iconColor}; margin-right: 8px;"></i> ${sub}</div>${countBadge}</li>`;
+            });
+        } else {
+            html = '<li style="padding: 15px; text-align: center; color: #999;">No sub-categories</li>';
+        }
     }
     subPane.innerHTML = html;
 }
