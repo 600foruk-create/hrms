@@ -3219,11 +3219,11 @@ window.generateAdminAssetsReport = function(passedDb) {
         const empRows = Object.values(empAssetCount).map((data, i) => {
             const u = data.user || { name: 'Unknown', id: 'Unknown', department: 'Unknown' };
             return `<tr>
-                <td>${i+1}</td>
-                <td><strong style="color: #0f172a;">${u.name || '-'}</strong></td>
-                <td class="text-center">${data.count}</td>
-                <td class="text-right">${data.val ? data.val.toLocaleString() : '0'}</td>
-                <td class="print-hide text-center"><button class="btn btn-outline btn-sm" onclick="viewEmployeeAssignedAssetsReport('${u.id}')" style="font-size: 11px; padding: 4px 10px; color:#2563eb; border-color:#2563eb;"><i class="fa-solid fa-eye"></i> View Assets</button></td>
+                <td style="padding: 4px 15px;">${i+1}</td>
+                <td style="padding: 4px 15px;"><strong style="color: #0f172a;">${u.name || '-'}</strong></td>
+                <td style="padding: 4px 15px;" class="text-center">${data.count}</td>
+                <td style="padding: 4px 15px;" class="text-right">${data.val ? data.val.toLocaleString() : '0'}</td>
+                <td style="padding: 4px 15px;" class="print-hide text-center"><button class="btn btn-outline btn-sm" onclick="viewEmployeeAssignedAssetsReport('${u.id}')" style="font-size: 11px; padding: 2px 8px; color:#2563eb; border-color:#2563eb; height: auto; min-height: unset; line-height: 1.4;"><i class="fa-solid fa-eye"></i> View Assets</button></td>
             </tr>`;
         }).join('');
 
