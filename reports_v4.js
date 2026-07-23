@@ -2859,9 +2859,9 @@ window.viewProductivityDetails = function(empId) {
                 <div style="width: 1000px; max-width: 95vw; max-height: 90vh; background: #f8fafc; border-radius: 12px; font-family: 'Inter', sans-serif; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
                     
                     <!-- Header -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; background: #ffffff; border-bottom: 1px solid #e2e8f0;">
-                        <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: #0f172a;">Employee Task Details</h2>
-                        <button onclick="document.getElementById('prod-popup-overlay-dynamic').style.display = 'none';" style="background: transparent; border: none; font-size: 20px; color: #64748b; cursor: pointer; padding: 4px;">&times;</button>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: var(--primary, #0c8297); border-bottom: none;">
+                        <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #ffffff; font-family: 'Inter', sans-serif;">Employee Task Details</h3>
+                        <button onclick="document.getElementById('prod-popup-overlay-dynamic').style.display = 'none';" style="background: transparent; border: none; font-size: 18px; color: #ffffff; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-xmark"></i></button>
                     </div>
 
                     <!-- Scrollable Body -->
