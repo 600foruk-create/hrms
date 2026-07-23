@@ -3206,7 +3206,8 @@ window.generateAdminAssetsReport = function(passedDb) {
         const empAssetCount = {};
         filteredAssets.forEach(a => {
             if (a.status === 'Assigned' || a.status === 'Issued') {
-                const empId = a.assigned_to || 'Unknown';
+                const empId = a.assigned_to;
+                if (!empId) return; // Skip if no assigned employee is mapped
                 if (!empAssetCount[empId]) {
                     empAssetCount[empId] = { count: 0, val: 0, user: userMap[empId] || { name: 'Unknown Employee', id: empId, department: 'Unknown' } };
                 }
@@ -3264,23 +3265,36 @@ window.viewEmployeeAssignedAssetsReport = function(empId) {
     const user = db.users.find(u => u.id == empId);
     if (!user) return;
 
+    document.getElementById('rep-ast-emp-id-val').innerText = user.employee_id || user.id || '-';
     document.getElementById('rep-ast-emp-name').innerText = user.name || '-';
-    document.getElementById('rep-ast-emp-dept').innerText = (db.departments || []).find(d => d.id == user.department)?.name || '-';
+    document.getElementById('rep-ast-emp-dept').innerText = user.department || '-';
     document.getElementById('rep-ast-emp-desig').innerText = user.designation || '-';
 
-    const empAssets = (db.assets || []).filter(a => a.assigned_to == empId && (a.status === 'Assigned' || a.status === 'Issued'));
+    const myIssues = (db.assetIssues || []).filter(ai => ai.employee_id === empId && ai.status === 'Active');
+    const myAssetIds = myIssues.map(ai => ai.asset_id);
+    const empAssets = (db.assets || []).filter(a => myAssetIds.includes(a.id));
     
+    document.getElementById('rep-ast-emp-total-qty').innerText = empAssets.length;
+    let totalVal = 0;
+    empAssets.forEach(a => totalVal += parseFloat(a.purchase_cost || 0));
+    document.getElementById('rep-ast-emp-total-val').innerText = totalVal.toLocaleString();
+
     const tbody = document.getElementById('rep-ast-emp-tbody');
-    tbody.innerHTML = empAssets.map(a => {
+    tbody.innerHTML = empAssets.map((a, i) => {
         const status = a.status || 'Available';
+        const issueRec = myIssues.find(ai => ai.asset_id === a.id);
+        const assignDate = issueRec ? (issueRec.issue_date || '-') : '-';
         return `<tr>
-            <td>${a.id}</td>
-            <td><strong style="color: #0f172a;">${a.name || '-'}</strong></td>
-            <td>${a.category || '-'}</td>
-            <td>${a.assigned_date || '-'}</td>
-            <td><span class="ast-badge ${status}">${status}</span></td>
+            <td style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0;">${i+1}</td>
+            <td style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0;">${a.id}</td>
+            <td style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0;"><strong style="color: #0f172a;">${a.name || '-'}</strong></td>
+            <td style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0;">${a.category || '-'}</td>
+            <td style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0;">${assignDate}</td>
+            <td style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0;"><span class="ast-badge ${status}" style="background: #dcfce7; color: #16a34a; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;">${status}</span></td>
+            <td style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0;"><span style="color: #16a34a; font-weight: 600;">Good</span></td>
+            <td style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0;" class="text-center"><button class="btn btn-outline btn-sm" onclick="viewAssetDetailsReport('${a.id}')" style="font-size: 11px; padding: 4px 10px; color:#2563eb; border-color:#bfdbfe; background: #eff6ff; font-weight:600;"><i class="fa-solid fa-eye"></i> View Details</button></td>
         </tr>`;
-    }).join('') || '<tr><td colspan="5" class="text-center py-4 text-muted">No assigned assets.</td></tr>';
+    }).join('') || '<tr><td colspan="8" class="text-center text-muted" style="padding: 15px;">No assets assigned</td></tr>';
 
     openModal('modal-employee-assigned-assets');
 };
