@@ -488,7 +488,7 @@ window.initAdminReportsTab = function() {
     const activeUser = window.currentUser || JSON.parse(localStorage.getItem('current_user'));
     
     // Fill Employee Selects (for Admin)
-    const empSelectsAdmin = ['admin-rep-att-sum-emp', 'admin-rep-att-emp', 'admin-rep-att-reg-emp', 'admin-rep-leave-emp', 'admin-rep-pay-emp', 'admin-rep-prod-emp', 'admin-rep-loan-emp'];
+    const empSelectsAdmin = ['admin-rep-att-sum-emp', 'admin-rep-att-emp', 'admin-rep-att-reg-emp', 'admin-rep-leave-emp', 'admin-rep-pay-emp', 'admin-rep-prod-emp', 'admin-rep-loan-emp', 'admin-rep-assets-filter-emp'];
     const employees = db.users; // Show all users including managers and admins
     empSelectsAdmin.forEach(id => {
         const el = document.getElementById(id);
@@ -3089,4 +3089,226 @@ window.viewProductivityDetails = function(empId) {
         console.error('Error in viewProductivityDetails:', e);
         alert('Error showing details: ' + e.message);
     }
+};
+// ==========================================
+// ASSETS REPORT LOGIC
+// ==========================================
+
+window.generateAdminAssetsReport = function(passedDb) {
+    const db = passedDb || getDb();
+    const assets = db.assets || [];
+    const users = db.users || [];
+    const departments = db.departments || [];
+
+    // Setup filter dropdowns if not populated
+    const catSelect = document.getElementById('admin-rep-assets-filter-cat');
+    if (catSelect && catSelect.options.length <= 1) {
+        const cats = [...new Set(assets.map(a => a.category).filter(Boolean))].sort();
+        cats.forEach(c => catSelect.innerHTML += `<option value="${c}">${c}</option>`);
+    }
+
+    const deptSelect = document.getElementById('admin-rep-assets-filter-dept');
+    if (deptSelect && deptSelect.options.length <= 1) {
+        departments.forEach(d => deptSelect.innerHTML += `<option value="${d.id}">${d.name}</option>`);
+    }
+
+    // Get filter values
+    const filterCat = catSelect ? catSelect.value : 'All';
+    const filterDept = deptSelect ? deptSelect.value : 'All';
+    const filterEmp = document.getElementById('admin-rep-assets-filter-emp') ? document.getElementById('admin-rep-assets-filter-emp').value : 'All';
+    const filterStatus = document.getElementById('admin-rep-assets-filter-status') ? document.getElementById('admin-rep-assets-filter-status').value : 'All';
+
+    // Map user data for fast lookup
+    const userMap = {};
+    users.forEach(u => userMap[u.id] = u);
+
+    // Apply Filters
+    const filteredAssets = assets.filter(a => {
+        let matchCat = filterCat === 'All' || a.category === filterCat;
+        let matchStatus = filterStatus === 'All' || (a.status || 'Available') === filterStatus;
+        if (filterStatus === 'Assigned') matchStatus = matchStatus || a.status === 'Issued';
+        
+        // Employee matching logic
+        let assignedUser = userMap[a.assigned_to];
+        let assetDeptId = assignedUser ? assignedUser.department : null;
+
+        let matchEmp = filterEmp === 'All' || a.assigned_to === filterEmp;
+        let matchDept = filterDept === 'All' || assetDeptId == filterDept;
+
+        return matchCat && matchStatus && matchEmp && matchDept;
+    });
+
+    // Populate Section 1: Company Assets Summary
+    const summaryTbody = document.getElementById('admin-rep-assets-tbody-summary');
+    if (summaryTbody) {
+        let total = filteredAssets.length;
+        let assigned = filteredAssets.filter(a => a.status === 'Assigned' || a.status === 'Issued').length;
+        let available = filteredAssets.filter(a => !a.status || a.status === 'Available').length;
+        let damaged = filteredAssets.filter(a => a.status === 'Damaged').length;
+        let lost = filteredAssets.filter(a => a.status === 'Lost').length;
+
+        summaryTbody.innerHTML = `
+            <tr><td>Total Assets</td><td>${total}</td></tr>
+            <tr><td>Assigned Assets</td><td>${assigned}</td></tr>
+            <tr><td>Available Assets</td><td>${available}</td></tr>
+            <tr><td>Damaged Assets</td><td>${damaged}</td></tr>
+            <tr><td>Lost Assets</td><td>${lost}</td></tr>
+        `;
+    }
+
+    // Populate Section 2: Employee Asset Summary
+    const empSummaryTbody = document.getElementById('admin-rep-assets-tbody-employee');
+    if (empSummaryTbody) {
+        const empAssetCount = {};
+        filteredAssets.forEach(a => {
+            if (a.assigned_to && (a.status === 'Assigned' || a.status === 'Issued')) {
+                if (!empAssetCount[a.assigned_to]) {
+                    empAssetCount[a.assigned_to] = { count: 0, user: userMap[a.assigned_to] };
+                }
+                empAssetCount[a.assigned_to].count++;
+            }
+        });
+
+        const empRows = Object.values(empAssetCount).map(data => {
+            const u = data.user || { name: 'Unknown', id: 'Unknown', department: 'Unknown' };
+            const deptName = departments.find(d => d.id == u.department)?.name || 'Unknown';
+            return `<tr>
+                <td>${u.id || '-'}</td>
+                <td><strong style="color: #0f172a;">${u.name || '-'}</strong></td>
+                <td>${deptName}</td>
+                <td>${data.count}</td>
+                <td class="print-hide"><button class="btn btn-outline btn-sm" onclick="viewEmployeeAssignedAssetsReport('${u.id}')" style="font-size: 11px; padding: 4px 10px;"><i class="fa-solid fa-eye"></i> View Assets</button></td>
+            </tr>`;
+        }).join('');
+
+        empSummaryTbody.innerHTML = empRows || '<tr><td colspan="5" class="text-center text-muted py-4">No employees assigned assets with current filters.</td></tr>';
+    }
+
+    // Populate Section 3: Asset Register
+    const regTbody = document.getElementById('admin-rep-assets-tbody-register');
+    if (regTbody) {
+        const regRows = filteredAssets.map(a => {
+            const u = userMap[a.assigned_to] || {};
+            const deptName = departments.find(d => d.id == u.department)?.name || '-';
+            const status = a.status || 'Available';
+            const assignName = u.name || '-';
+            const aDate = a.assigned_date || '-';
+            
+            return `<tr>
+                <td>${a.id}</td>
+                <td><strong style="color: #0f172a;">${a.name || '-'}</strong></td>
+                <td>${a.category || '-'}</td>
+                <td>${assignName}</td>
+                <td>${deptName}</td>
+                <td>${aDate}</td>
+                <td><span class="ast-badge ${status}">${status}</span></td>
+                <td class="print-hide"><button class="btn btn-outline btn-sm" onclick="viewAssetDetailsReport('${a.id}')" style="font-size: 11px; padding: 4px 10px;">View Details</button></td>
+            </tr>`;
+        }).join('');
+
+        regTbody.innerHTML = regRows || '<tr><td colspan="8" class="text-center text-muted py-4">No assets found matching criteria.</td></tr>';
+    }
+
+    // Populate Section 4: Available Assets
+    const availTbody = document.getElementById('admin-rep-assets-tbody-available');
+    if (availTbody) {
+        const availAssets = filteredAssets.filter(a => !a.status || a.status === 'Available');
+        const availRows = availAssets.map(a => {
+            return `<tr>
+                <td>${a.id}</td>
+                <td><strong style="color: #0f172a;">${a.name || '-'}</strong></td>
+                <td>${a.category || '-'}</td>
+            </tr>`;
+        }).join('');
+
+        availTbody.innerHTML = availRows || '<tr><td colspan="3" class="text-center text-muted py-4">No available assets found.</td></tr>';
+    }
+};
+
+window.viewEmployeeAssignedAssetsReport = function(empId) {
+    const db = getDb();
+    const user = db.users.find(u => u.id == empId);
+    if (!user) return;
+
+    document.getElementById('rep-ast-emp-name').innerText = user.name || '-';
+    document.getElementById('rep-ast-emp-dept').innerText = (db.departments || []).find(d => d.id == user.department)?.name || '-';
+    document.getElementById('rep-ast-emp-desig').innerText = user.designation || '-';
+
+    const empAssets = (db.assets || []).filter(a => a.assigned_to == empId && (a.status === 'Assigned' || a.status === 'Issued'));
+    
+    const tbody = document.getElementById('rep-ast-emp-tbody');
+    tbody.innerHTML = empAssets.map(a => {
+        const status = a.status || 'Available';
+        return `<tr>
+            <td>${a.id}</td>
+            <td><strong style="color: #0f172a;">${a.name || '-'}</strong></td>
+            <td>${a.category || '-'}</td>
+            <td>${a.assigned_date || '-'}</td>
+            <td><span class="ast-badge ${status}">${status}</span></td>
+        </tr>`;
+    }).join('') || '<tr><td colspan="5" class="text-center py-4 text-muted">No assigned assets.</td></tr>';
+
+    openModal('modal-employee-assigned-assets');
+};
+
+window.viewAssetDetailsReport = function(assetId) {
+    const db = getDb();
+    const asset = (db.assets || []).find(a => a.id == assetId);
+    if (!asset) return;
+
+    const user = db.users.find(u => u.id == asset.assigned_to) || {};
+    const deptName = (db.departments || []).find(d => d.id == user.department)?.name || '-';
+
+    document.getElementById('rep-ast-det-id').innerText = asset.id || '-';
+    document.getElementById('rep-ast-det-name').innerText = asset.name || '-';
+    document.getElementById('rep-ast-det-cat').innerText = asset.category || '-';
+    document.getElementById('rep-ast-det-brand').innerText = asset.brand || '-';
+    document.getElementById('rep-ast-det-serial').innerText = asset.serial_number || '-';
+    document.getElementById('rep-ast-det-pdate').innerText = asset.purchase_date || '-';
+    document.getElementById('rep-ast-det-pcost').innerText = asset.purchase_cost ? 'Rs ' + parseFloat(asset.purchase_cost).toLocaleString() : '-';
+
+    document.getElementById('rep-ast-det-emp').innerText = user.name || '-';
+    document.getElementById('rep-ast-det-edept').innerText = deptName;
+    document.getElementById('rep-ast-det-adate').innerText = asset.assigned_date || '-';
+    document.getElementById('rep-ast-det-status').innerText = asset.status || 'Available';
+
+    openModal('modal-asset-details-report');
+};
+
+window.resetAdminAssetsFilters = function() {
+    ['admin-rep-assets-filter-cat', 'admin-rep-assets-filter-dept', 'admin-rep-assets-filter-emp', 'admin-rep-assets-filter-status'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = 'All';
+    });
+    generateAdminAssetsReport();
+};
+
+window.exportAdminAssetsExcel = function() {
+    if (typeof XLSX === 'undefined') {
+        alert("Excel export library is not loaded.");
+        return;
+    }
+    const wb = XLSX.utils.book_new();
+    
+    // Summary Tab
+    const sumTable = document.querySelector('#admin-rep-assets-tbody-summary').parentElement;
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.table_to_sheet(sumTable), "Company Summary");
+
+    // Employees Tab
+    const empTable = document.querySelector('#admin-rep-assets-tbody-employee').parentElement;
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.table_to_sheet(empTable), "Employee Summary");
+
+    // Register Tab
+    const regTable = document.querySelector('#admin-rep-assets-tbody-register').parentElement;
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.table_to_sheet(regTable), "Asset Register");
+
+    // Available Tab
+    const availTable = document.querySelector('#admin-rep-assets-tbody-available').parentElement;
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.table_to_sheet(availTable), "Available Assets");
+
+    XLSX.writeFile(wb, `Assets_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
+};
+
+window.exportAdminAssetsPDF = function() {
+    alert("Please use the 'Print Report' button and select 'Save as PDF' to generate the professional report.");
 };
