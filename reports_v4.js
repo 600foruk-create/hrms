@@ -3417,11 +3417,8 @@ window.viewAssetDetailsReport = function(assetId) {
             </div>
         </div>
         <div class="modal-body" style="padding: 0 25px 25px 25px;">
-            <div style="display: flex; gap: 30px; margin-bottom: 25px; margin-top: 15px;">
-                <div style="width: 220px; height: 180px; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; background: #f8fafc; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 50px; color: #cbd5e1;">
-                    <i class="fa-solid fa-laptop"></i>
-                </div>
-                <div style="display: grid; grid-template-columns: 160px 1fr; gap: 12px; font-size: 13px; font-weight: 700; width: 100%; align-content: start;">
+            <div style="display: flex; margin-bottom: 25px; margin-top: 15px;">
+                <div style="display: grid; grid-template-columns: 160px 1fr 160px 1fr; gap: 12px; font-size: 13px; font-weight: 700; width: 100%; align-content: start;">
                     <div style="color: #475569;">Asset ID</div>
                     <div style="color: #0f172a;">: ${asset.id || '-'}</div>
                     <div style="color: #475569;">Asset Name</div>
