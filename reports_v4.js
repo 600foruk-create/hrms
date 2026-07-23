@@ -3832,7 +3832,7 @@ window.generateAdminOtReport = function() {
                 <td>${shiftStr}</td>
                 <td>${hrs.toFixed(2)} hrs</td>
                 <td>${log.reason || '-'}</td>
-                <td><span class="badge ${bClass}">${log.status}</span></td>
+                <td><span class="${bClass}" style="display:inline-block; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;">${log.status}</span></td>
                 <td>${log.approvedBy || '-'}</td>
                 <td class="print-hide text-center"><button class="btn btn-outline-primary btn-sm" style="font-size: 11px; padding: 2px 8px;" onclick="window.showOtReportDetails(this)" data-log="${logJson}"><i class="fa-solid fa-eye"></i> View</button></td>
             </tr>
@@ -3936,7 +3936,7 @@ window.showOtReportDetails = function(btn) {
     document.getElementById('det-ot-normal').innerText = '8.00 hrs'; // mocked
     document.getElementById('det-ot-hours').innerText = parseFloat(log.hours||0).toFixed(2) + ' hrs';
     
-    document.getElementById('det-ot-status').innerHTML = `<span class="badge ${log.status === 'Approved' ? 'bg-success' : (log.status === 'Rejected' ? 'bg-danger' : 'bg-warning text-dark')}">${log.status}</span>`;
+    document.getElementById('det-ot-status').innerHTML = `<span class="${log.status === 'Approved' ? 'bg-success' : (log.status === 'Rejected' ? 'bg-danger' : 'bg-warning text-dark')}" style="display:inline-block; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;">${log.status}</span>`;
     document.getElementById('det-ot-appr-by').innerText = log.approvedBy || '-';
     document.getElementById('det-ot-appr-date').innerText = log.status === 'Approved' ? new Date(log.date).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'}) : '-';
     

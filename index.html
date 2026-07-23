@@ -5124,45 +5124,25 @@
 
                                 <!-- Summary Cards -->
                                 <div class="metrics-grid mb-4 print-hide" style="grid-template-columns: repeat(4, 1fr); gap: 15px;">
-                                    <div class="metric-card bg-glass" style="padding: 15px; display: flex; align-items: center; gap: 15px; border-radius: 8px;">
-                                        <div style="background: #eff6ff; color: #3b82f6; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
-                                            <i class="fa-solid fa-clock-rotate-left"></i>
-                                        </div>
-                                        <div>
-                                            <div class="text-secondary" style="font-size: 11px; font-weight: 600;">Total OT Records</div>
-                                            <div class="metric-value" id="ot-summary-records" style="font-size: 20px; font-weight: 700; color: #1e293b;">0</div>
-                                            <div style="font-size: 10px; color: #64748b;">Total overtime entries</div>
-                                        </div>
+                                    <div class="metric-card bg-glass" style="padding: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border-radius: 8px;">
+                                        <div class="text-secondary" style="font-size: 12px; font-weight: 600;">Total OT Records</div>
+                                        <div class="metric-value" id="ot-summary-records" style="font-size: 24px; font-weight: 700; color: #1e293b; margin-top: 5px;">0</div>
+                                        <div style="font-size: 10px; color: #64748b;">Total overtime entries</div>
                                     </div>
-                                    <div class="metric-card bg-glass" style="padding: 15px; display: flex; align-items: center; gap: 15px; border-radius: 8px;">
-                                        <div style="background: #f0fdf4; color: #22c55e; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
-                                            <i class="fa-regular fa-clock"></i>
-                                        </div>
-                                        <div>
-                                            <div class="text-secondary" style="font-size: 11px; font-weight: 600;">Total OT Hours</div>
-                                            <div class="metric-value" id="ot-summary-hours" style="font-size: 20px; font-weight: 700; color: #1e293b;">0.00 hrs</div>
-                                            <div style="font-size: 10px; color: #64748b;">Total overtime hours</div>
-                                        </div>
+                                    <div class="metric-card bg-glass" style="padding: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border-radius: 8px;">
+                                        <div class="text-secondary" style="font-size: 12px; font-weight: 600;">Total OT Hours</div>
+                                        <div class="metric-value" id="ot-summary-hours" style="font-size: 24px; font-weight: 700; color: #1e293b; margin-top: 5px;">0.00 hrs</div>
+                                        <div style="font-size: 10px; color: #64748b;">Total overtime hours</div>
                                     </div>
-                                    <div class="metric-card bg-glass" style="padding: 15px; display: flex; align-items: center; gap: 15px; border-radius: 8px;">
-                                        <div style="background: #faf5ff; color: #a855f7; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
-                                            <i class="fa-solid fa-check-circle"></i>
-                                        </div>
-                                        <div>
-                                            <div class="text-secondary" style="font-size: 11px; font-weight: 600;">Approved OT Hours</div>
-                                            <div class="metric-value" id="ot-summary-approved" style="font-size: 20px; font-weight: 700; color: #1e293b;">0.00 hrs</div>
-                                            <div style="font-size: 10px; color: #64748b;">Approved overtime hours</div>
-                                        </div>
+                                    <div class="metric-card bg-glass" style="padding: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border-radius: 8px;">
+                                        <div class="text-secondary" style="font-size: 12px; font-weight: 600;">Approved OT Hours</div>
+                                        <div class="metric-value" id="ot-summary-approved" style="font-size: 24px; font-weight: 700; color: #1e293b; margin-top: 5px;">0.00 hrs</div>
+                                        <div style="font-size: 10px; color: #64748b;">Approved overtime hours</div>
                                     </div>
-                                    <div class="metric-card bg-glass" style="padding: 15px; display: flex; align-items: center; gap: 15px; border-radius: 8px;">
-                                        <div style="background: #fff7ed; color: #f97316; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
-                                            <i class="fa-regular fa-clock"></i>
-                                        </div>
-                                        <div>
-                                            <div class="text-secondary" style="font-size: 11px; font-weight: 600;">Pending OT Hours</div>
-                                            <div class="metric-value" id="ot-summary-pending" style="font-size: 20px; font-weight: 700; color: #1e293b;">0.00 hrs</div>
-                                            <div style="font-size: 10px; color: #64748b;">Pending overtime hours</div>
-                                        </div>
+                                    <div class="metric-card bg-glass" style="padding: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border-radius: 8px;">
+                                        <div class="text-secondary" style="font-size: 12px; font-weight: 600;">Pending OT Hours</div>
+                                        <div class="metric-value" id="ot-summary-pending" style="font-size: 24px; font-weight: 700; color: #1e293b; margin-top: 5px;">0.00 hrs</div>
+                                        <div style="font-size: 10px; color: #64748b;">Pending overtime hours</div>
                                     </div>
                                 </div>
 
@@ -5171,7 +5151,7 @@
                                     <div class="section-card-header print-hide" style="border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 0;">
                                         <h3 style="margin: 0; font-size: 16px;">Overtime Register</h3>
                                     </div>
-                                    <div class="table-container printable-area" id="print-table-admin-ot" style="max-height: 400px; overflow-y: auto; overflow-x: auto;">
+                                    <div class="table-container printable-area" id="print-table-admin-ot" style="height: 400px; overflow-y: auto; overflow-x: auto;">
                                         <div class="print-header hidden" style="text-align: center; margin-bottom: 20px;">
                                             <h1 style="margin: 0 0 10px 0;">Employee Overtime Report</h1>
                                             <p id="print-subtitle-admin-ot" style="color: #666; font-size: 14px; margin: 0;"></p>
