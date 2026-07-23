@@ -3291,24 +3291,26 @@ window.viewEmployeeAssignedAssetsReport = function(empId) {
             <td style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0;">${a.category || '-'}</td>
             <td style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0;">${assignDate}</td>
             <td style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0;"><span class="ast-badge ${status}" style="background: #dcfce7; color: #16a34a; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;">${status}</span></td>
-            <td style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0;"><span style="color: #16a34a; font-weight: 600;">Good</span></td>
-            <td style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0;" class="text-center"><button class="btn btn-outline btn-sm" onclick="viewAssetDetailsReport('${a.id}')" style="font-size: 11px; padding: 4px 10px; color:#2563eb; border-color:#bfdbfe; background: #eff6ff; font-weight:600;"><i class="fa-solid fa-eye"></i> View Details</button></td>
         </tr>`;
-    }).join('') || '<tr><td colspan="8" class="text-center text-muted" style="padding: 15px;">No assets assigned</td></tr>';
+    }).join('') || '<tr><td colspan="6" class="text-center text-muted" style="padding: 15px;">No assets assigned</td></tr>';
 
     const oldModal = document.getElementById('modal-employee-assigned-assets');
     if (oldModal) oldModal.remove();
 
+    const profileImgHtml = user.profilePic ? 
+        `<img src="${user.profilePic}" style="width: 100%; height: 100%; object-fit: cover;" alt="Profile Picture">` : 
+        `<i class="fa-solid fa-user"></i>`;
+
     const modalHtml = `
-    <div id="modal-employee-assigned-assets" class="modal hidden" style="width: 850px; max-width: 95vw; z-index: 10005; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
-        <div class="modal-header" style="background: #fff; border-bottom: none; padding: 25px 25px 15px 25px; display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 0;">Employee Assets</h3>
-            <button class="btn-close" onclick="closeModal('modal-employee-assigned-assets')" style="color: #64748b; background: none; border: none; font-size: 18px; cursor: pointer;"><i class="fa-solid fa-times"></i></button>
+    <div id="modal-employee-assigned-assets" class="modal hidden" style="width: 850px; max-width: 95vw; z-index: 10005;">
+        <div class="modal-header">
+            <h3>Employee Assets</h3>
+            <button class="modal-close" onclick="closeModal('modal-employee-assigned-assets')"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div class="modal-body" style="padding: 0 25px 25px 25px;">
+        <div class="modal-body" style="padding: 20px 25px;">
             <div style="display: flex; gap: 30px; align-items: center; margin-bottom: 25px;">
                 <div style="width: 110px; height: 110px; border-radius: 50%; overflow: hidden; border: 1px solid #e2e8f0; background: #f8fafc; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #cbd5e1;" id="rep-ast-emp-img">
-                    <i class="fa-solid fa-user"></i>
+                    ${profileImgHtml}
                 </div>
                 <div style="display: grid; grid-template-columns: 140px 1fr; gap: 14px; font-size: 14px; font-weight: 700;">
                     <div style="color: #475569;">Employee ID</div>
@@ -3335,8 +3337,6 @@ window.viewEmployeeAssignedAssetsReport = function(empId) {
                             <th style="padding: 12px 15px;">Category</th>
                             <th style="padding: 12px 15px;">Assign Date</th>
                             <th style="padding: 12px 15px;">Status</th>
-                            <th style="padding: 12px 15px;">Condition</th>
-                            <th style="padding: 12px 15px;" class="text-center">Action</th>
                         </tr>
                     </thead>
                     <tbody id="rep-ast-emp-tbody"></tbody>
@@ -3364,7 +3364,7 @@ window.viewEmployeeAssignedAssetsReport = function(empId) {
     document.getElementById('rep-ast-emp-total-qty').innerText = empAssets.length;
     document.getElementById('rep-ast-emp-total-val').innerText = totalVal.toLocaleString();
     
-    document.getElementById('rep-ast-emp-tbody').innerHTML = tbodyHtml || '<tr><td colspan="8" class="text-center text-muted" style="padding: 15px;">No assets assigned</td></tr>';
+    document.getElementById('rep-ast-emp-tbody').innerHTML = tbodyHtml || '<tr><td colspan="6" class="text-center text-muted" style="padding: 15px;">No assets assigned</td></tr>';
 
     openModal('modal-employee-assigned-assets');
 };
