@@ -261,7 +261,7 @@ window.addInlineMainCat = async function() {
         db.systemSettings.assetCategories = db.systemSettings.assetCategories || [];
         if (!db.systemSettings.assetCategories.includes(catName)) {
             db.systemSettings.assetCategories.push(catName);
-            window.saveDb();
+            window.saveDb(db);
             window.selectedMainCategory = catName;
             if (window.renderAdminAssetsTab) window.renderAdminAssetsTab('inventory');
             if (window.showToast) window.showToast('Main Category added', 'success');
@@ -295,7 +295,7 @@ window.editInlineMainCat = async function() {
             db.assets.forEach(a => { if (a.category === oldName) a.category = newName; });
         }
         window.selectedMainCategory = newName;
-        window.saveDb();
+        window.saveDb(db);
         if (window.renderAdminAssetsTab) window.renderAdminAssetsTab('inventory');
         if (window.showToast) window.showToast('Main Category updated', 'success');
     }
@@ -330,7 +330,7 @@ window.deleteInlineMainCat = async function() {
         }
         window.selectedMainCategory = null;
         window.selectedSubCategory = null;
-        window.saveDb();
+        window.saveDb(db);
         if (window.renderAdminAssetsTab) window.renderAdminAssetsTab('inventory');
         if (window.showToast) window.showToast('Main Category deleted', 'success');
     }
@@ -353,7 +353,7 @@ window.addInlineSubCat = async function() {
         }
         if (!db.systemSettings.assetSubCategories[window.selectedMainCategory].includes(subCatName)) {
             db.systemSettings.assetSubCategories[window.selectedMainCategory].push(subCatName);
-            window.saveDb();
+            window.saveDb(db);
             window.selectedSubCategory = subCatName;
             if (window.renderAdminAssetsTab) window.renderAdminAssetsTab('inventory');
             if (window.showToast) window.showToast('Sub Category added', 'success');
@@ -384,7 +384,7 @@ window.editInlineSubCat = async function() {
             db.assets.forEach(a => { if (a.category === mainCat && a.sub_category === oldName) a.sub_category = newName; });
         }
         window.selectedSubCategory = newName;
-        window.saveDb();
+        window.saveDb(db);
         if (window.renderAdminAssetsTab) window.renderAdminAssetsTab('inventory');
         if (window.showToast) window.showToast('Sub Category updated', 'success');
     }
@@ -415,7 +415,7 @@ window.deleteInlineSubCat = async function() {
             });
         }
         window.selectedSubCategory = null;
-        window.saveDb();
+        window.saveDb(db);
         if (window.renderAdminAssetsTab) window.renderAdminAssetsTab('inventory');
         if (window.showToast) window.showToast('Sub Category deleted', 'success');
     }
