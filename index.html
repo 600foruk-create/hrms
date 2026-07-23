@@ -9466,6 +9466,65 @@
         </div>
     </div>
     
+
+    <!-- Overtime Details Modal -->
+    <div id="modal-report-ot-details" class="modal hidden" style="z-index: 10000; width: 650px; max-width: 95vw;">
+        <div class="modal-header">
+            <h3>Overtime Details</h3>
+            <button class="modal-close" onclick="closeModal('modal-report-ot-details')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <div id="print-area-ot-slip" class="printable-area">
+                <div class="print-header hidden" style="text-align: center; margin-bottom: 20px;">
+                    <h1 style="margin: 0 0 10px 0;">Employee Overtime Slip</h1>
+                </div>
+                
+                <div style="color: #1d4ed8; padding: 0 0 8px 0; font-weight: 600; font-size: 14px; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-regular fa-user"></i> Employee Information
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; font-size: 13px; color: #1e293b; padding-left: 5px;">
+                    <div style="display: flex;"><div style="width: 140px; font-weight: 600;">Employee Name</div><div style="width: 20px;">:</div><div id="det-ot-emp-name" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 140px; font-weight: 600;">Department</div><div style="width: 20px;">:</div><div id="det-ot-dept" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 140px; font-weight: 600;">Employee ID</div><div style="width: 20px;">:</div><div id="det-ot-emp-id" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 140px; font-weight: 600;">Designation</div><div style="width: 20px;">:</div><div id="det-ot-desig" style="flex: 1;">-</div></div>
+                </div>
+
+                <div style="color: #1d4ed8; padding: 0 0 8px 0; font-weight: 600; font-size: 14px; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-regular fa-clock"></i> Overtime Information
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; font-size: 13px; color: #1e293b; padding-left: 5px;">
+                    <div style="display: flex;"><div style="width: 140px; font-weight: 600;">OT Date</div><div style="width: 20px;">:</div><div id="det-ot-date" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 140px; font-weight: 600;">Check Out Time</div><div style="width: 20px;">:</div><div id="det-ot-out" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 140px; font-weight: 600;">Shift</div><div style="width: 20px;">:</div><div id="det-ot-shift" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 140px; font-weight: 600;">Normal Working Hours</div><div style="width: 20px;">:</div><div id="det-ot-normal" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 140px; font-weight: 600;">Check In Time</div><div style="width: 20px;">:</div><div id="det-ot-in" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 140px; font-weight: 600;">Overtime Hours</div><div style="width: 20px;">:</div><div id="det-ot-hours" style="flex: 1; font-weight: 700;">-</div></div>
+                </div>
+
+                <div style="color: #1d4ed8; padding: 0 0 8px 0; font-weight: 600; font-size: 14px; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-shield-halved"></i> Approval Information
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; font-size: 13px; color: #1e293b; padding-left: 5px;">
+                    <div style="display: flex;"><div style="width: 140px; font-weight: 600;">Status</div><div style="width: 20px;">:</div><div id="det-ot-status" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 140px; font-weight: 600;">Approved By</div><div style="width: 20px;">:</div><div id="det-ot-appr-by" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 140px; font-weight: 600;">Approval Date</div><div style="width: 20px;">:</div><div id="det-ot-appr-date" style="flex: 1;">-</div></div>
+                </div>
+
+                <div style="color: #1d4ed8; padding: 0 0 8px 0; font-weight: 600; font-size: 14px; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-regular fa-comment-dots"></i> Reason & Remarks
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 10px; font-size: 13px; color: #1e293b; padding-left: 5px;">
+                    <div style="display: flex;"><div style="width: 140px; font-weight: 600;">Employee Reason</div><div style="width: 20px;">:</div><div id="det-ot-reason" style="flex: 1;">-</div></div>
+                    <div style="display: flex;"><div style="width: 140px; font-weight: 600;">Manager Remarks</div><div style="width: 20px;">:</div><div id="det-ot-remarks" style="flex: 1;">-</div></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button class="btn btn-outline modal-close" onclick="closeModal('modal-report-ot-details')">Close</button>
+            <button class="btn btn-primary" onclick="if(window.printOtSlip) window.printOtSlip()"><i class="fa-solid fa-print"></i> Print</button>
+        </div>
+    </div>
+
     <!-- 11. Issue Loan Modal -->
     <div id="modal-issue-loan" class="modal hidden">
         <div class="modal-header">

@@ -3944,9 +3944,8 @@ window.showOtReportDetails = function(btn) {
     document.getElementById('det-ot-reason').innerText = log.reason || '-';
     document.getElementById('det-ot-remarks').innerText = log.managerRemarks || '-';
     
-    // Toggle views
-    document.getElementById('ot-report-main-view').classList.add('hidden');
-    document.getElementById('ot-report-details-view').classList.remove('hidden');
+    // Open Modal
+    if(typeof openModal === 'function') openModal('modal-report-ot-details');
 };
 
 window.hideOtReportDetails = function() {
