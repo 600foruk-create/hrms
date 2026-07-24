@@ -3815,13 +3815,13 @@ window.generateAdminOtReport = function() {
         let bClass = log.status === 'Approved' ? 'bg-success' : (log.status === 'Rejected' ? 'bg-danger' : 'bg-warning text-dark');
         let shiftStr = log.shift || 'General';
         
-        // Escape quotes for json string
-        let logJson = JSON.stringify({
+        // Use encodeURIComponent to be completely safe in HTML attributes
+        let logJson = encodeURIComponent(JSON.stringify({
             ...log,
             employeeName: u.name,
             department: u.department,
             designation: u.designation || '-'
-        }).replace(/"/g, '&quot;');
+        }));
 
         html += `
             <tr>
@@ -3922,7 +3922,17 @@ window.resetAdminOtFilters = function() {
 window.showOtReportDetails = function(btn) {
     const logStr = btn.getAttribute('data-log');
     if (!logStr) return;
-    const log = JSON.parse(logStr);
+    let log = {};
+    try {
+        log = JSON.parse(decodeURIComponent(logStr));
+    } catch(e) {
+        try {
+            log = JSON.parse(logStr); // fallback if it was already decoded by browser somehow
+        } catch(e2) {
+            console.error("Failed to parse log data", e2);
+            return;
+        }
+    }
     
     // Set data
     document.getElementById('det-ot-emp-name').innerText = log.employeeName || '-';
