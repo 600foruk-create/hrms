@@ -3217,9 +3217,10 @@
 
                         <!-- Sub Tab 2: Employees Report -->
                         <div id="subtab-content-admin-report-employees" class="sub-tab-content hidden">
-                            <div class="section-card bg-glass flex-table-card">
-                                <div class="section-card-header report-filters-header"
-                                    style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 15px;">
+                            <!-- Filter Section -->
+                            <div class="section-card bg-glass mb-4 print-hide" style="padding: 15px;">
+                                <div class="report-filters-header"
+                                    style="display: flex; justify-content: space-between; align-items: flex-end;">
                                     <div style="display: flex; gap: 10px; flex-wrap: nowrap; align-items: flex-end; flex: 1; overflow-x: auto; padding-bottom: 5px;">
                                         <div class="form-group" style="margin-bottom: 0; min-width: 140px;">
                                             <label>Search Employee</label>
@@ -3273,6 +3274,7 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
 
     <!-- Employee Summary Cards (Moved to middle) -->
                             <!-- Employee Summary Cards -->
@@ -3294,6 +3296,9 @@
                                     <div class="metric-value text-info" id="admin-rep-emp-new" style="font-size: 20px;">0</div>
                                 </div>
                             </div>
+                            
+                            <!-- Table Section -->
+                            <div class="section-card bg-glass flex-table-card" style="padding: 0;">
                                 <div class="table-container printable-area" id="print-area-admin-employees">
                                     <div class="print-header hidden">
                                         <h2>Company Employees Report</h2>
