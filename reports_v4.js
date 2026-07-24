@@ -863,22 +863,36 @@ function calculateExperience(joinDateStr) {
     const joinDate = new Date(joinDateStr);
     if(isNaN(joinDate.getTime())) return 'N/A';
     const now = new Date();
+    
     let years = now.getFullYear() - joinDate.getFullYear();
     let months = now.getMonth() - joinDate.getMonth();
+    let days = now.getDate() - joinDate.getDate();
+    
+    if (days < 0) {
+        months--;
+        const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+        days += prevMonth.getDate();
+    }
+    
     if (months < 0) {
         years--;
         months += 12;
     }
+    
     if (years < 0) return 'N/A';
-    if (years === 0 && months === 0) return 'Just Joined';
-    if (years === 0) return months + (months === 1 ? ' month' : ' months');
-    if (months === 0) return years + (years === 1 ? ' year' : ' years');
-    return years + ' yr ' + months + ' mo';
+    
+    let parts = [];
+    if (years > 0) parts.push(years + (years === 1 ? ' year' : ' years'));
+    if (months > 0) parts.push(months + (months === 1 ? ' month' : ' months'));
+    if (days > 0) parts.push(days + (days === 1 ? ' day' : ' days'));
+    
+    if (parts.length === 0) return 'Just Joined';
+    return parts.join(' ');
 }
 
 window.exportEmployeeReportCSV = function() {
     const db = getDb();
-    let csv = 'Emp ID,Name,Department,Role,Manager,Email,Phone,Join Date,Experience,Emp Type,Status\n';
+    let csv = 'Emp ID,Name,Department,Designation,Role,Manager,Email,Phone,Join Date,Experience,Emp Type,Status\n';
     
     // Use same filters as current view
     const search = (document.getElementById('admin-rep-emp-search')?.value || '').toLowerCase();
@@ -909,7 +923,7 @@ window.exportEmployeeReportCSV = function() {
         const uJoinDate = u.joiningDate || u.startDate || 'N/A';
         const uEmpType = u.employmentType || 'Permanent';
         const uExperience = calculateExperience(uJoinDate);
-        csv += `${u.id},"${u.name}",${u.department||'N/A'},${u.role},${mgrName},${u.email},${u.phone||'N/A'},${uJoinDate},"${uExperience}",${uEmpType},${uStatus}\n`;
+        csv += `${u.id},"${u.name}",${u.department||'N/A'},${u.designation||'N/A'},${u.role},${mgrName},${u.email},${u.phone||'N/A'},${uJoinDate},"${uExperience}",${uEmpType},${uStatus}\n`;
     });
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
