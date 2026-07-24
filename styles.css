@@ -2682,12 +2682,16 @@ body.light-mode .team-leader {
 .flex-table-card .data-table thead th {
     position: sticky;
     top: 0;
-    background: #12182b !important;
+    background: var(--bg-base) !important;
+    border-bottom: 2px solid var(--border-color-bold) !important;
+    color: var(--text-primary) !important;
     z-index: 10;
 }
 
 body.light-mode .flex-table-card .data-table thead th {
-    background: #ffffff !important;
+    background: var(--bg-base) !important;
+    border-bottom: 2px solid var(--border-color-bold) !important;
+    color: var(--text-primary) !important;
 }
 
 /* Custom Toggle Switch */
